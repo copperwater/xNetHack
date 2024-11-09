@@ -77,7 +77,7 @@ door_into_nonjoined(coordxy x, coordxy y)
     for (i = 0; i < 4; i++) {
         tx = x + xdir[dirs_ord[i]];
         ty = y + ydir[dirs_ord[i]];
-        if (!isok(tx, ty) || IS_ROCK(levl[tx][ty].typ))
+        if (!isok(tx, ty) || IS_OBSTRUCTED(levl[tx][ty].typ))
             continue;
 
         /* Is this connecting to a room that doesn't want joining? */
@@ -1621,10 +1621,10 @@ okdoor(coordxy x, coordxy y)
     boolean near_door = bydoor(x, y);
 
     return ((levl[x][y].typ == HWALL || levl[x][y].typ == VWALL)
-            && ((isok(x - 1, y) && !IS_ROCK(levl[x - 1][y].typ))
-                || (isok(x + 1, y) && !IS_ROCK(levl[x + 1][y].typ))
-                || (isok(x, y - 1) && !IS_ROCK(levl[x][y - 1].typ))
-                || (isok(x, y + 1) && !IS_ROCK(levl[x][y + 1].typ)))
+            && ((isok(x - 1, y) && !IS_OBSTRUCTED(levl[x - 1][y].typ))
+                || (isok(x + 1, y) && !IS_OBSTRUCTED(levl[x + 1][y].typ))
+                || (isok(x, y - 1) && !IS_OBSTRUCTED(levl[x][y - 1].typ))
+                || (isok(x, y + 1) && !IS_OBSTRUCTED(levl[x][y + 1].typ)))
             && !near_door);
 }
 

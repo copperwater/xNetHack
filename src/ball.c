@@ -609,7 +609,7 @@ drag_ball(coordxy x, coordxy y, int *bc_control,
     (distmin(x, y, chx, chy) <= 1 \
      && distmin(chx, chy, uball->ox, uball->oy) <= 1)
 #define IS_CHAIN_ROCK(x, y)      \
-    (IS_ROCK(levl[x][y].typ)     \
+    (IS_OBSTRUCTED(levl[x][y].typ)     \
      || (IS_DOOR(levl[x][y].typ) \
          && (levl[x][y].doormask & (D_CLOSED | D_LOCKED))))
     /*

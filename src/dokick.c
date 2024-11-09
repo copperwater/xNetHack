@@ -612,9 +612,9 @@ really_kick_object(coordxy x, coordxy y)
     Norep("You kick %s.",
           !isgold ? singular(gk.kickedobj, doname) : doname(gk.kickedobj));
 
-    if (IS_ROCK(levl[x][y].typ) || closed_door(x, y)) {
+    if (IS_OBSTRUCTED(levl[x][y].typ) || closed_door(x, y)) {
         if ((!martial() && rn2(20) > ACURR(A_DEX))
-            || IS_ROCK(levl[u.ux][u.uy].typ) || closed_door(u.ux, u.uy)) {
+            || IS_OBSTRUCTED(levl[u.ux][u.uy].typ) || closed_door(u.ux, u.uy)) {
             if (Blind)
                 pline("It doesn't come loose.");
             else
@@ -805,7 +805,7 @@ kickstr(char *buf, const char *kickobjnam)
         what = "a tree";
     else if (IS_STWALL(gm.maploc->typ))
         what = "a wall";
-    else if (IS_ROCK(gm.maploc->typ))
+    else if (IS_OBSTRUCTED(gm.maploc->typ))
         what = "a rock";
     else if (IS_THRONE(gm.maploc->typ))
         what = "a throne";
@@ -1360,7 +1360,7 @@ dokick(void)
          * reachable for bracing purposes
          * Possible extension: allow bracing against stuff on the side?
          */
-        if (isok(xx, yy) && !IS_ROCK(levl[xx][yy].typ)
+        if (isok(xx, yy) && !IS_OBSTRUCTED(levl[xx][yy].typ)
             && !IS_DOOR(levl[xx][yy].typ)
             && (!Is_airlevel(&u.uz) || !OBJ_AT(xx, yy))) {
             You("have nothing to brace yourself against.");

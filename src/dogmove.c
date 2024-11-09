@@ -1362,7 +1362,7 @@ can_reach_location(
                 continue;
             if (dist2(i, j, fx, fy) >= dist)
                 continue;
-            if (IS_ROCK(levl[i][j].typ) && !passes_walls(mon->data)
+            if (IS_OBSTRUCTED(levl[i][j].typ) && !passes_walls(mon->data)
                 && (!may_dig(i, j) || !tunnels(mon->data)
                     /* tunnelling monsters can't do that on the rogue level */
                     || Is_rogue_level(&u.uz)))

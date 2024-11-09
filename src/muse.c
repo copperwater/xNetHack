@@ -1840,7 +1840,7 @@ use_offensive(struct monst *mtmp)
             for (y = mmy - 1; y <= mmy + 1; y++) {
                 /* Is this a suitable spot? */
                 if (isok(x, y) && !closed_door(x, y)
-                    && !IS_ROCK(levl[x][y].typ) && !IS_AIR(levl[x][y].typ)
+                    && !IS_OBSTRUCTED(levl[x][y].typ) && !IS_AIR(levl[x][y].typ)
                     && (((x == mmx) && (y == mmy)) ? !is_blessed : !is_cursed)
                     && (x != u.ux || y != u.uy)) {
                     (void) drop_boulder_on_monster(x, y, confused, FALSE);

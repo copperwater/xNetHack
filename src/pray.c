@@ -169,7 +169,7 @@ stuck_in_wall(void)
                 continue;
             y = u.uy + j;
             if (!isok(x, y)
-                || (IS_ROCK(levl[x][y].typ)
+                || (IS_OBSTRUCTED(levl[x][y].typ)
                     && (levl[x][y].typ != SDOOR && levl[x][y].typ != SCORR))
                 || (blocked_boulder(i, j) && !throws_rocks(gy.youmonst.data)))
                 ++count;
@@ -2633,7 +2633,7 @@ blocked_boulder(int dx, int dy)
         return TRUE;
     if (!isok(nx, ny))
         return TRUE;
-    if (IS_ROCK(levl[nx][ny].typ))
+    if (IS_OBSTRUCTED(levl[nx][ny].typ))
         return TRUE;
     if (sobj_at(BOULDER, nx, ny))
         return TRUE;

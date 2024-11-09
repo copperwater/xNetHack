@@ -151,8 +151,8 @@ could_move_onto_boulder(coordxy sx, coordxy sy)
     /* can if a giant, unless doing so allows hero to pass into a
        diagonal squeeze at the same time */
     if (throws_rocks(gy.youmonst.data))
-        return (!u.dx || !u.dy || !(IS_ROCK(levl[u.ux][sy].typ)
-                                    && IS_ROCK(levl[sx][u.uy].typ)));
+        return (!u.dx || !u.dy || !(IS_OBSTRUCTED(levl[u.ux][sy].typ)
+                                    && IS_OBSTRUCTED(levl[sx][u.uy].typ)));
     /* can if tiny (implies carrying very little else couldn't move at all) */
     if (verysmall(gy.youmonst.data))
         return TRUE;
@@ -427,7 +427,7 @@ moverock_core(coordxy sx, coordxy sy)
             pline("You're too small to push that %s.", xname(otmp));
             return cannot_push(otmp, sx, sy);
         }
-        if (isok(rx, ry) && !IS_ROCK(levl[rx][ry].typ)
+        if (isok(rx, ry) && !IS_OBSTRUCTED(levl[rx][ry].typ)
             && levl[rx][ry].typ != IRONBARS
             && (!IS_DOOR(levl[rx][ry].typ) || !(u.dx && u.dy)
                 || doorless_door(rx, ry)) && !sobj_at(BOULDER, rx, ry)) {
@@ -632,7 +632,7 @@ still_chewing(coordxy x, coordxy y)
                       sizeof (struct dig_info));
 
     if (!boulder
-        && ((IS_ROCK(lev->typ) && !may_dig(x, y))
+        && ((IS_OBSTRUCTED(lev->typ) && !may_dig(x, y))
             /* may_dig() checks W_NONDIGGABLE but doesn't handle iron bars */
             || (lev->typ == IRONBARS && (lev->wall_info & W_NONDIGGABLE)))) {
         You("hurt your teeth on the %s.",
@@ -661,7 +661,7 @@ still_chewing(coordxy x, coordxy y)
         assign_level(&svc.context.digging.level, &u.uz);
         /* solid rock takes more work & time to dig through */
         svc.context.digging.effort =
-            (IS_ROCK(lev->typ) && !IS_TREE(lev->typ) ? 30 : 60) + u.udaminc;
+            (IS_OBSTRUCTED(lev->typ) && !IS_TREE(lev->typ) ? 30 : 60) + u.udaminc;
         You("start chewing %s %s.",
             (boulder || IS_TREE(lev->typ) || lev->typ == IRONBARS)
                 ? "on a"
@@ -670,7 +670,7 @@ still_chewing(coordxy x, coordxy y)
                 ? "boulder"
                 : IS_TREE(lev->typ)
                     ? "tree"
-                    : IS_ROCK(lev->typ)
+                    : IS_OBSTRUCTED(lev->typ)
                         ? "rock"
                         : (lev->typ == IRONBARS)
                             ? "bar"
@@ -685,7 +685,7 @@ still_chewing(coordxy x, coordxy y)
                     ? "boulder"
                     : IS_TREE(lev->typ)
                         ? "tree"
-                        : IS_ROCK(lev->typ)
+                        : IS_OBSTRUCTED(lev->typ)
                             ? "rock"
                             : (lev->typ == IRONBARS)
                                 ? "bars"
@@ -701,7 +701,7 @@ still_chewing(coordxy x, coordxy y)
                        "ate for the first time, by chewing through %s",
                        boulder ? "a boulder"
                        : IS_TREE(lev->typ) ? "a tree"
-                         : IS_ROCK(lev->typ) ? "rock"
+                         : IS_OBSTRUCTED(lev->typ) ? "rock"
                            : (lev->typ == IRONBARS) ? "iron bars"
                              : "a door");
     u.uhunger += rnd(20);
@@ -717,7 +717,7 @@ still_chewing(coordxy x, coordxy y)
          *
          *  [perhaps use does_block() below (from vision.c)]
          */
-        if (IS_ROCK(lev->typ) || closed_door(x, y)
+        if (IS_OBSTRUCTED(lev->typ) || closed_door(x, y)
             || sobj_at(BOULDER, x, y)) {
             block_point(x, y); /* delobj will unblock the point */
             /* reset dig state */
@@ -916,7 +916,7 @@ boolean
 bad_rock(struct permonst *mdat, coordxy x, coordxy y)
 {
     return (boolean) ((Sokoban && sobj_at(BOULDER, x, y))
-                      || (IS_ROCK(levl[x][y].typ)
+                      || (IS_OBSTRUCTED(levl[x][y].typ)
                           && (!tunnels(mdat) || needspick(mdat)
                               || !may_dig(x, y))
                           && !(passes_walls(mdat) && may_passwall(x, y))));
@@ -979,7 +979,7 @@ test_move(
     /*
      *  Check for physical obstacles.  First, the place we are going.
      */
-    if (IS_ROCK(tmpr->typ) || tmpr->typ == IRONBARS) {
+    if (IS_OBSTRUCTED(tmpr->typ) || tmpr->typ == IRONBARS) {
         if (Blind && mode == DO_MOVE)
             feel_location(x, y);
         if (Passes_walls && may_passwall(x, y)) {
@@ -2878,7 +2878,7 @@ domove_core(void)
     reset_occupations();
     if (svc.context.run) {
         if (svc.context.run < 8)
-            if (IS_DOOR(tmpr->typ) || IS_ROCK(tmpr->typ)
+            if (IS_DOOR(tmpr->typ) || IS_OBSTRUCTED(tmpr->typ)
                 || IS_FURNITURE(tmpr->typ))
                 nomul(0);
     }
@@ -3033,7 +3033,7 @@ void
 switch_terrain(void)
 {
     struct rm *lev = &levl[u.ux][u.uy];
-    boolean blocklev = (IS_ROCK(lev->typ) || closed_door(u.ux, u.uy)
+    boolean blocklev = (IS_OBSTRUCTED(lev->typ) || closed_door(u.ux, u.uy)
                         || IS_WATERWALL(lev->typ)
                         || lev->typ == LAVAWALL),
             was_levitating = !!Levitation, was_flying = !!Flying;
@@ -3801,7 +3801,7 @@ lookaround(void)
             }
 
             /* more uninteresting terrain */
-            if (IS_ROCK(levl[x][y].typ) || levl[x][y].typ == ROOM
+            if (IS_OBSTRUCTED(levl[x][y].typ) || levl[x][y].typ == ROOM
                 || IS_AIR(levl[x][y].typ) || levl[x][y].typ == ICE) {
                 continue;
             } else if (closed_door(x, y) || (mtmp && is_door_mappear(mtmp))) {

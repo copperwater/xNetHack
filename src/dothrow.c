@@ -785,7 +785,7 @@ hurtle_step(genericptr_t arg, coordxy x, coordxy y)
                               && (levl[x][y].doormask & D_ISOPEN)
                               && (u.ux - x) && (u.uy - y));
 
-        if (IS_ROCK(levl[x][y].typ) || closed_door(x, y) || odoor_diag) {
+        if (IS_OBSTRUCTED(levl[x][y].typ) || closed_door(x, y) || odoor_diag) {
             const char *s;
 
             if (odoor_diag)
@@ -793,7 +793,7 @@ hurtle_step(genericptr_t arg, coordxy x, coordxy y)
             pline("Ouch!");
             if (IS_TREE(levl[x][y].typ))
                 s = "bumping into a tree";
-            else if (IS_ROCK(levl[x][y].typ))
+            else if (IS_OBSTRUCTED(levl[x][y].typ))
                 s = "bumping into a wall";
             else
                 s = "bumping into a door";

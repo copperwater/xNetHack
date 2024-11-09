@@ -3383,7 +3383,7 @@ launch_obj(
                 const char *bmsg = " as one boulder sets another in motion";
                 coordxy fx = x + dx, fy = y + dy;
 
-                if (!isok(fx, fy) || !dist || IS_ROCK(levl[fx][fy].typ))
+                if (!isok(fx, fy) || !dist || IS_OBSTRUCTED(levl[fx][fy].typ))
                     bmsg = " as one boulder hits another";
 
                 Soundeffect(se_loud_crash, 80);

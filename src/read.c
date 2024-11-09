@@ -1850,7 +1850,7 @@ seffect_earth(struct obj **sobjp)
                 for (y = u.uy - 1; y <= u.uy + 1; y++) {
                     /* Is this a suitable spot? */
                     if (isok(x, y) && !closed_door(x, y)
-                        && !IS_ROCK(levl[x][y].typ)
+                        && !IS_OBSTRUCTED(levl[x][y].typ)
                         && !IS_AIR(levl[x][y].typ)
                         && (x != u.ux || y != u.uy)) {
                         nboulders +=

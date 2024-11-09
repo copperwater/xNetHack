@@ -2512,7 +2512,7 @@ figurine_location_checks(struct obj *obj, coord *cc, boolean quietly)
             You("cannot put the figurine there.");
         return FALSE;
     }
-    if (IS_ROCK(levl[x][y].typ)
+    if (IS_OBSTRUCTED(levl[x][y].typ)
         && !(passes_walls(&mons[obj->corpsenm]) && may_passwall(x, y))) {
         if (!quietly)
             You("cannot place a figurine in %s!",
@@ -2829,7 +2829,7 @@ use_trap(struct obj *otmp)
     else if (On_stairs(u.ux, u.uy)) {
         stairway *stway = stairway_at(u.ux, u.uy);
         what = stway->isladder ? "on the ladder" : "on the stairs";
-    } else if (IS_FURNITURE(levtyp) || IS_ROCK(levtyp)
+    } else if (IS_FURNITURE(levtyp) || IS_OBSTRUCTED(levtyp)
              || closed_door(u.ux, u.uy) || t_at(u.ux, u.uy))
         what = "here";
     else if (Is_airlevel(&u.uz) || Is_waterlevel(&u.uz))

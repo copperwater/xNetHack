@@ -469,7 +469,7 @@ do_attack(struct monst *mtmp)
              */
             boolean foo = (Punished || !rn2(7)
                            || (is_longworm(mtmp->data) && mtmp->wormno)
-                           || (IS_ROCK(levl[u.ux][u.uy].typ)
+                           || (IS_OBSTRUCTED(levl[u.ux][u.uy].typ)
                                && !passes_walls(mtmp->data))),
                     inshop = FALSE;
             char *p;

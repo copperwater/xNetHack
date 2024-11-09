@@ -154,7 +154,7 @@ does_block(int x, int y, struct rm *lev)
 #endif
 
     /* Features that block . . */
-    if (IS_ROCK(lev->typ) || lev->typ == TREE
+    if (IS_OBSTRUCTED(lev->typ) || lev->typ == TREE
         || (IS_DOOR(lev->typ)
             && (lev->doormask & (D_CLOSED | D_LOCKED | D_TRAPPED))))
         return 1;
@@ -221,7 +221,7 @@ vision_reset(void)
         block = TRUE; /* location (0,y) is always stone; it's !isok() */
         lev = &levl[1][y];
         for (x = 1; x < COLNO; x++, lev += ROWNO)
-            if (block != (IS_ROCK(lev->typ) || does_block(x, y, lev))) {
+            if (block != (IS_OBSTRUCTED(lev->typ) || does_block(x, y, lev))) {
                 if (block) {
                     for (i = dig_left; i < x; i++) {
                         left_ptrs[y][i] = dig_left;

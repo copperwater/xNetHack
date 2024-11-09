@@ -1174,7 +1174,7 @@ holds_up_web(coordxy x, coordxy y)
     stairway *sway;
 
     if (!isok(x, y)
-        || IS_ROCK(levl[x][y].typ)
+        || IS_OBSTRUCTED(levl[x][y].typ)
         || ((levl[x][y].typ == STAIRS || levl[x][y].typ == LADDER)
             && (sway = stairway_at(x, y)) != 0 && sway->up)
         || levl[x][y].typ == IRONBARS)

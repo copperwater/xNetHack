@@ -56,7 +56,7 @@ mkcavepos(coordxy x, coordxy y, int dist, boolean waslit, boolean rockit)
     if (rockit) {
         struct monst *mtmp;
 
-        if (IS_ROCK(lev->typ))
+        if (IS_OBSTRUCTED(lev->typ))
             return;
         if (t_at(x, y))
             return;                   /* don't cover the portal */
@@ -186,7 +186,7 @@ dig_typ(struct obj *otmp, coordxy x, coordxy y)
                      ? DIGTYP_DOOR
                      : IS_TREE(levl[x][y].typ)
                         ? (ispick ? DIGTYP_UNDIGGABLE : DIGTYP_TREE)
-                        : (ispick && IS_ROCK(levl[x][y].typ)
+                        : (ispick && IS_OBSTRUCTED(levl[x][y].typ)
                            && (!svl.level.flags.arboreal
                                || IS_WALL(levl[x][y].typ)))
                            ? DIGTYP_ROCK
@@ -227,7 +227,7 @@ dig_check(struct monst *madeby, coordxy x, coordxy y)
         return DIGCHECK_FAIL_AIRLEVEL;
     } else if (Is_waterlevel(&u.uz)) {
         return DIGCHECK_FAIL_WATERLEVEL;
-    } else if ((IS_ROCK(levl[x][y].typ) && levl[x][y].typ != SDOOR
+    } else if ((IS_OBSTRUCTED(levl[x][y].typ) && levl[x][y].typ != SDOOR
                 && (levl[x][y].wall_info & W_NONDIGGABLE) != 0)) {
         return DIGCHECK_FAIL_TOOHARD;
     } else if (ttmp && undestroyable_trap(ttmp->ttyp)) {
@@ -328,7 +328,7 @@ dig(void)
             pline("This tree seems to be petrified.");
             return 0;
         }
-        if (IS_ROCK(lev->typ) && !may_dig(dpx, dpy)
+        if (IS_OBSTRUCTED(lev->typ) && !may_dig(dpx, dpy)
             && dig_typ(uwep, dpx, dpy) == DIGTYP_ROCK) {
             pline("This %s is too hard to %s.",
                   is_db_wall(dpx, dpy) ? "drawbridge" : "wall", verb);
@@ -561,7 +561,7 @@ dig(void)
                 return 0;
             }
         } else if (dig_target == DIGTYP_UNDIGGABLE
-                   || (dig_target == DIGTYP_ROCK && !IS_ROCK(lev->typ)))
+                   || (dig_target == DIGTYP_ROCK && !IS_OBSTRUCTED(lev->typ)))
             return 0; /* statue or boulder got taken */
 
         if (!gd.did_dig_msg) {
@@ -913,7 +913,7 @@ dighole(boolean pit_only, boolean by_magic, coord *cc)
     old_typ = lev->typ;
 
     if ((ttmp && (undestroyable_trap(ttmp->ttyp) || nohole))
-        || (IS_ROCK(old_typ) && old_typ != SDOOR
+        || (IS_OBSTRUCTED(old_typ) && old_typ != SDOOR
             && (lev->wall_info & W_NONDIGGABLE) != 0)) {
         pline_The("%s %shere is too hard to dig in.", surface(dig_x, dig_y),
                   (dig_x != u.ux || dig_y != u.uy) ? "t" : "");
@@ -1230,7 +1230,7 @@ use_pick_axe2(struct obj *obj)
                 (void) fire_damage(uwep, FALSE, rx, ry);
             } else if (IS_TREE(lev->typ)) {
                 You("need an axe to cut down a tree.");
-            } else if (IS_ROCK(lev->typ)) {
+            } else if (IS_OBSTRUCTED(lev->typ)) {
                 You("need a pick to dig rock.");
             } else if ((boulder = sobj_at(BOULDER, rx, ry)) != 0
                        || sobj_at(STATUE, rx, ry)) {
@@ -1398,7 +1398,7 @@ watch_dig(struct monst *mtmp, coordxy x, coordxy y, boolean zap)
                     str = "door";
                 else if (IS_TREE(lev->typ))
                     str = "tree";
-                else if (IS_ROCK(lev->typ))
+                else if (IS_OBSTRUCTED(lev->typ))
                     str = "wall";
                 else
                     str = "fountain";
@@ -1452,7 +1452,7 @@ mdig_tunnel(struct monst *mtmp)
         newsym(mtmp->mx, mtmp->my);
         draft_message(FALSE); /* "You feel a draft." */
         return FALSE;
-    } else if (!IS_ROCK(here->typ) && !IS_TREE(here->typ)) { /* no dig */
+    } else if (!IS_OBSTRUCTED(here->typ) && !IS_TREE(here->typ)) { /* no dig */
         return FALSE;
     }
 
@@ -1709,7 +1709,7 @@ zap_dig(void)
                     pline_The("rock glows then fades.");
                 break;
             }
-        } else if (IS_ROCK(room->typ)) {
+        } else if (IS_OBSTRUCTED(room->typ)) {
             if (!may_dig(zx, zy))
                 break;
             if (IS_WALL(room->typ) || room->typ == SDOOR) {
@@ -1727,7 +1727,7 @@ zap_dig(void)
             } else if (IS_TREE(room->typ)) {
                 room->typ = ROOM, room->flags = 0;
                 digdepth -= 2;
-            } else { /* IS_ROCK but not IS_WALL or SDOOR */
+            } else { /* IS_OBSTRUCTED but not IS_WALL or SDOOR */
                 room->typ = CORR, room->flags = 0;
                 digdepth--;
             }

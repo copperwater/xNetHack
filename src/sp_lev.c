@@ -1291,7 +1291,7 @@ is_ok_location(coordxy x, coordxy y, getloc_flags_t humidity)
     if (humidity & ANY_LOC)
         return TRUE;
 
-    if ((humidity & SOLID) && IS_ROCK(typ))
+    if ((humidity & SOLID) && IS_OBSTRUCTED(typ))
         return TRUE;
 
     if ((humidity & (DRY|SPACELOC)) && SPACE_POS(typ)) {
@@ -1758,7 +1758,7 @@ create_door(room_door *dd, struct mkroom *broom)
             y = broom->ly - 1;
             x = broom->lx + ((dpos == -1) ? rn2(1 + broom->hx - broom->lx)
                                           : dpos);
-            if (!isok(x, y - 1) || IS_ROCK(levl[x][y - 1].typ))
+            if (!isok(x, y - 1) || IS_OBSTRUCTED(levl[x][y - 1].typ))
                 continue;
             break;
         case 1:
@@ -1767,7 +1767,7 @@ create_door(room_door *dd, struct mkroom *broom)
             y = broom->hy + 1;
             x = broom->lx + ((dpos == -1) ? rn2(1 + broom->hx - broom->lx)
                                           : dpos);
-            if (!isok(x, y + 1) || IS_ROCK(levl[x][y + 1].typ))
+            if (!isok(x, y + 1) || IS_OBSTRUCTED(levl[x][y + 1].typ))
                 continue;
             break;
         case 2:
@@ -1776,7 +1776,7 @@ create_door(room_door *dd, struct mkroom *broom)
             x = broom->lx - 1;
             y = broom->ly + ((dpos == -1) ? rn2(1 + broom->hy - broom->ly)
                                           : dpos);
-            if (!isok(x - 1, y) || IS_ROCK(levl[x - 1][y].typ))
+            if (!isok(x - 1, y) || IS_OBSTRUCTED(levl[x - 1][y].typ))
                 continue;
             break;
         case 3:
@@ -1785,7 +1785,7 @@ create_door(room_door *dd, struct mkroom *broom)
             x = broom->hx + 1;
             y = broom->ly + ((dpos == -1) ? rn2(1 + broom->hy - broom->ly)
                                           : dpos);
-            if (!isok(x + 1, y) || IS_ROCK(levl[x + 1][y].typ))
+            if (!isok(x + 1, y) || IS_OBSTRUCTED(levl[x + 1][y].typ))
                 continue;
             break;
         default:

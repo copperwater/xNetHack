@@ -818,7 +818,7 @@ engulf_target(struct monst *magr, struct monst *mdef)
     dy = (mdef == &gy.youmonst) ? u.uy : mdef->my;
     lev = &levl[dx][dy];
     if (!(udef ? Passes_walls : passes_walls(mdef->data))
-          && (IS_ROCK(lev->typ) || closed_door(dx, dy) || IS_TREE(lev->typ)
+          && (IS_OBSTRUCTED(lev->typ) || closed_door(dx, dy) || IS_TREE(lev->typ)
               /* not passes_bars(); engulfer isn't squeezing through */
               || (lev->typ == IRONBARS && !is_whirly(magr->data))))
         return FALSE;
@@ -826,7 +826,7 @@ engulf_target(struct monst *magr, struct monst *mdef)
     ay = (magr == &gy.youmonst) ? u.uy : magr->my;
     lev = &levl[ax][ay];
     if (!(uatk ? Passes_walls : passes_walls(magr->data))
-        && (IS_ROCK(lev->typ) || closed_door(ax, ay) || IS_TREE(lev->typ)
+        && (IS_OBSTRUCTED(lev->typ) || closed_door(ax, ay) || IS_TREE(lev->typ)
             || (lev->typ == IRONBARS && !is_whirly(mdef->data))))
         return FALSE;
 

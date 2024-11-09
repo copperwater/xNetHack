@@ -528,7 +528,7 @@ ucatchgem(
     (/* missile hits edge of screen */                                 \
      !isok(gb.bhitpos.x + dx, gb.bhitpos.y + dy)                       \
      /* missile hits the wall */                                       \
-     || IS_ROCK(levl[gb.bhitpos.x + dx][gb.bhitpos.y + dy].typ)        \
+     || IS_OBSTRUCTED(levl[gb.bhitpos.x + dx][gb.bhitpos.y + dy].typ)        \
      /* missile hit closed door */                                     \
      || closed_door(gb.bhitpos.x + dx, gb.bhitpos.y + dy)              \
      /* missile might hit iron bars */                                 \
@@ -1080,7 +1080,7 @@ breamu(struct monst *mtmp, struct attack *mattk)
 staticfn boolean
 blocking_terrain(coordxy x, coordxy y)
 {
-    if (!isok(x, y) || IS_ROCK(levl[x][y].typ) || closed_door(x, y)
+    if (!isok(x, y) || IS_OBSTRUCTED(levl[x][y].typ) || closed_door(x, y)
         || is_waterwall(x, y) || levl[x][y].typ == LAVAWALL)
         return TRUE;
     return FALSE;

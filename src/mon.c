@@ -2170,12 +2170,12 @@ mfndpos(
             if (nx == x && ny == y)
                 continue;
             ntyp = levl[nx][ny].typ;
-            if (IS_ROCK(ntyp)
+            if (IS_OBSTRUCTED(ntyp)
                 && !((flag & ALLOW_WALL) && may_passwall(nx, ny))
                 && !((IS_TREE(ntyp) ? treeok : rockok) && may_dig(nx, ny)))
                 continue;
             /* intelligent peacefuls avoid digging shop/temple walls */
-            if (IS_ROCK(ntyp) && rockok
+            if (IS_OBSTRUCTED(ntyp) && rockok
                 && !mindless(mon->data) && (mon->mpeaceful || mon->mtame)
                 && (*in_rooms(nx, ny, TEMPLE) || *in_rooms(nx, ny, SHOPBASE))
                 && !(*in_rooms(x, y, TEMPLE) || *in_rooms(x, y, SHOPBASE)))
