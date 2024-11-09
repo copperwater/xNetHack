@@ -149,6 +149,62 @@ enum levl_typ_types {
  */
 
 /*
+ * The structure describing a coordinate position.
+ * Before adding fields, remember that this will significantly affect
+ * the size of temporary files and save files.
+ *
+ * Also remember that the run-length encoding for some ports in save.c
+ * must be updated to consider the field.
+ */
+struct rm {
+    int glyph;               /* what the hero thinks is there */
+    schar typ;               /* what is really there  [why is this signed?] */
+    uchar seenv;             /* seen vector */
+    Bitfield(flags, 5);      /* extra information for typ */
+    Bitfield(horizontal, 1); /* wall/door/etc is horiz. (more typ info) */
+    Bitfield(lit, 1);        /* speed hack for lit rooms */
+    Bitfield(waslit, 1);     /* remember if a location was lit */
+
+    Bitfield(roomno, 6); /* room # for special rooms */
+    Bitfield(edge, 1);   /* marks boundaries for special rooms*/
+    Bitfield(candig, 1); /* Exception to Can_dig_down; was a trapdoor */
+};
+
+/*
+ * rm flags field overloads:
+ *
+ *         +-------------+-------------+------------+------------+------------+
+ *         |   bit5      |     bit4    |    bit3    |    bit2    |     bit1   |
+ *         |   0x10      |      0x8    |     0x4    |     0x2    |      0x1   |
+ *         +-------------+-------------+------------+------------+------------+
+ * door    |D_TRAPPED    | D_LOCKED    | D_CLOSED   | D_ISOPEN   | D_BROKEN   |
+ * drawbr. |DB_FLOOR     | DB_ICE      | DB_LAVA    | DB_DIR     | DB_DIR     |
+ * wall    |W_NONPASSWALL|W_NONDIGGABLE| W_MASK     | W_MASK     | W_MASK     |
+ * sink    |             |             | S_LRING    | S_LDWASHER | S_LPUDDING |
+ * tree    |             |             |            | TREE_SWARM | TREE_LOOTED|
+ * fountain|             |             |            | F_WARNED   | F_LOOTED   |
+ * ladder  |             |             |            | LA_DOWN    | LA_UP      |
+ * pool    |ICED_MOAT    | ICED_POOL   |            |            |            |
+ * grave   |             |             |            |            | emptygrave |
+ * altar   |AM_SANCTUM   | AM_SHRINE   | AM_MASK    | AM_MASK    | AM_MASK    |
+ *         |             |             |            |            |            |
+ *         +-------------+-------------+------------+------------+------------+
+ *
+ *
+ * If these get changed or expanded, make sure wizard-mode wishing becomes
+ * aware of the new usage
+ */
+
+#define doormask   flags /* door, sdoor (note conflict with wall_info) */
+#define altarmask  flags /* alignment and maybe temple */
+#define wall_info  flags /* wall, sdoor (note conflict with doormask) */
+#define ladder     flags /* up or down */
+#define drawbridgemask flags /* what's underneath when the span is open */
+#define looted     flags /* used for throne, tree, fountain, sink, door */
+#define icedpool   flags /* used for ice (in case it melts) */
+#define emptygrave flags /* no corpse in grave */
+
+/*
  * The 5 possible states of doors.
  * For historical reasons they are numbered as mask bits rather than 0..4.
  * The trapped flag is OR'd onto the state and only valid if that state
@@ -238,28 +294,6 @@ enum levl_typ_types {
 #define ICED_POOL 8
 #define ICED_MOAT 16
 
-/*
- * The structure describing a coordinate position.
- * Before adding fields, remember that this will significantly affect
- * the size of temporary files and save files.
- *
- * Also remember that the run-length encoding for some ports in save.c
- * must be updated to consider the field.
- */
-struct rm {
-    int glyph;               /* what the hero thinks is there */
-    schar typ;               /* what is really there  [why is this signed?] */
-    uchar seenv;             /* seen vector */
-    Bitfield(flags, 5);      /* extra information for typ */
-    Bitfield(horizontal, 1); /* wall/door/etc is horiz. (more typ info) */
-    Bitfield(lit, 1);        /* speed hack for lit rooms */
-    Bitfield(waslit, 1);     /* remember if a location was lit */
-
-    Bitfield(roomno, 6); /* room # for special rooms */
-    Bitfield(edge, 1);   /* marks boundaries for special rooms*/
-    Bitfield(candig, 1); /* Exception to Can_dig_down; was a trapdoor */
-};
-
 /* light states for terrain replacements, for set_levltyp_lit */
 #define SET_LIT_RANDOM -1
 #define SET_LIT_NOCHANGE -2
@@ -346,16 +380,6 @@ struct rm {
 #define SV7   ((seenV) 0x80)
 #define SVALL ((seenV) 0xFF)
 
-/* if these get changed or expanded, make sure wizard-mode wishing becomes
-   aware of the new usage */
-#define doormask   flags /* door, sdoor (note conflict with wall_info) */
-#define altarmask  flags /* alignment and maybe temple */
-#define wall_info  flags /* wall, sdoor (note conflict with doormask) */
-#define ladder     flags /* up or down */
-#define drawbridgemask flags /* what's underneath when the span is open */
-#define looted     flags /* used for throne, tree, fountain, sink, door */
-#define icedpool   flags /* used for ice (in case it melts) */
-#define emptygrave flags /* no corpse in grave */
 /* horizontal applies to walls, doors (including sdoor); also to iron bars
    even though they don't have separate symbols for horizontal and vertical */
 #define blessedftn horizontal /* a fountain that grants attribs */
