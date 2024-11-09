@@ -261,12 +261,20 @@ query_classes(
     return TRUE;
 }
 
+boolean
+u_safe_from_fatal_corpse(struct obj *obj)
+{
+    if (uarmg || obj->otyp != CORPSE
+        || !touch_petrifies(&mons[obj->corpsenm]) || Stone_resistance)
+        return TRUE;
+    return FALSE;
+}
+
 /* check whether hero is bare-handedly touching a cockatrice corpse */
 staticfn boolean
 fatal_corpse_mistake(struct obj *obj, boolean remotely)
 {
-    if (uarmg || remotely || obj->otyp != CORPSE
-        || !touch_petrifies(&mons[obj->corpsenm]) || Stone_resistance)
+    if (u_safe_from_fatal_corpse(obj) || remotely)
         return FALSE;
 
     if (poly_when_stoned(gy.youmonst.data) && polymon(PM_STONE_GOLEM)) {

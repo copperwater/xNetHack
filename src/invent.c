@@ -1230,6 +1230,12 @@ hold_another_object(
            dropped, avoid perminv update when temporarily adding it */
         obj = addinv_core0(obj, (struct obj *) 0, FALSE);
         goto drop_it;
+    } else if (obj->otyp == CORPSE
+               && !u_safe_from_fatal_corpse(obj)
+               && obj->wishedfor) {
+        obj->wishedfor = 0;
+        obj = addinv_core0(obj, (struct obj *) 0, FALSE);
+        goto drop_it;
     } else {
         long oquan = obj->quan;
         int prev_encumbr = near_capacity(); /* before addinv() */

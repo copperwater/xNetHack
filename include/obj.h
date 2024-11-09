@@ -162,6 +162,7 @@ struct obj {
                                * 1 for others (format as "next boulder") */
     int usecount;           /* overloaded for various things that tally */
 #define spestudied usecount /* # of times a spellbook has been studied */
+#define wishedfor usecount  /* flag for hold_another_object() if from wish */
     unsigned oeaten;        /* nutrition left in food, if partly eaten */
     long age;               /* creation date */
     long owornmask;        /* bit mask indicating which equipment slot(s) an
