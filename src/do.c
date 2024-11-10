@@ -947,8 +947,8 @@ better_not_try_to_drop_that(struct obj *otmp)
     if (otmp->otyp == CORPSE && !u_safe_from_fatal_corpse(otmp, st_all)) {
         Snprintf(
             buf, sizeof buf,
-            "Drop the %s corpse without any protection while handling it?",
-            obj_pmname(otmp));
+            "Drop the %s corpse without %s protection on?",
+            obj_pmname(otmp), body_part(HAND));
         return (paranoid_ynq(TRUE, buf, FALSE) != 'y');
     }
     return FALSE;
