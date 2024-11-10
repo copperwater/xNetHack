@@ -52,6 +52,7 @@ staticfn int takeoff_ok(struct obj *);
 /* maybe_destroy_armor() may return NULL */
 staticfn struct obj *maybe_destroy_armor(struct obj *, struct obj *,
                                        boolean *) NONNULLARG3;
+staticfn boolean better_not_take_that_off(struct obj *) NONNULLARG1;
 
 /* plural "fingers" or optionally "gloves" */
 const char *
@@ -2641,6 +2642,8 @@ select_off(struct obj *otmp)
                   gloves_simple_name(uarmg));
             return 0;
         }
+        if (better_not_take_that_off(otmp))
+            return 0;
     }
     /* special boot checks */
     if (otmp == uarmf) {
@@ -2884,6 +2887,26 @@ take_off(void)
 
     set_occupation(take_off, doff->disrobing, 0);
     return 1; /* get busy */
+}
+
+staticfn boolean
+better_not_take_that_off(struct obj *otmp)
+{
+    struct obj *corpse = carrying_stoning_corpse();
+    char buf[BUFSZ];
+
+    /* u_safe_from_fatal_corpse() with 0x4e instead of 0x6
+       would also check for no stoning resistance before
+       bothering to prompt, but losing stoning resistance
+       later, without the gloves on could prove dangerous,
+       so we won't factor that in */
+    if (corpse && !u_safe_from_fatal_corpse(corpse, 0x6)) {
+        Snprintf(buf, sizeof buf,
+            "Take off your %s despite carrying a dead %s?",
+                 gloves_simple_name(otmp), obj_pmname(corpse));
+        return (paranoid_ynq(TRUE, buf, FALSE) != 'y');
+    }
+    return FALSE;
 }
 
 /* clear saved context to avoid inappropriate resumption of interrupted 'A' */

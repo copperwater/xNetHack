@@ -49,6 +49,7 @@ staticfn void ia_addmenu(winid, int, char, const char *);
 staticfn void itemactions_pushkeys(struct obj *, int);
 staticfn int itemactions(struct obj *);
 staticfn int dispinv_with_action(char *, boolean, const char *);
+staticfn struct obj *carrying_cockatrice_corpse(void);
 
 /* enum and structs are defined in wintype.h */
 static win_request_info wri_info;
@@ -1231,7 +1232,7 @@ hold_another_object(
         obj = addinv_core0(obj, (struct obj *) 0, FALSE);
         goto drop_it;
     } else if (obj->otyp == CORPSE
-               && !u_safe_from_fatal_corpse(obj)
+               && !u_safe_from_fatal_corpse(obj, 0xF)
                && obj->wishedfor) {
         obj->wishedfor = 0;
         obj = addinv_core0(obj, (struct obj *) 0, FALSE);
@@ -1476,6 +1477,18 @@ carrying(int type)
     /* this could be replaced by 'return m_carrying(&gy.youmonst, type);' */
     for (otmp = gi.invent; otmp; otmp = otmp->nobj)
         if (otmp->otyp == type)
+            break;
+    return otmp;
+}
+
+/* return inventory object of type that will petrify on touch */
+struct obj *
+carrying_stoning_corpse(void)
+{
+    struct obj *otmp;
+
+    for (otmp = gi.invent; otmp; otmp = otmp->nobj)
+        if (otmp->otyp == CORPSE && touch_petrifies(&mons[otmp->corpsenm]))
             break;
     return otmp;
 }

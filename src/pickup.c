@@ -261,11 +261,20 @@ query_classes(
     return TRUE;
 }
 
+/*
+ * tests:
+ *  1 = gloves
+ *  2 = is_corpse
+ *  4 = does corpse petrify
+ *  8 = stone resistance
+ */
 boolean
-u_safe_from_fatal_corpse(struct obj *obj)
+u_safe_from_fatal_corpse(struct obj *obj, int tests)
 {
-    if (uarmg || obj->otyp != CORPSE
-        || !touch_petrifies(&mons[obj->corpsenm]) || Stone_resistance)
+    if (((tests & 1) && uarmg)
+        || ((tests & 2) && obj->otyp != CORPSE)
+        || ((tests & 4) && !touch_petrifies(&mons[obj->corpsenm]))
+        || ((tests & 8) && Stone_resistance))
         return TRUE;
     return FALSE;
 }
@@ -274,7 +283,7 @@ u_safe_from_fatal_corpse(struct obj *obj)
 staticfn boolean
 fatal_corpse_mistake(struct obj *obj, boolean remotely)
 {
-    if (u_safe_from_fatal_corpse(obj) || remotely)
+    if (u_safe_from_fatal_corpse(obj, 0xF) || remotely)
         return FALSE;
 
     if (poly_when_stoned(gy.youmonst.data) && polymon(PM_STONE_GOLEM)) {

@@ -20,8 +20,9 @@ staticfn NHFILE *currentlevel_rewrite(void);
 staticfn void familiar_level_msg(void);
 staticfn void final_level(void);
 staticfn void temperature_change_msg(schar);
+staticfn boolean better_not_try_to_drop_that(struct obj *);
 
-/* static boolean badspot(coordxy,coordxy); */
+    /* static boolean badspot(coordxy,coordxy); */
 
 /* the #drop command: drop one inventory item */
 int
@@ -709,6 +710,8 @@ drop(struct obj *obj)
         return ECMD_FAIL;
     if (!canletgo(obj, "drop"))
         return ECMD_FAIL;
+    if (obj->otyp == CORPSE && better_not_try_to_drop_that(obj))
+        return ECMD_FAIL;
     if (obj == uwep) {
         if (welded(uwep)) {
             weldmsg(obj);
@@ -933,6 +936,23 @@ doddrop(void)
     return result;
 }
 
+staticfn boolean
+better_not_try_to_drop_that(struct obj *otmp)
+{
+    char buf[BUFSZ];
+
+    /* u_safe_from_fatal_corpse() with 0xF checks for gloves and stoning
+     *  resistance before bothering to prompt you.
+     */
+    if (otmp->otyp == CORPSE && !u_safe_from_fatal_corpse(otmp, 0xF)) {
+        Snprintf(
+            buf, sizeof buf,
+            "Drop the %s corpse without any protection while handling it?",
+            obj_pmname(otmp));
+        return (paranoid_ynq(TRUE, buf, FALSE) != 'y');
+    }
+    return FALSE;
+}
 staticfn int /* check callers */
 menudrop_split(struct obj *otmp, long cnt)
 {
