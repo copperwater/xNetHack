@@ -29,7 +29,7 @@ staticfn void offer_different_alignment_altar(struct obj *, aligntyp);
 staticfn void sacrifice_your_race(struct obj *, boolean, aligntyp);
 staticfn int bestow_artifact(void);
 staticfn int sacrifice_value(struct obj *);
-staticfn int offer_corpse(struct obj *, boolean, aligntyp);
+staticfn void offer_corpse(struct obj *, boolean, aligntyp);
 staticfn boolean pray_revive(void);
 staticfn boolean water_prayer(boolean);
 staticfn boolean blocked_boulder(int, int);
@@ -1866,14 +1866,15 @@ dosacrifice(void)
     } /* fake Amulet */
 
     if (otmp->otyp == CORPSE) {
-        return offer_corpse(otmp, highaltar, altaralign);
+        offer_corpse(otmp, highaltar, altaralign);
+        return ECMD_TIME;
     }
 
     pline1(nothing_happens);
     return ECMD_TIME;
 }
 
-staticfn int
+staticfn void
 offer_corpse(struct obj *otmp, boolean highaltar, aligntyp altaralign)
 {
     int value;
@@ -1904,7 +1905,7 @@ offer_corpse(struct obj *otmp, boolean highaltar, aligntyp altaralign)
      */
     feel_cockatrice(otmp, TRUE);
     if (rider_corpse_revival(otmp, FALSE))
-        return ECMD_TIME;
+        return;
 
     value = sacrifice_value(otmp);
 
@@ -1912,7 +1913,7 @@ offer_corpse(struct obj *otmp, boolean highaltar, aligntyp altaralign)
        too old (value==0) */
     if (your_race(ptr)) {
         sacrifice_your_race(otmp, highaltar, altaralign);
-        return ECMD_TIME;
+        return;
     } else if (has_omonst(otmp)
                && (mtmp = get_mtraits(otmp, FALSE)) != 0
                && mtmp->mtame) {
@@ -1922,11 +1923,11 @@ offer_corpse(struct obj *otmp, boolean highaltar, aligntyp altaralign)
         adjalign(-3);
         HAggravate_monster |= FROMOUTSIDE;
         offer_negative_valued(highaltar, altaralign);
-        return ECMD_TIME;
+        return;
     } else if (!value) {
         /* too old; don't give undead or unicorn bonus or penalty */
         pline1(nothing_happens);
-        return ECMD_TIME;
+        return;
     } else if (is_undead(ptr)) { /* Not demons--no demon corpses */
         /* most undead that leave a corpse yield 'human' (or other race)
            corpse so won't get here; the exception is wraith; give the
@@ -1947,7 +1948,7 @@ offer_corpse(struct obj *otmp, boolean highaltar, aligntyp altaralign)
                      : unicalign ? "law" : "balance");
             (void) adjattrib(A_WIS, -1, TRUE);
             offer_negative_valued(highaltar, altaralign);
-            return ECMD_TIME;
+            return;
         } else if (u.ualign.type == altaralign) {
             /* When different from altar, and altar is same as yours,
              * it's a very good action.
@@ -1978,7 +1979,7 @@ offer_corpse(struct obj *otmp, boolean highaltar, aligntyp altaralign)
     } else if (u.ualign.type != altaralign) {
         /* Sacrificing at an altar of a different alignment */
         offer_different_alignment_altar(otmp, altaralign);
-        return ECMD_TIME;
+        return;
     } else {
         int saved_anger = u.ugangr;
         int saved_cnt = u.ublesscnt;
@@ -2043,7 +2044,7 @@ offer_corpse(struct obj *otmp, boolean highaltar, aligntyp altaralign)
             }
         } else {
             if (bestow_artifact())
-                return ECMD_TIME;
+                return;
             change_luck((value * LUCKMAX) / (MAXVALUE * 2));
             if ((int) u.uluck < 0)
                 u.uluck = 0;
@@ -2059,7 +2060,6 @@ offer_corpse(struct obj *otmp, boolean highaltar, aligntyp altaralign)
             }
         }
     }
-    return ECMD_TIME;
 }
 
 /* determine prayer results in advance; also used for enlightenment */
