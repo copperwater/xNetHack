@@ -166,10 +166,12 @@ struct rm {
  *         |   0x10      |      0x8    |     0x4    |     0x2    |      0x1   |
  *         +-------------+-------------+------------+------------+------------+
  * door    |D_TRAPPED    | D_LOCKED    | D_CLOSED   | D_ISOPEN   | D_BROKEN   |
+ *         |D_WARNED     |             |            |            |            |
  * drawbr. |DB_FLOOR     | DB_ICE      | DB_LAVA    | DB_DIR     | DB_DIR     |
  * wall    |W_NONPASSWALL|W_NONDIGGABLE| W_MASK     | W_MASK     | W_MASK     |
  * sink    |             |             | S_LRING    | S_LDWASHER | S_LPUDDING |
  * tree    |             |             |            | TREE_SWARM | TREE_LOOTED|
+ * throne  |             |             |            |            | T_LOOTED   |
  * fountain|             |             |            | F_WARNED   | F_LOOTED   |
  * ladder  |             |             |            | LA_DOWN    | LA_UP      |
  * pool    |ICED_MOAT    | ICED_POOL   |            |            |            |
