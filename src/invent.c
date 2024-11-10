@@ -49,7 +49,6 @@ staticfn void ia_addmenu(winid, int, char, const char *);
 staticfn void itemactions_pushkeys(struct obj *, int);
 staticfn int itemactions(struct obj *);
 staticfn int dispinv_with_action(char *, boolean, const char *);
-staticfn struct obj *carrying_cockatrice_corpse(void);
 
 /* enum and structs are defined in wintype.h */
 static win_request_info wri_info;
