@@ -1232,7 +1232,7 @@ hold_another_object(
         obj = addinv_core0(obj, (struct obj *) 0, FALSE);
         goto drop_it;
     } else if (obj->otyp == CORPSE
-               && !u_safe_from_fatal_corpse(obj, 0xF)
+               && !u_safe_from_fatal_corpse(obj, st_all)
                && obj->wishedfor) {
         obj->wishedfor = 0;
         obj = addinv_core0(obj, (struct obj *) 0, FALSE);

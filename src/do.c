@@ -941,10 +941,10 @@ better_not_try_to_drop_that(struct obj *otmp)
 {
     char buf[BUFSZ];
 
-    /* u_safe_from_fatal_corpse() with 0xF checks for gloves and stoning
+    /* u_safe_from_fatal_corpse() with st_all checks for gloves and stoning
      *  resistance before bothering to prompt you.
      */
-    if (otmp->otyp == CORPSE && !u_safe_from_fatal_corpse(otmp, 0xF)) {
+    if (otmp->otyp == CORPSE && !u_safe_from_fatal_corpse(otmp, st_all)) {
         Snprintf(
             buf, sizeof buf,
             "Drop the %s corpse without any protection while handling it?",

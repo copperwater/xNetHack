@@ -859,6 +859,14 @@ typedef struct strbuf {
     char   buf[256];
 } strbuf_t;
 
+enum stoning_checks {
+    st_gloves    = 0x1,  /* wearing gloves? */
+    st_corpse    = 0x2,  /* is it a corpse obj? */
+    st_petrifies = 0x4,  /* does the corpse petrify on touch? */
+    st_resists   = 0x8,  /* do you have stoning resistance? */
+    st_all = (st_gloves | st_corpse | st_petrifies | st_resists)
+};
+
 struct trapinfo {
     struct obj *tobj;
     coordxy tx, ty;
