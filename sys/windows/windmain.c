@@ -499,8 +499,9 @@ extern const char *known_restrictions[]; /* symbols.c */
 
 DISABLE_WARNING_UNREACHABLE_CODE
 
-#if defined(__MINGW32__) && defined(MSWIN_GRAPHICS)
-#define MAIN mingw_main
+
+#if defined(MSWIN_GRAPHICS)
+#define MAIN nethackw_main
 #else
 #define MAIN main
 #endif

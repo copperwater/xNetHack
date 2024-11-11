@@ -1128,8 +1128,6 @@ consoletty_open(int mode)
 void
 consoletty_exit(void)
 {
-    /* frees some status tracking data */
-    genl_status_finish();
     /* go back to using the safe routines */
     safe_routines();
     free_custom_colors();

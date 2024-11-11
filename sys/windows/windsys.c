@@ -483,6 +483,10 @@ get_port_id(char *buf)
 }
 #endif /* RUNTIME_PORT_ID */
 
+#ifdef MSWIN_GRAPHICS
+extern void free_winmain_stuff(void);
+#endif
+
 void
 nethack_exit(int code)
 {
@@ -506,6 +510,11 @@ nethack_exit(int code)
         if (iflags.window_inited)
             wait_synch();
     }
+    /* frees some status tracking data */
+    genl_status_finish();
+#ifdef MSWIN_GRAPHICS
+    free_winmain_stuff();
+#endif
     exit(code);
 }
 
