@@ -163,6 +163,7 @@ crashreport_init(int argc UNUSED, char *argv[] UNUSED)
         --cnt;
     }
     *p = '\0';
+    HASH_CLEANUP(ctxp);
     return;
 
  skip:
