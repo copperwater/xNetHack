@@ -1981,13 +1981,10 @@ offer_corpse(struct obj *otmp, boolean highaltar, aligntyp altaralign)
         offer_different_alignment_altar(otmp, altaralign);
         return;
     } else {
-        int saved_anger = u.ugangr;
-        int saved_cnt = u.ublesscnt;
-        int saved_luck = u.uluck;
-
         consume_offering(otmp);
         /* OK, you get brownie points. */
         if (u.ugangr) {
+            int saved_anger = u.ugangr;
             u.ugangr -= ((value * (u.ualign.type == A_CHAOTIC ? 2 : 3))
                          / MAXVALUE);
             if (u.ugangr < 0)
@@ -2021,6 +2018,7 @@ offer_corpse(struct obj *otmp, boolean highaltar, aligntyp altaralign)
             adjalign(value);
             You_feel("partially absolved.");
         } else if (u.ublesscnt > 0) {
+            int saved_cnt = u.ublesscnt;
             u.ublesscnt -= ((value * (u.ualign.type == A_CHAOTIC ? 500 : 300))
                             / MAXVALUE);
             if (u.ublesscnt < 0)
@@ -2043,6 +2041,7 @@ offer_corpse(struct obj *otmp, boolean highaltar, aligntyp altaralign)
                 }
             }
         } else {
+            int saved_luck = u.uluck;
             if (bestow_artifact())
                 return;
             change_luck((value * LUCKMAX) / (MAXVALUE * 2));
