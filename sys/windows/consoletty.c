@@ -145,6 +145,9 @@ extern void (*ibmgraphics_mode_callback)(void);  /* symbols.c */
 extern void (*utf8graphics_mode_callback)(void); /* symbols.c */
 #endif /* VIRTUAL_TERMINAL_SEQUENCES */
 
+static void init_custom_colors(void);
+static void free_custom_colors(void);
+
 /* Win32 Screen buffer,coordinate,console I/O information */
 COORD ntcoord;
 INPUT_RECORD ir;
@@ -317,8 +320,8 @@ WHITE           255,255,255                242,242,242
 
 #ifdef VIRTUAL_TERMINAL_SEQUENCES
 long customcolors[CLR_MAX];
-const char *esc_seq_colors[CLR_MAX];
-const char *esc_seq_bkcolors[CLR_MAX];
+const char *esc_seq_colors[CLR_MAX] = { 0 };
+const char *esc_seq_bkcolors[CLR_MAX] = { 0 };
 
 struct rgbvalues {
     int idx;
@@ -549,6 +552,32 @@ init_custom_colors(void)
     esc_seq_bkcolors[CLR_BRIGHT_MAGENTA] = dupstr(bkcolorbuf);
     Snprintf(bkcolorbuf, sizeof bkcolorbuf, "\x1b[%dm", ((CLR_BRIGHT_CYAN % 8) + 40));
     esc_seq_bkcolors[CLR_BRIGHT_CYAN] = dupstr(bkcolorbuf);
+}
+
+static void
+free_custom_colors(void)
+{
+#define CLR_FREE(c) \
+    if (esc_seq_bkcolors[(c)] != 0) \
+        free((genericptr_t) esc_seq_bkcolors[(c)]), esc_seq_bkcolors[(c)] = 0
+
+    CLR_FREE(CLR_BLACK);
+    CLR_FREE(CLR_RED);
+    CLR_FREE(CLR_GREEN);
+    CLR_FREE(CLR_YELLOW);
+    CLR_FREE(CLR_BLUE);
+    CLR_FREE(CLR_MAGENTA);
+    CLR_FREE(CLR_CYAN);
+    CLR_FREE(CLR_WHITE);
+    CLR_FREE(CLR_BROWN);
+    CLR_FREE(CLR_GRAY);
+    CLR_FREE(NO_COLOR);
+    CLR_FREE(CLR_ORANGE);
+    CLR_FREE(CLR_BRIGHT_GREEN);
+    CLR_FREE(CLR_BRIGHT_BLUE);
+    CLR_FREE(CLR_BRIGHT_MAGENTA);
+    CLR_FREE(CLR_BRIGHT_CYAN);
+#undef CLR_FREE
 }
 
 void emit_start_bold(void);
@@ -1099,8 +1128,13 @@ consoletty_open(int mode)
 void
 consoletty_exit(void)
 {
+    /* frees some status tracking data */
+    genl_status_finish();
     /* go back to using the safe routines */
     safe_routines();
+    free_custom_colors();
+    free((genericptr_t) console.localestr);
+    free((genericptr_t) console.orig_localestr);
 }
 
 int

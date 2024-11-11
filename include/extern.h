@@ -2255,6 +2255,7 @@ extern boolean msgtype_parse_add(char *) NONNULLARG1;
 extern int msgtype_type(const char *, boolean) NONNULLARG1;
 extern void hide_unhide_msgtypes(boolean, int);
 extern void msgtype_free(void);
+extern void options_free_window_colors(void);
 
 /* ### pager.c ### */
 

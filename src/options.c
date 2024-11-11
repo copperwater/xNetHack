@@ -3451,6 +3451,9 @@ optfn_roguesymset(
     }
     if (req == do_set) {
         if (op != empty_optstr) {
+            if (gs.symset[ROGUESET].name)
+                free((genericptr_t) gs.symset[ROGUESET].name),
+                    gs.symset[ROGUESET].name = 0;
             gs.symset[ROGUESET].name = dupstr(op);
             if (!read_sym_file(ROGUESET)) {
                 clear_symsetentry(ROGUESET, TRUE);
@@ -4066,6 +4069,9 @@ optfn_symset(
     }
     if (req == do_set) {
         if (op != empty_optstr) {
+            if (gs.symset[PRIMARYSET].name)
+                free((genericptr_t) gs.symset[PRIMARYSET].name),
+                     gs.symset[PRIMARYSET].name = 0;
             gs.symset[PRIMARYSET].name = dupstr(op);
             if (!read_sym_file(PRIMARYSET)) {
                 clear_symsetentry(PRIMARYSET, TRUE);
@@ -9821,6 +9827,16 @@ wc_set_font_name(int opttype, char *fontname)
     return;
 }
 
+static char **fgp[] = { &iflags.wcolors[wcolor_menu].fg,
+                        &iflags.wcolors[wcolor_message].fg,
+                        &iflags.wcolors[wcolor_status].fg,
+                        &iflags.wcolors[wcolor_text].fg };
+static char **bgp[] = { &iflags.wcolors[wcolor_menu].bg,
+                        &iflags.wcolors[wcolor_message].bg,
+                        &iflags.wcolors[wcolor_status].bg,
+                        &iflags.wcolors[wcolor_text].bg };
+int options_set_window_colors_flag = 0;
+
 staticfn int
 wc_set_window_colors(char *op)
 {
@@ -9828,14 +9844,7 @@ wc_set_window_colors(char *op)
      *  menu white/black message green/yellow status white/blue text
      * white/black
      */
-    static char **fgp[] = { &iflags.wcolors[wcolor_menu].fg,
-                            &iflags.wcolors[wcolor_message].fg,
-                            &iflags.wcolors[wcolor_status].fg,
-                            &iflags.wcolors[wcolor_text].fg };
-    static char **bgp[] = { &iflags.wcolors[wcolor_menu].bg,
-                            &iflags.wcolors[wcolor_message].bg,
-                            &iflags.wcolors[wcolor_status].bg,
-                            &iflags.wcolors[wcolor_text].bg };
+
     int j;
     int32 clr;
     char buf[BUFSZ];
@@ -9917,7 +9926,22 @@ wc_set_window_colors(char *op)
                              wn);
         }
     }
+    options_set_window_colors_flag = 1;
     return 1;
+}
+
+void
+options_free_window_colors(void)
+{
+    int j;
+
+    for (j = 0; j < WC_COUNT; ++j) {
+        if (*fgp[j])
+            free((genericptr_t) *fgp[j]), *fgp[j] = 0;
+        if (*bgp[j])
+            free((genericptr_t) *bgp[j]), *bgp[j] = 0;
+    }
+    options_set_window_colors_flag = 0;
 }
 
 /* set up for wizard mode if player or save file has requested it;

@@ -66,7 +66,32 @@
  */
 
 struct window_procs safe_procs = {
-    WPID(safestartup), 0L, 0L,
+    WPID(safestartup),
+    (0
+#ifdef TTY_PERM_INVENT
+     | WC_PERM_INVENT
+#endif
+#ifdef MSDOS
+     | WC_TILED_MAP | WC_ASCII_MAP
+#endif
+#if defined(WIN32CON)
+     | WC_MOUSE_SUPPORT
+#endif
+     | WC_COLOR | WC_HILITE_PET | WC_INVERSE | WC_EIGHT_BIT_IN),
+    (0
+#if defined(SELECTSAVED)
+     | WC2_SELECTSAVED
+#endif
+#if defined(STATUS_HILITES)
+     | WC2_HILITE_STATUS | WC2_HITPOINTBAR | WC2_FLUSH_STATUS
+     | WC2_RESET_STATUS
+#endif
+     | WC2_DARKGRAY | WC2_SUPPRESS_HIST | WC2_URGENT_MESG | WC2_STATUSLINES
+     | WC2_U_UTF8STR | WC2_PETATTR
+#if !defined(NO_TERMS) || defined(WIN32CON)
+     | WC2_EXTRACOLORS
+#endif
+    ),
     {1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1}, /* color availability */
     safe_init_nhwindows, safe_player_selection, safe_askname,
     safe_get_nh_event,

@@ -1972,12 +1972,14 @@ $(SRC)\tiles.bmp: $(U)tile2bmp.exe $(TILEFILES)
 	@echo Creating 16x16 binary tile files (this may take some time)
 	@$(U)tile2bmp $@
 
-$(U)tile2bmp.exe: $(OUTL)tile2bmp.o $(TEXT_IO)
+$(U)tile2bmp.exe: $(OUTL)tile2bmp.o $(TEXT_IO) $(OUTL)alloc.o $(OUTL)panic.o
 	@echo Linking $(@:\=/)
 	@$(link) $(LFLAGS) /PDB:"$(OUTL)$(@B).PDB" /MAP:"$(OUTL)$(@B).MAP" $(OUTLHACKLIB) -out:$@ @<<$(@B).lnk
 		$(OUTL)tile2bmp.o
 		$(TEXT_IO:^  =^
 		)
+		$(OUTL)alloc.o
+		$(OUTL)panic.o
 <<
 
 $(U)til2bm32.exe: $(OUTL)til2bm32.o $(TEXT_IO32)
