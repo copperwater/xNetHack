@@ -1131,6 +1131,8 @@ consoletty_exit(void)
     /* go back to using the safe routines */
     safe_routines();
     free_custom_colors();
+    free((genericptr_t) console.front_buffer);
+    free((genericptr_t) console.back_buffer);
     free((genericptr_t) console.localestr);
     free((genericptr_t) console.orig_localestr);
 }
