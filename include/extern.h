@@ -3766,6 +3766,7 @@ extern boolean worm_cross(int, int, int, int);
 extern int wseg_at(struct monst *, int, int) NO_NNARGS;
 extern void flip_worm_segs_vertical(struct monst *, int, int) NONNULLARG1;
 extern void flip_worm_segs_horizontal(struct monst *, int, int) NONNULLARG1;
+extern void redraw_worm(struct monst *);
 
 /* ### worn.c ### */
 

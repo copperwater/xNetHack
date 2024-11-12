@@ -1180,6 +1180,8 @@ tamedog(struct monst *mtmp, struct obj *obj, boolean givemsg)
               Hallucination ? "approachable" : "friendly");
 
     newsym(mtmp->mx, mtmp->my);
+    if (mtmp->wormno)
+        redraw_worm(mtmp);
     if (attacktype(mtmp->data, AT_WEAP)) {
         mtmp->weapon_check = NEED_HTH_WEAPON;
         (void) mon_wield_item(mtmp);
@@ -1288,8 +1290,12 @@ abuse_dog(struct monst *mtmp)
         else
             growl(mtmp); /* give them a moment's worry */
 
-        if (!mtmp->mtame)
+        if (!mtmp->mtame) {
             newsym(mtmp->mx, mtmp->my);
+            if (mtmp->wormno) {
+                redraw_worm(mtmp);
+            }
+        }
     }
 }
 
