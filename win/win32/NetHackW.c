@@ -131,7 +131,7 @@ WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine,
     windowprocs.win_wait_synch = mswin_wait_synch;
 
     win10_init();
-    /* early_init(0, NULL);	*/ /* Change as needed to support CRASHREPORT */  
+    early_init(0, NULL);  /* Change as needed to support CRASHREPORT */
 
     /* init application structure */
     _nethack_app.hApp = hInstance;

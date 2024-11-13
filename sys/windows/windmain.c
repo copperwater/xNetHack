@@ -179,7 +179,9 @@ MAIN(int argc, char *argv[])
     safe_routines();
 #endif /* WIN32CON */
 
-    early_init(argc, argv);
+#ifndef MSWIN_GRAPHICS
+    early_init(argc, argv); /* already in WinMain for MSWIN_GRAPHICS */
+#endif
     /* setting iflags.colorcount has to be after early_init()
      * because it zeros out all of iflags */
     hwnd = GetDesktopWindow();
