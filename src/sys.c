@@ -31,14 +31,13 @@ sys_early_init(void)
     sysopt.wizards = (char *) 0;
 #else
     if (sysopt.wizards)
-        free((genericptr_t) sysopt.wizards), sysopt.wizards = (char *) 0;
+        free((genericptr_t) sysopt.wizards);
     sysopt.wizards = dupstr(WIZARD_NAME);
 #endif
 
     if ((p = getenv("DEBUGFILES")) != 0) {
         if (sysopt.debugfiles)
-            free((genericptr_t) sysopt.debugfiles),
-                sysopt.debugfiles = (char *) 0;
+            free((genericptr_t) sysopt.debugfiles);
         sysopt.debugfiles = dupstr(p);
         sysopt.env_dbgfl = 1; /* prevent sysconf processing from overriding */
     } else {
@@ -46,7 +45,7 @@ sys_early_init(void)
         sysopt.debugfiles = (char *) 0;
 #else
         if (sysopt.debugfiles)
-            free((genericptr_t) sysopt.debugfiles), sysopt.debugfiles = (char *) 0;
+            free((genericptr_t) sysopt.debugfiles);
         sysopt.debugfiles = dupstr(DEBUGFILES);
 #endif
         sysopt.env_dbgfl = 0;
@@ -77,10 +76,10 @@ sys_early_init(void)
 #ifdef PANICTRACE
     /* panic options */
     if (sysopt.gdbpath)
-        free((genericptr_t) sysopt.gdbpath), sysopt.gdbpath = (char *) 0;
+        free((genericptr_t) sysopt.gdbpath);
     sysopt.gdbpath = dupstr(GDBPATH);
     if (sysopt.greppath)
-        free((genericptr_t) sysopt.greppath), sysopt.greppath = (char *) 0;
+        free((genericptr_t) sysopt.greppath);
     sysopt.greppath = dupstr(GREPPATH);
 #if (NH_DEVEL_STATUS != NH_STATUS_RELEASED)
     sysopt.panictrace_gdb = 1;
