@@ -22,21 +22,31 @@ sys_early_init(void)
 {
     const char *p;
 
+    /* Don't assume that these are not already set, and that it is
+     * safe to dupstr() without orphaning any pointers. Check them. */
+
     sysopt.support = (char *) 0;
     sysopt.recover = (char *) 0;
 #ifdef SYSCF
     sysopt.wizards = (char *) 0;
 #else
+    if (sysopt.wizards)
+        free((genericptr_t) sysopt.wizards), sysopt.wizards = (char *) 0;
     sysopt.wizards = dupstr(WIZARD_NAME);
 #endif
 
     if ((p = getenv("DEBUGFILES")) != 0) {
+        if (sysopt.debugfiles)
+            free((genericptr_t) sysopt.debugfiles),
+                sysopt.debugfiles = (char *) 0;
         sysopt.debugfiles = dupstr(p);
         sysopt.env_dbgfl = 1; /* prevent sysconf processing from overriding */
     } else {
 #if defined(SYSCF) || !defined(DEBUGFILES)
         sysopt.debugfiles = (char *) 0;
 #else
+        if (sysopt.debugfiles)
+            free((genericptr_t) sysopt.debugfiles), sysopt.debugfiles = (char *) 0;
         sysopt.debugfiles = dupstr(DEBUGFILES);
 #endif
         sysopt.env_dbgfl = 0;
@@ -67,10 +77,10 @@ sys_early_init(void)
 #ifdef PANICTRACE
     /* panic options */
     if (sysopt.gdbpath)
-        free((genericptr_t) sysopt.gdbpath), sysopt.gdbpath = 0;
+        free((genericptr_t) sysopt.gdbpath), sysopt.gdbpath = (char *) 0;
     sysopt.gdbpath = dupstr(GDBPATH);
     if (sysopt.greppath)
-        free((genericptr_t) sysopt.greppath), sysopt.greppath = 0;
+        free((genericptr_t) sysopt.greppath), sysopt.greppath = (char *) 0;
     sysopt.greppath = dupstr(GREPPATH);
 #if (NH_DEVEL_STATUS != NH_STATUS_RELEASED)
     sysopt.panictrace_gdb = 1;
@@ -128,7 +138,7 @@ sysopt_release(void)
 #endif
     if (sysopt.genericusers)
         free((genericptr_t) sysopt.genericusers),
-        sysopt.genericusers = (char *) 0;
+            sysopt.genericusers = (char *) 0;
     if (sysopt.gdbpath)
         free((genericptr_t) sysopt.gdbpath), sysopt.gdbpath = (char *) 0;
     if (sysopt.greppath)
@@ -138,7 +148,7 @@ sysopt_release(void)
        none of the preceding ones are likely to trigger a controlled panic */
     if (sysopt.fmtd_wizard_list)
         free((genericptr_t) sysopt.fmtd_wizard_list),
-        sysopt.fmtd_wizard_list = (char *) 0;
+            sysopt.fmtd_wizard_list = (char *) 0;
     return;
 }
 
