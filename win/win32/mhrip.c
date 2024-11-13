@@ -56,6 +56,7 @@ mswin_init_RIP_window(void)
 
     ZeroMemory(data, sizeof(NHRIPWindow));
     SetWindowLongPtr(ret, GWLP_USERDATA, (LONG_PTR) data);
+    windowdata[NHW_RIP].address = (genericptr_t) data;
     return ret;
 }
 
@@ -240,6 +241,7 @@ NHRIPWndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
                 DeleteObject(data->rip_bmp);
             free(data);
             SetWindowLongPtr(hWnd, GWLP_USERDATA, (LONG_PTR) 0);
+            windowdata[NHW_RIP].address = 0;
         }
         break;
     }

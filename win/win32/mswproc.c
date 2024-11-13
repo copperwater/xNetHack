@@ -1021,6 +1021,7 @@ mswin_putstr_ex(winid wid, int attr, const char *text, int app)
 
         if (GetNHApp()->windowlist[wid].win != NULL) {
             MSNHMsgPutstr data;
+
             ZeroMemory(&data, sizeof(data));
             data.attr = attr;
             data.text = text;
@@ -2110,30 +2111,32 @@ mswin_preference_update(const char *pref)
     }
 }
 
+static PMSNHMsgGetText history_text = 0;
+static char *next_message = 0;
+
 char *
 mswin_getmsghistory(boolean init)
 {
-    static PMSNHMsgGetText text = 0;
-    static char *next_message = 0;
-
     if (init) {
-        text = (PMSNHMsgGetText) malloc(sizeof(MSNHMsgGetText)
+        if (history_text)
+            free((genericptr_t) history_text), history_text = 0;
+        history_text = (PMSNHMsgGetText) malloc(sizeof(MSNHMsgGetText)
                                         + TEXT_BUFFER_SIZE);
-        if (text) {
-            text->max_size =
+        if (history_text) {
+            history_text->max_size =
                 TEXT_BUFFER_SIZE
                 - 1; /* make sure we always have 0 at the end of the buffer */
 
-            ZeroMemory(text->buffer, TEXT_BUFFER_SIZE);
+            ZeroMemory(history_text->buffer, TEXT_BUFFER_SIZE);
             SendMessage(mswin_hwnd_from_winid(WIN_MESSAGE), WM_MSNH_COMMAND,
-                        (WPARAM) MSNH_MSG_GETTEXT, (LPARAM) text);
+                        (WPARAM) MSNH_MSG_GETTEXT, (LPARAM) history_text);
 
-            next_message = text->buffer;
+            next_message = history_text->buffer;
         }
     }
 
     if (!(next_message && next_message[0])) {
-        free(text);
+        free(history_text), history_text = 0;
         next_message = 0;
         return (char *) 0;
     } else {

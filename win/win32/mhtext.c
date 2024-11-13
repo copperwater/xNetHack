@@ -83,8 +83,10 @@ NHTextWndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
         data = (PNHTextWindow)malloc(sizeof(NHTextWindow));
         if (!data)
             panic("out of memory");
+
         ZeroMemory(data, sizeof(NHTextWindow));
         SetWindowLongPtr(hWnd, GWLP_USERDATA, (LONG_PTR)data);
+        windowdata[NHW_TEXT].address = (genericptr_t) data; // for cleanup at the end
 
         HWND control = GetDlgItem(hWnd, IDC_TEXT_CONTROL);
         HDC hdc = GetDC(control);
@@ -173,6 +175,7 @@ NHTextWndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
                 free(data->window_text);
             free(data);
             SetWindowLongPtr(hWnd, GWLP_USERDATA, (LONG_PTR) 0);
+            windowdata[NHW_TEXT].address = 0;
         }
         break;
 

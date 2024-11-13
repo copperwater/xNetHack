@@ -641,6 +641,7 @@ MapWndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
             DeleteDC(data->backBufferDC);
         free(data);
         SetWindowLongPtr(hWnd, GWLP_USERDATA, (LONG_PTR) 0);
+        windowdata[NHW_MAP].address = 0;
         break;
 
     case WM_TIMER:
@@ -834,6 +835,7 @@ onCreate(HWND hWnd, WPARAM wParam, LPARAM lParam)
     ReleaseDC(hWnd, hDC);
 
     SetWindowLongPtr(hWnd, GWLP_USERDATA, (LONG_PTR) data);
+    windowdata[NHW_MAP].address = (genericptr_t) data;
 
     clearAll(data);
 

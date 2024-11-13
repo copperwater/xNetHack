@@ -131,7 +131,7 @@ WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine,
     windowprocs.win_wait_synch = mswin_wait_synch;
 
     win10_init();
-    early_init(0, NULL);	/* Change as needed to support CRASHREPORT */
+    /* early_init(0, NULL);	*/ /* Change as needed to support CRASHREPORT */  
 
     /* init application structure */
     _nethack_app.hApp = hInstance;
@@ -166,6 +166,8 @@ WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine,
 
     _nethack_app.bNoHScroll = FALSE;
     _nethack_app.bNoVScroll = FALSE;
+    if (_nethack_app.saved_text)
+        free(_nethack_app.saved_text), _nethack_app.saved_text = 0;
     _nethack_app.saved_text = strdup("");
 
     _nethack_app.bAutoLayout = TRUE;
@@ -257,7 +259,17 @@ free_winmain_stuff(void)
 
     for (cnt = 0; cnt < MAX_CMDLINE_PARAM; ++cnt) {
         if (argv[cnt])
-            free((genericptr_t) argv[cnt]);
+            free((genericptr_t) argv[cnt]), argv[cnt] = 0;
+    }
+    if (_nethack_app.saved_text)
+        free((genericptr_t) _nethack_app.saved_text),
+            _nethack_app.saved_text = 0;
+    for (cnt = 0; cnt < MAXWINDOWS; ++cnt) {
+        if (windowdata[cnt].address) {
+            if (!windowdata[cnt].isstatic)
+                free(windowdata[cnt].address);
+            windowdata[cnt].address = 0;
+        }
     }
 }
 

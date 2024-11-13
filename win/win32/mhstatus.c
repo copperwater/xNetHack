@@ -127,6 +127,7 @@ mswin_init_status_window(void)
     if (!data)
         panic("out of memory");
 
+    windowdata[NHW_STATUS].address = (genericptr_t) data;
     ZeroMemory(data, sizeof(NHStatusWindow));
     SetWindowLongPtr(ret, GWLP_USERDATA, (LONG_PTR) data);
 
@@ -253,6 +254,7 @@ StatusWndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
     case WM_DESTROY:
         free(data);
         SetWindowLongPtr(hWnd, GWLP_USERDATA, (LONG_PTR) 0);
+        windowdata[NHW_STATUS].address = 0;
         break;
 
     case WM_SETFOCUS:

@@ -298,6 +298,7 @@ MenuWndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
             data->bmpDC = CreateCompatibleDC(hdc);
             data->is_active = FALSE;
             SetWindowLongPtr(hWnd, GWLP_USERDATA, (LONG_PTR) data);
+            windowdata[NHW_MENU].address = (genericptr_t) data;
         }
         /* set font for the text control */
         cached_font * font = mswin_get_font(NHW_MENU, ATR_NONE, hdc, FALSE);
@@ -519,6 +520,7 @@ MenuWndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
             }
             free(data);
             SetWindowLongPtr(hWnd, GWLP_USERDATA, (LONG_PTR) 0);
+            windowdata[NHW_MENU].address = 0;
         }
         return TRUE;
     }

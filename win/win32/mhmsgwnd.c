@@ -171,6 +171,7 @@ NHMessageWndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
         data = (PNHMessageWindow) GetWindowLongPtr(hWnd, GWLP_USERDATA);
         free(data);
         SetWindowLongPtr(hWnd, GWLP_USERDATA, (LONG_PTR) 0);
+        windowdata[NHW_MESSAGE].address = 0;
     } break;
 
     case WM_SIZE: {
@@ -729,6 +730,7 @@ onCreate(HWND hWnd, WPARAM wParam, LPARAM lParam)
     ZeroMemory(data, sizeof(NHMessageWindow));
     data->max_text = MAXWINDOWTEXT;
     SetWindowLongPtr(hWnd, GWLP_USERDATA, (LONG_PTR) data);
+    windowdata[NHW_MESSAGE].address = (genericptr_t) data;  // for cleanup at the end
 
     /* re-calculate window size (+ font size) */
     mswin_message_window_size(hWnd, &dummy);

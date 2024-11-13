@@ -43,8 +43,18 @@
 #define MAXWINDOWS 15
 #endif
 
-#define NHW_RIP 32
-#define NHW_INVEN 33
+struct window_tracking_data {
+    genericptr_t address;
+    int isstatic;
+} windowdata[MAXWINDOWS];
+
+/* these are only in MSWIN_GRAPHICS, not the core */
+enum mswin_window_types {
+    NHW_MAIN = (NHW_LAST_TYPE + 1),
+    NHW_INVEN,
+    NHW_RIP,
+    NHW_SPLASH
+};
 
 #ifndef TILE_X
 #define TILE_X 16
