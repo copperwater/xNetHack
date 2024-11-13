@@ -15,7 +15,7 @@
    at runtime by setting up a value for "DEBUGFILES" in the environment */
 #endif
 
-struct sysopt sysopt;
+struct sysopt_s sysopt;
 
 void
 sys_early_init(void)
@@ -66,7 +66,11 @@ sys_early_init(void)
 
 #ifdef PANICTRACE
     /* panic options */
+    if (sysopt.gdbpath)
+        free((genericptr_t) sysopt.gdbpath), sysopt.gdbpath = 0;
     sysopt.gdbpath = dupstr(GDBPATH);
+    if (sysopt.greppath)
+        free((genericptr_t) sysopt.greppath), sysopt.greppath = 0;
     sysopt.greppath = dupstr(GREPPATH);
 #if (NH_DEVEL_STATUS != NH_STATUS_RELEASED)
     sysopt.panictrace_gdb = 1;

@@ -5,7 +5,7 @@
 #ifndef SYS_H
 #define SYS_H
 
-struct sysopt {
+struct sysopt_s {
     char *support; /* local support contact */
     char *recover; /* how to run recover - may be overridden by win port */
     char *wizards; /* space-separated list of usernames */
@@ -60,7 +60,7 @@ struct sysopt {
                          * 1: suppress it */
 };
 
-extern struct sysopt sysopt;
+extern struct sysopt_s sysopt;
 
 #define SYSOPT_SEDUCE sysopt.seduce
 
