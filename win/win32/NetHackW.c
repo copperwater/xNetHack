@@ -256,7 +256,7 @@ free_winmain_stuff(void)
     int cnt;
 
     for (cnt = 0; cnt < MAX_CMDLINE_PARAM; ++cnt) {
-        if (argv[cnt] && argv)
+        if (argv[cnt])
             free((genericptr_t) argv[cnt]);
     }
 }
