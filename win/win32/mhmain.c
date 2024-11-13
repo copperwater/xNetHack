@@ -25,6 +25,7 @@ extern winid WIN_STATUS;
 
 static TCHAR szMainWindowClass[] = TEXT("MSNHMainWndClass");
 static TCHAR szTitle[MAX_LOADSTRING];
+struct window_tracking_data windowdata[MAXWINDOWS];
 extern void mswin_display_splash_window(BOOL);
 
 LRESULT CALLBACK MainWndProc(HWND, UINT, WPARAM, LPARAM);

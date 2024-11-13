@@ -46,7 +46,7 @@
 struct window_tracking_data {
     genericptr_t address;
     int isstatic;
-} windowdata[MAXWINDOWS];
+};
 
 /* these are only in MSWIN_GRAPHICS, not the core */
 enum mswin_window_types {
@@ -55,6 +55,7 @@ enum mswin_window_types {
     NHW_RIP,
     NHW_SPLASH
 };
+extern struct window_tracking_data windowdata[MAXWINDOWS];
 
 #ifndef TILE_X
 #define TILE_X 16
