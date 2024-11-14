@@ -483,69 +483,11 @@ void NetHackQtMenuWindow::UpdateCountColumn(long newcount)
     table->repaint();
 }
 
-struct qcolor {
-    QColor q;
-    const char *nm;
-};
-// these match the tty colors, or better versions of same;
-// [0] is used for black, and [8] (the first white) corresponds to "no color"
-static const struct qcolor colors[] = {
-    { QColor(64, 64, 64),    "64,64,64" },    // black
-    { QColor(Qt::red),       "red" },
-    { QColor(0, 191, 0),     "0,191,0" },     // green
-    { QColor(127, 127, 0),   "127,127,0" },   // brownish
-    { QColor(Qt::blue),      "blue" },
-    { QColor(Qt::magenta),   "magenta" },
-    { QColor(Qt::cyan),      "cyan" },
-    { QColor(Qt::gray),      "gray" },
-    // on tty, the "light" variations are "bright" instead; here they're paler
-    { QColor(Qt::white),     "white" },       // no-color, so not rendered
-    { QColor(255, 127, 0),   "255,127,0" },   // orange
-    { QColor(127, 255, 127), "127,255,127" }, // light green
-    { QColor(Qt::yellow),    "yellow" },
-    { QColor(127, 127, 255), "127,127,255" }, // light blue
-    { QColor(255, 127, 255), "255,127,255" }, // light magenta
-    { QColor(127, 255, 255), "127,255,255" }, // light cyan
-    { QColor(Qt::white),     "white" },
-};
-
-#if 0   /* available for debugging */
-static const char *color_name(const QColor q)
-{
-    for (int i = 0; i < SIZE(colors); ++i)
-        if (q == colors[i].q)
-            return colors[i].nm;
-    // these are all the enum GlobalColor values <qt5/QtCore/qnamespace.h>;
-    // black and white have been moved in front of color0 and color1 here
-    const char *nm = (q == Qt::black) ? "black"
-                   : (q == Qt::white) ? "white"
-                   : (q == Qt::color0) ? "color0" // doesn't duplicate white?
-                   : (q == Qt::color1) ? "color1" // does duplicate black
-                   : (q == Qt::darkGray) ? "darkGray"
-                   : (q == Qt::gray) ? "gray"
-                   : (q == Qt::lightGray) ? "lightGray"
-                   : (q == Qt::red) ? "red"
-                   : (q == Qt::green) ? "green"
-                   : (q == Qt::blue) ? "blue"
-                   : (q == Qt::cyan)  ? "cyan"
-                   : (q == Qt::magenta) ? "magenta"
-                   : (q == Qt::yellow) ? "yellow"
-                   : (q == Qt::darkRed) ? "darkRed"
-                   : (q == Qt::darkGreen) ? "darkGreen"
-                   : (q == Qt::darkBlue) ? "darkBlue"
-                   : (q == Qt::darkCyan) ? "darkCyan"
-                   : (q == Qt::darkMagenta) ? "darkMagenta"
-                   : (q == Qt::darkYellow) ? "darkYellow"
-                   : (q == Qt::transparent) ? "transparent"
-                   : "other";
-    return nm;
-}
-#endif
-
 void NetHackQtMenuWindow::SetTwiAttr(QTableWidgetItem *twi, int color, int attr)
 {
     if (color != NO_COLOR) {
-	twi->setForeground(colors[color].q);
+        const QPen qp = NetHackQtBind::nhcolor_to_pen(color);
+	twi->setForeground(qp.color());
     }
 
     if (attr != ATR_NONE) {

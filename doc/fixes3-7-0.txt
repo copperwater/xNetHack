@@ -2207,7 +2207,7 @@ curses: if user's terminal was set to 'application keypad mode' (DEC VTxxx
 	"ESC SPC G"), nethack wasn't recognizing number pad keys
 curses: change petattr attributes, dropping support for curses-only ones
 curses: swap the grey and no-color color initialization
-curses: allow changing default colors with the 'palette' config option
+curses+Qt: allow changing default colors with the 'palette' config option
 	(only if compiled with CHANGE_COLOR)
 curses: if messages have been issued during start-up (for instance, warnings
 	about issues in run-time config file), prompt user to press <return>

@@ -71,6 +71,9 @@ public:
 				   const glyph_info *bkglyphinfo);
 	static void qt_raw_print(const char *str);
 	static void qt_raw_print_bold(const char *str);
+	static const QPen nhcolor_to_pen(uint32_t c);
+        static void qt_change_color(int color, long rgb, int reverse UNUSED);
+        static char *qt_get_color_string(void);
 	static int qt_nhgetch();
 	static int qt_nh_poskey(coordxy *x, coordxy *y, int *mod);
 	static void qt_nhbell();

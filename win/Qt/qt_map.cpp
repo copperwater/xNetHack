@@ -77,47 +77,6 @@ extern int qt_compact_mode;
 
 namespace nethack_qt_ {
 
-static const QPen nhcolor_to_pen(uint32_t c)
-{
-    static QPen *pen = (QPen *) 0;
-    if (!pen) {
-        pen = new QPen[17];
-        //
-        // FIXME:  these are duplicated in qt_menu.cpp
-        //
-        pen[ 0] = QColor(64, 64, 64);    // black
-        pen[ 1] = QColor(Qt::red);
-        pen[ 2] = QColor(0, 191, 0);     // green
-        pen[ 3] = QColor(127, 127, 0);   // brownish
-        pen[ 4] = QColor(Qt::blue);
-        pen[ 5] = QColor(Qt::magenta);
-        pen[ 6] = QColor(Qt::cyan);
-        pen[ 7] = QColor(Qt::gray);
-        // on tty, "light" variations are "bright" instead; here they're paler
-        pen[ 8] = QColor(Qt::white);     // no color
-        pen[ 9] = QColor(255, 127, 0);   // orange
-        pen[10] = QColor(127, 255, 127); // light green
-        pen[11] = QColor(Qt::yellow);
-        pen[12] = QColor(127, 127, 255); // light blue
-        pen[13] = QColor(255, 127, 255); // light magenta
-        pen[14] = QColor(127, 255, 255); // light cyan
-        pen[15] = QColor(Qt::white);
-        // ? out of range for 0..15
-        pen[16] = QColor(Qt::black);
-    }
-
-#ifdef ENHANCED_SYMBOLS
-    if (c & 0x80000000) {
-        return QColor(
-            (c >> 16) & 0xFF,
-            (c >>  8) & 0xFF,
-            (c >>  0) & 0xFF);
-    } else
-#endif
-    {
-        return pen[c];
-    }
-}
 
 NetHackQtMapViewport::NetHackQtMapViewport(NetHackQtClickBuffer& click_sink) :
     QWidget(NULL),
@@ -202,7 +161,7 @@ void NetHackQtMapViewport::paintEvent(QPaintEvent* event)
                     ch = cp437(ch);
                 }
                 color = Glyphcolor(i, j);
-                painter.setPen(nhcolor_to_pen(color));
+                painter.setPen(NetHackQtBind::nhcolor_to_pen(color));
                 if (!DrawWalls(painter, i * gW, j * gH, gW, gH, ch)) {
                     ushort utf16[3];
                     if (ch < 0x10000) {
@@ -226,7 +185,7 @@ void NetHackQtMapViewport::paintEvent(QPaintEvent* event)
                 }
                 framecolor = GlyphFramecolor(i, j);
                 if (framecolor != NO_COLOR) {
-                   painter.setPen(nhcolor_to_pen(framecolor));
+                   painter.setPen(NetHackQtBind::nhcolor_to_pen(framecolor));
                    painter.drawRect(i * qt_settings->glyphs().width(),
                                     j * qt_settings->glyphs().height(),
                                     qt_settings->glyphs().width() - 1,
@@ -255,7 +214,7 @@ void NetHackQtMapViewport::paintEvent(QPaintEvent* event)
                 }
                 framecolor = GlyphFramecolor(i, j);
                 if (framecolor != NO_COLOR) {
-                   painter.setPen(nhcolor_to_pen(framecolor));
+                   painter.setPen(NetHackQtBind::nhcolor_to_pen(framecolor));
                    painter.drawRect(i * qt_settings->glyphs().width(),
                                     j * qt_settings->glyphs().height(),
                                     qt_settings->glyphs().width() - 1,

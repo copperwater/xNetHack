@@ -70,6 +70,8 @@ static struct key_macro_rec {
     { 0, 0U, (const char *) 0, (const char *) 0 }
 };
 
+static QPen *pen = (QPen *) 0;
+
 NetHackQtBind::NetHackQtBind(int& argc, char** argv) :
 #ifdef KDE
     KApplication(argc,argv)
@@ -578,6 +580,45 @@ void NetHackQtBind::qt_raw_print_bold(const char *str)
     qt_raw_print(str);
 }
 
+const QPen NetHackQtBind::nhcolor_to_pen(uint32_t c)
+{
+    if (!pen) {
+        pen = new QPen[17];
+
+        pen[ 0] = QColor(64, 64, 64);    // black
+        pen[ 1] = QColor(Qt::red);
+        pen[ 2] = QColor(0, 191, 0);     // green
+        pen[ 3] = QColor(127, 127, 0);   // brownish
+        pen[ 4] = QColor(Qt::blue);
+        pen[ 5] = QColor(Qt::magenta);
+        pen[ 6] = QColor(Qt::cyan);
+        pen[ 7] = QColor(Qt::gray);
+        // on tty, "light" variations are "bright" instead; here they're paler
+        pen[ 8] = QColor(Qt::white);     // no color
+        pen[ 9] = QColor(255, 127, 0);   // orange
+        pen[10] = QColor(127, 255, 127); // light green
+        pen[11] = QColor(Qt::yellow);
+        pen[12] = QColor(127, 127, 255); // light blue
+        pen[13] = QColor(255, 127, 255); // light magenta
+        pen[14] = QColor(127, 255, 255); // light cyan
+        pen[15] = QColor(Qt::white);
+        // ? out of range for 0..15
+        pen[16] = QColor(Qt::black);
+    }
+
+#ifdef ENHANCED_SYMBOLS
+    if (c & 0x80000000) {
+        return QColor(
+            (c >> 16) & 0xFF,
+            (c >>  8) & 0xFF,
+            (c >>  0) & 0xFF);
+    } else
+#endif
+    {
+        return pen[c];
+    }
+}
+
 int NetHackQtBind::qt_nhgetch()
 {
     if (main)
@@ -901,6 +942,28 @@ void NetHackQtBind::qt_delay_output()
 #endif
 }
 
+#ifdef CHANGE_COLOR
+void NetHackQtBind::qt_change_color(int color, long rgb, int reverse UNUSED)
+{
+    int r, g, b;
+
+    r = (rgb >> 16) & 0xFF;
+    g = (rgb >> 8) & 0xFF;
+    b = rgb & 0xFF;
+    if (!pen) {
+        (void) NetHackQtBind::nhcolor_to_pen(0); /* init pen[] */
+    }
+    pen[color % 16] = QColor(r, g, b);
+}
+
+char *
+NetHackQtBind::qt_get_color_string(void)
+{
+    return (char *) 0;
+}
+
+#endif
+
 void NetHackQtBind::qt_start_screen()
 {
     // Ignore.
@@ -1158,11 +1221,13 @@ struct window_procs Qt_procs = {
     nethack_qt_::NetHackQtBind::qt_get_ext_cmd,
     nethack_qt_::NetHackQtBind::qt_number_pad,
     nethack_qt_::NetHackQtBind::qt_delay_output,
-#ifdef CHANGE_COLOR     /* only a Mac option currently */
+#ifdef CHANGE_COLOR
+    nethack_qt_::NetHackQtBind::qt_change_color,
+#ifdef MAC /* old OS 9, not OSX */
     donull,
     donull,
-    donull,
-    donull,
+#endif
+    nethack_qt_::NetHackQtBind::qt_get_color_string,
 #endif
     /* other defs that really should go away (they're tty specific) */
     nethack_qt_::NetHackQtBind::qt_start_screen,
