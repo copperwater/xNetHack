@@ -6951,7 +6951,7 @@ initoptions_init(void)
     int i;
     boolean have_branch = (nomakedefs.git_branch && *nomakedefs.git_branch);
 
-    go.opt_phase = builtin_opt;		// Did I need to move this here?
+    go.opt_phase = builtin_opt;    /* Did I need to move this here? */
     memcpy(allopt, allopt_init, sizeof(allopt));
     determine_ambiguities();
 

@@ -266,7 +266,7 @@
 
 #ifdef CRASHREPORT
 # ifndef DUMPLOG_CORE
-#  define DUMPLOG_CORE	    // required to get ^P info
+#  define DUMPLOG_CORE     // required to get ^P info
 # endif
 # ifdef MACOS
 #  define PANICTRACE

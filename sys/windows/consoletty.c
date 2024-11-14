@@ -300,7 +300,7 @@ static INPUT_RECORD bogus_key;
 /*
 Windows console palette:
 Color Name      Console Legacy RGB Values  New Default RGB Values
-BLACK           0,0,0	                   12,12,12
+BLACK           0,0,0                      12,12,12
 DARK_BLUE       0,0,128                    0,55,218
 DARK_GREEN      0,128,0                    19,161,14
 DARK_CYAN       0,128,128                  58,150,221

@@ -644,15 +644,15 @@ early_options(int *argc_p, char ***argv_p, char **hackdir_p)
             ++arg;
 
         switch (arg[1]) { /* char after leading dash */
-	case 'b':
+        case 'b':
 #ifdef CRASHREPORT
-		// --bidshow
-	    if (argcheck(argc, argv, ARG_BIDSHOW) == 2){
+            // --bidshow
+            if (argcheck(argc, argv, ARG_BIDSHOW) == 2){
                 opt_terminate();
                 /*NOTREACHED*/
-	    }
+            }
 #endif
-	    break;
+            break;
         case 'd':
             if (argcheck(argc, argv, ARG_DEBUG) == 1) {
                 consume_arg(ndx, argc_p, argv_p), consumed = 1;

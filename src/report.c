@@ -220,7 +220,7 @@ crashreport_bidshow(void)
     mark = uend;                                \
     if (utmp >= urem)                           \
         goto full;                              \
-    memcpy(uend, str, utmp);			\
+    memcpy(uend, str, utmp);                    \
     uend += utmp; urem -= utmp;                 \
     *uend = '\0';
 
