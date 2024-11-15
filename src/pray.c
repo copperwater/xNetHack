@@ -29,6 +29,7 @@ staticfn void offer_different_alignment_altar(struct obj *, aligntyp);
 staticfn void sacrifice_your_race(struct obj *, boolean, aligntyp);
 staticfn int bestow_artifact(void);
 staticfn int sacrifice_value(struct obj *);
+staticfn int eval_offering(struct obj *, aligntyp);
 staticfn void offer_corpse(struct obj *, boolean, aligntyp);
 staticfn boolean pray_revive(void);
 staticfn boolean water_prayer(boolean);
@@ -1874,63 +1875,19 @@ dosacrifice(void)
     return ECMD_TIME;
 }
 
-staticfn void
-offer_corpse(struct obj *otmp, boolean highaltar, aligntyp altaralign)
+staticfn int
+eval_offering(struct obj *otmp, aligntyp altaralign)
 {
-    int value;
     struct permonst *ptr;
-    struct monst *mtmp;
-
-    /*
-     * Was based on nutritional value and aging behavior (< 50 moves).
-     * Sacrificing a food ration got you max luck instantly, making the
-     * gods as easy to please as an angry dog!
-     *
-     * Now only accepts corpses, based on the game's evaluation of their
-     * toughness.  Human and pet sacrifice, as well as sacrificing unicorns
-     * of your alignment, is strongly discouraged.
-     */
-#define MAXVALUE 24 /* Highest corpse value (besides Wiz) */
-
-    ptr = &mons[otmp->corpsenm];
-
-    /* KMH, conduct */
-    if (!u.uconduct.gnostic++)
-        livelog_printf(LL_CONDUCT, "rejected atheism"
-                                   " by offering %s on an altar of %s",
-                       corpse_xname(otmp, (const char *) 0, CXN_ARTICLE),
-                       a_gname());
-
-    /* you're handling this corpse, even if it was killed upon the altar
-     */
-    feel_cockatrice(otmp, TRUE);
-    if (rider_corpse_revival(otmp, FALSE))
-        return;
+    int value;
 
     value = sacrifice_value(otmp);
 
-    /* same race or former pet results apply even if the corpse is
-       too old (value==0) */
-    if (your_race(ptr)) {
-        sacrifice_your_race(otmp, highaltar, altaralign);
-        return;
-    }
-    if (has_omonst(otmp)
-               && (mtmp = get_mtraits(otmp, FALSE)) != 0
-               && mtmp->mtame) {
-            /* mtmp is a temporary pointer to a tame monster's attributes,
-             * not a real monster */
-        pline("So this is how you repay loyalty?");
-        adjalign(-3);
-        HAggravate_monster |= FROMOUTSIDE;
-        offer_negative_valued(highaltar, altaralign);
-        return;
-    }
-    if (!value) {
-        /* too old; don't give undead or unicorn bonus or penalty */
-        pline1(nothing_happens);
-        return;
-    }
+    if (!value)
+        return 0;
+
+    ptr = &mons[otmp->corpsenm];
+
     if (is_undead(ptr)) { /* Not demons--no demon corpses */
         /* most undead that leave a corpse yield 'human' (or other race)
            corpse so won't get here; the exception is wraith; give the
@@ -1950,8 +1907,7 @@ offer_corpse(struct obj *otmp, boolean highaltar, aligntyp altaralign)
                   (unicalign == A_CHAOTIC) ? "chaos"
                      : unicalign ? "law" : "balance");
             (void) adjattrib(A_WIS, -1, TRUE);
-            offer_negative_valued(highaltar, altaralign);
-            return;
+            return -1;
         } else if (u.ualign.type == altaralign) {
             /* When different from altar, and altar is same as yours,
              * it's a very good action.
@@ -1975,6 +1931,70 @@ offer_corpse(struct obj *otmp, boolean highaltar, aligntyp altaralign)
              */
             value += 3;
         }
+    }
+    return value;
+}
+
+staticfn void
+offer_corpse(struct obj *otmp, boolean highaltar, aligntyp altaralign)
+{
+    int value;
+    struct permonst *ptr;
+    struct monst *mtmp;
+
+    /*
+     * Was based on nutritional value and aging behavior (< 50 moves).
+     * Sacrificing a food ration got you max luck instantly, making the
+     * gods as easy to please as an angry dog!
+     *
+     * Now only accepts corpses, based on the game's evaluation of their
+     * toughness.  Human and pet sacrifice, as well as sacrificing unicorns
+     * of your alignment, is strongly discouraged.
+     */
+#define MAXVALUE 24 /* Highest corpse value (besides Wiz) */
+
+    /* KMH, conduct */
+    if (!u.uconduct.gnostic++)
+        livelog_printf(LL_CONDUCT, "rejected atheism"
+                                   " by offering %s on an altar of %s",
+                       corpse_xname(otmp, (const char *) 0, CXN_ARTICLE),
+                       a_gname());
+
+    /* you're handling this corpse, even if it was killed upon the altar
+     */
+    feel_cockatrice(otmp, TRUE);
+    if (rider_corpse_revival(otmp, FALSE))
+        return;
+
+    ptr = &mons[otmp->corpsenm];
+
+    /* same race or former pet results apply even if the corpse is
+       too old (value==0) */
+    if (your_race(ptr)) {
+        sacrifice_your_race(otmp, highaltar, altaralign);
+        return;
+    }
+    if (has_omonst(otmp)
+               && (mtmp = get_mtraits(otmp, FALSE)) != 0
+               && mtmp->mtame) {
+            /* mtmp is a temporary pointer to a tame monster's attributes,
+             * not a real monster */
+        pline("So this is how you repay loyalty?");
+        adjalign(-3);
+        HAggravate_monster |= FROMOUTSIDE;
+        offer_negative_valued(highaltar, altaralign);
+        return;
+    }
+
+    value = eval_offering(otmp, altaralign);
+    if (value == 0) {
+        /* too old; don't give undead or unicorn bonus or penalty */
+        pline1(nothing_happens);
+        return;
+    }
+    if (value < 0) {
+        offer_negative_valued(highaltar, altaralign);
+        return;
     }
 
     if (altaralign != u.ualign.type && highaltar) {
