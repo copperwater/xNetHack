@@ -466,8 +466,12 @@ PDCURSES_CURSES_H	= $(PDCURSES_TOP)\curses.h
 PDCURSES_CURSPRIV_H	= $(PDCURSES_TOP)\curspriv.h
 PDCURSES_HEADERS	= $(PDCURSES_CURSES_H) $(PDCURSES_CURSPRIV_H)
 PDCSRC                  = $(PDCURSES_TOP)\pdcurses
+!IF "$(CURSES_CONSOLE)" == "Y"
 PDCWINCON               = $(PDCURSES_TOP)\wincon
+!ENDIF
+!IF "$(CURSES_GRAPHICAL)" == "Y"
 PDCWINGUI               = $(PDCURSES_TOP)\wingui
+!ENDIF
 PDCDEP                  = $(PDCURSES_TOP)\curses.h
 
 PDCCOMMONOBJS = $(OPDC)addch.o $(OPDC)addchstr.o $(OPDC)addstr.o $(OPDC)attr.o $(OPDC)beep.o \
@@ -481,15 +485,17 @@ PDCCOMMONOBJS = $(OPDC)addch.o $(OPDC)addchstr.o $(OPDC)addstr.o $(OPDC)attr.o $
 	$(OPDC)scroll.o $(OPDC)slk.o $(OPDC)termattr.o $(OPDC)touch.o \
 	$(OPDC)util.o $(OPDC)window.o
 
+PDCINCL = /I$(PDCURSES_TOP) /I$(PDCSRC)
+!IF "$(CURSES_CONSOLE)" == "Y"
+PDCINCLCON = /I$(PDCWINCON)
 PDCWINCONOBJS = $(OPDCC)pdcclip.o $(OPDCC)pdcdisp.o $(OPDCC)pdcgetsc.o \
 	$(OPDCC)pdckbd.o $(OPDCC)pdcscrn.o $(OPDCC)pdcsetsc.o $(OPDCC)pdcutil.o
-
+!ENDIF
+!IF "$(CURSES_GRAPHICAL)" == "Y"
 PDCWINGUIOBJS = $(OPDCG)pdcclip.o $(OPDCG)pdcdisp.o $(OPDCG)pdcgetsc.o \
 	$(OPDCG)pdckbd.o $(OPDCG)pdcscrn.o $(OPDCG)pdcsetsc.o $(OPDCG)pdcutil.o
-
-PDCINCL = /I$(PDCURSES_TOP) /I$(PDCSRC)
 PDCINCLGUI = /I$(PDCWINCON)
-PDCINCLCON = /I$(PDCWINGUI)
+!ENDIF
 !ELSE
 PDCDEP=
 PDCCOMMONOBJS=
@@ -627,14 +633,14 @@ CURSESOBJ= $(OTTY)cursdial.o $(OTTY)cursinit.o $(OTTY)cursinvt.o \
 !IF "$(CURSES_CONSOLE)" == "Y"
 CURSESWINCONOBJS = $(CURSESOBJ)
 PDCWINCONLIB = $(LIBDIR)\$(PDCDIST)-wincon-$(TARGET_CPU)-static.lib
-CURSESDEF1=-D"CURSES_GRAPHICS" -DPDC_NCMOUSE
+CURSESCONDEF1=-D"CURSES_GRAPHICS" -DPDC_NCMOUSE
 #CURSESDEF2=-D"CURSES_BRIEF_INCLUDE" -DCHTYPE_32
 CURSESDEF2=-DCURSES_UNICODE $(PDCURSESFLAGS)
 !ENDIF
 !IF "$(CURSES_GRAPHICAL)" == "Y"
 CURSESWINGUIOBJS = $(CURSESOBJ) $(OGUI)guitty.o
 PDCWINGUILIB = $(LIBDIR)\$(PDCDIST)-wingui-$(TARGET_CPU)-static.lib
-CURSESDEF1=-D"CURSES_GRAPHICS" -DPDC_NCMOUSE
+CURSESGUIDEF1=-D"CURSES_GRAPHICS" -DPDC_NCMOUSE
 #CURSESDEF2=-D"CURSES_BRIEF_INCLUDE" -DCHTYPE_32
 CURSESDEF2=-DCURSES_UNICODE $(PDCURSESFLAGS)
 !ENDIF
@@ -661,7 +667,7 @@ OGUIHACKLIB = $(OGUI)hacklib-$(TARGET_CPU)-static.lib
 # - TTY
 #
 
-TTYDEF=  -D"_CONSOLE" -DWIN32CON $(CURSESDEF1)
+TTYDEF=  -D"_CONSOLE" -DWIN32CON $(CURSESCONDEF1) $(CURSESGUIDEF1)
 
 RANDOMTTY = $(OTTY)random.o
 MDLIBTTY  = $(OTTY)mdlib.o
@@ -720,7 +726,7 @@ ALLOBJTTY  = $(SOBJTTY) $(DLBOBJTTY) $(OBJSTTY) $(VVOBJTTY) $(LUAOBJTTY)
 # - GUI
 #
 
-GUIDEF= -DTILES -DMSWIN_GRAPHICS -DNOTTYGRAPHICS $(CURSESDEF1)
+GUIDEF= -DTILES -DMSWIN_GRAPHICS -DNOTTYGRAPHICS $(CURSESGUIDEF1)
 
 ALL_GUIHDR = $(MSWIN)\mhaskyn.h $(MSWIN)\mhdlg.h $(MSWIN)\mhfont.h \
 	$(MSWIN)\mhinput.h $(MSWIN)\mhmain.h $(MSWIN)\mhmap.h $(MSWIN)\mhmenu.h \
@@ -1312,10 +1318,8 @@ DLB =
 #==========================================
 # Rules for files in win\curses
 #==========================================
-!IF "$(ADD_CURSES)" == "Y"
 {$(WCURSES)}.c{$(OBJTTY)}.o:
-	$(Q)$(CC) $(PDCINCL) $(CFLAGS) $(CURSESDEF1) $(CURSESDEF2) $(TTYDEF) $(GUIDEF) $(CROSSCOMPILE) $(CROSSCOMPILE_TARGET) -Fo$@ $<
-!ENDIF
+	$(Q)$(CC) $(PDCINCL) $(CFLAGS) $(CURSESCONDEF1) $(CURSESGUIDEF1) $(CURSESDEF2) $(TTYDEF) $(GUIDEF) $(CROSSCOMPILE) $(CROSSCOMPILE_TARGET) -Fo$@ $<
 
 #==========================================
 # Rules for files in PDCurses
@@ -1329,11 +1333,15 @@ DLB =
 {$(PDCSRC)}.c{$(OBJPDC)}.o:
 	$(Q)$(CC) /wd4244 /wd4267 /wd4774 $(PDCINCL) $(CFLAGS:-w44774= ) $(CURSESDEF2) $(CROSSCOMPILE) $(CROSSCOMPILE_TARGET) -Fo$@ $<
 
+!IF "$(CURSES_CONSOLE)" == "Y"
 {$(PDCWINCON)}.c{$(OBJPDCC)}.o:
 	$(Q)$(CC) /wd4244 /wd4267 /wd4774 $(PDCINCL) $(PDCINCLCON) $(CFLAGS) $(CURSESDEF2) $(CROSSCOMPILE) $(CROSSCOMPILE_TARGET) -Fo$@ $<
+!ENDIF
 
+!IF "$(CURSES_GRAPHICAL)" == "Y"
 {$(PDCWINGUI)}.c{$(OBJPDCG)}.o:
 	$(Q)$(CC) /wd4244 /wd4267 /wd4774 $(PDCINCL) $(PDCINCLGUI) $(CFLAGS) $(CURSESDEF2) $(CROSSCOMPILE) $(CROSSCOMPILE_TARGET) -Fo$@ $<
+!ENDIF
 !ENDIF
 
 #==========================================
@@ -1791,8 +1799,11 @@ pkgdir.tag:
 envchk.tag: cpu.tag
 !IFDEF TTYOBJ
 	@echo tty window support included
-! IF "$(ADD_CURSES)" == "Y"
-	@echo curses window support also included
+! IF "$(CURSES_CONSOLE)" == "Y"
+	@echo curses console window support also included
+! ENDIF
+! IF "$(CURSES_GRAPHICAL)" == "Y"
+	@echo curses graphical window support also included
 ! ENDIF
 !ENDIF
 !	IF "$(CL)"!=""
@@ -2053,7 +2064,7 @@ $(PDCWINCONLIB) : $(PDCCOMMONOBJS) $(PDCWINCONOBJS)
 	@echo Building library $@ from $**
 	@$(librarian) -nologo /out:$@ $(PDCCOMMONOBJS) $(PDCWINCONOBJS)
 !ENDIF
-!IF "$(CURSES_CONSOLE)" == "Y"
+!IF "$(CURSES_GRAPHICAL)" == "Y"
 $(PDCWINGUILIB) : $(PDCCOMMONOBJS) $(PDCWINGUIOBJS)
 	@echo Building library $@ from $**
 	@$(librarian) -nologo /out:$@ $(PDCCOMMONOBJS) $(PDCWINGUIOBJS)
