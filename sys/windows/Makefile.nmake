@@ -231,6 +231,13 @@ WANT_CURSES=Y
 WANT_CURSES=Y
 !ENDIF
 
+!IF "$(CURSES_CONSOLE)" != "Y"
+!IF "$(CURSES_GRAPHICAL)" != "Y"
+WANT_CURSES=N
+ADD_CURSES=N
+!ENDIF
+!ENDIF
+
 # Now, pdcursesmod
 !IF "$(WANT_CURSES)" == "Y"
 PDCDIST=pdcursesmod
@@ -484,7 +491,13 @@ PDCINCL = /I$(PDCURSES_TOP) /I$(PDCSRC)
 PDCINCLGUI = /I$(PDCWINCON)
 PDCINCLCON = /I$(PDCWINGUI)
 !ELSE
-PDCDEP =
+PDCDEP=
+PDCCOMMONOBJS=
+PDCWINCONOBJS=
+PDCWINGUIOBJS=
+PDCINCL=
+PDINCLGUI=
+PDCINCLCON=
 !ENDIF
 
 
@@ -626,7 +639,8 @@ CURSESDEF1=-D"CURSES_GRAPHICS" -DPDC_NCMOUSE
 CURSESDEF2=-DCURSES_UNICODE $(PDCURSESFLAGS)
 !ENDIF
 !ELSE
-!UNDEF CURSDEF
+!UNDEF CURSDEF1
+!UNDEF CURSDEF2
 !UNDEF CURSESLIB
 !UNDEF CURSESOBJ
 !UNDEF CURSESWINCONOBJS
@@ -1298,15 +1312,17 @@ DLB =
 #==========================================
 # Rules for files in win\curses
 #==========================================
-
+!IF "$(ADD_CURSES)" == "Y"
 {$(WCURSES)}.c{$(OBJTTY)}.o:
 	$(Q)$(CC) $(PDCINCL) $(CFLAGS) $(CURSESDEF1) $(CURSESDEF2) $(TTYDEF) $(GUIDEF) $(CROSSCOMPILE) $(CROSSCOMPILE_TARGET) -Fo$@ $<
+!ENDIF
 
 #==========================================
 # Rules for files in PDCurses
 #==========================================
 
 #
+!IF "$(ADD_CURSES)" == "Y"
 {$(PDCURSES_TOP)}.c{$(OBJPDC)}.o:
 	$(Q)$(CC) /wd4244 $(PDCINCL) $(CFLAGS) $(CURSESDEF2) $(CROSSCOMPILE) $(CROSSCOMPILE_TARGET) -Fo$@ $<
 
@@ -1318,6 +1334,7 @@ DLB =
 
 {$(PDCWINGUI)}.c{$(OBJPDCG)}.o:
 	$(Q)$(CC) /wd4244 /wd4267 /wd4774 $(PDCINCL) $(PDCINCLGUI) $(CFLAGS) $(CURSESDEF2) $(CROSSCOMPILE) $(CROSSCOMPILE_TARGET) -Fo$@ $<
+!ENDIF
 
 #==========================================
 # Rules for LUA files
@@ -1375,11 +1392,12 @@ $(LUASRC)\lua.h:
 #	git submodule update --remote ../submodules/lua
 #
 #aka PDCDEP
+!IF "$(ADD_CURSES)" == "Y"
 $(PDCURSES_TOP)\curses.h:
 	git submodule init ../submodules/$(PDCDIST)
 	git submodule update ../submodules/$(PDCDIST)
 #	git submodule update --remote ../submodules/$(PDCDIST)
-
+!ENDIF
 !ELSE  # GIT_AVAILABLE no
 CURLLUASRC=http://www.lua.org/ftp/lua-5.4.6.tar.gz
 CURLLUADST=lua-5.4.6.tar.gz
@@ -1394,6 +1412,7 @@ $(LUASRC)\lua.h:
 	curl -L $(CURLLUASRC) -o $(CURLLUADST)
 	tar -xvf $(CURLLUADST)
 	cd ..\src
+!IF "$(ADD_CURSES)" == "Y"
 $(PDCURSES_TOP)\curses.h:
 	@if not exist $(LIBDIR)\*.* mkdir $(LIBDIR)
 	cd $(LIBDIR)
@@ -1401,10 +1420,13 @@ $(PDCURSES_TOP)\curses.h:
 	if not exist $(PDCDIST)\*.* mkdir $(PDCDIST)
 	tar -C $(PDCDIST) --strip-components=1 -xvf $(CURLPDCDST)
 	cd ..\src
+!ENDIF  # ADD_CURSES
 !ENDIF  # GIT_AVAILABLE
 !ELSE   # INTERNET_AVAILABLE
 $(LUASRC)\lua.h:
+!IF "$(ADD_CURSES)" == "Y"
 $(PDCURSES_TOP)\curses.h:
+!ENDIF
 !ENDIF  # INTERNET_AVAILABLE
 
 #==========================================
@@ -1769,7 +1791,7 @@ pkgdir.tag:
 envchk.tag: cpu.tag
 !IFDEF TTYOBJ
 	@echo tty window support included
-! IF "$(ADD_CURSES)"=="Y"
+! IF "$(ADD_CURSES)" == "Y"
 	@echo curses window support also included
 ! ENDIF
 !ENDIF
@@ -1805,6 +1827,7 @@ fetch-actual-Lua:
 	cd ..\src
 	@echo Lua has been fetched into $(LIBDIR)\lua-$(LUAVER)
 
+!IF "$(ADD_CURSES)" == "Y"
 fetch-pdcurses:
 	@if not exist $(LIBDIR)\*.* mkdir $(LIBDIR)
 	cd $(LIBDIR)
@@ -1818,6 +1841,7 @@ fetch-pdcurses:
 	if exist .\$(PDCDIST).zip del .\$(PDCDIST).zip
 	cd ..\src
 	@echo $(PDCDIST) has been fetched into $(LIBDIR)\$(PDCDIST)
+!ENDIF
 
 #==========================================
 # DLB utility and nhdatNNN file creation
@@ -2023,14 +2047,18 @@ $(SRC)\x11tiles: $(U)tile2x11.exe $(WSHR)\monsters.txt $(WSHR)\objects.txt \
 #===============================================================================
 # PDCurses
 #===============================================================================
-
+!IF "$(ADD_CURSES)" == "Y"
+!IF "$(CURSES_CONSOLE)" == "Y"
 $(PDCWINCONLIB) : $(PDCCOMMONOBJS) $(PDCWINCONOBJS)
 	@echo Building library $@ from $**
 	@$(librarian) -nologo /out:$@ $(PDCCOMMONOBJS) $(PDCWINCONOBJS)
+!ENDIF
+!IF "$(CURSES_CONSOLE)" == "Y"
 $(PDCWINGUILIB) : $(PDCCOMMONOBJS) $(PDCWINGUIOBJS)
 	@echo Building library $@ from $**
 	@$(librarian) -nologo /out:$@ $(PDCCOMMONOBJS) $(PDCWINGUIOBJS)
-
+!ENDIF
+!ENDIF
 $(OGUI)guitty.o: $(MSWSYS)\guitty.c $(WINDHDR) $(HACK_H) $(TILE_H)
 
 #===============================================================================
