@@ -87,6 +87,13 @@ endif   # HAVE_MACPORTS
 endif   # QTDIR
 endif   # WANT_WIN_QT
 
+ifdef WANT_WIN_QT
+ifeq "$(CLANGPPGTEQ16)" "1"
+CXX=clang++ --std=c++20
+CCXXFLAGS +=-Wno-c++20-attribute-extensions
+endif
+endif
+
 # misc.370 must come after compiler.370
 # and after QTDIR is defined
 
