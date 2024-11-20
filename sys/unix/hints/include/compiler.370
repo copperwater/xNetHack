@@ -119,6 +119,7 @@ CCXX=g++ -std=gnu++11
 GPPGTEQ9 := $(shell expr `$(CXX) -dumpversion | cut -f1 -d.` \>= 9)
 GPPGTEQ11 := $(shell expr `$(CXX) -dumpversion | cut -f1 -d.` \>= 11)
 GPPGTEQ12 := $(shell expr `$(CXX) -dumpversion | cut -f1 -d.` \>= 12)
+GPPGTEQ14 := $(shell expr `$(CXX) -dumpversion | cut -f1 -d.` \>= 14)
 ifeq "$(GPPGTEQ9)" "1"
 CCXXFLAGS+=-Wformat-overflow
 ifdef CPLUSPLUS_NEED_DEPSUPPRESS
@@ -135,7 +136,7 @@ CFLAGS+=-fPIC
 endif  # g++ version greater than or equal to 11
 ifdef CPLUSPLUS_NEED17
 ifeq "$(GPPGTEQ12)" "1"
-CCXX=g++ -std=c++20
+CCXX=g++ -std=c++17
 else   # g++ version greater than or equal to 12? (no follows)
 CCXX=g++ -std=c++17
 endif  # g++ version greater than or equal to 12
@@ -171,7 +172,7 @@ ifeq "$(CLANGPPGTEQ14)" "1"
 CCXX=clang++ -std=c++17
 endif  # clang++ greater than or equal to 14
 ifeq "$(CLANGPPGTEQ17)" "1"
-CCXX=clang++ -std=c++20
+CCXX=clang++ -std=c++17
 endif  # clang++ greater than or equal to 17
 endif  # CPLUSPLUS_NEED17
 endif  # end of clang++-specific section

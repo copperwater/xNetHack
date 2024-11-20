@@ -74,6 +74,9 @@ endif  # WANT_WIN_QT5
 ifdef WANT_WIN_QT6
 #if your Qt6 is elsewhere, change this to match
 QTDIR=/usr/local/qt6
+ifeq "$(GPPGTEQ14)" "1"
+CCXXFLAGS += -Wno-template-id-cdtor
+endif    # g++ greater than or equal to 14
 endif   # WANT_WIN_QT6
 endif  # WANT_WIN_QT
 
