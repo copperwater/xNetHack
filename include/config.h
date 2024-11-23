@@ -463,7 +463,7 @@
  */
 #define INSURANCE /* allow crashed game recovery */
 
-#ifndef MAC
+#if !defined(MAC) && !defined(SHIM_GRAPHICS)
 #define CHDIR /* delete if no chdir() available */
 #endif
 
