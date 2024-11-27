@@ -1533,6 +1533,9 @@ attributes_enlightenment(
     /*** Vision and senses ***/
     if ((HBlinded || EBlinded) && BBlinded) /* blind w/ blindness blocked */
         you_can("see", from_what(-BLINDED)); /* Eyes of the Overworld */
+    if (Blnd_resist && !Blind) /* skip if no eyes or blindfolded */
+        you_are("not subject to light-induced blindness",
+                from_what(BLND_RES));
     if (See_invisible) {
         if (!Blind)
             enl_msg(You_, "see", "saw", " invisible", from_what(SEE_INVIS));

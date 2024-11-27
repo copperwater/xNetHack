@@ -187,7 +187,15 @@ resists_blnd(struct monst *mon)
     if (dmgtype_fromattack(ptr, AD_BLND, AT_EXPL)
         || dmgtype_fromattack(ptr, AD_BLND, AT_GAZE))
         return TRUE;
-    return resists_blnd_by_arti(mon);
+    /* Sunsword */
+    if (resists_blnd_by_arti(mon))
+        return TRUE;
+    /* catchall */
+    if (is_you && Blnd_resist) {
+        impossible("'Blnd_resist' but not resists_blnd()?");
+        return TRUE;
+    }
+    return FALSE;
 }
 
 /* True iff monster is resistant to light-induced blindness due to worn

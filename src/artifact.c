@@ -629,7 +629,10 @@ protects(struct obj *otmp, boolean being_worn)
  * unworn/unwielded/dropped.  Pickup/drop only set/reset the W_ART mask.
  */
 void
-set_artifact_intrinsic(struct obj *otmp, boolean on, long wp_mask)
+set_artifact_intrinsic(
+    struct obj *otmp,
+    boolean on,
+    long wp_mask)
 {
     long *mask = 0;
     const struct artifact *art, *oart = get_artifact(otmp);
@@ -795,6 +798,13 @@ set_artifact_intrinsic(struct obj *otmp, boolean on, long wp_mask)
         if (oart->inv_prop <= LAST_PROP
             && (u.uprops[oart->inv_prop].extrinsic & W_ARTI))
             (void) arti_invoke(otmp);
+    }
+
+    if (wp_mask == W_WEP && is_art(otmp, ART_SUNSWORD)) {
+        if (on)
+            EBlnd_resist |= wp_mask;
+        else
+            EBlnd_resist &= ~wp_mask;
     }
 }
 
@@ -2209,6 +2219,10 @@ what_gives(long *abil)
                     /* property conferred when wielded or worn */
                     if ((art->spfx & spfx) == spfx && obj->owornmask)
                         return obj;
+                }
+                if (obj == uwep && abil == &EBlnd_resist
+                    && (*abil & W_WEP) != 0L) {
+                    return obj; /* Sunsword */
                 }
             }
         } else {

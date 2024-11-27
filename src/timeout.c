@@ -79,6 +79,7 @@ static const struct propname {
     { SICK_RES, "sickness resistance" },
     { ANTIMAGIC, "magic resistance" },
     { HALLUC_RES, "hallucination resistance" },
+    { BLND_RES, "light-induced blindness resistance" },
     { FUMBLING, "fumbling" },
     { HUNGER, "voracious hunger" },
     { TELEPAT, "telepathic" },

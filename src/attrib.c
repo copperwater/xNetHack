@@ -889,7 +889,8 @@ is_innate(int propidx)
            ignore innateness if equipment is going to claim responsibility */
         && !u.uprops[propidx].extrinsic)
         return FROM_ROLE;
-    if (propidx == BLINDED && !haseyes(gy.youmonst.data))
+    if ((propidx == BLINDED && !haseyes(gy.youmonst.data))
+        || (propidx == BLND_RES && (HBlnd_resist & FROMFORM) != 0))
         return FROM_FORM;
     return FROM_NONE;
 }
@@ -897,7 +898,8 @@ is_innate(int propidx)
 DISABLE_WARNING_FORMAT_NONLITERAL
 
 char *
-from_what(int propidx) /* special cases can have negative values */
+from_what(
+    int propidx) /* special cases can have negative values */
 {
     static char buf[BUFSZ];
 
@@ -939,7 +941,7 @@ from_what(int propidx) /* special cases can have negative values */
             else if (innateness == FROM_LYCN)
                 Strcpy(buf, " due to your lycanthropy");
             else if (innateness == FROM_FORM)
-                Strcpy(buf, " from current creature form");
+                Strcpy(buf, " from your creature form");
             else if (propidx == FAST && Very_fast)
                 Sprintf(buf, because_of,
                         ((HFast & TIMEOUT) != 0L) ? "a potion or spell"
