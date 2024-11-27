@@ -58,6 +58,11 @@ NOTE: These instructions assume you are on the default branch; this _is_
 NOTE: The following instructions require perl.  If you do not have perl on
       your system, please install it before proceeding.
 
+NOTE: More information on nhgitset.pl is available before installation via:
+           perldoc DEVEL/nhgitset.pl
+      After installation, the same information is available with:
+           git nhhelp nhgitset
+
 A. If you have never set up git on this machine before:
    (This assumes you will only be using git for NetHack.  If you are going to
    use it for other projects as well, think before you type.)

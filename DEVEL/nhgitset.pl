@@ -153,6 +153,7 @@ my $nhsub = catfile(curdir(),'.git','hooks','nhsub');
 
 &add_help('NHsubst', 'NHsubst');
 &add_help('NHgithook', 'NHgithook.pm');
+&add_help('nhgitset', 'gitsetdocs', '../../DEVEL/nhgitset.pl');
 
 
 # removed at version 3
@@ -183,7 +184,7 @@ $cmd = catfile(curdir(),'.git','hooks','NHsubst');
 
 print STDERR "Running directories\n" if($opt_v);
 
-# copy directories into .git (right now that's just hooks
+# copy directories into .git (right now that's just hooks and nhgitset.pl)
 my @gitadd = length($gitadddir)?glob("$gitadddir$DS*"):undef;
 foreach my $dir ( (glob("$srcdir$DS*"), @gitadd) ){
     next unless(-d $dir);
@@ -209,6 +210,7 @@ foreach my $dir ( (glob("$srcdir$DS*"), @gitadd) ){
 	&process_override($enddir, "POST");
     }
 }
+&do_file_nhgitset();
 
 &check_gitvars;	# for variable substitution
 
@@ -219,26 +221,31 @@ if($version_old != $version_new or $opt_f){
 
 exit 0;
 
+# @files: [0] is the name under .git/hooks; others are places to
+#  check during configuration
 sub add_help {
-    my($cmd, $file) = @_;
+    my($cmd, @files) = @_;
 
-    &add_config("nethack.aliashelp.$cmd", $file);
+    &add_config("nethack.aliashelp.$cmd", $files[0]);
 	# pull out =for nhgitset CMD description...
-    my $desc = '';
-    open my $fh, "<", "$DEVhooksdir/$file";
-    if($fh){
-	while(<$fh>){
-	    m/^=for\s+nhgitset\s+\Q$cmd\E\s+(.*)/ && do {
-		$desc = $1;
-		last;
+    my $desc;
+    foreach my $file (@files){
+	open my $fh, "<", "$DEVhooksdir/$file";
+	if($fh){
+	    while(<$fh>){
+		m/^=for\s+nhgitset\s+\Q$cmd\E\s+(.*)/ && do {
+		    $desc = $1;
+		    goto found;
+		}
 	    }
+	    close $fh;
+	} else {
+	    warn "Can't open: '$DEVhooksdir/$file' ($!)\n";
 	}
-	close $fh;
-    } else {
-	warn "Can't open: '$DEVhooksdir/$file' ($!)\n";
     }
+found:
 
-    if(length $desc){
+    if($desc){
 	&add_config("nethack.aliasdesc.$cmd", $desc);
     } else {
 	&add_config("nethack.aliasdesc.$cmd", "(no description available)");
@@ -344,13 +351,25 @@ sub do_dir_hooksdir {
     }
 }
 
+sub do_file_nhgitset {
+    my $infile = "DEVEL/nhgitset.pl";
+    my $outfile = ".git/hooks/gitsetdocs";
+    open IN, "<", $infile or die "Can't open $infile:$!";
+    open OUT, ">", $outfile or die "Can't open $outfile:$!";
+    my $started;
+    print IN "die \"DO NOT RUN THIS FILE\n\"";
+    while(<IN>){
+	m/^__END__/ && do {$started =1; next};
+	print OUT if($started);
+    }
+    close OUT;
+    close IN;
+}
+
+#(can we change the .gitattributes syntax to include a comment character?)
+#maybe [comment]  attr.c:parse_attr_line
+#grr - looks like # is the comment character
 __END__
-(can we change the .gitattributes syntax to include a comment character?)
-maybe [comment]  attr.c:parse_attr_line
-grr - looks like # is the comment character
-
-
-
 =head1 NAME
 
 nhgitset.pl - Setup program for NetHack git repositories
@@ -363,9 +382,10 @@ nhgitset.pl - Setup program for NetHack git repositories
 
 =head1 DESCRIPTION
 
-nhgitset.pl installs NetHack-specific setup after a C<git clone> (or after
-changes to the desired configuration, which are installed by re-running
-nhgitset.pl).
+nhgitset.pl installs NetHack-specific setup after a C<git clone> or after
+changes to the setup, which are installed by re-running nhgitset.pl.  If
+an upgrade is needed, you will be informed during a C<git pull> or similar
+operation.
 
 The following options are available:
 
@@ -445,3 +465,5 @@ nethack.aliasdesc.*
 1	Fail.
 
 2	Intervention required.
+
+=for nhgitset nhgitset NetHack git helper installer

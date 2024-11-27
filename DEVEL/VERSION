@@ -1,40 +1,4 @@
-4
-Fixes:
-- "nhcommit -a" has been fixed
-- NHDT was hardwired in places
-- no longer complain about a missing dat directory outside of the
-    NetHack source tree
-- make update of gitinfo atomic
-- Replace some hardwired directory separators with OS-dependent constructs
-
-Backwards Incompatibilities:
-- NH_DATESUB's DATE() is now Date() to match the other variables
-- MSYS2 requires an additional Perl package - the MSYS2 docs have
-    been updated
-
-New Help System:
-- git nhhelp
-   This command mirrors "git help" for nh* commands.
-- See git nhhelp nhsub for general help on substitution variables
-
-New Substitution Variables:
--Brev()
-    An aBREViation of $PREFIX-Branch$:$PREFIX-Revision$ - this
-    may help get line length under control in file headers.
--Assert(TYPE=VALUE)
-    If TYPE does not match VALUE, do not substitute on this line.
-    TYPE P checks VALUE against nethack.substprefix
--Project(arg)
-    Returns nethack.projectname if there is no arg and an uppercase
-    version if arg is uc.
-
-Other New Features:
-- Add nethack.projectname
-- Documentation updates - see "git nhhelp nhsub"
-- On checkout or merge of a branch, check for nhgitset version updates
-- Move NH_DATESUB substitutions here from cron job to keep dates in sync
-- PREFIX-* keywords now available in NH_DATESUB templates
-- Support use of nhgitset.pl from a different repo; note that update
-  checks will be dependent on keeping the original source repo up-to-date
-  and in the same location.
-
+5
+Please see "git log DEVEL" for previous changes.
+Make documentation of nhgitset.pl easier to find and
+find out about.
