@@ -777,12 +777,12 @@ rndghostname(void)
  * x_monnam is the generic monster-naming function.
  *                seen        unseen       detected               named
  * mon_nam:     the newt        it      the invisible orc       Fido
- * noit_mon_nam:the newt (as if detected) the invisible orc     Fido
+ * noit_mon_nam:your newt (as if detected) your invisible orc   Fido
  * some_mon_nam:the newt    someone     the invisible orc       Fido
  *          or              something
  * l_monnam:    newt            it      invisible orc           dog called Fido
  * Monnam:      The newt        It      The invisible orc       Fido
- * noit_Monnam: The newt (as if detected) The invisible orc     Fido
+ * noit_Monnam: Your newt (as if detected) Your invisible orc   Fido
  * Some_Monnam: The newt    Someone     The invisible orc       Fido
  *          or              Something
  * Adjmonnam:   The poor newt   It      The poor invisible orc  The poor Fido
@@ -1035,14 +1035,15 @@ mon_nam(struct monst *mtmp)
                     (has_mgivenname(mtmp)) ? SUPPRESS_SADDLE : 0, FALSE);
 }
 
-/* print the name as if mon_nam() was called, but assume that the player
- * can always see the monster--used for probing and for monsters aggravating
- * the player with a cursed potion of invisibility
- */
+/* print the name as if mon_nam() (y_monnam() if tame) was called, but
+   assume that the player can always see the monster--used for probing and
+   for monsters aggravating the player with a cursed potion of invisibility;
+   also used for pet moving "reluctantly" onto cursed object when that pet
+   can be seen either before or after it moves */
 char *
 noit_mon_nam(struct monst *mtmp)
 {
-    return x_monnam(mtmp, ARTICLE_THE, (char *) 0,
+    return x_monnam(mtmp, ARTICLE_YOUR, (char *) 0,
                     (has_mgivenname(mtmp) ? (SUPPRESS_SADDLE | SUPPRESS_IT)
                                           : SUPPRESS_IT),
                     FALSE);
