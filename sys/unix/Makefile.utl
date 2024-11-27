@@ -441,7 +441,10 @@ clean-fixup:
 clean: clean-fixup
 	-rm -f *.o
 
+# obsolete dgn_comp and lev_comp could be left around from 3.6.x
 spotless: clean
 	-rm -f makedefs recover dlb $(HACKLIB)
 	-rm -f gif2txt txt2ppm tile2x11 tile2img.ttp xpm2img.ttp \
 		tilemap tileedit tile2bmp uudecode
+	-rm -f dgn_comp* dgn_lex.c dgn_yacc.c ../include/dgn_comp.h \
+		lev_comp* lev_lex.c lev_yacc.c ../include/lev_comp.h
