@@ -23,6 +23,7 @@ staticfn boolean temp_givit(int, struct permonst *);
 staticfn void givit(int, struct permonst *);
 staticfn void eye_of_newt_buzz(void);
 staticfn void cpostfx(int);
+staticfn void use_up_tin(struct obj *) NONNULLARG1;
 staticfn void consume_tin(const char *);
 staticfn void start_tin(struct obj *);
 staticfn int eatcorpse(struct obj *);
@@ -788,6 +789,10 @@ cprefx(int pm)
         if (!Stone_resistance
             && !(poly_when_stoned(gy.youmonst.data)
                  && polymon(PM_STONE_GOLEM))) {
+            /* if food was a tin, use it up early to keep it out of bones */
+            if (svc.context.tin.tin)
+                use_up_tin(svc.context.tin.tin);
+
             Sprintf(svk.killer.name, "tasting %s meat",
                     mons[pm].pmnames[NEUTRAL]);
             svk.killer.format = KILLED_BY;
@@ -1232,6 +1237,14 @@ cpostfx(int pm)
         if (Unchanging) {
             You_feel("momentarily different."); /* same as poly trap */
         } else {
+            /* polyself() is potentially fatal; if food is a tin, use it up
+               early to keep it out of bones */
+            if (svc.context.tin.tin) {
+                use_up_tin(svc.context.tin.tin);
+                /* most tin effects end up being skipped */
+                lesshungry(200 + (metallivorous(gy.youmonst.data) ? 5 : 0));
+            }
+
             You("%s.", (pm == PM_GENETIC_ENGINEER)
                           ? "undergo a freakish metamorphosis"
                           : "feel a change coming over you");
@@ -1486,18 +1499,34 @@ tin_variety(
     return r;
 }
 
+/* finish consume_tin(); also potentially used by cprefx() and cpostfx() */
+staticfn void
+use_up_tin(struct obj *tin)
+{
+    if (carried(tin))
+        useup(tin);
+    else
+        useupf(tin, 1L);
+    /* reset tin context */
+    svc.context.tin.tin = (struct obj *) NULL;
+    svc.context.tin.o_id = 0;
+}
+
 staticfn void
 consume_tin(const char *mesg)
 {
     const char *what;
-    int which, mnum, r;
+    int which, mnum, r, nutamt;
+    /* if you've eaten tin itself, chance to not eat contents gets bypassed */
+    boolean always_eat = metallivorous(gy.youmonst.data);
     struct obj *tin = svc.context.tin.tin;
 
     r = tin_variety(tin, FALSE);
     if (tin->otrapped || (tin->cursed && r != HOMEMADE_TIN && !rn2(8))) {
         b_trapped("tin", NO_PART);
         tin = costly_tin(COST_DSTROY);
-        goto use_up_tin;
+        use_up_tin(tin);
+        return;
     }
 
     pline1(mesg); /* "You succeed in opening the tin." */
@@ -1508,7 +1537,10 @@ consume_tin(const char *mesg)
             pline("It turns out to be empty.");
             tin->dknown = tin->known = 1;
             tin = costly_tin(COST_OPEN);
-            goto use_up_tin;
+            use_up_tin(tin);
+            if (always_eat)
+                lesshungry(5); /* metallivorous hero ate the tin itself */
+            return;
         }
 
         which = 0; /* 0=>plural, 1=>as-is, 2=>"the" prefix */
@@ -1530,14 +1562,17 @@ consume_tin(const char *mesg)
         else if (which == 2)
             what = the(what);
 
-        pline("It smells like %s.", what);
-        if (y_n("Eat it?") == 'n') {
-            if (flags.verbose)
-                You("discard the open tin.");
-            if (!Hallucination)
-                tin->dknown = tin->known = 1;
-            tin = costly_tin(COST_OPEN);
-            goto use_up_tin;
+        if (!always_eat) {
+            pline("It smells like %s.", what);
+            if (y_n("Eat it?") == 'n') {
+                if (flags.verbose)
+                    You("discard the open tin.");
+                if (!Hallucination)
+                    tin->dknown = tin->known = 1;
+                tin = costly_tin(COST_OPEN);
+                use_up_tin(tin);
+                return;
+            }
         }
 
         /* in case stop_occupation() was called on previous meal */
@@ -1548,31 +1583,44 @@ consume_tin(const char *mesg)
         eating_conducts(&mons[mnum]);
 
         tin->dknown = tin->known = 1;
-        cprefx(mnum);
-        cpostfx(mnum);
-
         /* charge for one at pre-eating cost */
-        tin = costly_tin(COST_OPEN);
+        tin = svc.context.tin.tin = costly_tin(COST_OPEN);
+
+        /* cprefx() or cpostfx() might use up tin to keep it out of bones */
+        cprefx(mnum);
+        if (svc.context.tin.tin)
+            cpostfx(mnum);
+        if (!svc.context.tin.tin)
+            return;
 
         if (tintxts[r].nut < 0) { /* rotten */
             make_vomiting((long) rn1(15, 10), FALSE);
         } else {
-            int nutamt = tintxts[r].nut;
-
+            nutamt = tintxts[r].nut;
             /* nutrition from a homemade tin (made from a single corpse)
                shouldn't be more than nutrition from the corresponding
                corpse; other tinning modes might use more than one corpse
                or add extra ingredients so aren't similarly restricted */
             if (r == HOMEMADE_TIN && nutamt > mons[mnum].cnutrit)
                 nutamt = mons[mnum].cnutrit;
+            if (always_eat)
+                nutamt += 5; /* metallivorous hero ate the tin itself */
+            /* use up tin now; lesshungry() could be fatal and produce bones */
+            use_up_tin(tin), tin = NULL;
             lesshungry(nutamt);
         }
 
         if (tintxts[r].greasy) {
-            /* Assume !Glib, because you can't open tins when Glib. */
-            make_glib(rn1(11, 5)); /* 5..15 */
-            pline("Eating %s food made your %s very slippery.",
-                  tintxts[r].txt, fingers_or_gloves(TRUE));
+            /* normal hero is !Glib, because you can't open tins when Glib,
+               but one poly'd into metallivorous form might already be Glib;
+               it's debatable whether a rock mole should have its paws made
+               slippery when eating a greasy tin, but we'll go with that... */
+            int alreadyglib = (int) (Glib & TIMEOUT);
+
+            make_glib(alreadyglib + rn1(11, 5)); /* 5..15 */
+            pline("Eating %s food made your %s %s slippery.",
+                  tintxts[r].txt, fingers_or_gloves(TRUE),
+                  alreadyglib ? "even more" : "very");
         }
 
     } else { /* spinach... */
@@ -1584,11 +1632,12 @@ consume_tin(const char *mesg)
             tin->dknown = tin->known = 1;
         }
 
-        if (y_n("Eat it?") == 'n') {
+        if (!always_eat && y_n("Eat it?") == 'n') {
             if (flags.verbose)
                 You("discard the open tin.");
             tin = costly_tin(COST_OPEN);
-            goto use_up_tin;
+            use_up_tin(tin);
+            return;
         }
 
         /*
@@ -1612,19 +1661,19 @@ consume_tin(const char *mesg)
                   : (flags.female ? "Olive Oyl" : "Bluto"));
         gainstr(tin, 0, FALSE);
 
-        tin = costly_tin(COST_OPEN);
-        lesshungry(tin->blessed ? 600                   /* blessed */
-                   : !tin->cursed ? (400 + rnd(200))    /* uncursed */
-                     : (200 + rnd(400)));               /* cursed */
+        tin = svc.context.tin.tin = costly_tin(COST_OPEN);
+        nutamt = (tin->blessed ? 600                   /* blessed */
+                  : !tin->cursed ? (400 + rnd(200))    /* uncursed */
+                    : (200 + rnd(400)));               /* cursed */
+        if (always_eat)
+            nutamt += 5; /* metallivorous hero also eats the tin itself */
+        /* use up tin first; lesshungry() could be fatal and produce bones */
+        use_up_tin(tin), tin = NULL;
+        lesshungry(nutamt);
     }
-
- use_up_tin:
-    if (carried(tin))
-        useup(tin);
-    else
-        useupf(tin, 1L);
-    svc.context.tin.tin = (struct obj *) 0;
-    svc.context.tin.o_id = 0;
+    if (tin)
+        use_up_tin(tin);
+    return;
 }
 
 /* called during each move whilst opening a tin */

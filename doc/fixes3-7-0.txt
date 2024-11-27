@@ -1476,6 +1476,11 @@ a pet with the hides-under attribute could "move reluctantly over" a cursed
 prevent monster generation in the sokoban trap hallway
 change MSGHANDLER from compile-time to sysconf option
 allow changing extended command autocompletions via #optionsfull
+if eating a tin's contents caused the hero to choke to death or turn to stone,
+	resulting bones would contain the tin still intact
+when hero who is poly'd into metallivore form eats a tin, bypass "smells like
+	<monster>" feedback and the "Eat it?" prompt; just eat the contents
+	along with the tin without asking
 
 
 Fixes to 3.7.0-x General Problems Exposed Via git Repository
