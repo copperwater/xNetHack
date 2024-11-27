@@ -329,27 +329,24 @@ m_initweap(struct monst *mtmp)
 
     case S_ANGEL:
         if (humanoid(ptr)) {
-            /* create minion stuff; can't use mongets;
-               weapon: long sword [rn2(5) > 1 == 60%] or mace [40%] */
-            otmp = mksobj((rn2(5) > 1) ? LONG_SWORD : MACE, FALSE, FALSE);
+            /* create minion stuff; bypass mongets */
+            int typ = rn2(3) ? LONG_SWORD : MACE;
+            const char *nam = (typ == LONG_SWORD) ? "Sunsword" : "Demonbane";
+
+            otmp = mksobj(typ, FALSE, FALSE);
             /* maybe promote weapon to an artifact */
             if ((!rn2(20) || is_lord(ptr))
                  && sgn(mtmp->isminion ? EMIN(mtmp)->min_align
-                                       : ptr->maligntyp) == A_LAWFUL) {
-                /* Sunsword and Demonbane both used to be long swords and
-                   Angels always got a long sword, so might get either of
-                   the two artifacts; Demonbane has been changed to be a
-                   mace; this deliberately makes an independent choice of
-                   which artifact and if it picks the wrong name for 'otmp's
-                   type, then 'otmp' won't be upgraded into an artifact */
-                otmp = oname(otmp, artiname((rn2(5) > 1) ? ART_SUNSWORD
-                                                         : ART_DEMONBANE),
-                             ONAME_RANDOM); /* randomly created */
-            }
+                                       : ptr->maligntyp) == A_LAWFUL)
+                otmp = oname(otmp, nam, ONAME_RANDOM); /* randomly created */
+            /* enhance the weapon */
             bless(otmp);
             otmp->oerodeproof = TRUE;
-            /* make long sword be +0 to +3, weaker mace be +3 to +6 */
-            otmp->spe = (otmp->otyp == LONG_SWORD) ? rn2(4) : rn1(4, 3);
+            /* make long sword be +0 to +3, mace be +3 to +6 to compensate
+               for being significantly weaker against large opponents */
+            otmp->spe = rn2(4);
+            if (typ == MACE)
+                otmp->spe += 3;
             (void) mpickobj(mtmp, otmp);
 
             otmp = mksobj(!rn2(4) || is_lord(ptr) ? SHIELD_OF_REFLECTION
