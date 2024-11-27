@@ -1937,7 +1937,7 @@ can_touch_safely(struct monst *mtmp, struct obj *otmp)
  *
  * to support the new pet behavior, this now returns the max # of objects
  * that a given monster could pick up from a pile. frequently this will be
- * otmp->quan, but special cases for 'only one' now exist so.
+ * otmp->quan, but special cases for 'only one' now exist.
  *
  * this will probably cause very amusing behavior with pets and gold coins.
  *
@@ -2812,15 +2812,20 @@ lifesaved_monster(struct monst *mtmp)
 }
 
 /* when a shape-shifted vampire is killed, it reverts to base form instead
-   of dying; moved into separate routine to unclutter mondead() */
+   of dying; returns True if mtmp successfully revives, False otherwise;
+   "successfully revived" vampire might be killed by a booby trapped door */
 staticfn boolean
 vamprises(struct monst *mtmp)
 {
     int mndx = mtmp->cham;
 
+    /*
+     * Protection from shape changers protects against this because
+     * the vampire will always be in normal form instead of shifted.
+     * So there's no need to check for that attribute being active.
+     */
     if (ismnum(mndx) && mndx != monsndx(mtmp->data)
         && !(svm.mvitals[mndx].mvflags & G_GENOD)) {
-        coord new_xy;
         char action[BUFSZ];
         /* alternate message phrasing for some monster types */
         boolean spec_mon = (nonliving(mtmp->data)
@@ -2833,30 +2838,28 @@ vamprises(struct monst *mtmp)
 
         /* construct a 'before' argument to pass to pline(); this used
            to construct a dynamic format string but that's overkill */
-        Snprintf(action, sizeof action, "%s suddenly %s and rises as",
+        Snprintf(action, sizeof action, "%s%s %s%s and rises as",
+                 Unaware ? "you dream that " : "",
                  x_monnam(mtmp, ARTICLE_THE,
                           spec_mon ? (char *) 0 : "seemingly dead",
                           (SUPPRESS_INVISIBLE | AUGMENT_IT), FALSE),
+                 Unaware ? "" : "suddenly ",
                  spec_death ? "reconstitutes" : "transforms");
         mtmp->mcanmove = 1;
         mtmp->mfrozen = 0;
         set_mon_min_mhpmax(mtmp, 10); /* mtmp->mhpmax=max(m_lev+1,10) */
         mtmp->mhp = mtmp->mhpmax;
-        /* mtmp==u.ustuck can happen if previously a fog cloud
-           or poly'd hero is hugging a vampire bat */
+        /* mtmp==u.ustuck can happen if previously a fog cloud or if
+           poly'd hero is hugging a vampire bat */
         if (mtmp == u.ustuck) {
             if (u.uswallow)
                 expels(mtmp, mtmp->data, FALSE);
             else
                 uunstick();
         }
-        /* if fog cloud is on a closed door space, move it to a more
-           appropriate spot for its intended new form */
-        if (amorphous(mtmp->data) && closed_door(mtmp->mx, mtmp->my)) {
-            if (enexto(&new_xy, mtmp->mx, mtmp->my, &mons[mndx]))
-                rloc_to(mtmp, new_xy.x, new_xy.y);
-        }
-        (void) newcham(mtmp, &mons[mndx], NO_NC_FLAGS);
+
+        if (!newcham(mtmp, &mons[mndx], NO_NC_FLAGS))
+            return !DEADMONSTER(mtmp);
         mtmp->cham = (mtmp->data == &mons[mndx]) ? NON_PM : mndx;
 
         if (canspotmon(mtmp)) {
@@ -2868,6 +2871,42 @@ vamprises(struct monst *mtmp)
                            (SUPPRESS_NAME | SUPPRESS_IT | SUPPRESS_INVISIBLE),
                                FALSE));
             gv.vamp_rise_msg = TRUE;
+        }
+        /* revived vampire is in normal shape, so can't be amorphous; if on
+           a closed door spot, destroy the door and if trapped, blow it up */
+        if (closed_door(x, y)) {
+            static const char
+                door_smashed[] = "a door being smashed",
+                door_go_boom[] = "a door exploding";
+            struct rm *door = &levl[x][y];
+            boolean trapped = (door->doormask & D_TRAPPED) != 0,
+                    seeit = cansee(x, y);
+
+            set_msg_xy(x, y); /* You()/pline() will reset this */
+            if (!seeit)
+                You_hear("%s.", trapped ? "an explosion" : door_smashed);
+            else if (!canspotmon(mtmp))
+                You_see("%s.", trapped ? door_go_boom : door_smashed);
+            else if (!Unaware)
+                pline_The("door is smashed%s",
+                          trapped ? " and it explodes!" : ".");
+            set_msg_xy(0, 0); /* in case none of the messages was delivered */
+
+            door->doormask = D_NODOOR;
+            unblock_point(x, y);
+            if (trapped) {
+                boolean trap_killed, save_verbose = flags.verbose;
+
+                flags.verbose = FALSE; /* suppress mb_trapped() messages
+                                        * (that makes the 'seeit' arg moot) */
+                trap_killed = mb_trapped(mtmp, seeit);
+                flags.verbose = save_verbose;
+                /* if the booby trap has killed the monster, mondied() will
+                   have been called but no message about its death given yet;
+                   mtmp was a vampire so use unconditional "destroyed" */
+                if (trap_killed && canspotmon(mtmp) && !Unaware)
+                    pline_mon(mtmp, "%s is destroyed!", Monnam(mtmp));
+            }
         }
         newsym(x, y);
         return TRUE;
@@ -4593,6 +4632,7 @@ hideunder(struct monst *mtmp)
         if (undetected && seenmon && seenobj) {
             if (!locomo)
                 locomo = locomotion(mtmp->data, "hide");
+            set_msg_xy(mtmp->mx, mtmp->my); /* pline() will reset this */
             You_see("%s %s under %s.", seenmon, locomo, seenobj);
             iflags.last_msg = PLNMSG_HIDE_UNDER;
             gl.last_hider = mtmp->m_id;
