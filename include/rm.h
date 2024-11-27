@@ -104,7 +104,6 @@ enum levl_typ_types {
 #define IS_WALL(typ) ((typ) && (typ) <= DBWALL)
 #define IS_STWALL(typ) ((typ) <= DBWALL) /* STONE <= (typ) <= DBWALL */
 #define IS_OBSTRUCTED(typ) ((typ) < POOL)      /* absolutely nonaccessible */
-#define IS_CORR(typ) ((typ) == CORR || (typ) == SCORR)
 #define IS_SDOOR(typ) ((typ) == SDOOR)
 #define IS_DOOR(typ) ((typ) == DOOR)
 #define IS_DOORJOIN(typ) (IS_OBSTRUCTED(typ) || (typ) == IRONBARS)

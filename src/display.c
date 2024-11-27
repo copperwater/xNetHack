@@ -3101,7 +3101,8 @@ check_pos(coordxy x, coordxy y, int which)
     if (!isok(x, y))
         return which;
     type = levl[x][y].typ;
-    if (IS_STWALL(type) || IS_CORR(type) || IS_SDOOR(type))
+    /* Everything below POOL, excluding TREE */
+    if (IS_STWALL(type) || (type) == CORR || (type) == SCORR || IS_SDOOR(type))
         return which;
     return 0;
 }
