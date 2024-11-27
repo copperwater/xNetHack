@@ -1776,9 +1776,14 @@ u_locomotion(const char *def)
 {
     boolean capitalize = (*def == highc(*def));
 
+    /* regular locomotion() takes a monster type rather than a specific
+       monster, so can't tell whether it is operating on hero;
+       its is_flyer() and is_floater() tests wouldn't work on hero except
+       when hero is polymorphed and not wearing an amulet of flying
+       or boots/ring/spell of levitation */
     return Levitation ? (capitalize ? "Float" : "float")
-        : Flying ? (capitalize ? "Fly" : "fly")
-        : locomotion(gy.youmonst.data, def);
+           : Flying ? (capitalize ? "Fly" : "fly")
+             : locomotion(gy.youmonst.data, def);
 }
 
 /* Return a simplified floor solid/liquid state based on hero's state */
@@ -1838,8 +1843,7 @@ staticfn boolean
 swim_move_danger(coordxy x, coordxy y)
 {
     schar newtyp = u_simple_floortyp(x, y);
-    boolean liquid_wall = IS_WATERWALL(newtyp)
-        || newtyp == LAVAWALL;
+    boolean liquid_wall = IS_WATERWALL(newtyp) || newtyp == LAVAWALL;
 
     if (Underwater && (is_pool(x,y) || IS_WATERWALL(newtyp)))
         return FALSE;
@@ -2715,7 +2719,7 @@ domove_core(void)
         char qbuf[QBUFSZ];
 
         Snprintf(qbuf, sizeof qbuf, "%s into that %s cloud?",
-                 locomotion(gy.youmonst.data, "step"),
+                 u_locomotion("step"),
                  (reg_damg(newreg) > 0) ? "poison gas" : "vapor");
         if (!paranoid_query(ParanoidConfirm, upstart(qbuf))) {
             nomul(0);
@@ -2758,8 +2762,7 @@ domove_core(void)
             break;
         }
         Snprintf(qbuf, sizeof qbuf, "Really %s %s that %s?",
-                 locomotion(gy.youmonst.data, "step"),
-                 into ? "into" : "onto",
+                 u_locomotion("step"), into ? "into" : "onto",
                  defsyms[trap_to_defsym(traptype)].explanation);
         /* handled like paranoid_confirm:pray; when paranoid_confirm:trap
            isn't set, don't ask at all but if it is set (checked above),
