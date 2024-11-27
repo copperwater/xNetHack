@@ -76,6 +76,23 @@ putmesg(const char *line)
     SoundSpeak(line);
 }
 
+/* set the direction where next message happens */
+void
+set_msg_dir(int dir)
+{
+    dtoxy(&a11y.msg_loc, dir);
+    a11y.msg_loc.x += u.ux;
+    a11y.msg_loc.y += u.uy;
+}
+
+/* set the coordinate where next message happens */
+void
+set_msg_xy(coordxy x, coordxy y)
+{
+    a11y.msg_loc.x = x;
+    a11y.msg_loc.y = y;
+}
+
 staticfn void vpline(const char *, va_list);
 
 DISABLE_WARNING_FORMAT_NONLITERAL
@@ -126,23 +143,6 @@ pline_mon(struct monst *mtmp, const char *line, ...)
     va_end(the_args);
 }
 
-/* set the direction where next message happens */
-void
-set_msg_dir(int dir)
-{
-    dtoxy(&a11y.msg_loc, dir);
-    a11y.msg_loc.x += u.ux;
-    a11y.msg_loc.y += u.uy;
-}
-
-/* set the coordinate where next message happens */
-void
-set_msg_xy(coordxy x, coordxy y)
-{
-    a11y.msg_loc.x = x;
-    a11y.msg_loc.y = y;
-}
-
 staticfn void
 vpline(const char *line, va_list the_args)
 {
@@ -151,6 +151,11 @@ vpline(const char *line, va_list the_args)
     int ln;
     int msgtyp;
     boolean no_repeat;
+    coord a11y_mesgxy;
+
+    a11y_mesgxy = a11y.msg_loc; /* save a11y.msg_loc before reseting it */
+    /* always reset a11y.msg_loc whether we end up using it or not */
+    a11y.msg_loc.x = a11y.msg_loc.y = 0;
 
     if (!line || !*line)
         return;
@@ -161,16 +166,15 @@ vpline(const char *line, va_list the_args)
     if (program_state.wizkit_wishing)
         return;
 
-    if (a11y.accessiblemsg && isok(a11y.msg_loc.x,a11y.msg_loc.y)) {
-        char *tmp;
-        char *dirstr;
-        static char dirstrbuf[BUFSZ];
-        int g = (iflags.getpos_coords == GPCOORDS_NONE)
-            ? GPCOORDS_COMFULL : iflags.getpos_coords;
+    /* when accessiblemsg is set and a11y.msg_loc is nonzero, use the latter
+       to insert a location prefix in front of current message */
+    if (a11y.accessiblemsg && isok(a11y_mesgxy.x, a11y_mesgxy.y)) {
+        char *tmp, *dirstr, dirstrbuf[QBUFSZ];
 
-        dirstr = coord_desc(a11y.msg_loc.x, a11y.msg_loc.y, dirstrbuf, g);
-        a11y.msg_loc.x = a11y.msg_loc.y = 0;
-        tmp = (char *)alloc(strlen(line) + sizeof ": " + strlen(dirstr));
+        dirstr = coord_desc(a11y_mesgxy.x, a11y_mesgxy.y, dirstrbuf,
+                            ((iflags.getpos_coords == GPCOORDS_NONE)
+                             ? GPCOORDS_COMFULL : iflags.getpos_coords));
+        tmp = (char *) alloc(strlen(line) + sizeof ": " + strlen(dirstr));
         Strcpy(tmp, dirstr);
         Strcat(tmp, ": ");
         Strcat(tmp, line);
