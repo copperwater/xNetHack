@@ -1481,6 +1481,8 @@ if eating a tin's contents caused the hero to choke to death or turn to stone,
 when hero who is poly'd into metallivore form eats a tin, bypass "smells like
 	<monster>" feedback and the "Eat it?" prompt; just eat the contents
 	along with the tin without asking
+digging in ice was handled inconsistently, particularly if done at the span
+	spot in front of closed drawbridge
 
 
 Fixes to 3.7.0-x General Problems Exposed Via git Repository

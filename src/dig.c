@@ -859,8 +859,9 @@ liquid_flow(
     }
 
     if (ttmp)
-        (void) delfloortrap(ttmp); /* will untrap monster is one is here */
+        (void) delfloortrap(ttmp); /* will untrap monster if one is here */
     /* if any objects were frozen here, they're released now */
+    obj_ice_effects(x, y, TRUE);
     unearth_objs(x, y);
 
     if (fillmsg)
@@ -2081,7 +2082,8 @@ bury_objs(int x, int y)
     }
 }
 
-/* move objects from buriedobjlist to fobj/nexthere lists */
+/* move objects from buriedobjlist to fobj/nexthere lists; if caller
+   converts terrain from ice to something, it should call obj_ice_effects() */
 void
 unearth_objs(int x, int y)
 {
