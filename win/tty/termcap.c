@@ -403,8 +403,14 @@ tty_decgraphics_termcap_fixup(void)
      * Do not select NA ASCII as the primary font since people may
      * reasonably be using the UK character set.
      */
-    if (SYMHANDLING(H_DEC))
+    if (SYMHANDLING(H_DEC)) {
         xputs("\033)0"); /* "\e)0" load line drawing chars as secondary set */
+        /* TI doesn't necessarily do this; explicitly switch to primary
+           font in case previous program (either before starting nethack
+           or during a shell escape) left the alternate font active */
+        xputs(AE);
+    }
+
 #ifdef PC9800
     init_hilite();
 #endif
@@ -658,7 +664,7 @@ void
 term_clear_screen(void)
 {
     /* note: if CL is null, then termcap initialization failed,
-            so don't attempt screen-oriented I/O during final cleanup.
+     * so don't attempt screen-oriented I/O during final cleanup.
      */
     if (CL) {
         xputs(CL);
@@ -877,7 +883,7 @@ cl_eos(void) /* free after Robert Viduya */
     about reconstructing them after the header file inclusion. */
 #undef TRUE
 #undef FALSE
-#define m_move curses_m_move /* Some curses.h decl m_move(), not used here */
+#define m_move curses_m_move /* some curses.h decl m_move(), not used here */
 
 #include <curses.h>
 
@@ -935,7 +941,7 @@ init_hilite(void)
     iflags.colorcount = colors;
     int md_len = 0;
 
-    if (colors < 8 || (MD == NULL) || (strlen(MD) == 0)
+    if (colors < 8 || !MD || !*MD
         || ((setf = tgetstr(nhStr("AF"), (char **) 0)) == (char *) 0
             && (setf = tgetstr(nhStr("Sf"), (char **) 0)) == (char *) 0)) {
         /* Fallback when colors not available
@@ -963,23 +969,16 @@ init_hilite(void)
 
     if (colors >= 16) {
         for (c = 0; c < SIZE(ti_map); c++) {
-            char *work;
-
             /* system colors */
             scratch = tparm(setf, ti_map[c].nh_color);
-            work = (char *) alloc(strlen(scratch) + 1);
-            Strcpy(work, scratch);
-            hilites[ti_map[c].nh_color] = work;
-
+            hilites[ti_map[c].nh_color] = dupstr(scratch);
             /* bright colors */
             scratch = tparm(setf, ti_map[c].nh_bright_color);
-            work = (char *) alloc(strlen(scratch) + 1);
-            Strcpy(work, scratch);
-            hilites[ti_map[c].nh_bright_color] = work;
+            hilites[ti_map[c].nh_bright_color] = dupstr(scratch);
         }
     } else {
         /* 8 system colors */
-        md_len = strlen(MD);
+        md_len = (int) strlen(MD);
 
         c = 6;
         while (c--) {
@@ -996,9 +995,8 @@ init_hilite(void)
     }
 
     if (colors >= 16) {
-        scratch = tparm(setf, COLOR_WHITE|BRIGHT);
-        hilites[CLR_WHITE] = (char *) alloc(strlen(scratch) + 1);
-        Strcpy(hilites[CLR_WHITE], scratch);
+        scratch = tparm(setf, COLOR_WHITE | BRIGHT);
+        hilites[CLR_WHITE] = dupstr(scratch);
     } else {
         scratch = tparm(setf, COLOR_WHITE);
         hilites[CLR_WHITE] = (char *) alloc(strlen(scratch) + md_len + 1);
@@ -1012,8 +1010,7 @@ init_hilite(void)
     if (iflags.wc2_darkgray) {
         if (colors >= 16) {
             scratch = tparm(setf, COLOR_BLACK|BRIGHT);
-            hilites[CLR_BLACK] = (char *) alloc(strlen(scratch) + 1);
-            Strcpy(hilites[CLR_BLACK], scratch);
+            hilites[CLR_BLACK] = dupstr(scratch);
         } else {
             /* On many terminals, esp. those using classic PC CGA/EGA/VGA
             * textmode, specifying "hilight" and "black" simultaneously
@@ -1043,9 +1040,11 @@ kill_hilite(void)
     if (hilites[CLR_BLACK] == nh_HI)
         return;
 
+    /* hilites[] will be set to NULL below, whether freed here or not */
+
     if (hilites[CLR_BLACK]) {
         if (hilites[CLR_BLACK] != hilites[CLR_BLUE])
-            free(hilites[CLR_BLACK]);
+            free(hilites[CLR_BLACK]), hilites[CLR_BLACK] = NULL;
     }
     if (tgetnum(nhStr("Co")) >= 16) {
         if (hilites[CLR_BLUE])
@@ -1086,7 +1085,7 @@ kill_hilite(void)
         free(hilites[CLR_WHITE]);
 
     for (c = 0; c < CLR_MAX; c++)
-        hilites[c] = 0;
+        hilites[c] = NULL;
 }
 
 #else /* UNIX && TERMINFO */
@@ -1150,7 +1149,7 @@ analyze_seq(char *str, int *fg, int *bg)
 
 /*
  * Sets up highlighting sequences, using ANSI escape sequences (highlight code
- * found in print.c).  The nh_HI and nh_HE sequences (usually from SO) are
+ * found in wintty.c).  The nh_HI and nh_HE sequences (usually from SO) are
  * scanned to find foreground and background colors.
  */
 
@@ -1173,6 +1172,7 @@ init_hilite(void)
     hilites[0] = NOCOL;
     for (c = 1; c < SIZE(hilites); c++) {
         char *foo;
+
         foo = (char *) alloc(sizeof "\033b0");
         if (tos_numcolors > 4)
             Sprintf(foo, "\033b%c", (c & ~BRIGHT) + '0');
@@ -1216,9 +1216,9 @@ init_hilite(void)
             if (c == CLR_BLUE)
                 continue;
 #endif
-            if (c == foreg)
+            if (c == foreg) {
                 hilites[c] = (char *) 0;
-            else if (c != hi_foreg || backg != hi_backg) {
+            } else if (c != hi_foreg || backg != hi_backg) {
                 hilites[c] = (char *) alloc(sizeof "\033[%d;3%d;4%dm");
                 Sprintf(hilites[c], "\033[%d", !!(c & BRIGHT));
                 if ((c | BRIGHT) != (foreg | BRIGHT))
