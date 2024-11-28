@@ -4465,7 +4465,7 @@ get_iter_mons_xy(
 
 /* force all chameleons and mimics to become themselves and werecreatures
    to revert to human form; called when Protection_from_shape_changers gets
-   activated via wearing or eating ring or wizintrinsics */
+   activated via wearing or eating ring or via #wizintrinsic */
 void
 rescham(void)
 {

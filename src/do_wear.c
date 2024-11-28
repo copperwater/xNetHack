@@ -1410,10 +1410,11 @@ Ring_off_or_gone(struct obj *obj, boolean gone)
             find_ac(); /* updates botl */
         break;
     case RIN_PROTECTION_FROM_SHAPE_CHAN:
-        /* If you're no longer protected, let the chameleons
-         * change shape again -dgk
-         */
-        restartcham();
+        /* if you're no longer protected, let the chameleons change
+           shape again; however, might still be protected if wearing
+           2nd ring of this type (or via #wizintrinsic) */
+        if (!Protection_from_shape_changers)
+            restartcham();
         break;
     }
 }

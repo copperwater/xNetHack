@@ -930,6 +930,12 @@ nh_timeout(void)
             case GLIB:
                 make_glib(0); /* might update persistent inventory */
                 break;
+            case PROT_FROM_SHAPE_CHANGERS:
+                /* timed Protection_from_shape_changers is via
+                   #wizintrinsic only */
+                if (!Protection_from_shape_changers)
+                    restartcham();
+                break;
             }
         }
 
