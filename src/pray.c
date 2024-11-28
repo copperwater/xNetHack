@@ -1135,9 +1135,11 @@ pleased(aligntyp g_align)
             break;
 
         case 3:
+            /* up to 10 troubles */
             fix_worst_trouble(trouble);
+            /*FALLTHRU*/
         case 2:
-            /* arbitrary number of tries */
+            /* up to 9 troubles */
             while ((trouble = in_trouble()) > 0 && (++tryct < 10))
                 fix_worst_trouble(trouble);
             break;
@@ -1145,6 +1147,7 @@ pleased(aligntyp g_align)
         case 1:
             if (trouble > 0)
                 fix_worst_trouble(trouble);
+            break;
         case 0:
             break; /* your god blows you off, too bad */
         }
