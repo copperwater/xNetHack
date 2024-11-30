@@ -90,7 +90,6 @@ CFLAGS+=-Wimplicit-fallthrough
 #ifeq "$(GCCGTEQ12)" "1"
 #endif
 #ifeq "$(GCCGTEQ14)" "1"
-CFLAGS+=-std=gnu23
 #endif
 # end of gcc-specific
 else   # gcc or clang?
