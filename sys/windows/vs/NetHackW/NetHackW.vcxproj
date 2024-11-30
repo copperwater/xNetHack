@@ -53,6 +53,14 @@
       <OmitFramePointers>true</OmitFramePointers>
       <AdditionalIncludeDirectories>$(WinWin32Dir);$(IncDir);$(SysWindDir);$(SysShareDir);$(WinShareDir);$(LuaDir);%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <PreprocessorDefinitions>TILES;_WINDOWS;DLB;MSWIN_GRAPHICS;SAFEPROCS;NOTTYGRAPHICS;SND_LIB_WINDSOUND;USER_SOUNDS;HAS_STDINT_H;PDC_WIDE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <LanguageStandard_C Condition="'$(DefaultPlatformToolset)'!='v142' And '$(Configuration)|$(Platform)'=='Debug|Win32'">stdclatest</LanguageStandard_C>
+      <LanguageStandard_C Condition="'$(DefaultPlatformToolset)'!='v142' And '$(Configuration)|$(Platform)'=='Release|Win32'">stdclatest</LanguageStandard_C>
+      <LanguageStandard_C Condition="'$(DefaultPlatformToolset)'!='v142' And '$(Configuration)|$(Platform)'=='Debug|x64'">stdclatest</LanguageStandard_C>
+      <LanguageStandard_C Condition="'$(DefaultPlatformToolset)'!='v142' And '$(Configuration)|$(Platform)'=='Release|x64'">stdclatest</LanguageStandard_C>
+      <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">/Gs /Oi- /w44774 /w45262 %(AdditionalOptions)</AdditionalOptions>
+      <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">/Gs /Oi- /w44774 /w45262 %(AdditionalOptions)</AdditionalOptions>
+      <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">/Gs /Oi- /w44774 /w45262 %(AdditionalOptions)</AdditionalOptions>
+      <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Release|x64'">/Gs /Oi- /w44774 /w45262 %(AdditionalOptions)</AdditionalOptions>
       <DisableSpecificWarnings Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">4820;4706;4244;4245;4100;4310;6001</DisableSpecificWarnings>
       <DisableSpecificWarnings Condition="'$(Configuration)|$(Platform)'=='Release|x64'">4820;4706;4244;4245;4100;4310</DisableSpecificWarnings>
     </ClCompile>
@@ -66,7 +74,7 @@
     </ResourceCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
-      <AdditionalDependencies>hacklib.lib;dbghelp.lib;comctl32.lib;winmm.lib;bcrypt.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>hacklib.lib;lualib.lib;dbghelp.lib;comctl32.lib;winmm.lib;bcrypt.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
     <Manifest>
       <AdditionalManifestFiles>$(WinWin32Dir)NethackW.exe.manifest;%(AdditionalManifestFiles)</AdditionalManifestFiles>
@@ -74,12 +82,6 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="..\..\guitty.c" />
-    <ClCompile Include="@(Lua)">
-      <DisableSpecificWarnings>4701;4702;4244;4310;4774</DisableSpecificWarnings>
-      <AdditionalOptions>%(AdditionalOptions) /wd4774</AdditionalOptions>
-      <DisableSpecificWarnings Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">4701;4702;4244;4310;4774;4324;6011;6297;6305;6385;6386;6387;28182</DisableSpecificWarnings>
-      <DisableSpecificWarnings Condition="'$(Configuration)|$(Platform)'=='Release|x64'">4701;4702;4244;4310;4774;4324</DisableSpecificWarnings>
-    </ClCompile>
     <ClCompile Include="$(SrcDir)allmain.c" />
     <ClCompile Include="$(SrcDir)alloc.c" />
     <ClCompile Include="$(SrcDir)apply.c" />

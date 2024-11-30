@@ -40,16 +40,24 @@
   </ItemDefinitionGroup>
   <ItemDefinitionGroup>
     <ClCompile>
-      <AdditionalOptions>/Gs /Oi- /w44774 %(AdditionalOptions)</AdditionalOptions>
+      <AdditionalOptions>/Gs /Oi- /w44774 /w45262 %(AdditionalOptions)</AdditionalOptions>
       <Optimization>Disabled</Optimization>
       <InlineFunctionExpansion>Default</InlineFunctionExpansion>
       <FavorSizeOrSpeed>Speed</FavorSizeOrSpeed>
       <OmitFramePointers>true</OmitFramePointers>
       <AdditionalIncludeDirectories>$(WinWin32Dir);$(IncDir);$(SysWindDir);$(SysShareDir);$(WinShareDir);$(LuaDir);%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <PreprocessorDefinitions>WIN32CON;NO_TILE_C;DLB;SAFEPROCS;SND_LIB_WINDSOUND;USER_SOUNDS;_LIB;HAS_STDINT_H;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <LanguageStandard_C Condition="'$(DefaultPlatformToolset)'!='v142' And '$(Configuration)|$(Platform)'=='Debug|Win32'">stdclatest</LanguageStandard_C>
+      <LanguageStandard_C Condition="'$(DefaultPlatformToolset)'!='v142' And '$(Configuration)|$(Platform)'=='Release|Win32'">stdclatest</LanguageStandard_C>
+      <LanguageStandard_C Condition="'$(DefaultPlatformToolset)'!='v142' And '$(Configuration)|$(Platform)'=='Debug|x64'">stdclatest</LanguageStandard_C>
+      <LanguageStandard_C Condition="'$(DefaultPlatformToolset)'!='v142' And '$(Configuration)|$(Platform)'=='Release|x64'">stdclatest</LanguageStandard_C>
+      <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">/Gs /Oi- /w44774 /w45262 %(AdditionalOptions)</AdditionalOptions>
+      <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">/Gs /Oi- /w44774 /w45262 %(AdditionalOptions)</AdditionalOptions>
+      <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">/Gs /Oi- /w44774 /w45262 %(AdditionalOptions)</AdditionalOptions>
+      <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Release|x64'">/Gs /Oi- /w44774 /w45262 %(AdditionalOptions)</AdditionalOptions>
     </ClCompile>
     <Link>
-      <AdditionalDependencies>hacklib.lib;kernel32.lib;dbghelp.lib;user32.lib;gdi32.lib;winspool.lib;comdlg32.lib;advapi32.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;odbc32.lib;odbccp32.lib;winmm.lib;Winmm.lib;bcrypt.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>hacklib.lib;lualib.lib;kernel32.lib;dbghelp.lib;user32.lib;gdi32.lib;winspool.lib;comdlg32.lib;advapi32.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;odbc32.lib;odbccp32.lib;winmm.lib;Winmm.lib;bcrypt.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
     <ResourceCompile>
       <AdditionalIncludeDirectories Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">$(SndWavDir);%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
@@ -65,12 +73,6 @@
     </ResourceCompile>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="@(Lua)">
-      <DisableSpecificWarnings>4701;4702;4244;4310;4774</DisableSpecificWarnings>
-      <AdditionalOptions>%(AdditionalOptions) /wd4774</AdditionalOptions>
-      <DisableSpecificWarnings Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">4701;4702;4244;4310;4774;4324</DisableSpecificWarnings>
-      <DisableSpecificWarnings Condition="'$(Configuration)|$(Platform)'=='Release|x64'">4701;4702;4244;4310;4774;4324</DisableSpecificWarnings>
-    </ClCompile>
     <ClCompile Include="$(SrcDir)allmain.c" />
     <ClCompile Include="$(SrcDir)alloc.c" />
     <ClCompile Include="$(SrcDir)apply.c" />
@@ -243,6 +245,8 @@
     <ClInclude Include="$(IncDir)hacklib.h" />
     <ClInclude Include="$(IncDir)hack.h" />
     <ClInclude Include="$(IncDir)isaac64.h" />
+    <ClInclude Include="$(IncDir)lint.h" />
+    <ClInclude Include="$(IncDir)load_img.h" />
     <ClInclude Include="$(IncDir)mextra.h" />
     <ClInclude Include="$(IncDir)mfndpos.h" />
     <ClInclude Include="$(IncDir)mkroom.h" />

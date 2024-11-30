@@ -102,7 +102,9 @@
       <PreprocessorDefinitions>WIN32;_DEBUG;_LIB;WIN32CON;DLB;MSWIN_GRAPHICS;ENUM_PM;HAS_STDINT_H;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
       <AdditionalIncludeDirectories>$(IncDir);$(SysWindDir);$(LuaDir);%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
-    </ClCompile>
+      <LanguageStandard_C Condition="'$(DefaultPlatformToolset)'!='v142'">stdclatest</LanguageStandard_C>
+      <AdditionalOptions>/w45262 %(AdditionalOptions)</AdditionalOptions>
+     </ClCompile>
     <Link>
       <SubSystem>
       </SubSystem>
@@ -118,6 +120,8 @@
       <PreprocessorDefinitions>WIN32;NDEBUG;_LIB;WIN32CON;DLB;MSWIN_GRAPHICS;ENUM_PM;HAS_STDINT_H;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
       <AdditionalIncludeDirectories>$(IncDir);$(SysWindDir);$(LuaDir);%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <LanguageStandard_C Condition="'$(DefaultPlatformToolset)'!='v142'">stdclatest</LanguageStandard_C>
+      <AdditionalOptions>/w45262 %(AdditionalOptions)</AdditionalOptions>
     </ClCompile>
     <Link>
       <SubSystem>
@@ -134,6 +138,8 @@
       <PreprocessorDefinitions>_DEBUG;_LIB;WIN32CON;DLB;MSWIN_GRAPHICS;ENUM_PM;HAS_STDINT_H;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
       <AdditionalIncludeDirectories>$(IncDir);$(SysWindDir);$(LuaDir);%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <LanguageStandard_C Condition="'$(DefaultPlatformToolset)'!='v142'">stdclatest</LanguageStandard_C>
+      <AdditionalOptions>/w45262 %(AdditionalOptions)</AdditionalOptions>
     </ClCompile>
     <Link>
       <SubSystem>
@@ -150,6 +156,8 @@
       <PreprocessorDefinitions>NDEBUG;_LIB;WIN32CON;DLB;MSWIN_GRAPHICS;ENUM_PM;HAS_STDINT_H;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
       <AdditionalIncludeDirectories>$(IncDir);$(SysWindDir);$(LuaDir);%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <LanguageStandard_C Condition="'$(DefaultPlatformToolset)'!='v142'">stdclatest</LanguageStandard_C>
+      <AdditionalOptions>/w45262 %(AdditionalOptions)</AdditionalOptions>
     </ClCompile>
     <Link>
       <SubSystem>
