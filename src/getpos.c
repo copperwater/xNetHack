@@ -465,6 +465,7 @@ gather_locs_interesting(coordxy x, coordxy y, int gloc)
     case GLOC_VALID:
         if (getpos_getvalid)
             return (*getpos_getvalid)(x, y);
+        FALLTHROUGH;
         /*FALLTHRU*/
     case GLOC_INTERESTING:
         return (gather_locs_interesting(x, y, GLOC_DOOR)

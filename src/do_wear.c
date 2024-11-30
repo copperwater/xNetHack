@@ -452,6 +452,7 @@ Helmet_on(void)
                          : (uarmh->o_id % 2) ? A_CHAOTIC : A_LAWFUL,
                      A_CG_HELM_ON);
         /* makeknown(HELM_OF_OPPOSITE_ALIGNMENT); -- below, after Tobjnam() */
+        FALLTHROUGH;
     /*FALLTHRU*/
     case DUNCE_CAP:
         if (uarmh && !uarmh->cursed) {

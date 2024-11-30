@@ -442,6 +442,7 @@ objtyp_is_callable(int i)
            determine which one was the real one */
         if (i == AMULET_OF_YENDOR || i == FAKE_AMULET_OF_YENDOR)
             break; /* return FALSE */
+        FALLTHROUGH;
         /*FALLTHRU*/
     case SCROLL_CLASS:
     case POTION_CLASS:

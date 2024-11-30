@@ -588,6 +588,7 @@ fixup_special(void)
                 sp = find_level(r->rname.str);
                 lev = sp->dlevel;
             }
+            FALLTHROUGH;
             /*FALLTHRU*/
 
         case LR_UPSTAIR:
@@ -2073,6 +2074,7 @@ mv_bubble(struct bubble *b, coordxy dx, coordxy dy, boolean ini)
         break;
     case 3:
         b->dy = -b->dy;
+        FALLTHROUGH;
         /*FALLTHRU*/
     case 2:
         b->dx = -b->dx;

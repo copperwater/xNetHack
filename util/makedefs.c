@@ -846,7 +846,8 @@ do_grep_control(char *buf)
         break;
     case '!': /* if not ID */
         isif = 0;
-    /* FALLTHROUGH */
+        FALLTHROUGH;
+    /* FALLTHRU */
     case '?': /* if ID */
         if (grep_sp == GREP_STACK_SIZE - 2) {
             Fprintf(stderr, "stack overflow at line %d.", grep_lineno);
@@ -2302,6 +2303,7 @@ do_objs(void)
                 n_glass_gems++;
                 break;
             }
+            FALLTHROUGH;
             /*FALLTHRU*/
         case VENOM_CLASS:
             /* fall-through from gem class is ok; objects[] used to have
@@ -2311,6 +2313,7 @@ do_objs(void)
                so strip the extra "splash of " off to keep same macros */
             if (!strncmp(objnam, "SPLASH_OF_", 10))
                 objnam += 10;
+            FALLTHROUGH;
             /*FALLTHRU*/
         default:
             Fprintf(ofp, "#define\t");

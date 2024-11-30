@@ -415,6 +415,7 @@ draw_horizontal(boolean border)
                         w -= (t - 30); /* '+= strlen()' below will add 't';
                                         * functional result being 'w += 30' */
                 }
+                FALLTHROUGH;
                 /*FALLTHRU*/
             case BL_ALIGN:
             case BL_LEVELDESC:
@@ -1231,6 +1232,7 @@ curs_vert_status_vals(int win_width)
                 if (fld_width < hp_width + 3) /* +3: " " gap and "("...")" */
                     Sprintf(leadingspace, "%*s",
                             (hp_width + 3) - fld_width, " ");
+                FALLTHROUGH;
                 /*FALLTHRU*/
             case BL_VERS:
             case BL_EXP:

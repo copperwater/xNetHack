@@ -848,6 +848,7 @@ cprefx(int pm)
             make_slimed(10L, (char *) 0);
             delayed_killer(SLIMED, KILLED_BY_AN, "");
         }
+        FALLTHROUGH;
     /* Fall through */
     default:
         if (acidic(&mons[pm]) && Stoned)
@@ -1164,19 +1165,23 @@ cpostfx(int pm)
             HSee_invisible |= FROMOUTSIDE;
         }
         newsym(u.ux, u.uy);
+        FALLTHROUGH;
         /*FALLTHRU*/
     case PM_YELLOW_LIGHT:
     case PM_GIANT_BAT:
         make_stunned((HStun & TIMEOUT) + 30L, FALSE);
+        FALLTHROUGH;
         /*FALLTHRU*/
     case PM_BAT:
         make_stunned((HStun & TIMEOUT) + 30L, FALSE);
         break;
     case PM_GIANT_MIMIC:
         tmp += 10;
+        FALLTHROUGH;
         /*FALLTHRU*/
     case PM_LARGE_MIMIC:
         tmp += 20;
+        FALLTHROUGH;
         /*FALLTHRU*/
     case PM_SMALL_MIMIC:
         tmp += 20;
@@ -1278,6 +1283,7 @@ cpostfx(int pm)
         } else {
             pline("For some reason, that tasted bland.");
         }
+        FALLTHROUGH;
     /*FALLTHRU*/
     default:
         check_intrinsics = TRUE;
@@ -2143,6 +2149,7 @@ fprefx(struct obj *otmp)
             break;
         }
         iter_mons(garlic_breath);
+        FALLTHROUGH;
         /*FALLTHRU*/
     default:
         if (otmp->otyp == SLIME_MOLD && !otmp->cursed

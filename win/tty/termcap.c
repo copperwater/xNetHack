@@ -1341,6 +1341,7 @@ s_atr2str(int n)
         /* if italic isn't available, fall through to underline */
         if (ZH && *ZH)
             return ZH;
+        FALLTHROUGH;
         /*FALLTHRU*/
     case ATR_BLINK:
     case ATR_ULINE:
@@ -1351,6 +1352,7 @@ s_atr2str(int n)
             if (nh_US && *nh_US)
                 return nh_US;
         }
+        FALLTHROUGH;
         /*FALLTHRU*/
     case ATR_BOLD:
         if (MD && *MD)
@@ -1378,15 +1380,18 @@ e_atr2str(int n)
         /* send ZR unless we didn't have ZH and substituted US */
         if (ZR && *ZR && ZH && *ZH)
             return ZR;
+        FALLTHROUGH;
         /*FALLTHRU*/
     case ATR_ULINE:
         if (nh_UE && *nh_UE)
             return nh_UE;
+        FALLTHROUGH;
         /*FALLTHRU*/
     case ATR_BOLD:
     case ATR_BLINK:
         if (nh_HE && *nh_HE)
             return nh_HE;
+        FALLTHROUGH;
         /*FALLTHRU*/
     case ATR_DIM:
     case ATR_INVERSE:

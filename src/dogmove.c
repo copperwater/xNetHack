@@ -76,6 +76,7 @@ droppables(struct monst *mon)
             if (pickaxe && pickaxe->otyp == PICK_AXE && pickaxe != wep
                 && (!pickaxe->oartifact || obj->oartifact))
                 return pickaxe; /* drop the one we earlier decided to keep */
+            FALLTHROUGH;
         /*FALLTHRU*/
         case PICK_AXE:
             if (!pickaxe || (obj->oartifact && !pickaxe->oartifact)) {
@@ -104,12 +105,14 @@ droppables(struct monst *mon)
             if (key && key->otyp == LOCK_PICK
                 && (!key->oartifact || obj->oartifact))
                 return key; /* drop the one we earlier decided to keep */
+            FALLTHROUGH;
         /*FALLTHRU*/
         case LOCK_PICK:
             /* keep lock-pick in preference to credit card */
             if (key && key->otyp == CREDIT_CARD
                 && (!key->oartifact || obj->oartifact))
                 return key;
+            FALLTHROUGH;
         /*FALLTHRU*/
         case CREDIT_CARD:
             if (!key || (obj->oartifact && !key->oartifact)) {

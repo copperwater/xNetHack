@@ -1065,6 +1065,7 @@ wiz_intrinsic(void)
                    so needs more than simple incr_itimeout() but we want
                    the pline() issued with that */
                 make_glib((int) newtimeout);
+                FALLTHROUGH;
                 /*FALLTHRU*/
             default:
  def_feedback:

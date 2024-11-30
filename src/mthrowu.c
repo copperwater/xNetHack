@@ -655,6 +655,7 @@ m_throw(
                     hitu = 0;
                     break;
                 }
+                FALLTHROUGH;
                 /*FALLTHRU*/
             case CREAM_PIE:
             case BLINDING_VENOM:
@@ -851,6 +852,7 @@ spitmm(struct monst *mtmp, struct attack *mattk, struct monst *mtarg)
             break;
         default:
             impossible("bad attack type in spitmm");
+            FALLTHROUGH;
             /*FALLTHRU*/
         case AD_ACID:
             otmp = mksobj(ACID_VENOM, TRUE, FALSE);

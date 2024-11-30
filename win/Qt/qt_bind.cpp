@@ -271,6 +271,7 @@ void NetHackQtBind::qt_askname()
             // success; handle plname[] verification below prior to returning
             break;
         }
+        FALLTHROUGH;
         /*FALLTHRU*/
     case -2:
         // Quit
@@ -726,6 +727,7 @@ char NetHackQtBind::qt_more()
             switch (ch) {
             case '\0': // hypothetical
                 ch = '\033';
+                FALLTHROUGH;
                 /*FALLTHRU*/
             case ' ':
             case '\n':

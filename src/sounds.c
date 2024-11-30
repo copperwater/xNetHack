@@ -264,6 +264,7 @@ dosounds(void)
                     break;
                 }
             }
+            FALLTHROUGH;
                 /*FALLTHRU*/
             case 0:
                 Soundeffect(se_guards_footsteps, 30);
@@ -631,7 +632,6 @@ cry_sound(struct monst *mtmp)
         ret = "hiss";
         break;
     case MS_ROAR: /* baby dragons; have them growl instead of roar */
-        /*FALLTHRU*/
     case MS_GROWL: /* (none) */
         ret = "growl";
         break;
@@ -870,6 +870,7 @@ domonnoise(struct monst *mtmp)
             }
             break;
         }
+        FALLTHROUGH;
         /*FALLTHRU*/
     case MS_GROWL:
         Soundeffect((mtmp->mpeaceful ? se_snarl : se_growl), 80);
@@ -1019,6 +1020,7 @@ domonnoise(struct monst *mtmp)
             }
             break;
         }
+        FALLTHROUGH;
         /*FALLTHRU*/
     case MS_HUMANOID:
         if (!mtmp->mpeaceful) {
@@ -1141,7 +1143,8 @@ domonnoise(struct monst *mtmp)
             (void) demon_talk(mtmp);
             break;
         }
-    /* fall through */
+	FALLTHROUGH;
+        /* FALLTHRU */
     case MS_CUSS:
         if (!mtmp->mpeaceful)
             cuss(mtmp);

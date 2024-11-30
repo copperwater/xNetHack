@@ -582,6 +582,7 @@ selection_do_gradient(
     switch (gtyp) {
     default:
         impossible("Unrecognized gradient type! Defaulting to radial...");
+        FALLTHROUGH;
         /* FALLTHRU */
     case SEL_GRADIENT_RADIAL: {
         for (dx = 0; dx < COLNO; dx++)

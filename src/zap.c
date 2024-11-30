@@ -177,6 +177,7 @@ bhitm(struct monst *mtmp, struct obj *otmp)
     switch (otyp) {
     case WAN_STRIKING:
         zap_type_text = "wand";
+        FALLTHROUGH;
     /*FALLTHRU*/
     case SPE_FORCE_BOLT:
         reveal_invis = TRUE;
@@ -1096,6 +1097,7 @@ revive(struct obj *corpse, boolean by_hero)
             obfree(corpse, (struct obj *) 0);
             break;
         }
+        FALLTHROUGH;
         /*FALLTHRU*/
     case OBJ_FREE:
     case OBJ_MIGRATING:
@@ -2056,6 +2058,7 @@ stone_to_flesh_obj(struct obj *obj) /* nonnull */
         smell = TRUE;
         break;
     case WEAPON_CLASS: /* crysknife */
+        FALLTHROUGH;
         /*FALLTHRU*/
     default:
         res = 0;
@@ -2869,6 +2872,7 @@ zapyourself(struct obj *obj, boolean ordinary)
     case WAN_LIGHT: /* (broken wand) */
         /* assert( !ordinary ); */
         damage = d(obj->spe, 25);
+        FALLTHROUGH;
         /*FALLTHRU*/
     case EXPENSIVE_CAMERA:
         if (!damage)
@@ -3243,6 +3247,7 @@ zap_updown(struct obj *obj) /* wand or spell, nonnull */
     case WAN_STRIKING:
     case SPE_FORCE_BOLT:
         striking = TRUE;
+        FALLTHROUGH;
         /*FALLTHRU*/
     case WAN_LOCKING:
     case SPE_WIZARD_LOCK:
@@ -4924,6 +4929,7 @@ dobuzz(
                 switch (bounce) {
                 case 0:
                     dx = -dx;
+                    FALLTHROUGH;
                     /*FALLTHRU*/
                 case 1:
                     dy = -dy;
@@ -5256,6 +5262,7 @@ zap_over_floor(
         break;
 
     case ZT_LIGHTNING:
+        FALLTHROUGH;
         /*FALLTHRU*/
     case ZT_ACID:
         if (lev->typ == IRONBARS) {

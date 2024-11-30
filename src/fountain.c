@@ -359,6 +359,7 @@ drinkfountain(void)
                 dofindgem();
                 break;
             }
+            FALLTHROUGH;
             /*FALLTHRU*/
         case 28: /* Water Nymph */
             dowaternymph();
@@ -486,6 +487,7 @@ dipfountain(struct obj *obj)
             dofindgem();
             break;
         }
+        FALLTHROUGH;
         /*FALLTHRU*/
     case 25: /* Water gushes forth */
         dogushforth(FALSE);
@@ -699,6 +701,7 @@ drinksink(void)
             pline("From the murky drain, a hand reaches up... --oops--");
             break;
         }
+        FALLTHROUGH;
         /*FALLTHRU*/
     default:
         You("take a sip of %s %s.",
@@ -770,6 +773,7 @@ dipsink(struct obj *obj)
             try_call = TRUE;
             break;
         }
+        FALLTHROUGH;
         /* FALLTHRU */
     case POT_GAIN_LEVEL:
     case POT_GAIN_ENERGY:

@@ -1087,6 +1087,7 @@ CtrlHandler(DWORD ctrltype)
     /* case CTRL_C_EVENT: */
     case CTRL_BREAK_EVENT:
         term_clear_screen();
+        FALLTHROUGH;
     case CTRL_CLOSE_EVENT:
     case CTRL_LOGOFF_EVENT:
     case CTRL_SHUTDOWN_EVENT:
@@ -1335,7 +1336,8 @@ xputc_core(int ch)
     case '\n':
         if (console.cursor.Y < console.height - 1)
             console.cursor.Y++;
-    /* fall through */
+        FALLTHROUGH;
+    /* FALLTHRU */
     case '\r':
         console.cursor.X = 1;
         break;
@@ -1879,6 +1881,7 @@ toggle_mouse_support(void)
 #endif /* VIRTUAL_TERMINAL_SEQUENCES */
                 break;
         case 0:
+                FALLTHROUGH;
                 /*FALLTHRU*/
         default:
 #ifndef VIRTUAL_TERMINAL_SEQUENCES

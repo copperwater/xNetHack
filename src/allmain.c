@@ -1040,6 +1040,7 @@ argcheck(int argc, char *argv[], enum earlyarg e_arg)
                 extended_opt++;
                 return windows_early_options(extended_opt);
             }
+        FALLTHROUGH;
         /*FALLTHRU*/
 #endif
         default:

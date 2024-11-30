@@ -293,6 +293,7 @@ term_end_attr(int attr)
     switch (attr) {
     case ATR_INVERSE:
         inversed = 0;
+        FALLTHROUGH;
         /*FALLTHRU*/
     case ATR_ULINE:
     case ATR_BOLD:
@@ -341,6 +342,7 @@ term_start_attr(int attr)
         break;
     case ATR_INVERSE:
         inversed = 1;
+        FALLTHROUGH;
         /*FALLTHRU*/
     default:
         g_attribute = iflags.grmode ? attrib_gr_normal : attrib_text_normal;

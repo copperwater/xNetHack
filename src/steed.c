@@ -589,6 +589,7 @@ dismount_steed(
     switch (reason) {
     case DISMOUNT_THROWN:
         verb = "are thrown";
+        FALLTHROUGH;
         /*FALLTHRU*/
     case DISMOUNT_KNOCKED:
     case DISMOUNT_FELL:

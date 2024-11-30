@@ -1968,6 +1968,8 @@ attributes_enlightenment(
             switch (u.umortality) {
             case 0:
                 impossible("dead without dying?");
+                FALLTHROUGH;
+                /* FALLTHRU */
             case 1:
                 break; /* just "are dead" */
             default:
@@ -2624,6 +2626,7 @@ vanqsort_cmp(
             res = uniq2 - uniq1;
             break;
         } /* else both unique or neither unique */
+        FALLTHROUGH;
         /*FALLTHRU*/
     case VANQ_ALPHA_MIX:
         name1 = mons[indx1].pmnames[NEUTRAL];

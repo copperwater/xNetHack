@@ -142,6 +142,7 @@ MSDOS_TARGET_CFLAGS = -c -O -I../include -I../sys/msdos -I../win/share \
         -Wall -Wextra -Wno-missing-field-initializers -Wreturn-type -Wunused \
         -Wformat -Wswitch -Wshadow -Wwrite-strings \
 	-Wimplicit -Wimplicit-function-declaration -Wimplicit-int \
+	-Wimplicit-fallthrough \
 	-Wmissing-parameter-type -Wold-style-definition -Wstrict-prototypes
 MSDOS_TARGET_CXXFLAGS = -c -O -I../include -I../sys/msdos -I../win/share \
         $(LUAINCL) -DDLB $(PDCURSESDEF) \

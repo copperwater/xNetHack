@@ -67,6 +67,7 @@ multishot_class_bonus(
     case PM_NINJA:
         if (skill == -P_SHURIKEN || skill == -P_DART)
             multishot++;
+        FALLTHROUGH;
         /*FALLTHRU*/
     case PM_SAMURAI:
         /* role-specific launcher and its ammo */
@@ -175,6 +176,7 @@ throw_obj(struct obj *obj, int shotlimit)
         switch (P_SKILL(weapon_type(obj))) {
         case P_EXPERT:
             multishot++;
+            FALLTHROUGH;
         /*FALLTHRU*/
         case P_SKILLED:
             if (!weakmultishot)
@@ -1295,6 +1297,7 @@ toss_up(struct obj *obj, boolean hitsroof)
                     Your("%s fails to protect you.", helm_simple_name(uarmh));
                 goto petrify;
             }
+            FALLTHROUGH;
             /*FALLTHRU*/
         case CREAM_PIE:
         case BLINDING_VENOM:
@@ -2572,12 +2575,14 @@ breakmsg(struct obj *obj, boolean in_view)
     default: /* glass or crystal wand */
         if (obj->oclass != WAND_CLASS)
             impossible("breaking odd object (%d)?", obj->otyp);
+        FALLTHROUGH;
         /*FALLTHRU*/
     case LENSES:
     case MIRROR:
     case CRYSTAL_BALL:
     case EXPENSIVE_CAMERA:
         to_pieces = " into a thousand pieces";
+        FALLTHROUGH;
     /*FALLTHRU*/
     case POT_WATER: /* really, all potions */
         if (!in_view)

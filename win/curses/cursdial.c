@@ -1556,6 +1556,7 @@ menu_get_selections(WINDOW *win, nhmenu *menu, int how)
                     break;
                 }
             }
+            FALLTHROUGH;
             /*FALLTHRU*/
         default:
             if (curletter > 0 && curletter < 256

@@ -513,6 +513,7 @@ maketrap(coordxy x, coordxy y, int typ)
     case PIT:
     case SPIKED_PIT:
         ttmp->conjoined = 0;
+        FALLTHROUGH;
         /*FALLTHRU*/
     case HOLE:
     case TRAPDOOR:
@@ -1126,10 +1127,13 @@ m_harmless_trap(struct monst *mtmp, struct trap *ttmp)
             return TRUE;
         break;
     case PIT:
+        FALLTHROUGH;
         /*FALLTHRU*/
     case SPIKED_PIT:
+        FALLTHROUGH;
         /*FALLTHRU*/
     case HOLE:
+        FALLTHROUGH;
         /*FALLTHRU*/
     case TRAPDOOR:
         if (is_clinger(mdat) && !Sokoban)
@@ -2190,6 +2194,7 @@ trapeffect_web(
                 mtmp->mtrapped = 1;
                 break;
             }
+            FALLTHROUGH;
             /*FALLTHRU*/
         default:
             if (mptr->mlet == S_GIANT
@@ -2721,6 +2726,7 @@ immune_to_trap(struct monst *mon, unsigned ttype)
         if (pm->msize <= MZ_SMALL
             || amorphous(pm) || is_whirly(pm) || unsolid(pm))
             return TRAP_CLEARLY_IMMUNE;
+        FALLTHROUGH;
         /*FALLTHRU*/
     case SQKY_BOARD:
     case LANDMINE:
@@ -2809,6 +2815,7 @@ immune_to_trap(struct monst *mon, unsigned ttype)
            for monsters, only replicates fire trap, so fall through */
         if (is_you)
             return TRAP_NOT_IMMUNE;
+        FALLTHROUGH;
         /*FALLTHRU*/
     case FIRE_TRAP: /* can always destroy items being carried */
         /* harmful if not resistant or if carrying anything that could burn */
@@ -3244,10 +3251,12 @@ launch_obj(
         /* use otrapped as a flag to ohitmon */
         singleobj->otrapped = 1;
         style &= ~LAUNCH_KNOWN;
+        FALLTHROUGH;
     /*FALLTHRU*/
     case ROLL:
  roll:
         delaycnt = 2;
+        FALLTHROUGH;
     /*FALLTHRU*/
     default:
         if (!delaycnt)
@@ -3352,6 +3361,7 @@ launch_obj(
                     /* if trap doesn't work, skip "disappears" message */
                     if (newlev == depth(&u.uz))
                         break;
+                    FALLTHROUGH;
                     /*FALLTHRU*/
                 case TELEP_TRAP:
                     if (cansee(x, y))
@@ -4050,6 +4060,7 @@ float_down(
         case TRAPDOOR:
             if (!Can_fall_thru(&u.uz) || u.ustuck)
                 break;
+            FALLTHROUGH;
             /*FALLTHRU*/
         default:
             if (!u.utrap) /* not already in the trap */

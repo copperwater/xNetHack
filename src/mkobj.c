@@ -325,6 +325,7 @@ mkbox_cnts(struct obj *box)
             n = 0;
             break;
         }
+        FALLTHROUGH;
         /*FALLTHRU*/
     case BAG_OF_HOLDING:
         n = 1;
@@ -999,6 +1000,7 @@ mksobj_init(struct obj *otmp, boolean artif)
         case LARGE_BOX:
             otmp->olocked = !!(rn2(5));
             otmp->otrapped = !(rn2(10));
+            FALLTHROUGH;
             /*FALLTHRU*/
         case ICE_BOX:
         case SACK:
@@ -1184,6 +1186,7 @@ mksobj(int otyp, boolean init, boolean artif)
             if (svm.mvitals[otmp->corpsenm].mvflags & (G_NOCORPSE | G_GONE))
                 otmp->corpsenm = gu.urole.mnum;
         }
+        FALLTHROUGH;
         /*FALLTHRU*/
     case STATUE:
     case FIGURINE:
@@ -1197,6 +1200,7 @@ mksobj(int otyp, boolean init, boolean artif)
                            : is_male(ptr) ? CORPSTAT_MALE
                              : rn2(2) ? CORPSTAT_FEMALE : CORPSTAT_MALE);
         }
+        FALLTHROUGH;
         /*FALLTHRU*/
     case EGG:
     /* case TIN: */
@@ -1210,6 +1214,7 @@ mksobj(int otyp, boolean init, boolean artif)
         break;
     case POT_OIL:
         otmp->age = MAX_OIL_IN_FLASK; /* amount of oil */
+        FALLTHROUGH;
         /*FALLTHRU*/
     case POT_WATER: /* POTION_CLASS */
         otmp->fromsink = 0; /* overloads corpsenm, which was set to NON_PM */
@@ -2982,6 +2987,7 @@ objlist_sanity(struct obj *objlist, int wheretype, const char *mesg)
                 /* note: ball and chain can also be OBJ_FREE, but not across
                    turns so this sanity check shouldn't encounter that */
                 bc_ok = TRUE;
+            FALLTHROUGH;
             /*FALLTHRU*/
             default:
                 if ((obj != uchain && obj != uball) || !bc_ok) {

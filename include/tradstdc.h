@@ -327,13 +327,20 @@ typedef genericptr genericptr_t; /* (void *) or (char *) */
 /*
  * Give first priority to standard
  */
-#ifndef ATTRNORETURN
 #if defined(__STDC_VERSION__) || defined(__cplusplus)
 #if (__STDC_VERSION__ > 202300L) || defined(__cplusplus)
+#ifndef ATTRNORETURN
 #define ATTRNORETURN [[noreturn]]
 #endif
-#endif
-#endif
+#ifndef __has_c_attribute
+#define __has_c_attribute(x) 0
+#endif /* __has_c_attribute */
+#if __has_c_attribute(fallthrough)
+/* Standard attribute is available, use it. */
+#define FALLTHROUGH [[fallthrough]]
+#endif  /* __has_c_attribute(fallthrough) */
+#endif  /* __STDC_VERSION__ gt 202300L || __cplusplus */
+#endif  /* __STDC_VERSION || __cplusplus */
 
 /*
  * Allow gcc2 to check parameters of printf-like calls with -Wformat;
@@ -366,12 +373,21 @@ typedef genericptr genericptr_t; /* (void *) or (char *) */
 #endif  /* !NONNULLS_DEFINED */
 /* #pragma message is available */
 #define NH_PRAGMA_MESSAGE 1
-#endif
-#endif
+#endif  /* __GNUC__ greater than or equal to 5 */
+#endif  /* __GNUC__ */
 
-#if defined(__clang__) && !defined(DO_DEFINE_NONNULLS)
+#if defined(__clang__)
+#ifndef FALLTHROUGH
+#if defined(__clang_major__)
+#if __clang_major__ >= 9
+#define FALLTHROUGH __attribute__((fallthrough))
+#endif  /* __clang_major__ greater than or equal to 9 */
+#endif  /* __clang_major__ is defined */
+#endif  /* FALLTHROUGH */
+#if !defined(DO_DEFINE_NONNULLS)
 #define DO_DEFINE_NONNULLS
 #endif
+#endif  /* __clang__ */
 
 #if defined(DO_DEFINE_NONNULLS) && !defined(NONNULLS_DEFINED)
 #define NONNULL __attribute__((returns_nonnull))
@@ -405,6 +421,7 @@ typedef genericptr genericptr_t; /* (void *) or (char *) */
 #define NH_PRAGMA_MESSAGE 1
 #endif
 
+/* Fallback implementations */
 #ifndef PRINTF_F
 #define PRINTF_F(f, v)
 #endif
@@ -413,6 +430,9 @@ typedef genericptr genericptr_t; /* (void *) or (char *) */
 #endif
 #ifndef UNUSED
 #define UNUSED
+#endif
+#ifndef FALLTHROUGH
+#define FALLTHROUGH
 #endif
 #ifndef ATTRNORETURN
 #define ATTRNORETURN

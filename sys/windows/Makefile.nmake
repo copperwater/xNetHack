@@ -1131,9 +1131,17 @@ scall  =
 # 4777 format string requires an argument of type 'type',
 #      but variadic argument 'position' has type 'type'
 # 4820 padding in struct
+# 5262 enable fallthrough warnings that lack [[fallthrough]]
+#
 ctmpflags = $(ctmpflags:-W3=-W4) -wd4100 -wd4244 -wd4245 -wd4310 -wd4706 -w44777 -wd4820
 !IF ($(VSVER) >= 2019)
 ctmpflags = $(ctmpflags) -w44774
+!ENDIF
+!IF ($(VSVER) >= 2022)
+!IF ($(MAKEVERSION) >= 1440338120)
+# warning 5262 became available starting in Visual Studio 2022 version 17.4.
+ctmpflags = $(ctmpflags) -w45262 /std:clatest
+!ENDIF
 !ENDIF
 !ENDIF
 
@@ -2880,6 +2888,8 @@ $(OTTY)sfstruct.o: sfstruct.c $(HACK_H)
 $(OTTY)shk.o: shk.c $(HACK_H)
 $(OTTY)shknam.o: shknam.c $(HACK_H)
 $(OTTY)sit.o: sit.c $(HACK_H) $(INCL)\artifact.h
+	$(Q)$(CC) $(CFLAGS) /EP  $(@B).c > $(OTTY)$(@B).c.preproc
+	$(Q)$(CC) $(CFLAGS) -Fo$@ $(@B).c
 $(OTTY)sounds.o: sounds.c $(HACK_H)
 $(OTTY)sp_lev.o: sp_lev.c $(HACK_H) $(INCL)\sp_lev.h
 $(OTTY)spell.o: spell.c $(HACK_H)

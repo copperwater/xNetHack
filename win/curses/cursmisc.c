@@ -291,7 +291,7 @@ curses_break_str(const char *str, int width, int line_num)
     char *retstr;
     int curline = 0;
     int strsize = (int) strlen(str) + 1;
-#if defined(__STDC_VERSION__) && __STDC_VERSION__ >= 199901L
+#if (defined(__STDC_VERSION__) && __STDC_VERSION__ >= 199901L) && !defined(_MSC_VER)
     char substr[strsize];
     char curstr[strsize];
     char tmpstr[strsize];
@@ -363,7 +363,7 @@ curses_str_remainder(const char *str, int width, int line_num)
     char *retstr;
     int curline = 0;
     int strsize = strlen(str) + 1;
-#if __STDC_VERSION__ >= 199901L
+#if (__STDC_VERSION__ >= 199901L) && !defined(_MSC_VER)
     char substr[strsize];
     char tmpstr[strsize];
 
@@ -801,6 +801,7 @@ curses_convert_keys(int key)
            a value for ^H greater than 255 is passed back to core's
            readchar() and stripping the value down to 0..255 yields ^G! */
         ret = C('H');
+        FALLTHROUGH;
         /*FALLTHRU*/
     default:
         if (modifiers_available)

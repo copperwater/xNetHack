@@ -1201,6 +1201,7 @@ rnd_defensive_item(struct monst *mtmp)
             goto try_again;
         if (!rn2(3))
             return WAN_TELEPORTATION;
+        FALLTHROUGH;
         /*FALLTHRU*/
     case 0:
     case 1:
@@ -1209,6 +1210,7 @@ rnd_defensive_item(struct monst *mtmp)
     case 10:
         if (!rn2(3))
             return WAN_CREATE_MONSTER;
+        FALLTHROUGH;
         /*FALLTHRU*/
     case 2:
         return SCR_CREATE_MONSTER;
@@ -1968,7 +1970,9 @@ rnd_offensive_item(struct monst *mtmp)
         if (hard_helmet(mtmp_helmet) || amorphous(pm)
             || passes_walls(pm) || noncorporeal(pm) || unsolid(pm))
             return SCR_EARTH;
-    } /* fall through */
+    }
+    FALLTHROUGH;
+    /* FALLTHRU */
     case 1:
         return WAN_STRIKING;
     case 2:

@@ -571,6 +571,7 @@ moverock_core(coordxy sx, coordxy sy)
                         dopush(sx, sy, rx, ry, otmp, costly);
                         continue;
                     }
+                    FALLTHROUGH;
                     /*FALLTHRU*/
                 case TELEP_TRAP:
                     rock_disappear_msg(otmp);
@@ -2553,6 +2554,7 @@ escape_from_sticky_mon(coordxy x, coordxy y)
                     u.ustuck->mfrozen = 1;
                     u.ustuck->msleeping = 0;
                 }
+                FALLTHROUGH;
                 /*FALLTHRU*/
             default:
                 if (u.ustuck->mtame && !Conflict && !u.ustuck->mconf)
@@ -3573,6 +3575,7 @@ check_special_room(boolean newlev)
         }
         case TEMPLE:
             intemple(roomno + ROOMOFFSET);
+            FALLTHROUGH;
         /*FALLTHRU*/
         default:
             msg_given = (rt == TEMPLE || rt >= SHOPBASE);
@@ -4317,6 +4320,7 @@ spot_checks(coordxy x, coordxy y, schar old_typ)
     switch (old_typ) {
     case DRAWBRIDGE_UP:
         db_ice_now = ((levl[x][y].drawbridgemask & DB_UNDER) == DB_ICE);
+        FALLTHROUGH;
         /*FALLTHRU*/
     case ICE:
         if ((new_typ != old_typ)

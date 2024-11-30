@@ -528,6 +528,7 @@ display_monster(
         default:
             impossible("display_monster:  bad m_ap_type value [ = %d ]",
                        (int) mon->m_ap_type);
+            FALLTHROUGH;
             /*FALLTHRU*/
         case M_AP_NOTHING:
             show_glyph(x, y, mon_to_glyph(mon, newsym_rn2));
@@ -3566,6 +3567,7 @@ wall_angle(struct rm *lev)
     case SDOOR:
         if (lev->horizontal)
             goto horiz;
+        FALLTHROUGH;
         /*FALLTHRU*/
     case VWALL:
         switch (lev->wall_info & WM_MASK) {

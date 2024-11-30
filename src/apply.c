@@ -3772,6 +3772,7 @@ use_grapple(struct obj *obj)
             (void) thitmonst(mtmp, uwep);
             return ECMD_TIME;
         }
+        FALLTHROUGH;
     /*FALLTHRU*/
     case 3: /* Surface */
         if (IS_AIR(levl[cc.x][cc.y].typ) || is_pool(cc.x, cc.y))
@@ -3891,6 +3892,7 @@ do_break_wand(struct obj *obj)
             discard_broken_wand();
             return ECMD_TIME;
         }
+        FALLTHROUGH;
         /*FALLTHRU*/
     case WAN_WISHING:
     case WAN_NOTHING:
@@ -3919,6 +3921,7 @@ do_break_wand(struct obj *obj)
         Soundeffect(se_wall_of_force, 65);
         pline("A wall of force smashes down around you!");
         dmg = d(1 + obj->spe, 6); /* normally 2d12 */
+        FALLTHROUGH;
         /*FALLTHRU*/
     case WAN_CANCELLATION:
     case WAN_POLYMORPH:
@@ -4304,6 +4307,7 @@ doapply(void)
             pline("It rings! ... But no-one answers.");
             break;
         }
+        FALLTHROUGH;
         /*FALLTHRU*/
     default:
         /* Pole-weapons can strike at a distance */

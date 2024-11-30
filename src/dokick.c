@@ -1340,6 +1340,7 @@ dokick(void)
                 pline("%s burps loudly.", Monnam(u.ustuck));
                 break;
             }
+            FALLTHROUGH;
             /*FALLTHRU*/
         default:
             Your("feeble kick has no effect.");
@@ -1484,6 +1485,7 @@ drop_to(coord *cc, schar loc, coordxy x, coordxy y)
             cc->y = cc->x = 0;
             break;
         }
+        FALLTHROUGH;
         /*FALLTHRU*/
     case MIGR_STAIRS_UP:
     case MIGR_LADDER_UP:
@@ -1800,6 +1802,7 @@ obj_delivery(boolean near_hero)
         switch (where) {
         case MIGR_LADDER_UP:
             isladder = TRUE;
+            FALLTHROUGH;
             /*FALLTHRU*/
         case MIGR_STAIRS_UP:
         case MIGR_SSTAIRS:

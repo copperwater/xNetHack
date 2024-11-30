@@ -2217,6 +2217,7 @@ revive_corpse(struct obj *corpse)
                 fill_pit(mtmp->mx, mtmp->my);
                 break;
             }
+            FALLTHROUGH;
             /*FALLTHRU*/
         default:
             /* we should be able to handle the other cases... */

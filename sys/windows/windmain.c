@@ -630,7 +630,7 @@ process_options(int argc, char * argv[])
                 break;
             } else
                 raw_printf("\nUnknown switch: %s", argv[0]);
-        /* FALL THROUGH */
+        FALLTHROUGH;
         case '?':
             nhusage();
             nethack_exit(EXIT_SUCCESS);

@@ -887,6 +887,7 @@ dochug(struct monst *mtmp)
         case MMOVE_NOMOVES:
             if (scared)
                 panicattk = TRUE;
+            FALLTHROUGH;
             /*FALLTHRU*/
         case MMOVE_NOTHING: /* no movement, but it can still attack you */
         case MMOVE_DONE: /* absolutely no movement */
@@ -1758,6 +1759,7 @@ m_move(struct monst *mtmp, int after)
             break;
         default:
             impossible("unknown shk/gd/pri_move return value (%d)", xm);
+            FALLTHROUGH;
             /*FALLTHRU*/
         case 0:
         case 1:

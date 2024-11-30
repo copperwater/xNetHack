@@ -870,6 +870,7 @@ pickup(int what) /* should be a long */
                     lcount = (long) yn_number;
                     if (lcount > obj->quan)
                         lcount = obj->quan;
+                    FALLTHROUGH;
                     /*FALLTHRU*/
                 default: /* 'y' */
                     break;
@@ -1478,6 +1479,7 @@ query_category(
                         /* assert( n == 1 ); */
                         break; /* from switch */
                     }
+                    FALLTHROUGH;
                     /*FALLTHRU*/
                 case 'q':
                 default:

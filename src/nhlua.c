@@ -1996,6 +1996,8 @@ nhl_pcall_handle(lua_State *L, int nargs, int nresults, const char *name,
         case NHLpa_panic:
             panic("Lua error %d:%s %s", nud->sid,
                   nud->name ? nud->name : "(unknown)", lua_tostring(L, -1));
+            /*NOTREACHED*/
+            break;
         case NHLpa_impossible:
             impossible("Lua error: %d:%s %s", nud->sid,
                        nud->name ? nud->name : "(unknown)",

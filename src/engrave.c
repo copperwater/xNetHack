@@ -606,6 +606,7 @@ doengrave_sfx_item_WAN(struct _doengrave_ctx *de)
                    "A few ice cubes drop from the wand.");
         if (!de->oep || (de->oep->engr_type != BURN))
             break;
+        FALLTHROUGH;
         /*FALLTHRU*/
     case WAN_CANCELLATION:
     case WAN_MAKE_INVISIBLE:
@@ -706,6 +707,7 @@ doengrave_sfx_item(struct _doengrave_ctx *de)
             de->type = DUST;
             break;
         }
+        FALLTHROUGH;
         /*FALLTHRU*/
     /* Objects too large to engrave with */
     case BALL_CLASS:

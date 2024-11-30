@@ -98,6 +98,7 @@ curses_create_window(int wid, int width, int height, orient orientation)
     switch (orientation) {
     default:
         impossible("curses_create_window: Bad orientation");
+        FALLTHROUGH;
         /*FALLTHRU*/
     case CENTER:
         startx = (term_cols / 2) - (width / 2);

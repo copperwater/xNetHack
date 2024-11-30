@@ -1357,6 +1357,7 @@ clearrolefilter(int which)
     switch (which) {
     case RS_filter:
         gr.rfilter.mask = 0; /* clear race, gender, and alignment filters */
+        FALLTHROUGH;
         /*FALLTHRU*/
     case RS_ROLE:
         for (i = 0; i < SIZE(roles) - 1; ++i)

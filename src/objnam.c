@@ -677,6 +677,7 @@ xname_flags(
     case WEAPON_CLASS:
         if (is_poisonable(obj) && obj->opoisoned)
             Strcpy(buf, "poisoned ");
+        FALLTHROUGH;
         /*FALLTHRU*/
     case VENOM_CLASS:
     case TOOL_CLASS:
@@ -1391,6 +1392,7 @@ doname_base(
                     ConcatF1(bp, 1, ", %s lit)", arti_light_description(obj));
             }
         }
+        FALLTHROUGH;
         /*FALLTHRU*/
     case WEAPON_CLASS:
         if (ispoisoned)
@@ -5077,7 +5079,8 @@ readobjnam(char *bp, struct obj *no_wish)
         break;
     case SLIME_MOLD:
         d.otmp->spe = d.ftype;
-    /* Fall through */
+        FALLTHROUGH;
+    /* FALLTHRU */
     case SKELETON_KEY:
     case CHEST:
     case LARGE_BOX:
@@ -5109,7 +5112,8 @@ readobjnam(char *bp, struct obj *no_wish)
     /* scroll of mail:  0: delivered in-game via external event (or randomly
        for fake mail); 1: from bones or wishing; 2: written with marker */
     case SCR_MAIL:
-        /*FALLTHRU*/
+        d.otmp->spe = 1;
+	break;
 #endif
     /* splash of venom:  0: normal, and transitory; 1: wishing */
     case ACID_VENOM:
@@ -5121,6 +5125,7 @@ readobjnam(char *bp, struct obj *no_wish)
             d.otmp->spe = (rn2(10) ? -1 : 0);
             break;
         }
+        FALLTHROUGH;
         /*FALLTHRU*/
     default:
         d.otmp->spe = d.spe;

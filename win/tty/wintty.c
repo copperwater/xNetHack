@@ -665,6 +665,7 @@ tty_askname(void)
         case -1:
             bail("Until next time then..."); /* quit */
             /*NOTREACHED*/
+            break;
         case 0:
             break; /* no game chosen; start new game */
         case 1:
@@ -1084,6 +1085,7 @@ tty_clear_nhwindow(winid window)
     case NHW_MAP:
         /* cheap -- clear the whole thing and tell nethack to redraw botl */
         disp.botlx = TRUE;
+        FALLTHROUGH;
         /*FALLTHRU*/
     case NHW_BASE:
         /* if erasing_tty_screen is True, calling sequence is
@@ -1721,6 +1723,7 @@ process_menu_window(winid window, struct WinDesc *cw)
             break;
         case MENU_EXPLICIT_CHOICE:
             morc = really_morc;
+            FALLTHROUGH;
         /*FALLTHRU*/
         default:
             if (cw->how == PICK_NONE || !strchr(resp, morc)) {
@@ -1878,12 +1881,14 @@ tty_display_nhwindow(
             tty_display_nhwindow(WIN_MESSAGE, TRUE);
             return;
         }
+        FALLTHROUGH;
         /*FALLTHRU*/
     case NHW_BASE:
         (void) fflush(stdout);
         break;
     case NHW_TEXT:
         cw->maxcol = ttyDisplay->cols; /* force full-screen mode */
+        FALLTHROUGH;
         /*FALLTHRU*/
     case NHW_MENU:
         cw->active = 1;
@@ -1951,6 +1956,7 @@ tty_dismiss_nhwindow(winid window)
         if (ttyDisplay->toplin != TOPLINE_EMPTY)
             tty_display_nhwindow(WIN_MESSAGE, TRUE);
         nhassert(ttyDisplay->toplin == TOPLINE_EMPTY);
+        FALLTHROUGH;
         /*FALLTHRU*/
     case NHW_STATUS:
     case NHW_BASE:
@@ -4438,6 +4444,7 @@ tty_status_update(
     switch (fldidx) {
     case BL_RESET:
         reset_state = FORCE_RESET;
+        FALLTHROUGH;
         /*FALLTHRU*/
     case BL_FLUSH:
         if (make_things_fit(reset_state) || truncation_expected) {
@@ -4458,6 +4465,7 @@ tty_status_update(
         break;
     case BL_GOLD:
         text = decode_mixed(goldbuf, text);
+        FALLTHROUGH;
         /*FALLTHRU*/
     default:
         attrmask = (color >> 8) & 0x00FF;
@@ -4506,6 +4514,7 @@ tty_status_update(
         break;
     case BL_LEVELDESC:
         dlvl_shrinklvl = 0; /* caller is passing full length string */
+        FALLTHROUGH;
         /*FALLTHRU*/
     case BL_HUNGER:
         /* The core sends trailing blanks for some fields.

@@ -405,6 +405,7 @@ mattackm(
                     mswingsm(magr, mdef, mwep);
                 tmp += hitval(mwep, mdef);
             }
+            FALLTHROUGH;
             /*FALLTHRU*/
         case AT_CLAW:
         case AT_KICK:
@@ -683,6 +684,7 @@ hitmm(
                     Snprintf(buf, sizeof buf, "%s squeezes", magr_name);
                     break;
                 }
+                FALLTHROUGH;
                 /*FALLTHRU*/
             default:
                 if (!weaponhit || !mwep || !mwep->oartifact)

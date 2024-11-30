@@ -84,6 +84,7 @@ choose_magic_spell(int spellval)
     case 23:
         if (Antimagic || Hallucination)
             return MGC_PSI_BOLT;
+        FALLTHROUGH;
         /*FALLTHRU*/
     case 22:
     case 21:
@@ -138,6 +139,7 @@ choose_clerical_spell(int spellnum)
     case 14:
         if (rn2(3))
             return CLC_OPEN_WOUNDS;
+        FALLTHROUGH;
         /*FALLTHRU*/
     case 13:
         return CLC_GEYSER;

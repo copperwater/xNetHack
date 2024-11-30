@@ -374,6 +374,7 @@ convert_line(char *in_line, char *out_line)
                 /* pluralize */
                 case 'P':
                     gc.cvt_buf[0] = highc(gc.cvt_buf[0]);
+                    FALLTHROUGH;
                     /*FALLTHRU*/
                 case 'p':
                     Strcpy(gc.cvt_buf, makeplural(gc.cvt_buf));
@@ -382,6 +383,7 @@ convert_line(char *in_line, char *out_line)
                 /* append possessive suffix */
                 case 'S':
                     gc.cvt_buf[0] = highc(gc.cvt_buf[0]);
+                    FALLTHROUGH;
                     /*FALLTHRU*/
                 case 's':
                     Strcpy(gc.cvt_buf, s_suffix(gc.cvt_buf));
@@ -403,8 +405,9 @@ convert_line(char *in_line, char *out_line)
                 Strcat(cc, gc.cvt_buf);
                 cc += strlen(gc.cvt_buf);
                 break;
-            } /* else fall through */
-
+            }
+	    FALLTHROUGH;
+	    /* FALLTHRU */
         default:
             *cc++ = *c;
             break;

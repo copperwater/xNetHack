@@ -2463,6 +2463,7 @@ askchain(
         switch (sym) {
         case 'a':
             allflag = 1;
+            FALLTHROUGH;
             /*FALLTHRU*/
         case 'y':
             tmp = (*fn)(otmp);
@@ -2481,10 +2482,13 @@ askchain(
             cnt += tmp;
             if (--mx == 0)
                 goto ret;
+            FALLTHROUGH;
             /*FALLTHRU*/
         case 'n':
             if (nodot)
                 dud++;
+            FALLTHROUGH;
+            /*FALLTHRU*/
         default:
             break;
         case 'q':
@@ -2975,6 +2979,7 @@ itemactions_pushkeys(struct obj *otmp, int act)
         switch (act) {
         default:
             impossible("Unknown item action");
+            break;
         case IA_NONE:
             break;
         case IA_UNWIELD:

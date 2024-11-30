@@ -765,6 +765,7 @@ lookat(coordxy x, coordxy y, char *buf, char *monbuf)
                 Strcpy(buf, "stone");
                 break;
             }
+            FALLTHROUGH;
             /*FALLTHRU*/
         default:
             Strcpy(buf, defsyms[symidx].explanation);

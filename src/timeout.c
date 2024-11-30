@@ -214,6 +214,7 @@ vomiting_dialogue(void)
         make_stunned((HStun & TIMEOUT) + (long) d(2, 4), FALSE);
         if (!Popeye(VOMITING))
             stop_occupation();
+        FALLTHROUGH;
     /*FALLTHRU*/
     case 9:
         make_confused((HConfusion & TIMEOUT) + (long) d(2, 4), FALSE);
@@ -1441,6 +1442,7 @@ burn_object(anything *arg, long timeout)
             switch (obj->where) {
             case OBJ_INVENT:
                 need_invupdate = TRUE;
+                FALLTHROUGH;
                 /*FALLTHRU*/
             case OBJ_MINVENT:
                 pline("%spotion of oil has burnt away.", whose);
@@ -1504,6 +1506,7 @@ burn_object(anything *arg, long timeout)
                 switch (obj->where) {
                 case OBJ_INVENT:
                     need_invupdate = TRUE;
+                    FALLTHROUGH;
                     /*FALLTHRU*/
                 case OBJ_MINVENT:
                     if (obj->otyp == BRASS_LANTERN)
@@ -1583,6 +1586,7 @@ burn_object(anything *arg, long timeout)
                     switch (obj->where) {
                     case OBJ_INVENT:
                         need_invupdate = TRUE;
+                        FALLTHROUGH;
                         /*FALLTHRU*/
                     case OBJ_MINVENT:
                         pline("%scandelabrum's flame%s.", whose,
@@ -1598,6 +1602,7 @@ burn_object(anything *arg, long timeout)
                     case OBJ_INVENT:
                         /* no need_invupdate for update_inventory() necessary;
                            useupall() -> freeinv() handles it */
+                           FALLTHROUGH;
                         /*FALLTHRU*/
                     case OBJ_MINVENT:
                         pline("%s %s consumed!", Yname2(obj),

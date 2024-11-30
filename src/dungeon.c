@@ -3039,6 +3039,7 @@ count_feat_lastseentyp(
         }
         if (is_drawbridge_wall(x, y) < 0)
             break;
+        FALLTHROUGH;
         /*FALLTHRU*/
     case DBWALL:
     case DRAWBRIDGE_DOWN:

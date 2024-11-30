@@ -284,8 +284,8 @@ strategy(struct monst *mtmp)
     case 1: /* the wiz is less cautious */
         if (mtmp->data != &mons[PM_WIZARD_OF_YENDOR])
             return (unsigned long) STRAT_HEAL;
-    /* else fall through */
-
+        FALLTHROUGH;
+	/* FALLTHRU */
     case 2:
         dstrat = STRAT_HEAL;
         break;
@@ -399,6 +399,7 @@ tactics(struct monst *mtmp)
                 mtmp->mhp += rnd(8);
                 return 1;
             }
+        FALLTHROUGH;
         /*FALLTHRU*/
 
     case STRAT_NONE: /* harass */

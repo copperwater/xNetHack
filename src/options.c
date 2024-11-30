@@ -3624,6 +3624,7 @@ optfn_scores(
                                      allopt[optidx].name);
                     return optn_silenterr;
                 }
+                FALLTHROUGH;
                 /*FALLTHRU*/
             default:
                 config_error_add("Unknown %s parameter '%s'",

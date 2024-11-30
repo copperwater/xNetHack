@@ -3772,6 +3772,7 @@ mhitm_ad_deth(
                 mhm->damage = 0;
                 return;
             }
+            FALLTHROUGH;
             /*FALLTHRU*/
         default: /* case 16: ... case 5: */
             You_feel("your life force draining away...");
@@ -5385,10 +5386,12 @@ hmonas(struct monst *mon)
         case AT_CLAW:
             if (uwep && !cantwield(gy.youmonst.data) && !weapon_used)
                 goto use_weapon;
+            FALLTHROUGH;
             /*FALLTHRU*/
         case AT_TUCH:
             if (uwep && gy.youmonst.data->mlet == S_LICH && !weapon_used)
                 goto use_weapon;
+            FALLTHROUGH;
             /*FALLTHRU*/
         case AT_KICK:
         case AT_BITE:
@@ -5632,6 +5635,7 @@ hmonas(struct monst *mon)
                  || gy.youmonst.data->mlet == S_ORC
                  || gy.youmonst.data->mlet == S_GNOME) && !weapon_used)
                 goto use_weapon;
+            FALLTHROUGH;
             /*FALLTHRU*/
 
         case AT_NONE:
@@ -6016,6 +6020,8 @@ passive_obj(
             }
             break;
         }
+	FALLTHROUGH;
+	/* FALLTHRU */
     default:
         break;
     }

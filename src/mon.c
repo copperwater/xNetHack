@@ -861,7 +861,6 @@ make_corpse(struct monst *mtmp, unsigned int corpseflags)
     case PM_PAGE: case PM_ABBOT: case PM_ACOLYTE: case PM_HUNTER:
     case PM_THUG: case PM_NINJA: case PM_ROSHI: case PM_GUIDE:
     case PM_WARRIOR: case PM_APPRENTICE:
-    /*FALLTHRU*/
 #else
     default:
 #endif
@@ -3076,7 +3075,8 @@ mondead(struct monst *mtmp)
                 (void) makemon(mtmp->data, stway->sx, stway->sy, NO_MM_FLAGS);
                 break;
             }
-            /* fall-through */
+	    FALLTHROUGH;
+            /* FALLTHRU */
         case 2: /* randomly */
             (void) makemon(mtmp->data, 0, 0, NO_MM_FLAGS);
             break;
@@ -4791,12 +4791,14 @@ pickvampshape(struct monst *mon)
         if (mon_has_special(mon))
             break; /* leave mndx as is */
         wolfchance = 3;
+        FALLTHROUGH;
     /*FALLTHRU*/
     case PM_VAMPIRE_LEADER: /* vampire lord or Vlad can become wolf */
         if (!rn2(wolfchance) && !uppercase_only) {
             mndx = PM_WOLF;
             break;
         }
+        FALLTHROUGH;
     /*FALLTHRU*/
     case PM_VAMPIRE: /* any vampire can become fog or bat */
         mndx = (!rn2(4) && !uppercase_only) ? PM_FOG_CLOUD : PM_VAMPIRE_BAT;
@@ -4900,6 +4902,7 @@ validvamp(struct monst *mon, int *mndx_p, int monclass)
             *mndx_p = PM_WOLF;
             break;
         }
+        FALLTHROUGH;
         /*FALLTHRU*/
     default:
         *mndx_p = NON_PM;

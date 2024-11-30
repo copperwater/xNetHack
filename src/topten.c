@@ -110,11 +110,13 @@ formatkiller(
     switch (svk.killer.format) {
     default:
         impossible("bad killer format? (%d)", svk.killer.format);
+        FALLTHROUGH;
         /*FALLTHRU*/
     case NO_KILLER_PREFIX:
         break;
     case KILLED_BY_AN:
         kname = an(kname);
+        FALLTHROUGH;
         /*FALLTHRU*/
     case KILLED_BY:
         (void) strncat(buf, killed_by_prefix[how], siz - 1);
