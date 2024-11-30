@@ -482,6 +482,9 @@ extern struct nomakedefs_s nomakedefs;
 #if !defined(CROSS_TO_WASM) /* no popen in WASM */
 #define PANICTRACE_GDB
 #endif
+#ifdef CROSS_TO_WASM
+#undef COMPRESS
+#endif
 #endif
 
 /* Supply nethack_enter macro if not supplied by port */
