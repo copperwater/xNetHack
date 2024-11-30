@@ -1,4 +1,4 @@
-/* NetHack 3.7	uhitm.c	$NHDT-Date: 1713334817 2024/04/17 06:20:17 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.444 $ */
+/* NetHack 3.7	uhitm.c	$NHDT-Date: 1732979463 2024/11/30 07:11:03 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.451 $ */
 /* Copyright (c) Stichting Mathematisch Centrum, Amsterdam, 1985. */
 /*-Copyright (c) Robert Patrick Rankin, 2012. */
 /* NetHack may be freely redistributed.  See license for details. */
@@ -6030,8 +6030,11 @@ DISABLE_WARNING_FORMAT_NONLITERAL
 void
 stumble_onto_mimic(struct monst *mtmp)
 {
-    const char *fmt = "Wait!  That's %s!", *generic = "a monster", *what = 0;
+    static char generic[] = "a monster";
+    char fmt[QBUFSZ];
+    const char *what = NULL;
 
+    Strcpy(fmt, "Wait!  That's %s!");
     if (!u.ustuck && !mtmp->mflee && dmgtype(mtmp->data, AD_STCK)
         /* must be adjacent; attack via polearm could be from farther away */
         && m_next2u(mtmp))
@@ -6045,16 +6048,39 @@ stumble_onto_mimic(struct monst *mtmp)
     } else {
         int glyph = levl[u.ux + u.dx][u.uy + u.dy].glyph;
 
-        if (glyph_is_cmap(glyph) && (glyph_to_cmap(glyph) == S_hcdoor
-                                     || glyph_to_cmap(glyph) == S_vcdoor))
-            fmt = "The door actually was %s!";
-        else if (glyph_is_object(glyph) && glyph_to_obj(glyph) == GOLD_PIECE)
-            fmt = "That gold was %s!";
+        if (glyph_is_cmap(glyph)) {
+            Sprintf(fmt, "%s %s actually is %%s!",
+                    is_cmap_stairs(glyph) ? "Those" : "That",
+                    defsyms[mtmp->mappearance].explanation);
+            /* BUG: this will misclassify a paralyzed mimic as sleeping */
+            what = x_monnam(mtmp, ARTICLE_A, "sleeping", 0, FALSE);
+        } else if (glyph_is_object(glyph)) {
+            boolean fakeobj;
+            const char *otmp_name;
+            struct obj *otmp = NULL;
+
+            fakeobj = object_from_map(glyph, mtmp->mx, mtmp->my, &otmp);
+            otmp_name = (otmp && otmp->otyp != STRANGE_OBJECT)
+                        ? simpleonames(otmp) : "strange object";
+            Sprintf(fmt, "%s %s %s %%s!",
+                    otmp && is_plural(otmp) ? "Those" : "That",
+                    otmp_name, otmp ? otense(otmp, "are") : "is");
+            if (fakeobj && otmp) {
+                otmp->where = OBJ_FREE; /* object_from_map set to OBJ_FLOOR */
+                dealloc_obj(otmp);
+            }
+        }
 
         /* cloned Wiz starts out mimicking some other monster and
            might make himself invisible before being revealed */
         if (mtmp->minvis && !See_invisible)
             what = generic;
+        else if (mtmp->data->mlet == S_MIMIC
+                 && (M_AP_TYPE(mtmp) == M_AP_OBJECT
+                     || M_AP_TYPE(mtmp) == M_AP_FURNITURE)
+                 && (mtmp->msleeping || mtmp->mfrozen))
+            /* BUG: this will misclassify a paralyzed mimic as sleeping */
+            what = x_monnam(mtmp, ARTICLE_A, "sleeping", 0, FALSE);
         else
             what = a_monnam(mtmp);
     }

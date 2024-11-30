@@ -1,4 +1,4 @@
-/* NetHack 3.7	pager.c	$NHDT-Date: 1724094301 2024/08/19 19:05:01 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.279 $ */
+/* NetHack 3.7	pager.c	$NHDT-Date: 1732979463 2024/11/30 07:11:03 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.282 $ */
 /* Copyright (c) Stichting Mathematisch Centrum, Amsterdam, 1985. */
 /*-Copyright (c) Robert Patrick Rankin, 2018. */
 /* NetHack may be freely redistributed.  See license for details. */
@@ -280,7 +280,10 @@ mhidden_description(
 
 /* extracted from lookat(); also used by namefloorobj() */
 boolean
-object_from_map(int glyph, coordxy x, coordxy y, struct obj **obj_p)
+object_from_map(
+    int glyph,
+    coordxy x, coordxy y,
+    struct obj **obj_p)
 {
     boolean fakeobj = FALSE, mimic_obj = FALSE;
     struct monst *mtmp;
@@ -305,8 +308,10 @@ object_from_map(int glyph, coordxy x, coordxy y, struct obj **obj_p)
     if (!otmp || otmp->otyp != glyphotyp) {
         /* this used to exclude STRANGE_OBJECT; now caller deals with it */
         otmp = mksobj(glyphotyp, FALSE, FALSE);
-        if (!otmp)
-            return FALSE;
+        /* even though we pass False for mksobj()'s 'init' arg, corpse-rot,
+           egg-hatch, and figurine-transform timers get initialized */
+        if (otmp->timed)
+            obj_stop_timers(otmp);
         fakeobj = TRUE;
         if (otmp->oclass == COIN_CLASS)
             otmp->quan = 2L; /* to force pluralization */
