@@ -441,7 +441,6 @@
       <PreprocessorDefinitions>_DEBUG;_LIB;WIN32CON;DLB;MSWIN_GRAPHICS;ENUM_PM;HAS_STDINT_H;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
       <AdditionalIncludeDirectories>$(IncDir);$(SysWindDir);$(LuaDir);%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
-      <LanguageStandard_C>stdclatest</LanguageStandard_C>
       <AdditionalOptions>/Gs /Oi- /w44774 %(AdditionalOptions)</AdditionalOptions>
     </ClCompile>
     <Link>
@@ -459,7 +458,6 @@
       <PreprocessorDefinitions>NDEBUG;_LIB;WIN32CON;DLB;MSWIN_GRAPHICS;ENUM_PM;HAS_STDINT_H;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
       <AdditionalIncludeDirectories>$(IncDir);$(SysWindDir);$(LuaDir);%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
-      <LanguageStandard_C>stdclatest</LanguageStandard_C>
       <AdditionalOptions>/Gs /Oi- /w44774 %(AdditionalOptions)</AdditionalOptions>
     </ClCompile>
     <Link>
