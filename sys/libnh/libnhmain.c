@@ -12,6 +12,7 @@
 #include <sys/stat.h>
 #include <signal.h>
 #include <pwd.h>
+#include <func_tab.h>
 #ifndef O_RDONLY
 #include <fcntl.h>
 #endif
@@ -174,6 +175,12 @@ nhmain(int argc, char *argv[])
     chdirx(dir, 1);
 #endif
 
+#ifdef __EMSCRIPTEN__
+    js_helpers_init();
+    js_constants_init();
+    js_globals_init();
+#endif
+
 #ifdef _M_UNIX
     check_sco_console();
 #endif
@@ -201,11 +208,6 @@ nhmain(int argc, char *argv[])
     process_options(argc, argv); /* command line options */
 #ifdef WINCHAIN
     commit_windowchain();
-#endif
-#ifdef __EMSCRIPTEN__
-    js_helpers_init();
-    js_constants_init();
-    js_globals_init();
 #endif
     init_nhwindows(&argc, argv); /* now we can set up window system */
 #ifdef _M_UNIX
@@ -781,9 +783,9 @@ EM_JS(void, js_helpers_init, (), {
     globalThis.nethackGlobal = globalThis.nethackGlobal || {};
     globalThis.nethackGlobal.helpers = globalThis.nethackGlobal.helpers || {};
 
-    installHelper(displayInventory);
-    installHelper(getPointerValue);
-    installHelper(setPointerValue);
+    installHelper(displayInventory, "displayInventory");
+    installHelper(getPointerValue, "getPointerValue");
+    installHelper(setPointerValue, "setPointerValue");
 
     // used by update_inventory
     function displayInventory() {
@@ -804,6 +806,8 @@ EM_JS(void, js_helpers_init, (), {
             return getValue(ptr, "*");
         case "c": // char
             return String.fromCharCode(getValue(ptr, "i8"));
+        case "b":
+            return getValue(ptr, "i8") == 1;
         case "0": /* 2^0 = 1 byte */
             return getValue(ptr, "i8");
         case "1": /* 2^1 = 2 bytes */
@@ -816,8 +820,8 @@ EM_JS(void, js_helpers_init, (), {
             return getValue(ptr, "float");
         case "d": // double
             return getValue(ptr, "double");
-        case "o": // overloaded: multiple types
-            return ptr;
+        case "v": // void
+            return undefined;
         default:
             throw new TypeError ("unknown type:" + type);
         }
@@ -828,7 +832,8 @@ EM_JS(void, js_helpers_init, (), {
         // console.log("setPointerValue", name, "0x" + ptr.toString(16), type, value);
         switch (type) {
         case "p":
-            throw new Error("not implemented");
+            setValue(ptr, value, "*");
+            break;
         case "s":
             if(typeof value !== "string")
                 throw new TypeError(`expected ${name} return type to be string`);
@@ -840,6 +845,11 @@ EM_JS(void, js_helpers_init, (), {
             if(typeof value !== "number" || !Number.isInteger(value))
                 throw new TypeError(`expected ${name} return type to be integer`);
             setValue(ptr, value, "i32");
+            break;
+        case "1":
+            if(typeof value !== "number" || !Number.isInteger(value))
+                throw new TypeError(`expected ${name} return type to be integer`);
+            setValue(ptr, value, "i16");
             break;
         case "c":
             if(typeof value !== "number" || value < 0 || value > 128)
@@ -857,6 +867,10 @@ EM_JS(void, js_helpers_init, (), {
                 throw new TypeError(`expected ${name} return type to be double`);
             setValue(ptr, value, "double");
             break;
+        case "b":
+            if (typeof value !== "boolean")
+                throw new TypeError(`expected ${name} return type to be boolean`);
+            setValue(ptr, value ? 1 : 0, "i8");
         case "v":
             break;
         default:
@@ -896,11 +910,19 @@ EM_JS(void, set_const_str, (char *scope_str, char *name_str, char *input_str), {
     globalThis.nethackGlobal.constants[scope] = globalThis.nethackGlobal.constants[scope] || {};
     globalThis.nethackGlobal.constants[scope][name] = str;
 });
+#define SET_POINTER(name) set_const_ptr(#name, (void *)&name);
+EM_JS(void, set_const_ptr, (char *name_str, void* ptr), {
+    let name = UTF8ToString(name_str);
+
+    globalThis.nethackGlobal.pointers = globalThis.nethackGlobal.pointers || {};
+    globalThis.nethackGlobal.pointers[name] = ptr;
+});
 
 void js_constants_init() {
     EM_ASM({
         globalThis.nethackGlobal = globalThis.nethackGlobal || {};
         globalThis.nethackGlobal.constants = globalThis.nethackGlobal.constants || {};
+        globalThis.nethackGlobal.pointers = globalThis.nethackGlobal.pointers || {};
     });
 
     // create_nhwindow
@@ -989,8 +1011,7 @@ void js_constants_init() {
     // copyright
     SET_CONSTANT_STRING("COPYRIGHT", COPYRIGHT_BANNER_A);
     SET_CONSTANT_STRING("COPYRIGHT", COPYRIGHT_BANNER_B);
-    // XXX: not set for cross-compile
-    //SET_CONSTANT_STRING("COPYRIGHT", COPYRIGHT_BANNER_C);
+    set_const_str("COPYRIGHT", "COPYRIGHT_BANNER_C", (char*) COPYRIGHT_BANNER_C);
     SET_CONSTANT_STRING("COPYRIGHT", COPYRIGHT_BANNER_D);
 
     // glyphs
@@ -1042,6 +1063,119 @@ void js_constants_init() {
     SET_CONSTANT("COLOR_ATTR", HL_ATTCLR_BLINK);
     SET_CONSTANT("COLOR_ATTR", HL_ATTCLR_INVERSE);
     SET_CONSTANT("COLOR_ATTR", BL_ATTCLR_MAX);
+
+    SET_CONSTANT("BL_MASK", BL_MASK_BAREH);
+    SET_CONSTANT("BL_MASK", BL_MASK_BLIND);
+    SET_CONSTANT("BL_MASK", BL_MASK_BUSY);
+    SET_CONSTANT("BL_MASK", BL_MASK_CONF);
+    SET_CONSTANT("BL_MASK", BL_MASK_DEAF);
+    SET_CONSTANT("BL_MASK", BL_MASK_ELF_IRON);
+    SET_CONSTANT("BL_MASK", BL_MASK_FLY);
+    SET_CONSTANT("BL_MASK", BL_MASK_FOODPOIS);
+    SET_CONSTANT("BL_MASK", BL_MASK_GLOWHANDS);
+    SET_CONSTANT("BL_MASK", BL_MASK_GRAB);
+    SET_CONSTANT("BL_MASK", BL_MASK_HALLU);
+    SET_CONSTANT("BL_MASK", BL_MASK_HELD);
+    SET_CONSTANT("BL_MASK", BL_MASK_ICY);
+    SET_CONSTANT("BL_MASK", BL_MASK_INLAVA);
+    SET_CONSTANT("BL_MASK", BL_MASK_LEV);
+    SET_CONSTANT("BL_MASK", BL_MASK_PARLYZ);
+    SET_CONSTANT("BL_MASK", BL_MASK_RIDE);
+    SET_CONSTANT("BL_MASK", BL_MASK_SLEEPING);
+    SET_CONSTANT("BL_MASK", BL_MASK_SLIME);
+    SET_CONSTANT("BL_MASK", BL_MASK_SLIPPERY);
+    SET_CONSTANT("BL_MASK", BL_MASK_STONE);
+    SET_CONSTANT("BL_MASK", BL_MASK_STRNGL);
+    SET_CONSTANT("BL_MASK", BL_MASK_STUN);
+    SET_CONSTANT("BL_MASK", BL_MASK_SUBMERGED);
+    SET_CONSTANT("BL_MASK", BL_MASK_TERMILL);
+    SET_CONSTANT("BL_MASK", BL_MASK_TETHERED);
+    SET_CONSTANT("BL_MASK", BL_MASK_TRAPPED);
+    SET_CONSTANT("BL_MASK", BL_MASK_UNCONSC);
+    SET_CONSTANT("BL_MASK", BL_MASK_WOUNDEDL);
+    SET_CONSTANT("BL_MASK", BL_MASK_HOLDING);
+
+    SET_CONSTANT("ROLE_RACEMASK", MH_HUMAN);
+    SET_CONSTANT("ROLE_RACEMASK", MH_ELF);
+    SET_CONSTANT("ROLE_RACEMASK", MH_DWARF);
+    SET_CONSTANT("ROLE_RACEMASK", MH_GNOME);
+    SET_CONSTANT("ROLE_RACEMASK", MH_ORC);
+
+    SET_CONSTANT("ROLE_GENDMASK", ROLE_MALE);
+    SET_CONSTANT("ROLE_GENDMASK", ROLE_FEMALE);
+    SET_CONSTANT("ROLE_GENDMASK", ROLE_NEUTER);
+
+    SET_CONSTANT("ROLE_ALIGNMASK", ROLE_LAWFUL);
+    SET_CONSTANT("ROLE_ALIGNMASK", ROLE_NEUTRAL);
+    SET_CONSTANT("ROLE_ALIGNMASK", ROLE_CHAOTIC);
+
+    SET_CONSTANT("blconditions", bl_bareh);
+    SET_CONSTANT("blconditions", bl_blind);
+    SET_CONSTANT("blconditions", bl_busy);
+    SET_CONSTANT("blconditions", bl_conf);
+    SET_CONSTANT("blconditions", bl_deaf);
+    SET_CONSTANT("blconditions", bl_elf_iron);
+    SET_CONSTANT("blconditions", bl_fly);
+    SET_CONSTANT("blconditions", bl_foodpois);
+    SET_CONSTANT("blconditions", bl_glowhands);
+    SET_CONSTANT("blconditions", bl_grab);
+    SET_CONSTANT("blconditions", bl_hallu);
+    SET_CONSTANT("blconditions", bl_held);
+    SET_CONSTANT("blconditions", bl_icy);
+    SET_CONSTANT("blconditions", bl_inlava);
+    SET_CONSTANT("blconditions", bl_lev);
+    SET_CONSTANT("blconditions", bl_parlyz);
+    SET_CONSTANT("blconditions", bl_ride);
+    SET_CONSTANT("blconditions", bl_sleeping);
+    SET_CONSTANT("blconditions", bl_slime);
+    SET_CONSTANT("blconditions", bl_slippery);
+    SET_CONSTANT("blconditions", bl_stone);
+    SET_CONSTANT("blconditions", bl_strngl);
+    SET_CONSTANT("blconditions", bl_stun);
+    SET_CONSTANT("blconditions", bl_submerged);
+    SET_CONSTANT("blconditions", bl_termill);
+    SET_CONSTANT("blconditions", bl_tethered);
+    SET_CONSTANT("blconditions", bl_trapped);
+    SET_CONSTANT("blconditions", bl_unconsc);
+    SET_CONSTANT("blconditions", bl_woundedl);
+    SET_CONSTANT("blconditions", bl_holding);
+    SET_CONSTANT("blconditions", CONDITION_COUNT);
+
+    SET_CONSTANT("HL", HL_UNDEF);
+    SET_CONSTANT("HL", HL_NONE);
+    SET_CONSTANT("HL", HL_BOLD);
+    SET_CONSTANT("HL", HL_DIM);
+    SET_CONSTANT("HL", HL_ITALIC);
+    SET_CONSTANT("HL", HL_ULINE);
+    SET_CONSTANT("HL", HL_BLINK);
+    SET_CONSTANT("HL", HL_INVERSE);
+
+    SET_CONSTANT("MG", MG_HERO);
+    SET_CONSTANT("MG", MG_CORPSE);
+    SET_CONSTANT("MG", MG_INVIS);
+    SET_CONSTANT("MG", MG_DETECT);
+    SET_CONSTANT("MG", MG_PET);
+    SET_CONSTANT("MG", MG_RIDDEN);
+    SET_CONSTANT("MG", MG_STATUE);
+    SET_CONSTANT("MG", MG_OBJPILE);
+    SET_CONSTANT("MG", MG_BW_LAVA);
+    SET_CONSTANT("MG", MG_BW_ICE);
+    SET_CONSTANT("MG", MG_BW_SINK);
+    SET_CONSTANT("MG", MG_BW_ENGR);
+    SET_CONSTANT("MG", MG_NOTHING);
+    SET_CONSTANT("MG", MG_UNEXPL);
+    SET_CONSTANT("MG", MG_MALE);
+    SET_CONSTANT("MG", MG_FEMALE);
+
+    SET_POINTER(extcmdlist);
+    SET_POINTER(conditions);
+    SET_POINTER(condtests);
+
+    /* roles/races/genders/alignments */
+    SET_POINTER(roles);
+    SET_POINTER(races);
+    SET_POINTER(genders);
+    SET_POINTER(aligns);
 }
 
 /***
@@ -1073,6 +1207,20 @@ void js_globals_init() {
     CREATE_GLOBAL(WIN_MESSAGE, "i");
     CREATE_GLOBAL(WIN_INVEN, "i");
     CREATE_GLOBAL(WIN_STATUS, "i");
+
+    /* instance flags */
+    CREATE_GLOBAL(iflags.window_inited, "b");
+    CREATE_GLOBAL(iflags.wc2_hitpointbar, "b");
+    CREATE_GLOBAL(iflags.wc_hilite_pet, "b");
+    CREATE_GLOBAL(iflags.hilite_pile, "b");
+
+    /* flags */
+    CREATE_GLOBAL(flags.initrole, "i");
+    CREATE_GLOBAL(flags.initrace, "i");
+    CREATE_GLOBAL(flags.initgend, "i");
+    CREATE_GLOBAL(flags.initalign, "i");
+    CREATE_GLOBAL(flags.showexp, "b");
+    CREATE_GLOBAL(flags.time, "b");
 }
 
 EM_JS(void, create_global, (char *name_str, void *ptr, char *type_str), {

@@ -216,7 +216,7 @@ ifdef CROSS_TO_WASM
 # originally from https://github.com/NetHack/NetHack/pull/385
 #===============-=================================================
 #
-WASM_DEBUG = 1
+#WASM_DEBUG = 1
 WASM_DATA_DIR = $(TARGETPFX)wasm-data
 WASM_TARGET = $(TARGETPFX)nethack.js
 EMCC_LFLAGS =
@@ -227,10 +227,13 @@ EMCC_LFLAGS += -s ALLOW_TABLE_GROWTH
 EMCC_LFLAGS += -s ASYNCIFY -s ASYNCIFY_IMPORTS='["local_callback"]'
 EMCC_LFLAGS += -O3
 EMCC_LFLAGS += -s MODULARIZE
-EMCC_LFLAGS += -s EXPORTED_FUNCTIONS='["_main", "_shim_graphics_set_callback", "_display_inventory"]'
+EMCC_LFLAGS += -s EXPORTED_FUNCTIONS='["_main", "_shim_graphics_set_callback", "_display_inventory", "_malloc"]'
 EMCC_LFLAGS += -s EXPORTED_RUNTIME_METHODS='["cwrap", "ccall", "addFunction", \
-			"removeFunction", "UTF8ToString", "getValue", "setValue"]'
+			"removeFunction", "UTF8ToString", "stringToUTF8", "getValue", \
+			"setValue", "ENV", "FS", "IDBFS"]'
 EMCC_LFLAGS += -s ERROR_ON_UNDEFINED_SYMBOLS=0
+EMCC_LFLAGS += -s EXPORT_ES6=1
+EMCC_LFLAGS += -lidbfs.js
 # XXX: the "@/" at the end of "--embed-file" tells emscripten to embed the files
 # in the root directory, otherwise they will end up in the $(WASM_DATA_DIR) path
 EMCC_LFLAGS += --embed-file $(WASM_DATA_DIR)@/
