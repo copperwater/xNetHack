@@ -1357,7 +1357,7 @@ DLB =
 #==========================================
 
 {$(LUASRC)}.c{$(OBJLUA)}.o:
-	$(Q)$(CC) $(CFLAGS) -wd4701 -wd4702 -wd4774 -wd4324 $(CROSSCOMPILE) $(CROSSCOMPILE_TARGET) -Fo$@ $<
+	$(Q)$(CC) $(CFLAGS) -wd4701 -wd4702 -wd4774 -wd4324 -wd5262 $(CROSSCOMPILE) $(CROSSCOMPILE_TARGET) -Fo$@ $<
 
 #===============================================================================
 # Rules for integrated sound files in sound/wav
