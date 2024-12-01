@@ -42,7 +42,7 @@ $(DOSFONT)/ter-u28b.psf: $(FONTTOP)/ter-u28b.bdf $(DOSFONT)/nh-u28b.bdf $(DOSFON
 $(DOSFONT)/ter-u32b.psf: $(FONTTOP)/ter-u32b.bdf $(DOSFONT)/nh-u32b.bdf $(DOSFONT)/makefont.lua $(LUABIN)
 	$(LUABIN) $(DOSFONT)/makefont.lua $(FONTTOP)/ter-u32b.bdf $(DOSFONT)/nh-u32b.bdf $@
 #
-.PHONY: dodata dospkg dosfonts recover
+.PHONY: dodata dospkg dosfonts
 dosfonts: $(FONTTARGETS)
 dospkg: dodata dosfonts $(GAMEBIN) $(TARGETPFX)recover.exe ../dat/nhtiles.bmp
 	$(TARGET_STUBEDIT) $(GAMEBIN) minstack=2048K
@@ -107,12 +107,17 @@ $(TARGETPFX)unixtty.o : ../sys/share/unixtty.c $(HACK_H)
 $(TARGETPFX)winshim.o : ../win/shim/winshim.c $(HACK_H)
 $(TARGETPFX)libnhmain.o : ../sys/libnh/libnhmain.c $(HACK_H)
 endif  # CROSS_TO_WASM
+
 #
 ifdef CROSS_TO_MIPS
-$(MIPS_TARGET): pregame $(TARGETPFX)date.o $(HOSTOBJ) $(HOBJ) $(LUACROSSLIB) $(MIPS_DATA_DIR)
+$(MIPS_TARGET): pregame $(TARGETPFX)date.o $(HOSTOBJ) $(HOBJ) $(LUACROSSLIB) \
+			$(TARGETPFX)ncurses/lib/libncurses.a \
+			$(MIPS_DATA_DIR)
 	-rm $@
-	$(TARGET_CC) $(TARGET_LFLAGS) $(TARGET_CFLAGS) -o $@ \
-		$(HOBJ) $(TARGETPFX)date.o $(TARGET_LIBS)
+	$(TARGET_LINK) $(TARGET_LFLAGS) -o $@ \
+		$(HOBJ) $(TARGETPFX)date.o $(TARGETPFX)$(HACKLIB) \
+		$(TARGETPFX)ncurses/lib/libncurses.a \
+		$(TARGET_LIBS)
 
 $(MIPS_DATA_DIR): $(MIPS_DATA_DIR)/nhdat
 	touch $(MIPS_DATA_DIR)/perm
@@ -131,9 +136,28 @@ $(TARGETPFX)unixres.o : ../sys/unix/unixres.c $(HACK_H)
 $(TARGETPFX)unixunix.o : ../sys/unix/unixunix.c $(HACK_H)
 $(TARGETPFX)ioctl.o : ../sys/share/ioctl.c $(HACK_H)
 $(TARGETPFX)unixtty.o : ../sys/share/unixtty.c $(HACK_H)
-endif  # CROSS_TO_MIPS
-#
 
+$(LUABIN):
+	( cd .. && make luabin && cd src)
+dodata:
+	( cd .. && make dlb && cd src)
+
+mipsrecover: $(TARGETPFX)recover
+.PHONY: mipspkg
+mipspkg: dodata $(GAMEBIN) $(TARGETPFX)recover
+	mkdir -p $(TARGETPFX)pkg
+	cp $(GAMEBIN) $(TARGETPFX)pkg/nethack
+	cp $(TARGETPFX)recover $(TARGETPFX)pkg/recover
+	cp ../dat/nhdat $(TARGETPFX)pkg/nhdat
+	cp ../dat/license $(TARGETPFX)pkg/license
+	cp ../dat/symbols $(TARGETPFX)pkg/symbols
+	cp ../sys/share/NetHack.cnf $(TARGETPFX)pkg/.nethackrc
+	cp ../sys/msdos/sysconf $(TARGETPFX)pkg/sysconf
+	cp ../doc/nethack.txt $(TARGETPFX)pkg/nethack.txt
+	-touch $(TARGETPFX)pkg/record
+	cd $(TARGETPFX)pkg ; zip -9 ../nh370mips.zip * ; cd ../../..
+	@echo MIPS package zip file $(TARGETPFX)nh370mips.zip
+endif  # CROSS_TO_MIPS
 
 ifdef CROSS_SHARED
 # shared file dependencies
@@ -144,16 +168,26 @@ $(TARGETPFX)pcunix.o : ../sys/share/pcunix.c $(HACK_H)
 $(TARGETPFX)tileset.o : ../win/share/tileset.c
 $(TARGETPFX)bmptiles.o : ../win/share/bmptiles.c
 $(TARGETPFX)giftiles.o : ../win/share/giftiles.c
-$(TARGETPFX)recover.o : ../util/recover.c
 endif  # CROSS_SHARED
 #
 ifdef CROSS
 $(TARGETPFX)hacklib.a: $(TARGETPFX)hacklib.o
 	$(TARGET_AR) $(TARGET_ARFLAGS) $@ $(TARGETPFX)hacklib.o
+ifdef MAKEFILE_UTL
+$(TARGETPFX)recover.o: recover.c $(CONFIG_H)
+	$(TARGET_CC) $(TARGET_CFLAGS) $(CSTD) -c recover.c -o $@
+ifdef CROSS_TO_MSDOS
 $(TARGETPFX)recover.exe : $(TARGETPFX)recover.o $(TARGETPFX)hacklib.a
 	$(TARGET_LINK) $(TARGET_LFLAGS) \
 	$(TARGETPFX)recover.o $(TARGETPFX)hacklib.a -o $@
+else
+$(TARGETPFX)recover : $(TARGETPFX)recover.o $(TARGETPFX)hacklib.a
+	$(TARGET_LINK) $(TARGET_LFLAGS) \
+	$(TARGETPFX)recover.o $(TARGETPFX)hacklib.a -o $@
 endif
+endif  # MAKEFILE_UTL
+endif  # CROSS
+
 ifdef BUILD_TARGET_LUA
 # Lua lib
 $(LUACROSSLIB): $(LUALIBOBJS)
