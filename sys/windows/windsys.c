@@ -799,7 +799,7 @@ struct CRctxt *ctxp = &ctxp_;    // XXX should this now be in gc.* ?
 #define win32err(fn) errname = fn; goto error
 
 int
-win32_cr_helper(char cmd, struct CRctxt *ctxp, void *p, int d){
+win32_cr_helper(char cmd, struct CRctxt *contextp, void *p, int d){
     char *errname = "unknown";
     switch (cmd) {
     default:
@@ -815,77 +815,77 @@ win32_cr_helper(char cmd, struct CRctxt *ctxp, void *p, int d){
         return MessageBoxW(NULL, lbidstr, L"bidshow", MB_SETFOREGROUND);
     }
         break;
-    case 'i': /* HASH_INIT(ctxp) */
+    case 'i': /* HASH_INIT(contextp) */
         if (!IsWindowsVistaOrGreater())
             return 1; // CNG not available.
-        ctxp->bah = NULL;
-        ctxp->bhh = NULL;
-        ctxp->pbhashobj = NULL;
-        ctxp->cbhashobj = 0;
-        ctxp->cbhash = 0;
-        ctxp->cbdata = 0;
-        ctxp->pbhash = NULL;
-        ctxp->st = 0;
+        contextp->bah = NULL;
+        contextp->bhh = NULL;
+        contextp->pbhashobj = NULL;
+        contextp->cbhashobj = 0;
+        contextp->cbhash = 0;
+        contextp->cbdata = 0;
+        contextp->pbhash = NULL;
+        contextp->st = 0;
         // win32err("test");        // TESTING - FAKE AN ERROR
-        if (0 > (ctxp->st = BCryptOpenAlgorithmProvider(
-                     &ctxp->bah, BCRYPT_MD4_ALGORITHM, NULL, 0))) {
+        if (0 > (contextp->st = BCryptOpenAlgorithmProvider(
+                     &contextp->bah, BCRYPT_MD4_ALGORITHM, NULL, 0))) {
             win32err("BCryptOpenAlgorithmProvider");
         };
-        if (0 > (ctxp->st =
-                     BCryptGetProperty(ctxp->bah, BCRYPT_OBJECT_LENGTH,
-                                       (unsigned char *) &ctxp->cbhashobj,
-                                       sizeof(DWORD), &ctxp->cbdata, 0))) {
+        if (0 > (contextp->st =
+                     BCryptGetProperty(contextp->bah, BCRYPT_OBJECT_LENGTH,
+                                       (unsigned char *) &contextp->cbhashobj,
+                                       sizeof(DWORD), &contextp->cbdata, 0))) {
             win32err("BCryptGetProperty1");
         };
         if (0
-            == (ctxp->pbhashobj =
-                    HeapAlloc(GetProcessHeap(), 0, ctxp->cbhashobj))) {
+            == (contextp->pbhashobj =
+                    HeapAlloc(GetProcessHeap(), 0, contextp->cbhashobj))) {
             win32err("HeapAlloc1");
         };
-        if (0 > (ctxp->st = BCryptGetProperty(
-                     ctxp->bah, BCRYPT_HASH_LENGTH, (PBYTE) &ctxp->cbhash,
-                     sizeof(DWORD), &ctxp->cbdata, 0))) {
+        if (0 > (contextp->st = BCryptGetProperty(
+                     contextp->bah, BCRYPT_HASH_LENGTH, (PBYTE) &contextp->cbhash,
+                     sizeof(DWORD), &contextp->cbdata, 0))) {
             win32err("BCryptGetProperty2");
         }
         if (0
-            == (ctxp->pbhash =
-                    HeapAlloc(GetProcessHeap(), 0, ctxp->cbhash))) {
+            == (contextp->pbhash =
+                    HeapAlloc(GetProcessHeap(), 0, contextp->cbhash))) {
 
             win32err("HeapAlloc2\n");
         }
-        if (0 > BCryptCreateHash(ctxp->bah, &ctxp->bhh, ctxp->pbhashobj,
-                                 ctxp->cbhashobj, NULL, 0, 0)) {
+        if (0 > BCryptCreateHash(contextp->bah, &contextp->bhh, contextp->pbhashobj,
+                                 contextp->cbhashobj, NULL, 0, 0)) {
             win32err("BCryptCreateHash");
         }
         break;
-    case 'u':        /* HASH_UPDATE(ctxp, ptr, len) */
-        if (0 > (ctxp->st = BCryptHashData(ctxp->bhh, p, d, 0))) {
+    case 'u':        /* HASH_UPDATE(contextp, ptr, len) */
+        if (0 > (contextp->st = BCryptHashData(contextp->bhh, p, d, 0))) {
             win32err("BCryptHashData");
         }
         break;
-    case 'f':        /* HASH_FINISH(ctxp) */
-        if (0 > BCryptFinishHash(ctxp->bhh, ctxp->pbhash, ctxp->cbhash, 0)) {
+    case 'f':        /* HASH_FINISH(contextp) */
+        if (0 > BCryptFinishHash(contextp->bhh, contextp->pbhash, contextp->cbhash, 0)) {
             win32err("BCryptFinishHash");
         }
         break;
-    case 'c':        /* HASH_CLEANUP(ctxp) */
-        if (ctxp->bah) {
-            BCryptCloseAlgorithmProvider(ctxp->bah, 0);
+    case 'c':        /* HASH_CLEANUP(contextp) */
+        if (contextp->bah) {
+            BCryptCloseAlgorithmProvider(contextp->bah, 0);
         }
-        if (ctxp->bhh) {
-            BCryptDestroyHash(ctxp->bhh);
+        if (contextp->bhh) {
+            BCryptDestroyHash(contextp->bhh);
         }
-        if (ctxp->pbhashobj) {
-            HeapFree(GetProcessHeap(), 0, ctxp->pbhashobj);
+        if (contextp->pbhashobj) {
+            HeapFree(GetProcessHeap(), 0, contextp->pbhashobj);
         }
-        if (ctxp->pbhash) {
-            HeapFree(GetProcessHeap(), 0, ctxp->pbhash);
+        if (contextp->pbhash) {
+            HeapFree(GetProcessHeap(), 0, contextp->pbhash);
         }
         break;
-    case 's':        /* HASH_RESULT_SIZE(ctxp) */
-        return ctxp->cbhash;
-    case 'r':        /* HASH_RESULT(ctxp, resp) */
-        *(unsigned char **)p = ctxp->pbhash;
+    case 's':        /* HASH_RESULT_SIZE(contextp) */
+        return contextp->cbhash;
+    case 'r':        /* HASH_RESULT(contextp, resp) */
+        *(unsigned char **)p = contextp->pbhash;
         break;
     case 'b':        /* HASH_BINFILE(NULL,&binfile,0) */
             // XXX This buffer should be allocated, not static (and freed in
@@ -906,7 +906,7 @@ win32_cr_helper(char cmd, struct CRctxt *ctxp, void *p, int d){
     return 0;        /* ok */
 error:
     raw_printf("WIN32 function %s failed: status=%" PRIx64 "\n",
-            errname, (uint64)ctxp->st);
+            errname, (uint64)contextp->st);
     return 1;        /* fail */
 }
 #undef win32err
