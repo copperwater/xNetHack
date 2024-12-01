@@ -98,7 +98,7 @@ cell_t undefined_cell = { CONSOLE_UNDEFINED_CHARACTER,
                           CONSOLE_UNDEFINED_ATTRIBUTE };
 #else /* VIRTUAL_TERMINAL_SEQUENCES */
 cell_t clear_cell = { { CONSOLE_CLEAR_CHARACTER, 0, 0, 0, 0, 0, 0 },
-                        CONSOLE_CLEAR_CHARACTER, 0, 0L, 0, "\x1b[0m" };
+                        CONSOLE_CLEAR_CHARACTER, 0, 0L, 0, "\x1b[0m", 0 };
 cell_t undefined_cell = { { CONSOLE_UNDEFINED_CHARACTER, 0, 0, 0, 0, 0, 0 },
                             CONSOLE_UNDEFINED_CHARACTER, 0, 0L, 0, (const char *) 0 };
 static const uint8 empty_utf8str[MAX_UTF8_SEQUENCE] = { 0 };
