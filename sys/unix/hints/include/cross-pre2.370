@@ -84,8 +84,6 @@ PDCOBJS = $(TARGETPFX)pdcclip.o $(TARGETPFX)pdcdisp.o \
 		$(TARGETPFX)pdcscrn.o $(TARGETPFX)pdcsetsc.o \
 		$(TARGETPFX)pdcutil.o
 override TARGET_LIBS += $(PDCLIB)
-ifdef CROSS_TO_MSDOS
-endif
 override BUILDMORE += $(PDCLIB)
 override CLEANMORE += rm -f $(PDCLIB) ;
 else   #WANT_WIN_CURSES
@@ -193,6 +191,7 @@ override LUALIB=
 override LUALIBS=
 override TOPLUALIB=
 override GAMEBIN = $(TARGETPFX)nethack.exe
+override RECOVERBIN = $(TARGETPFX)recover.exe
 override PACKAGE = dospkg
 override PREGAME += mkdir -p $(TARGETDIR) ; make $(TARGETPFX)exceptn.o ;
 override CLEANMORE += rm -f -r $(TARGETDIR) ; rm -f -r $(FONTTARGETS) ;
@@ -392,7 +391,8 @@ override LUALIB=
 override LUALIBS=
 override TOPLUALIB=
 override GAMEBIN=$(MIPS_TARGET)
-#override PACKAGE=
+override RECOVERBIN = $(TARGETPFX)recover
+override PACKAGE = mipspkg
 override PREGAME += mkdir -p $(TARGETDIR) ;
 override CLEANMORE += rm -f -r $(TARGETDIR) ;
 # Rule for file in sys/unix

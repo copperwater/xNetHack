@@ -200,7 +200,7 @@ HACKLIBOBJ = $(OBJDIR)/hacklib.o panic.o
 MAKEOBJS = makedefs.o $(OMONOBJ) $(ODATE) $(OALLOC)
 
 # object files for recovery utility
-RECOVOBJS = $(TARGETPFX)recover.o
+RECOVOBJS = recover.o
 
 # object files for the data librarian
 DLBOBJS = dlb_main.o $(OBJDIR)/dlb.o $(OALLOC)
@@ -277,12 +277,12 @@ lintdgn:
 
 #	dependencies for recover
 #
-$(TARGETPFX)recover: $(RECOVOBJS) $(TARGETPFX)$(HACKLIB)
-	$(TARGET_CLINK) $(TARGET_LFLAGS) -o recover \
-		$(RECOVOBJS) $(TARGETPFX)$(HACKLIB) $(LIBS)
+recover: $(RECOVOBJS) $(HACKLIB)
+	$(CLINK) $(LFLAGS) -o recover \
+		$(RECOVOBJS) $(HACKLIB) $(LIBS)
 
-$(TARGETPFX)recover.o: recover.c $(CONFIG_H)
-	$(TARGET_CC) $(TARGET_CFLAGS) $(CSTD) -c recover.c -o $@
+recover.o: recover.c $(CONFIG_H)
+	$(CC) $(CFLAGS) $(CSTD) -c recover.c -o $@
 
 
 #	dependencies for dlb
