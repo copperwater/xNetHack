@@ -988,4 +988,15 @@ flip_worm_segs_horizontal(struct monst *worm, int minx, int maxx)
     }
 }
 
+void
+redraw_worm(struct monst *worm)
+{
+    struct wseg *curr = wtails[worm->wormno];
+
+    while (curr) {
+        newsym(curr->wx, curr->wy);
+        curr = curr->nseg;
+    }
+}
+
 /*worm.c*/
