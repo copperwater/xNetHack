@@ -1022,7 +1022,8 @@ onWMCommand(HWND hWnd, WPARAM wParam, LPARAM lParam)
         pFile = _tfopen(filename, TEXT("wt+,ccs=UTF-8"));
         if (!pFile) {
             TCHAR buf[4096];
-            _stprintf(buf, TEXT("Cannot open %s for writing!"), filename);
+            nh_stprintf(buf, sizeof buf,
+			TEXT("Cannot open %s for writing!"), filename);
             NHMessageBox(hWnd, buf, MB_OK | MB_ICONERROR);
             if (text)
                 free(text);

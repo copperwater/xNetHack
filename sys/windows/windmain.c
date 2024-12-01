@@ -69,7 +69,7 @@ void windows_nhbell(void);
 int windows_nh_poskey(int *, int *, int *);
 void windows_raw_print(const char *);
 char windows_yn_function(const char *, const char *, char);
-static void windows_getlin(const char *, char *);
+/* static void windows_getlin(const char *, char *); */
 
 #ifdef WIN32CON
 extern int windows_console_custom_nhgetch(void);
@@ -116,6 +116,11 @@ void copy_sysconf_content(void);
 void copy_config_content(void);
 void copy_hack_content(void);
 void copy_symbols_content(void);
+void copy_file(const char *, const char *,
+               const char *, const char *, boolean);
+void update_file(const char *, const char *,
+                 const char *, const char *, BOOL);
+void windows_raw_print_bold(const char *);
 
 #ifdef PORT_HELP
 void port_help(void);
@@ -150,6 +155,7 @@ DISABLE_WARNING_UNREACHABLE_CODE
 
 #if defined(MSWIN_GRAPHICS)
 #define MAIN nethackw_main
+int nethackw_main(int, char **);
 #else
 #define MAIN main
 #endif
@@ -369,7 +375,7 @@ _CrtSetReportFile(_CRT_ASSERT, _CRTDBG_FILE_STDERR);*/
     (void) fname_encode(
         "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz_-.", '%',
         fnamebuf, encodedfnamebuf, BUFSZ);
-    Sprintf(gl.lock, "%s", encodedfnamebuf);
+    Snprintf(gl.lock, sizeof gl.lock, "%s", encodedfnamebuf);
     /* regularize(lock); */ /* we encode now, rather than substitute */
     if ((getlock_result = getlock()) == 0)
         nethack_exit(EXIT_SUCCESS);
@@ -631,6 +637,7 @@ process_options(int argc, char * argv[])
             } else
                 raw_printf("\nUnknown switch: %s", argv[0]);
         FALLTHROUGH;
+	/* FALLTHRU */
         case '?':
             nhusage();
             nethack_exit(EXIT_SUCCESS);
@@ -989,6 +996,7 @@ copy_symbols_content(void)
         copy_file(gf.fqn_prefix[SYSCONFPREFIX], SYMBOLS,
                   gf.fqn_prefix[SYSCONFPREFIX], SYMBOLS_TEMPLATE, TRUE);
     }
+    nhUse(no_template);
 }
 
 void
@@ -1107,10 +1115,10 @@ boolean
 fakeconsole(void)
 {
     if (!hStdOut) {
-        HANDLE hStdOut = GetStdHandle(STD_OUTPUT_HANDLE);
-        HANDLE hStdIn = GetStdHandle(STD_INPUT_HANDLE);
+        HANDLE fkhStdOut = GetStdHandle(STD_OUTPUT_HANDLE);
+        HANDLE fkhStdIn = GetStdHandle(STD_INPUT_HANDLE);
 
-        if (!hStdOut && !hStdIn) {
+        if (!fkhStdOut && !fkhStdIn) {
             /* Bool rval; */
             AllocConsole();
             AttachConsole(GetCurrentProcessId());
@@ -1277,11 +1285,13 @@ windows_yn_function(const char *query UNUSED, const char *resp UNUSED,
 }
 
 /*ARGSUSED*/
+#if 0
 static void
 windows_getlin(const char *prompt UNUSED, char *outbuf)
 {
     Strcpy(outbuf, "\033");
 }
+#endif
 
 #ifdef PC_LOCKING
 static int

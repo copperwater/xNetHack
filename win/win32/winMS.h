@@ -249,12 +249,14 @@ extern COLORREF message_fg_color;
 /* unicode stuff */
 #define NH_CODEPAGE (SYMHANDLING(H_IBM) ? GetOEMCP() : GetACP())
 #ifdef _UNICODE
+#define nh_stprintf swprintf
 #define NH_W2A(w, a, cb) \
     (WideCharToMultiByte(NH_CODEPAGE, 0, (w), -1, (a), (cb), NULL, NULL), (a))
 
 #define NH_A2W(a, w, cb) \
     (MultiByteToWideChar(NH_CODEPAGE, 0, (a), -1, (w), (cb)), (w))
 #else
+#define nh_stprintf snprintf
 #define NH_W2A(w, a, cb) (strncpy((a), (w), (cb)))
 
 #define NH_A2W(a, w, cb) (strncpy((w), (a), (cb)))

@@ -98,7 +98,7 @@ extern char *windows_exepath(void);
  *===============================================
  */
 
-#ifdef __MINGW32__
+#ifdef __GNUC__
 #define MD_USE_TMPFILE_S
 #
 #ifdef strncasecmp
@@ -110,10 +110,11 @@ extern char *windows_exepath(void);
 #ifdef __USE_MINGW_ANSI_STDIO
 #undef __USE_MINGW_ANSI_STDIO
 #endif
-#define __USE_MINGW_ANSI_STDIO 1
+/* with UCRT, we don't define this to 1 */
+#define __USE_MINGW_ANSI_STDIO 0
 #endif
 /* extern int getlock(void); */
-#endif   /* __MINGW32__ */
+#endif   /* __GNUC__ */
 
 #ifdef _MSC_VER
 #define MD_USE_TMPFILE_S

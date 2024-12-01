@@ -1188,10 +1188,12 @@ onDrawItem(HWND hWnd, WPARAM wParam, LPARAM lParam)
             && data->menui.menu.items[lpdis->itemID].count != 0
             && item->glyphinfo.glyph != NO_GLYPH) {
             if (data->menui.menu.items[lpdis->itemID].count == -1) {
-                _stprintf(wbuf, TEXT("Count: All"));
+                nh_stprintf(wbuf, sizeof wbuf,
+                            TEXT("Count: All"));
             } else {
-                _stprintf(wbuf, TEXT("Count: %d"),
-                          data->menui.menu.items[lpdis->itemID].count);
+                nh_stprintf(wbuf, sizeof wbuf,
+                            TEXT("Count: %d"),
+                            data->menui.menu.items[lpdis->itemID].count);
             }
 
             /* TODO: add blinking for blink text */
