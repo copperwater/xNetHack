@@ -2922,6 +2922,8 @@ split "cannot_push" on moverock_done() into a separate function (pr #1282
 	by argrath)
 split making pits on do_earthquake() into a separate function and
 	eliminate some gotos on do_earthquake() (pr #1287 by argrath)
+update the WASM cross-compile to work with the current
+	code (pr #1331 by guillaumebrunerie)
 
 
 Code Cleanup and Reorganization
