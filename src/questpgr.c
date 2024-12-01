@@ -406,8 +406,8 @@ convert_line(char *in_line, char *out_line)
                 cc += strlen(gc.cvt_buf);
                 break;
             }
-	    FALLTHROUGH;
-	    /* FALLTHRU */
+            FALLTHROUGH;
+            /* FALLTHRU */
         default:
             *cc++ = *c;
             break;

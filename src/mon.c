@@ -3075,7 +3075,7 @@ mondead(struct monst *mtmp)
                 (void) makemon(mtmp->data, stway->sx, stway->sy, NO_MM_FLAGS);
                 break;
             }
-	    FALLTHROUGH;
+            FALLTHROUGH;
             /* FALLTHRU */
         case 2: /* randomly */
             (void) makemon(mtmp->data, 0, 0, NO_MM_FLAGS);

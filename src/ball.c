@@ -743,7 +743,7 @@ drag_ball(coordxy x, coordxy y, int *bc_control,
                     SKIP_TO_DRAG;
                 break;
             }
-	    FALLTHROUGH;
+            FALLTHROUGH;
         /* FALLTHRU */
         case 1:
         case 0:

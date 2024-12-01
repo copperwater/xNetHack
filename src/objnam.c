@@ -5113,7 +5113,7 @@ readobjnam(char *bp, struct obj *no_wish)
        for fake mail); 1: from bones or wishing; 2: written with marker */
     case SCR_MAIL:
         d.otmp->spe = 1;
-	break;
+        break;
 #endif
     /* splash of venom:  0: normal, and transitory; 1: wishing */
     case ACID_VENOM:

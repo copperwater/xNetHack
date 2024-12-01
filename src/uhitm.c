@@ -6020,8 +6020,8 @@ passive_obj(
             }
             break;
         }
-	FALLTHROUGH;
-	/* FALLTHRU */
+        FALLTHROUGH;
+        /* FALLTHRU */
     default:
         break;
     }
