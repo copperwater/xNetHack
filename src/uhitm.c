@@ -6032,20 +6032,17 @@ passive_obj(
 
 DISABLE_WARNING_FORMAT_NONLITERAL
 
-/* Note: caller must ascertain mtmp is mimicking... */
+/* used by stuble_onto_mimic() and bhitm() cases WAN_LOCKING, WAN_OPENING */
 void
-stumble_onto_mimic(struct monst *mtmp)
+that_is_a_mimic(
+    struct monst *mtmp, /* a hidden mimic (nonnull) */
+    boolean reveal_it) /* True: remove its disguise */
 {
     static char generic[] = "a monster";
-    char fmt[QBUFSZ];
+    char fmtbuf[BUFSZ];
     const char *what = NULL;
 
-    Strcpy(fmt, "Wait!  That's %s!");
-    if (!u.ustuck && !mtmp->mflee && dmgtype(mtmp->data, AD_STCK)
-        /* must be adjacent; attack via polearm could be from farther away */
-        && m_next2u(mtmp))
-        set_ustuck(mtmp);
-
+    Strcpy(fmtbuf, "Wait!  That's %s!");
     if (Blind) {
         if (!Blind_telepat)
             what = generic; /* with default fmt */
@@ -6055,11 +6052,9 @@ stumble_onto_mimic(struct monst *mtmp)
         int glyph = levl[u.ux + u.dx][u.uy + u.dy].glyph;
 
         if (glyph_is_cmap(glyph)) {
-            Sprintf(fmt, "%s %s actually is %%s!",
-                    is_cmap_stairs(glyph) ? "Those" : "That",
-                    defsyms[mtmp->mappearance].explanation);
-            /* BUG: this will misclassify a paralyzed mimic as sleeping */
-            what = x_monnam(mtmp, ARTICLE_A, "sleeping", 0, FALSE);
+            /* note: defsyms[stairs] yields singular "staircase {up|down}" */
+            Snprintf(fmtbuf, sizeof fmtbuf, "That %s actually is %%s!",
+                     defsyms[mtmp->mappearance].explanation);
         } else if (glyph_is_object(glyph)) {
             boolean fakeobj;
             const char *otmp_name;
@@ -6068,9 +6063,9 @@ stumble_onto_mimic(struct monst *mtmp)
             fakeobj = object_from_map(glyph, mtmp->mx, mtmp->my, &otmp);
             otmp_name = (otmp && otmp->otyp != STRANGE_OBJECT)
                         ? simpleonames(otmp) : "strange object";
-            Sprintf(fmt, "%s %s %s %%s!",
-                    otmp && is_plural(otmp) ? "Those" : "That",
-                    otmp_name, otmp ? otense(otmp, "are") : "is");
+            Snprintf(fmtbuf, sizeof fmtbuf, "%s %s %s %%s!",
+                     (otmp && is_plural(otmp)) ? "Those" : "That",
+                     otmp_name, otmp ? otense(otmp, "are") : "is");
             if (fakeobj && otmp) {
                 otmp->where = OBJ_FREE; /* object_from_map set to OBJ_FLOOR */
                 dealloc_obj(otmp);
@@ -6090,8 +6085,25 @@ stumble_onto_mimic(struct monst *mtmp)
         else
             what = a_monnam(mtmp);
     }
+
     if (what)
-        pline(fmt, what);
+        pline(fmtbuf, what);
+    if (reveal_it)
+        seemimic(mtmp);
+}
+
+RESTORE_WARNING_FORMAT_NONLITERAL
+
+/* Note: caller must ascertain mtmp is mimicking... */
+void
+stumble_onto_mimic(struct monst *mtmp)
+{
+    that_is_a_mimic(mtmp, TRUE);
+
+    if (!u.ustuck && !mtmp->mflee && dmgtype(mtmp->data, AD_STCK)
+        /* must be adjacent; attack via polearm could be from farther away */
+        && m_next2u(mtmp))
+        set_ustuck(mtmp);
 
     wakeup(mtmp, FALSE); /* clears mimicking */
     /* if hero is blind, wakeup() won't display the monster even though
@@ -6100,8 +6112,6 @@ stumble_onto_mimic(struct monst *mtmp)
         && !glyph_is_invisible(levl[mtmp->mx][mtmp->my].glyph))
         map_invisible(mtmp->mx, mtmp->my);
 }
-
-RESTORE_WARNING_FORMAT_NONLITERAL
 
 staticfn void
 nohandglow(struct monst *mon)

@@ -3350,6 +3350,7 @@ extern boolean mhitm_knockback(struct monst *, struct monst *,struct attack *,
 extern int passive(struct monst *, struct obj *, boolean, boolean, uchar,
                    boolean) NONNULLARG1;
 extern void passive_obj(struct monst *, struct obj *, struct attack *) NONNULLARG1;
+extern void that_is_a_mimic(struct monst *, boolean) NONNULLARG1;
 extern void stumble_onto_mimic(struct monst *) NONNULLARG1;
 extern int flash_hits_mon(struct monst *, struct obj *) NONNULLARG12;
 extern void light_hits_gremlin(struct monst *, int) NONNULLARG1;
