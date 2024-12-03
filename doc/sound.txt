@@ -508,8 +508,8 @@ use the following guidelines:
                         Windows with Visual studio nmake at the command
                         line.
 
-       sys/windows/Makefile.mingw32
-       sys/windows/Makefile.mingw32.depend
+       sys/windows/GNUmakefile
+       sys/windows/GNUmakefile.depend
 
                         Will require updates in order to build on
                         Windows with mingw32 or MSYS2 using GNU make at

@@ -2,12 +2,12 @@
 
 cce = gcc -E -MM -MT "$(@:d=o) $@"
 
-# Copy all $(cc) commands w/ their targets from Makefile.mingw32, 3rd party code unnecessary
+# Copy all $(cc) commands w/ their targets from GNUmakefile, 3rd party code unnecessary
 # Replace .o w/ .d, $(cc) w/ $(cce)
 # Check extraordinary "OBJ): " and handle them properly
 # Check all CLEAN_FILE lines, add obj files to $(OBJS4DEP)
 # Run
-# 	mingw32-make depend
+# 	make depend
 
 $(HL)/%.d: $(SRC)/%.c | $(HL)
 	$(cce) $(CFLAGSU) $< -o$@

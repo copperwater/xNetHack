@@ -65,6 +65,11 @@
  * ***********************************************************
  */
 
+void safe_dismiss_nhwindow(winid);
+void safe_putstr(winid, int, const char *);
+void win_safe_init(int);
+void safe_number_pad(int);
+
 struct window_procs safe_procs = {
     WPID(safestartup),
     (0
@@ -225,7 +230,7 @@ safe_curs(winid window UNUSED, int x UNUSED, int y UNUSED)
 }
 
 void
-safe_putstr(winid window, int attr, const char *str)
+safe_putstr(winid window UNUSED, int attr UNUSED, const char *str UNUSED)
 {
     return;
 }
@@ -424,7 +429,7 @@ safe_get_ext_cmd(void)
 }
 
 void
-safe_number_pad(int mode)
+safe_number_pad(int mode UNUSED)
 {
     return;
 }

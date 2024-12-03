@@ -33,7 +33,7 @@ NetHack 3.7 and above.
 
 Windows build instructions:
 
-By default, the Makefile.msc and Makefile.mingw32 are set up to build
+By default, the Makefile.nmake and GNUmakefile are set up to build
 curses from the submodules/pdcurses submodules folder (assumes you
 obtained your NetHack sources via cloning a git repository),
 If you obtained your NetHack by another means, such as a zip download,

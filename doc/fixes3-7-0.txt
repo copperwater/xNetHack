@@ -2863,9 +2863,8 @@ use %lu, not %d, in format string in timer_sanity_check() (pr #617 by argrath)
 bad cast making sp_lev chameleon light source (pr #625 by entrez)
 add Ray Chason's adaptation of nethack's Qt5 interface to work with Qt6 (issue
 	#525 followup comment by chasonr)
-mingw32 build updates and replacement of sys/windows/Makefile.gcc with new
-	sys/windows/Makefile.mingw32 and sys/windows/Makefile.mingw32.depend
-	(pr #661 by feiyunw)
+mingw32 build updates to replace contents of sys/windows/GNUmakefile and new
+	sys/windows/GNUmakefile.depend (pr #661 by feiyunw)
 mark various pointers to const char as const pointers (pr #624 by argrath)
 function fill_special_room() in sp_lev.c was dereferencing a pointer
 	argument prior to a subsequent check for a NULL pointer that

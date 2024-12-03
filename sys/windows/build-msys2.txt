@@ -92,9 +92,11 @@ I. Dispelling the Myths:
     as it looks, however it will behoove you to read this entire section
     through before beginning the task.
 
-    We have provided Makefile.mingw32 in
-    sys/windows/Makefile.mingw32, which you use from the bash Windows command
-    shell included with MSYS2.
+    We have provided GNUmakefile in sys/windows/GNUmakefile, which you use
+    from the bash Windows command shell included with MSYS2. It is called
+    GNUmakefile because that is the first name searched for by the GNU
+    make utility thus preventing conflict with the Makefile used by the
+    Microsoft nmake utility.
 
 
 II. To compile your copy of NetHack on a Windows machine using MSYS2:
@@ -106,7 +108,7 @@ Setting Up
 
 2.  Execute the following command to place copies of the Makefiles in
     the src subfolder.
-        cp sys/windows/Makefile.mingw32* src
+        cp sys/windows/GNUmakefile* src
 
 3.  Change your current directory to the src subfolder of the nethack
     source tree. The following command assumes you are still in the
@@ -120,10 +122,12 @@ Compiling
 
     Your current directory should be the NetHack src directory.
 
-    Issue these following commands:
-        make -f Makefile.mingw32 clean
-        make -f Makefile.mingw32 depend
-        make -f Makefile.mingw32
+    Issue these following commands, which will find and use GNUmakefile
+    by default:
+
+        make clean
+        make depend
+        make
 
     If all goes well, intermediate NetHack files will be placed in the
     binary subfolder of the NetHack tree, and the final NetHack package
@@ -132,10 +136,8 @@ Compiling
 Notes:
 
 1.  To rebuild NetHack after changing something, change your current directory
-    to src and issue the appropriate command for your compiler:
-
-    For gcc:
-        make -f Makefile.mingw32
+    to src and issue the following command:
+        make
 
 2.  An alternative to MSYS2 may be MinGW-w64 - winlibs standalone build.
     That has not been tested by us at time of writing.

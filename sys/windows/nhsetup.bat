@@ -47,10 +47,10 @@ echo           ..\..\src\Makefile-orig
 copy /Y Makefile.nmake ..\..\src\Makefile >nul
 echo Microsoft nmake Makefile.nmake copy to ..\..\src\Makefile completed.
 
-echo Copying mingw-w64 Makefile.mingw32 to ..\..\src\Makefile.mingw32
-copy /Y Makefile.mingw32 ..\..\src\Makefile.mingw32 >nul
-echo Copying mingw-w64 Makefile.mingw32.depend to ..\..\src\Makefile.mingw32.depend
-copy /Y Makefile.mingw32.depend ..\..\src\Makefile.mingw32.depend >nul
+echo Copying mingw-w64 GNUmakefile to ..\..\src\GNUmakefile
+copy /Y GNUmakefile ..\..\src\GNUmakefile >nul
+echo Copying mingw-w64 GNUmakefile.depend to ..\..\src\GNUmakefile.depend
+copy /Y GNUmakefile.depend ..\..\src\GNUmakefile.depend >nul
 echo mingw-w64 Makefile copies to ..\..\src completed.
 
 echo Done copying files.

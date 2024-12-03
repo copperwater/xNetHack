@@ -107,11 +107,6 @@ extern char *windows_exepath(void);
 #ifdef strcasecmp
 #undef strcasecmp
 /* https://sourceforge.net/p/mingw-w64/wiki2/gnu%20printf/ */
-#ifdef __USE_MINGW_ANSI_STDIO
-#undef __USE_MINGW_ANSI_STDIO
-#endif
-/* with UCRT, we don't define this to 1 */
-#define __USE_MINGW_ANSI_STDIO 0
 #endif
 /* extern int getlock(void); */
 #endif   /* __GNUC__ */

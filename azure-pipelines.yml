@@ -164,10 +164,10 @@ steps:
     export
     cd ../src
     pwd
-    cp ../sys/windows/Makefile.mingw32* .
-    mingw32-make -f Makefile.mingw32 CI_COMPILER=1 GIT=1 MSYSTEM=$MSYSTEM LUA_VERSION=$LUA_VERSION clean
-    mingw32-make -f Makefile.mingw32 CI_COMPILER=1 GIT=1 MSYSTEM=$MSYSTEM LUA_VERSION=$LUA_VERSION depend
-    mingw32-make -f Makefile.mingw32 CI_COMPILER=1 GIT=1 MSYSTEM=$MSYSTEM LUA_VERSION=$LUA_VERSION
+    cp ../sys/windows/GNUmakefile* .
+    mingw32-make -f GNUmakefile CI_COMPILER=1 GIT=1 MSYSTEM=$MSYSTEM LUA_VERSION=$LUA_VERSION clean
+    mingw32-make -f GNUmakefile CI_COMPILER=1 GIT=1 MSYSTEM=$MSYSTEM LUA_VERSION=$LUA_VERSION depend
+    mingw32-make -f GNUmakefile CI_COMPILER=1 GIT=1 MSYSTEM=$MSYSTEM LUA_VERSION=$LUA_VERSION
   condition: eq( variables.toolchain, 'mingw' )
   workingDirectory: $(Agent.BuildDirectory)/$(netHackPath)/src
   displayName: 'MinGW Build'
