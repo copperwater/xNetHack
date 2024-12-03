@@ -886,8 +886,8 @@ NetHackQtMainWindow::NetHackQtMainWindow(NetHackQtKeyBuffer& ks) :
     if (qt_settings != NULL) {
         auto glyphs = &qt_settings->glyphs();
         if (glyphs != NULL) {
-            maxwn = glyphs->width() * COLNO + 10;
-            maxhn = glyphs->height() * ROWNO * 6/4;
+            maxwn = glyphs->width() * (COLNO + 1);
+            maxhn = glyphs->height() * ROWNO * 6/4 + glyphs->height() * 10;
         }
     }
 
@@ -1456,7 +1456,7 @@ void NetHackQtMainWindow::ShowIfReady()
 	} else {
 	    layout();
 	}
-	showMaximized();
+	showNormal();
     } else if (isVisible()) {
 	hide();
     }

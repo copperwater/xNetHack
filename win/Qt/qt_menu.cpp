@@ -1115,8 +1115,7 @@ void NetHackQtTextWindow::Display(bool block UNUSED)
 #endif
     int mh = screensize.height()*3/5;
     if ( (qt_compact_mode && lines->TotalHeight() > mh) || use_rip ) {
-	// big, so make it fill
-	showMaximized();
+        showNormal();
     } else {
 	move(0, 0);
 	adjustSize();

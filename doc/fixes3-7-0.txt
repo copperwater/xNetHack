@@ -2118,6 +2118,7 @@ Qt: with a pick-one menu containing a pre-selected entry, clicking on that
 	instead of typing the selector letter toggled off preselected entry
 	but failed to toggle on the explicitly selected one; clicking again
 	after nothing was pre-selected anymore refused to toggle anything on
+Qt: don't show main window and tombstone window maximized by default
 tty: redraw unexplored locations as S_unexplored rather than <space> after
 	map has been partially overwritten by popup menu or text display
 tty: previous change resulted in remnants of previous level being shown on
