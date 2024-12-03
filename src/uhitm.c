@@ -6032,7 +6032,7 @@ passive_obj(
 
 DISABLE_WARNING_FORMAT_NONLITERAL
 
-/* used by stuble_onto_mimic() and bhitm() cases WAN_LOCKING, WAN_OPENING */
+/* used by stumble_onto_mimic() and bhitm() cases WAN_LOCKING, WAN_OPENING */
 void
 that_is_a_mimic(
     struct monst *mtmp, /* a hidden mimic (nonnull) */
