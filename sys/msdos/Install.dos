@@ -145,23 +145,16 @@ Appendix B - Common Difficulties Encountered
       This indicates that your host system does not have the flex
       library installed, and the cross-compiler needs it to be.
       On Ubuntu systems, you can easily rectify this issue by
-      just installing flex, as follows:
+      just installing the flex shared library as follows:
 
-          sudo apt-get install flex
+          sudo apt install libfl2
 
              Reading package lists... Done
              Building dependency tree... Done
              Reading state information... Done
-             The following additional packages will be installed:
-                 libfl-dev libfl2 m4
-             Suggested packages:
-                 bison flex-doc m4-doc
              The following NEW packages will be installed:
-                 flex libfl-dev libfl2 m4
-             0 upgraded, 4 newly installed, 0 to remove and 0 not upgraded.
-             Need to get 558 kB of archives.
-             After this operation, 1699 kB of additional disk space will be
-             used. Do you want to continue? [Y/n] Y
+                 libfl2
+             0 upgraded, 1 newly installed, 0 to remove and 0 not upgraded.
 
 Appendix D - Contacting the Development Team
 
