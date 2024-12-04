@@ -118,7 +118,7 @@ done2(void)
 
         if (abandon_tutorial)
             schedule_goto(&u.ucamefrom, UTOTYPE_ATSTAIRS,
-                          "Resuming regular play", (char *) 0);
+                          "Resuming regular play.", (char *) 0);
         return ECMD_OK;
     }
 
