@@ -32,8 +32,8 @@ strategy:
       imageName: 'windows-2019'
       toolchainName: mingw
       buildTargetName: all
-    linux_focal_cross_msdos:
-      imageName: 'ubuntu-20.04'
+    linux_noble_msdos:
+      imageName: 'ubuntu-24.04'
       toolchainName: cross
       buildTargetName: msdos
     linux_noble_docs:
