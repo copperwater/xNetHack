@@ -1483,6 +1483,7 @@ when hero who is poly'd into metallivore form eats a tin, bypass "smells like
 	along with the tin without asking
 digging in ice was handled inconsistently, particularly if done at the span
 	spot in front of closed drawbridge
+angry god may remove an intrinsic
 
 
 Fixes to 3.7.0-x General Problems Exposed Via git Repository

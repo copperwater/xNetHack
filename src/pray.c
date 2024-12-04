@@ -754,7 +754,8 @@ angrygods(aligntyp resp_god)
         gods_angry(resp_god);
         if (!Blind && !Antimagic)
             pline("%s glow surrounds you.", An(hcolor(NH_BLACK)));
-        rndcurse();
+        if (rn2(2) || !attrcurse())
+            rndcurse();
         break;
     case 7:
     case 8:
