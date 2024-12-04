@@ -219,7 +219,7 @@ steps:
   displayName: 'Building mac full build'
 
 - bash: |
-    sudo apt -qq -y install libfl-dev
+    sudo apt -qq -y install flex
     export GCCVER=gcc1220
     cd sys/unix
     sh setup.sh hints/linux.370
