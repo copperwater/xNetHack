@@ -4,24 +4,24 @@ strategy:
       imageName: 'ubuntu-latest'
       toolchainName: gcc9
       buildTargetName: minimal
-    linux_jammy_clang_all:
-      imageName: 'ubuntu-22.04'
+    linux_noble_clang_all:
+      imageName: 'ubuntu-24.04'
       toolchainName: clang
       buildTargetName: all
     linux_jammy_gcc9_all:
       imageName: 'ubuntu-22.04'
       toolchainName: gcc9
       buildTargetName: all
-    linux_jammy_gcc12_all:
-      imageName: 'ubuntu-22.04'
-      toolchainName: gcc12
+    linux_noble_gcc13_all:
+      imageName: 'ubuntu-24.04'
+      toolchainName: gcc13
       buildTargetName: all
     macOS_latest_clang_all:
       imageName: 'macOS-latest'
       toolchainName: clang
       buildTargetName: all
-    macOS_Ventura_clang13_all:
-      imageName: 'macOS-13'
+    macOS_Sequoia_clang15_all:
+      imageName: 'macOS-15'
       toolchainName: clang
       buildTargetName: all
     windows-visualstudio:
@@ -36,8 +36,8 @@ strategy:
       imageName: 'ubuntu-20.04'
       toolchainName: cross
       buildTargetName: msdos
-    linux_jammy_docs:
-      imageName: 'ubuntu-22.04'
+    linux_noble_docs:
+      imageName: 'ubuntu-24.04'
       toolchainName: docs
       buildTargetName: all
       continueOnError: true
@@ -60,30 +60,15 @@ variables:
 
 steps:
 - bash: |
-    if [ "$(toolchain)" == "gcc7" ]
-    then
-      echo "##vso[task.setvariable variable=CC]gcc-7"
-      echo "##vso[task.setvariable variable=CXX]g++-7"
-    fi
     if [ "$(toolchain)" == "gcc9" ]
     then
       echo "##vso[task.setvariable variable=CC]gcc-9"
       echo "##vso[task.setvariable variable=CXX]g++-9"
     fi
-    if [ "$(toolchain)" == "gcc10" ]
+    if [ "$(toolchain)" == "gcc13" ]
     then
-      echo "##vso[task.setvariable variable=CC]gcc-10"
-      echo "##vso[task.setvariable variable=CXX]g++-10"
-    fi
-    if [ "$(toolchain)" == "gcc11" ]
-    then
-      echo "##vso[task.setvariable variable=CC]gcc-11"
-      echo "##vso[task.setvariable variable=CXX]g++-11"
-    fi
-    if [ "$(toolchain)" == "gcc12" ]
-    then
-      echo "##vso[task.setvariable variable=CC]gcc-12"
-      echo "##vso[task.setvariable variable=CXX]g++-12"
+      echo "##vso[task.setvariable variable=CC]gcc-13"
+      echo "##vso[task.setvariable variable=CXX]g++-13"
     fi
     if [ "$(toolchain)" == "clang" ]
     then
