@@ -249,6 +249,15 @@ Example:
  local str = nh.ing_suffix("foo");
 
 
+=== is_genocided
+
+Is specific monster type genocided?  Returns a boolean value.
+
+Example:
+
+ local x = nh.is_genocided("vampire");
+
+
 === level_difficulty
 
 Returns an integer value describing the level difficulty.

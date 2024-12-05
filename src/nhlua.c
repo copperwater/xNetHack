@@ -64,6 +64,7 @@ staticfn int nhl_an(lua_State *);
 staticfn int nhl_rn2(lua_State *);
 staticfn int nhl_random(lua_State *);
 staticfn int nhl_level_difficulty(lua_State *);
+staticfn int nhl_is_genocided(lua_State *);
 staticfn void init_nhc_data(lua_State *);
 staticfn int nhl_push_anything(lua_State *, int, void *);
 staticfn int nhl_meta_u_index(lua_State *);
@@ -954,6 +955,27 @@ nhl_level_difficulty(lua_State *L)
     return 1;
 }
 
+/* local x = nh.is_genocided("vampire") */
+staticfn int
+nhl_is_genocided(lua_State *L)
+{
+    int argc = lua_gettop(L);
+
+    if (argc == 1) {
+        const char *paramstr = luaL_checkstring(L, 1);
+        int mgend;
+        int i = name_to_mon(paramstr, &mgend);
+
+        lua_pushboolean(L, (i != NON_PM)
+                        && (svm.mvitals[i].mvflags & G_GENOD)
+                        ? TRUE : FALSE);
+    } else {
+        nhl_error(L, "Wrong args");
+    }
+    return 1;
+}
+
+
 RESTORE_WARNING_UNREACHABLE_CODE
 
 /* get mandatory integer value from table */
@@ -1722,6 +1744,7 @@ static const struct luaL_Reg nhl_functions[] = {
     { "rn2", nhl_rn2 },
     { "random", nhl_random },
     { "level_difficulty", nhl_level_difficulty },
+    { "is_genocided", nhl_is_genocided },
     { "parse_config", nhl_parse_config },
     { "get_config", nhl_get_config },
     { "get_config_errors", l_get_config_errors },

@@ -37,9 +37,14 @@ des.monster("V",niches[3])
 -- gave them titles rather than (or perhaps in addition to) specific names
 -- and we use those titles here.  Marking them as 'waiting' forces them to
 -- start in vampire form instead of vampshifted into bat/fog/wolf form.
-des.monster({ id="Vampire Lady", niches[4], name="Madame", waiting=1 })
-des.monster({ id="Vampire Lady", niches[5], name="Marquise", waiting=1 })
-des.monster({ id="Vampire Lady", niches[6], name="Countess", waiting=1 })
+local Vgenod = nh.is_genocided("vampire");
+local Vnames = { nil, nil, nil };
+if (not Vgenod) then
+   Vnames = { "Madame", "Marquise", "Countess" };
+end
+des.monster({ id="Vampire Lady", niches[4], name=Vnames[1], waiting=1 })
+des.monster({ id="Vampire Lady", niches[5], name=Vnames[2], waiting=1 })
+des.monster({ id="Vampire Lady", niches[6], name=Vnames[3], waiting=1 })
 -- The doors
 des.door("closed",08,03)
 des.door("closed",10,03)
