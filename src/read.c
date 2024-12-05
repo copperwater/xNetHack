@@ -1038,6 +1038,12 @@ maybe_tame(struct monst *mtmp, struct obj *sobj)
            not tame the target, so call it even if taming gets resisted */
         if (!resist(mtmp, sobj->oclass, 0, NOTELL) || mtmp->isshk)
             (void) tamedog(mtmp, (struct obj *) 0, FALSE);
+        if (sobj->blessed && was_tame && mtmp->mtame) {
+            int new_tame = min(10, ACURR(A_CHA) / 2);
+
+            if (mtmp->mtame < new_tame)
+                mtmp->mtame = new_tame;
+        }
         if ((!was_peaceful && mtmp->mpeaceful) || (!was_tame && mtmp->mtame))
             return 1;
     }

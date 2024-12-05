@@ -1484,6 +1484,7 @@ when hero who is poly'd into metallivore form eats a tin, bypass "smells like
 digging in ice was handled inconsistently, particularly if done at the span
 	spot in front of closed drawbridge
 angry god may remove an intrinsic
+blessed scroll of taming increases tameness of already tame creatures
 
 
 Fixes to 3.7.0-x General Problems Exposed Via git Repository
