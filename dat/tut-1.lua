@@ -103,7 +103,7 @@ des.door({ coord = { 5,10 }, state = "locked" });
 tut_key_help(6, 8);
 
 
-des.engraving({ coord = { 5,12 }, type = "engrave", text = "Look around the map with '" .. tut_key("glance") .. "'", degrade = false });
+des.engraving({ coord = { 5,12 }, type = "engrave", text = "Look around the map with '" .. tut_key("glance") .. "', press ESC when you're done", degrade = false });
 
 --
 
