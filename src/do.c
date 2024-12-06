@@ -1946,6 +1946,11 @@ goto_level(
 
         (void) describe_level(dloc, 2);
         livelog_printf(major ? LL_ACHIEVE : LL_DEBUG, "entered %s", dloc);
+
+        if (Role_if(PM_TOURIST)) {
+            more_experienced(level_difficulty(), 0);
+            newexplevel();
+        }
     }
 
     assign_level(&u.uz0, &u.uz); /* reset u.uz0 */

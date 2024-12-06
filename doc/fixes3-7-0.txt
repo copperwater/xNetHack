@@ -2730,7 +2730,8 @@ enlightenment/attribute disclosure for saving-grace: include a line for have
 	"X " for explore mode, or "D " for debug mode if any of the games
 	shown in its menu weren't saved during normal play; if they're all
 	normal play, the prefix is suppressed
-tourists gain experience by seeing new types of creatures up close
+tourists gain experience by seeing new types of creatures up close, and
+	going to new dungeon levels
 
 
 Platform- and/or Interface-Specific New Features
