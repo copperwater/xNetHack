@@ -3367,4 +3367,31 @@ takeoff_ok(struct obj *obj)
     return equip_ok(obj, TRUE, FALSE);
 }
 
+/* getobj callback for blessed destroy armor.
+   suggest any worn armor, even if covered by other armor */
+int
+any_worn_armor_ok(struct obj *obj)
+{
+    if (obj && (obj->owornmask & W_ARMOR))
+        return GETOBJ_SUGGEST;
+    return GETOBJ_EXCLUDE;
+}
+
+/* number of armor pieces worn by hero */
+int
+count_worn_armor(void)
+{
+    int ret = 0;
+
+    if (uarm) ret++;
+    if (uarmc) ret++;
+    if (uarmh) ret++;
+    if (uarms) ret++;
+    if (uarmg) ret++;
+    if (uarmf) ret++;
+    if (uarmu) ret++;
+
+    return ret;
+}
+
 /*do_wear.c*/
