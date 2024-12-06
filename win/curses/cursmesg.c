@@ -276,7 +276,8 @@ curscolor(int nhcolor, boolean *boldon)
 }
 #endif
 
-void curses_got_input(void)
+void
+curses_got_input(void)
 {
     /* if messages are being suppressed, reenable them */
     curs_mesg_suppress_seq = -1L;
