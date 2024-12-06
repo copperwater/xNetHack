@@ -220,7 +220,7 @@ des.door({ coord = { 38,6 }, state = "closed" });
 
 des.engraving({ coord = { 39,6 }, type = "engrave", text = "You loot containers with '" .. tut_key("loot") .. "'", degrade = false });
 
-des.object({ coord = { 42,6 }, id = "large box", broken = true,
+des.object({ coord = { 42,6 }, id = "large box", broken = true, trapped = false,
              contents = function(obj)
                 des.object({ id = "secret door detection", class = "/", spe = 30 }); end
 });
@@ -248,8 +248,7 @@ des.engraving({ coord = { 48,1 }, type = "burn", text = "Use '" .. tut_key("eat"
 des.object({ coord = { 50,3 }, id = "apple", buc = "not-cursed"  });
 des.object({ coord = { 50,3 }, id = "candy bar", buc = "not-cursed"  });
 
-local otmp = des.object({ coord = { 50,3 }, id = "corpse", montype = "newt", buc = "not-cursed" });
-otmp:stop_timer("rot-corpse");
+des.object({ coord = { 50,3 }, id = "corpse", montype = "lichen", buc = "not-cursed" });
 
 --
 
