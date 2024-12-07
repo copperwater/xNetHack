@@ -5818,7 +5818,7 @@ see_monster_closeup(struct monst *mtmp)
     }
 }
 
-/* mark a monster type as seen clse-up when we see it next to us */
+/* mark a monster type as seen close-up when we see it next to us */
 void
 see_nearby_monsters(void)
 {
