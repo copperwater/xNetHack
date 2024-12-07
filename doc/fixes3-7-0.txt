@@ -2732,6 +2732,7 @@ enlightenment/attribute disclosure for saving-grace: include a line for have
 	normal play, the prefix is suppressed
 tourists gain experience by seeing new types of creatures up close, and
 	going to new dungeon levels
+healers gain experience by healing pets
 
 
 Platform- and/or Interface-Specific New Features

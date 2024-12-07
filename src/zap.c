@@ -426,11 +426,15 @@ bhitm(struct monst *mtmp, struct obj *otmp)
         }
         break;
     case SPE_HEALING:
-    case SPE_EXTRA_HEALING:
+    case SPE_EXTRA_HEALING: {
+        int healamt = d(6, otyp == SPE_EXTRA_HEALING ? 8 : 4);
+
         reveal_invis = TRUE;
         if (mtmp->data != &mons[PM_PESTILENCE]) {
+            int delta = mtmp->mhpmax - mtmp->mhp;
+
             wake = FALSE; /* wakeup() makes the target angry */
-            mtmp->mhp += d(6, otyp == SPE_EXTRA_HEALING ? 8 : 4);
+            mtmp->mhp += healamt;
             if (mtmp->mhp > mtmp->mhpmax)
                 mtmp->mhp = mtmp->mhpmax;
             /* plain healing must be blessed to cure blindness; extra
@@ -451,15 +455,19 @@ bhitm(struct monst *mtmp, struct obj *otmp)
                     pline("%s looks%s better.", Monnam(mtmp),
                           otyp == SPE_EXTRA_HEALING ? " much" : "");
             }
+            if (mtmp->mtame && Role_if(PM_HEALER) && (delta > 0)) {
+                more_experienced(min(delta, healamt), 0);
+                newexplevel();
+            }
             if (mtmp->mtame || mtmp->mpeaceful) {
                 adjalign(Role_if(PM_HEALER) ? 1 : sgn(u.ualign.type));
             }
         } else { /* Pestilence */
-            /* Pestilence will always resist; damage is half of 3d{4,8} */
-            (void) resist(mtmp, otmp->oclass,
-                          d(3, otyp == SPE_EXTRA_HEALING ? 8 : 4), TELL);
+            /* Pestilence will always resist; damage is half of (healamt/2) */
+            (void) resist(mtmp, otmp->oclass, healamt / 2, TELL);
         }
         break;
+    }
     case WAN_LIGHT: /* (broken wand) */
         if (flash_hits_mon(mtmp, otmp)) {
             learn_it = TRUE;
