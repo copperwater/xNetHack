@@ -5805,4 +5805,37 @@ adj_erinys(unsigned abuse)
     pm->difficulty = min(10 + (u.ualign.abuse / 3), 25);
 }
 
+/* mark monster type as seen from close-up */
+void
+see_monster_closeup(struct monst *mtmp)
+{
+    if (!svm.mvitals[monsndx(mtmp->data)].seen_close) {
+        svm.mvitals[monsndx(mtmp->data)].seen_close = TRUE;
+        if (Role_if(PM_TOURIST)) {
+            more_experienced(experience(mtmp, 0), 0);
+            newexplevel();
+        }
+    }
+}
+
+/* mark a monster type as seen clse-up when we see it next to us */
+void
+see_nearby_monsters(void)
+{
+    coordxy x, y;
+
+    /* currently used only for tourists ... */
+    if (Blind || !Role_if(PM_TOURIST))
+        return;
+
+    for (x = u.ux - 1; x <= u.ux + 1; x++)
+        for (y = u.uy - 1; y <= u.uy + 1; y++)
+            if (isok(x, y) && MON_AT(x, y)) {
+                struct monst *mtmp = m_at(x, y);
+
+                if (canseemon(mtmp))
+                    see_monster_closeup(mtmp);
+            }
+}
+
 /*mon.c*/
