@@ -599,6 +599,9 @@ nh_timeout(void)
     if (svq.quest_status.killed_leader)
         baseluck -= 4;
 
+    if (Role_if(PM_ARCHEOLOGIST) && uarmh && uarmh->otyp == FEDORA)
+        baseluck += 1;
+
     if (u.uluck != baseluck
         && svm.moves % ((u.uhave.amulet || u.ugangr) ? 300 : 600) == 0) {
         /* Cursed luckstones stop bad luck from timing out; blessed luckstones

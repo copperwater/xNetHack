@@ -420,6 +420,9 @@ Helmet_on(void)
 {
     switch (uarmh->otyp) {
     case FEDORA:
+        if (Role_if(PM_ARCHEOLOGIST))
+            change_luck(1);
+        break;
     case HELMET:
     case DENTED_POT:
     case ELVEN_LEATHER_HELM:
@@ -503,6 +506,9 @@ Helmet_off(void)
 
     switch (uarmh->otyp) {
     case FEDORA:
+        if (Role_if(PM_ARCHEOLOGIST))
+            change_luck(-1);
+        break;
     case HELMET:
     case DENTED_POT:
     case ELVEN_LEATHER_HELM:
