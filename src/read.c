@@ -490,11 +490,13 @@ doread(void)
         pline("This %s has no label.", singular(scroll, xname));
         return ECMD_OK;
     } else if (otyp == MAGIC_MARKER) {
+        static const int red_mons[] = {
+            PM_FIRE_ANT, PM_PYROLISK, PM_HELL_HOUND, PM_IMP,
+            PM_LARGE_MIMIC, PM_LEOCROTTA, PM_SCORPION, PM_XAN,
+            PM_GIANT_BAT, PM_WATER_MOCCASIN, PM_FLESH_GOLEM,
+            PM_BARBED_DEVIL, PM_MARILITH, PM_PIRANHA
+        };
         char buf[BUFSZ];
-        const int red_mons[] = { PM_FIRE_ANT, PM_PYROLISK, PM_HELL_HOUND,
-            PM_IMP, PM_LARGE_MIMIC, PM_LEOCROTTA, PM_SCORPION, PM_XAN,
-            PM_GIANT_BAT, PM_WATER_MOCCASIN, PM_FLESH_GOLEM, PM_BARBED_DEVIL,
-            PM_MARILITH, PM_PIRANHA };
         struct permonst *pm = &mons[red_mons[scroll->o_id % SIZE(red_mons)]];
 
         if (Blind) {
@@ -1037,14 +1039,9 @@ maybe_tame(struct monst *mtmp, struct obj *sobj)
         /* for a shopkeeper, tamedog() will call make_happy_shk() but
            not tame the target, so call it even if taming gets resisted */
         if (!resist(mtmp, sobj->oclass, 0, NOTELL) || mtmp->isshk)
-            (void) tamedog(mtmp, (struct obj *) 0, FALSE);
-        if (sobj->blessed && was_tame && mtmp->mtame) {
-            int new_tame = min(10, ACURR(A_CHA) / 2);
+            (void) tamedog(mtmp, sobj, FALSE);
 
-            if (mtmp->mtame < new_tame)
-                mtmp->mtame = new_tame;
-        }
-        if ((!was_peaceful && mtmp->mpeaceful) || (!was_tame && mtmp->mtame))
+        if ((!was_peaceful && mtmp->mpeaceful) || was_tame != mtmp->mtame)
             return 1;
     }
     return 0;
@@ -2103,7 +2100,8 @@ seffect_mail(struct obj **sobjp)
 /* scroll effects; return 1 if we use up the scroll and possibly make it
    become discovered, 0 if caller should take care of those side-effects */
 int
-seffects(struct obj *sobj) /* sobj - scroll or fake spellbook for spell */
+seffects(
+    struct obj *sobj) /* sobj - scroll or fake spellbook for spell */
 {
     int otyp = sobj->otyp;
 
