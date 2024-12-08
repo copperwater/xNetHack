@@ -409,6 +409,32 @@ bee_eat_jelly(struct monst *mon, struct obj *obj)
     return -1; /* a queen is already present; ordinary bee hasn't moved yet */
 }
 
+/* gelatinous cube eats something from its inventory */
+static int
+gelcube_digests(struct monst *mtmp)
+{
+    struct obj *otmp = mtmp->minvent;
+
+    if (mtmp->meating || !mtmp->minvent)
+        return -1;
+
+    while (otmp) {
+        if (is_organic(otmp) && !otmp->oartifact
+            && !is_mines_prize(otmp) && !is_soko_prize(otmp))
+            break;
+        otmp = otmp->nobj;
+    }
+
+    if (!otmp)
+        return -1;
+
+    mtmp->meating = eaten_stat(mtmp->meating, otmp);
+    extract_from_minvent(mtmp, otmp, TRUE, TRUE);
+    m_consume_obj(mtmp, otmp);
+    return 0; /* used a move */
+}
+
+
 /* FIXME: gremlins don't flee from monsters wielding Sunsword or wearing
    gold dragon scales/mail, nor from gold dragons, only from the hero */
 #define flees_light(mon) \
@@ -844,6 +870,10 @@ dochug(struct monst *mtmp)
            avoid that overhead and rely on serendipity... */
         && (otmp = sobj_at(LUMP_OF_ROYAL_JELLY, mtmp->mx, mtmp->my)) != 0
         && (res = bee_eat_jelly(mtmp, otmp)) >= 0)
+        return res;
+
+    if (mdat == &mons[PM_GELATINOUS_CUBE]
+        && (res = gelcube_digests(mtmp)) >= 0)
         return res;
 
     /* A monster that passes the following checks has the opportunity

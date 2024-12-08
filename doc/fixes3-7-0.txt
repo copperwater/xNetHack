@@ -1486,6 +1486,7 @@ digging in ice was handled inconsistently, particularly if done at the span
 angry god may remove an intrinsic
 blessed scroll of destroy armor asks which armor to destroy
 archeologists' fedora is lucky
+gelatinous cubes eat organic objects inside them
 
 
 Fixes to 3.7.0-x General Problems Exposed Via git Repository
