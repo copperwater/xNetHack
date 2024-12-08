@@ -553,6 +553,8 @@ dofire(void)
     if (uquiver && is_ammo(uquiver) && iflags.fireassist) {
         struct obj *olauncher;
 
+        if (uwep && is_pole(uwep) && could_pole_mon())
+            return use_pole(uwep, TRUE);
         /* Try to find a launcher */
         if (ammo_and_launcher(uquiver, uwep)) {
             obj = uquiver;

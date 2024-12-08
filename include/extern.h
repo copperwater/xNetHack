@@ -126,6 +126,7 @@ extern void use_unicorn_horn(struct obj **);
 extern boolean tinnable(struct obj *) NONNULLPTRS;
 extern void reset_trapset(void);
 extern int use_whip(struct obj *) NONNULLPTRS;
+extern boolean could_pole_mon(void);
 extern int use_pole(struct obj *, boolean) NONNULLPTRS;
 extern void fig_transform(union any *, long) NONNULLARG1;
 extern int unfixable_trouble_count(boolean);

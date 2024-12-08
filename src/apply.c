@@ -32,6 +32,7 @@ staticfn int touchstone_ok(struct obj *);
 staticfn int use_stone(struct obj *);
 staticfn int set_trap(void); /* occupation callback */
 staticfn void display_polearm_positions(boolean);
+staticfn void calc_pole_range(int *, int *);
 staticfn int use_cream_pie(struct obj *);
 staticfn int jelly_ok(struct obj *);
 staticfn int use_royal_jelly(struct obj **);
@@ -3341,12 +3342,71 @@ display_polearm_positions(boolean on_off)
     }
 }
 
+/*
+ * Calculate allowable range (pole's reach is always 2 steps):
+ *  unskilled and basic: orthogonal direction, 4..4;
+ *  skilled: as basic, plus knight's jump position, 4..5;
+ *  expert: as skilled, plus diagonal, 4..8.
+ *      ...9...
+ *      .85458.
+ *      .52125.
+ *      9410149
+ *      .52125.
+ *      .85458.
+ *      ...9...
+ *  (Note: no roles in NetHack can become expert or better
+ *  for polearm skill; Yeoman in slash'em can become expert.)
+ */
+staticfn void
+calc_pole_range(int *min_range, int *max_range)
+{
+    int typ = uwep_skill_type();
+
+    *min_range = 4;
+    if (typ == P_NONE || P_SKILL(typ) <= P_BASIC)
+        *max_range = 4;
+    else if (P_SKILL(typ) == P_SKILLED)
+        *max_range = 5;
+    else
+        *max_range = 8; /* (P_SKILL(typ) >= P_EXPERT) */
+
+    gp.polearm_range_min = *min_range;
+    gp.polearm_range_max = *max_range;
+
+}
+
+/* return TRUE if hero is wielding a polearm and there's
+   at least one monster they could hit with it */
+boolean
+could_pole_mon(void)
+{
+    int min_range, max_range;
+    coord cc;
+    struct monst *hitm = svc.context.polearm.hitmon;
+
+    if (!uwep || !is_pole(uwep))
+        return FALSE;
+
+    calc_pole_range(&min_range, &max_range);
+
+    cc.x = u.ux;
+    cc.y = u.uy;
+    if (!find_poleable_mon(&cc, min_range, max_range)) {
+        if (hitm && !DEADMONSTER(hitm) && sensemon(hitm)
+            && mdistu(hitm) <= max_range && mdistu(hitm) >= min_range)
+            return TRUE;
+    } else {
+        return TRUE;
+    }
+    return FALSE;
+}
+
 /* Distance attacks by pole-weapons */
 int
 use_pole(struct obj *obj, boolean autohit)
 {
     const char thump[] = "Thump!  Your blow bounces harmlessly off the %s.";
-    int res = ECMD_OK, typ, max_range, min_range, glyph;
+    int res = ECMD_OK, max_range, min_range, glyph;
     coord cc;
     struct monst *mtmp;
     struct monst *hitm = svc.context.polearm.hitmon;
@@ -3366,32 +3426,7 @@ use_pole(struct obj *obj, boolean autohit)
     }
     /* assert(obj == uwep); */
 
-    /*
-     * Calculate allowable range (pole's reach is always 2 steps):
-     *  unskilled and basic: orthogonal direction, 4..4;
-     *  skilled: as basic, plus knight's jump position, 4..5;
-     *  expert: as skilled, plus diagonal, 4..8.
-     *      ...9...
-     *      .85458.
-     *      .52125.
-     *      9410149
-     *      .52125.
-     *      .85458.
-     *      ...9...
-     *  (Note: no roles in NetHack can become expert or better
-     *  for polearm skill; Yeoman in slash'em can become expert.)
-     */
-    min_range = 4;
-    typ = uwep_skill_type();
-    if (typ == P_NONE || P_SKILL(typ) <= P_BASIC)
-        max_range = 4;
-    else if (P_SKILL(typ) == P_SKILLED)
-        max_range = 5;
-    else
-        max_range = 8; /* (P_SKILL(typ) >= P_EXPERT) */
-
-    gp.polearm_range_min = min_range;
-    gp.polearm_range_max = max_range;
+    calc_pole_range(&min_range, &max_range);
 
     /* Prompt for a location */
     if (!autohit)
