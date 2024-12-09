@@ -609,6 +609,7 @@ hitfloor(
     if (IS_ALTAR(levl[u.ux][u.uy].typ)) {
         doaltarobj(obj);
     } else if (verbosely) {
+        const char *verb = (obj->otyp == WAN_STRIKING) ? "strike" : "hit";
         const char *surf = surface(u.ux, u.uy);
         struct trap *t = t_at(u.ux, u.uy);
 
@@ -630,7 +631,7 @@ hitfloor(
                 break;
             }
         }
-        pline("%s %s the %s.", Doname2(obj), otense(obj, "hit"), surf);
+        pline("%s %s the %s.", Doname2(obj), otense(obj, verb), surf);
     }
 
     if (hero_breaks(obj, u.ux, u.uy, BRK_FROM_INV))
