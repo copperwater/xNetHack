@@ -676,7 +676,7 @@ write_ls(NHFILE *nhfp, light_source *ls)
                     ls->id = cg.zeroany;
                     ls->id.a_uint = mtmp->m_id;
                     if (find_mid((unsigned) ls->id.a_uint, monloc) != mtmp) {
-                        impossible("write_ls: can't find mon #%u%s!",
+                        impossible("write_ls: can't find mon%s #%u!",
                                    DEADMONSTER(mtmp) ? " because it's dead"
                                                      : "",
                                    ls->id.a_uint);
