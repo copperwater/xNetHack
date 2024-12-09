@@ -731,7 +731,7 @@ newgame(void)
     /* make sure welcome messages are given before noticing monsters */
     notice_mon_off();
     disp.botlx = TRUE;
-    svc.context.ident = 1;
+    svc.context.ident = 2;  /* id 1 is reserved for gy.youmonst */
     svc.context.warnlevel = 1;
     svc.context.next_attrib_check = 600L; /* arbitrary first setting */
     svc.context.tribute.enabled = TRUE;   /* turn on 3.6 tributes    */

@@ -522,7 +522,7 @@ next_ident(void)
        uses 16-bit 'int'), just live with that and hope no o_id conflicts
        between objects or m_id conflicts between monsters arise */
     if (!svc.context.ident)
-        svc.context.ident = rnd(2);
+        svc.context.ident = rnd(2) + 1;   /* id 1 is reserved */
 
     return res;
 }
