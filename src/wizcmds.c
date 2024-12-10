@@ -1798,8 +1798,6 @@ wiz_mon_diff(void)
 }
 #endif /* (NH_DEVEL_STATUS != NH_STATUS_RELEASED) || defined(DEBUG) */
 
-DISABLE_WARNING_UNREACHABLE_CODE
-
 /* #migratemons command */
 int
 wiz_migrate_mons(void)
@@ -1809,7 +1807,7 @@ wiz_migrate_mons(void)
     char inbuf[BUFSZ];
     struct permonst *ptr;
     struct monst *mtmp;
-    boolean use_existing_map_mon = FALSE;
+    boolean use_random_mon = TRUE;
 #endif
     d_level tolevel;
 
@@ -1834,36 +1832,29 @@ wiz_migrate_mons(void)
 
     mcount = atoi(inbuf);
     if (mcount < 0) {
-        use_existing_map_mon = TRUE;
+        use_random_mon = FALSE;
         mcount *= -1;
     }
     if (mcount < 1)
         mcount = 0;
     else if (mcount > ((COLNO - 1) * ROWNO))
         mcount = (COLNO - 1) * ROWNO;
+
     while (mcount > 0) {
-        if (!use_existing_map_mon) {
+        if (use_random_mon) {
             ptr = rndmonst();
             mtmp = makemon(ptr, 0, 0, MM_NOMSG);
-            if (mtmp)
-                migrate_to_level(mtmp, ledger_no(&tolevel), MIGR_RANDOM,
-                                 (coord *) 0);
         } else {
-            struct monst *nextmon = (struct monst *) 0;
-
-            for (mtmp = fmon; mtmp; mtmp = nextmon) {
-                nextmon = mtmp->nmon;
-                migrate_to_level(mtmp, ledger_no(&tolevel), MIGR_RANDOM,
-                                 (coord *) 0);
-                break;
-            }
+            mtmp = fmon;
         }
+        if (mtmp)
+            migrate_to_level(mtmp, ledger_no(&tolevel), MIGR_RANDOM,
+                                 (coord *) 0);
         mcount--;
     }
 #endif /* DEBUG_MIGRATING_MONS */
     return ECMD_OK;
 }
-RESTORE_WARNING_UNREACHABLE_CODE
 
 /* #wizcustom command to see glyphmap customizations */
 int
