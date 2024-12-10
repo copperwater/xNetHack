@@ -95,6 +95,8 @@ static void SelectMenuItem(HWND hwndList, PNHMenuWindow data, int item,
                            int count);
 static void reset_menu_count(HWND hwndList, PNHMenuWindow data);
 static BOOL onListChar(HWND hWnd, HWND hwndList, WORD ch);
+static genericptr_t menu_data_to_free;
+void free_menu_data(void);
 
 /*-----------------------------------------------------------------------------*/
 HWND
@@ -627,6 +629,8 @@ onMSNHCommand(HWND hWnd, WPARAM wParam, LPARAM lParam)
                 data->menui.menu.items, data->menui.menu.allocated * sizeof(NHMenuItem));
             if (!data->menui.menu.items)
                 free(was);
+            else
+                menu_data_to_free = (genericptr_t) data->menui.menu.items;
         }
 
         if (data->menui.menu.items) {
@@ -719,6 +723,14 @@ onMSNHCommand(HWND hWnd, WPARAM wParam, LPARAM lParam)
 
     }
 }
+
+void
+free_menu_data(void)
+{
+    if (menu_data_to_free != 0)
+        free(menu_data_to_free), menu_data_to_free = 0;
+}
+
 /*-----------------------------------------------------------------------------*/
 void
 LayoutMenu(HWND hWnd)

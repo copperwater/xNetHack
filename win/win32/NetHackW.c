@@ -252,6 +252,8 @@ WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine,
     return 0;
 }
 
+extern void free_menu_data(void);
+
 void
 free_winmain_stuff(void)
 {
@@ -271,6 +273,7 @@ free_winmain_stuff(void)
             windowdata[cnt].address = 0;
         }
     }
+    free_menu_data();
 }
 
 #ifdef _MSC_VER

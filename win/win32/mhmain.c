@@ -27,7 +27,7 @@ static TCHAR szMainWindowClass[] = TEXT("MSNHMainWndClass");
 static TCHAR szTitle[MAX_LOADSTRING];
 struct window_tracking_data windowdata[MAXWINDOWS];
 extern void mswin_display_splash_window(BOOL);
-
+extern void free_menu_data(void); /* mhmenu.c */
 LRESULT CALLBACK MainWndProc(HWND, UINT, WPARAM, LPARAM);
 LRESULT CALLBACK About(HWND, UINT, WPARAM, LPARAM);
 static LRESULT onWMCommand(HWND hWnd, WPARAM wParam, LPARAM lParam);
