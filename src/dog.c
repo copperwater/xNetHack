@@ -914,6 +914,8 @@ discard_migrations(void)
             mtmp->nmon = 0;
             discard_minvent(mtmp, FALSE);
             /* bypass mongone() and its call to m_detach() plus dmonsfree() */
+            if (emits_light(mtmp->data))
+                del_light_source(LS_MONSTER, monst_to_any(mtmp));
             dealloc_monst(mtmp);
         }
     }
