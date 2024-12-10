@@ -938,6 +938,12 @@ discard_migrations(void)
             otmp->where = OBJ_FREE;
             otmp->owornmask = 0L; /* overloaded for destination usage;
                                    * obfree() will complain if nonzero */
+            /*
+             * obfree(otmp,)
+             *  -> dealloc_obj(otmp)
+             *      -> obj_stop_timers(otmp)
+             *      -> del_light_source(LS_OBJECT, obj_to_any(otmp))
+             */
             obfree(otmp, (struct obj *) 0); /* releases any contents too */
         }
     }
