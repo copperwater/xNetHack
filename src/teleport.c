@@ -1110,12 +1110,14 @@ dotele(
     }
 
     if (next_to_u()) {
-        if (trap && trap_once)
+        if (trap && trap_once) {
             vault_tele();
-        else if (trap && isok(trap->teledest.x, trap->teledest.y))
+        } else if (trap && isok(trap->teledest.x, trap->teledest.y)) {
             teleds(trap->teledest.x, trap->teledest.y, TELEDS_TELEPORT);
-        else
+        } else {
+            iflags.travelcc.x = iflags.travelcc.y = 0;
             tele();
+        }
         (void) next_to_u();
     } else {
         You("%s", shudder_for_moment);
