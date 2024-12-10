@@ -1798,6 +1798,8 @@ wiz_mon_diff(void)
 }
 #endif /* (NH_DEVEL_STATUS != NH_STATUS_RELEASED) || defined(DEBUG) */
 
+DISABLE_WARNING_UNREACHABLE_CODE
+
 /* #migratemons command */
 int
 wiz_migrate_mons(void)
@@ -1839,7 +1841,6 @@ wiz_migrate_mons(void)
         mcount = 0;
     else if (mcount > ((COLNO - 1) * ROWNO))
         mcount = (COLNO - 1) * ROWNO;
-
     while (mcount > 0) {
         if (!use_existing_map_mon) {
             ptr = rndmonst();
@@ -1848,7 +1849,7 @@ wiz_migrate_mons(void)
                 migrate_to_level(mtmp, ledger_no(&tolevel), MIGR_RANDOM,
                                  (coord *) 0);
         } else {
-            struct monst *nextmon;
+            struct monst *nextmon = (struct monst *) 0;
 
             for (mtmp = fmon; mtmp; mtmp = nextmon) {
                 nextmon = mtmp->nmon;
@@ -1862,6 +1863,7 @@ wiz_migrate_mons(void)
 #endif /* DEBUG_MIGRATING_MONS */
     return ECMD_OK;
 }
+RESTORE_WARNING_UNREACHABLE_CODE
 
 /* #wizcustom command to see glyphmap customizations */
 int
