@@ -968,7 +968,7 @@ dog_move(
     struct obj *obj = (struct obj *) 0;
     xint16 otyp;
     boolean cursemsg[9], do_eat = FALSE;
-    boolean better_with_displacing = FALSE;
+    boolean better_with_displacing = FALSE, ranged_only;
     coordxy nix, niy;      /* position mtmp is (considering) moving to */
     coordxy nx, ny; /* temporary coordinates */
     xint16 cnt, uncursedcnt, chcnt;
@@ -1081,6 +1081,8 @@ dog_move(
         if (!edog && (j = distu(nx, ny)) > 16 && j >= udist)
             continue;
 
+        ranged_only = FALSE;
+
         if ((info[i] & ALLOW_M) && MON_AT(nx, ny)) {
             int mstatus;
             struct monst *mtmp2 = m_at(nx, ny);
@@ -1101,16 +1103,28 @@ dog_move(
             int balk = mtmp->m_lev + ((5 * mtmp->mhp) / mtmp->mhpmax) - 2;
 
             if ((int) mtmp2->m_lev >= balk
-                || (mtmp2->data == &mons[PM_FLOATING_EYE] && rn2(10)
-                    && mtmp->mcansee && haseyes(mtmp->data) && mtmp2->mcansee
-                    && (perceives(mtmp->data) || !mtmp2->minvis))
-                || (mtmp2->data == &mons[PM_GELATINOUS_CUBE] && rn2(10))
+                || (mtmp2->mtame && mtmp->mtame && !Conflict)
                 || (max_passive_dmg(mtmp2, mtmp) >= mtmp->mhp)
                 || ((mtmp->mhp * 4 < mtmp->mhpmax
                      || mtmp2->data->msound == MS_GUARDIAN
-                     || mtmp2->data->msound == MS_LEADER) && mtmp2->mpeaceful
-                    && !Conflict)
-                || (touch_petrifies(mtmp2->data) && !resists_ston(mtmp)))
+                     || mtmp2->data->msound == MS_LEADER)
+                    && mtmp2->mpeaceful && !Conflict)) {
+                continue;
+            }
+            if ((mtmp2->data == &mons[PM_FLOATING_EYE] && rn2(10)
+                 && mtmp->mcansee && haseyes(mtmp->data) && mtmp2->mcansee
+                 && (!mtmp2->minvis || perceives(mtmp->data))
+                 && !mon_reflects(mtmp, (char *) NULL))
+                || (mtmp2->data == &mons[PM_GELATINOUS_CUBE] && rn2(10))
+                || (touch_petrifies(mtmp2->data) && !resists_ston(mtmp))) {
+                /* only skip this foe if a ranged attack isn't viable */
+                if (dist2(mtmp->mx, mtmp->my, mtmp2->mx, mtmp2->my) <= 2
+                    || best_target(mtmp) != mtmp2)
+                    continue;
+                ranged_only = TRUE;
+            }
+            /** FIXME: 'ranged_only' isn't used as intended yet **/
+            if (ranged_only)
                 continue;
 
             if (after)
@@ -1183,6 +1197,7 @@ dog_move(
         /* (minion isn't interested; `cursemsg' stays FALSE) */
         if (edog) {
             boolean can_reach_food = could_reach_item(mtmp, nx, ny);
+
             for (obj = svl.level.objects[nx][ny]; obj; obj = obj->nexthere) {
                 if (obj->cursed) {
                     cursemsg[i] = TRUE;

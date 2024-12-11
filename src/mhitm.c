@@ -485,7 +485,7 @@ mattackm(
 
         case AT_EXPL:
             /* D: Prevent explosions from a distance */
-            if (distmin(magr->mx,magr->my,mdef->mx,mdef->my) > 1)
+            if (distmin(magr->mx, magr->my, mdef->mx, mdef->my) > 1)
                 continue;
 
             res[i] = explmm(magr, mdef, mattk);
@@ -525,25 +525,20 @@ mattackm(
             break;
 
         case AT_BREA:
-            if (!monnear(magr, mdef->mx, mdef->my)) {
-                strike = (breamm(magr, mattk, mdef) == M_ATTK_MISS) ? 0 : 1;
-
-                /* We don't really know if we hit or not; pretend we did. */
-                if (strike)
-                    res[i] |= M_ATTK_HIT;
-                if (DEADMONSTER(mdef))
-                    res[i] = M_ATTK_DEF_DIED;
-                if (DEADMONSTER(magr))
-                    res[i] |= M_ATTK_AGR_DIED;
-            }
-            else
-                strike = 0;
-            break;
-
         case AT_SPIT:
+            /*
+             * Ranged attacks aren't allowed at point blank range.
+             *
+             * That impacts pet use of ranged attacks.  It's rather arbitrary
+             * but various parts of the code assume it to be the case, not to
+             * mention a part of player strategy when fighting dragons.
+             */
             if (!monnear(magr, mdef->mx, mdef->my)) {
-                strike = (spitmm(magr, mattk, mdef) == M_ATTK_MISS) ? 0 : 1;
+                int mmtmp = ((mattk->aatyp == AT_BREA)
+                             ? breamm(magr, mattk, mdef)
+                             : spitmm(magr, mattk, mdef));
 
+                strike = (mmtmp == M_ATTK_MISS) ? 0 : 1;
                 /* We don't really know if we hit or not; pretend we did. */
                 if (strike)
                     res[i] |= M_ATTK_HIT;
@@ -551,6 +546,9 @@ mattackm(
                     res[i] = M_ATTK_DEF_DIED;
                 if (DEADMONSTER(magr))
                     res[i] |= M_ATTK_AGR_DIED;
+            } else {
+                strike = 0;
+                attk = 0;
             }
             break;
 

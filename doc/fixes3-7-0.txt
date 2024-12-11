@@ -1484,9 +1484,8 @@ when hero who is poly'd into metallivore form eats a tin, bypass "smells like
 digging in ice was handled inconsistently, particularly if done at the span
 	spot in front of closed drawbridge
 angry god may remove an intrinsic
-blessed scroll of destroy armor asks which armor to destroy
-archeologists' fedora is lucky
 gelatinous cubes eat organic objects inside them
+pets with reflection were unwilling to attack floating eyes
 
 
 Fixes to 3.7.0-x General Problems Exposed Via git Repository
@@ -2734,6 +2733,8 @@ enlightenment/attribute disclosure for saving-grace: include a line for have
 tourists gain experience by seeing new types of creatures up close, and
 	going to new dungeon levels
 healers gain experience by healing pets
+blessed scroll of destroy armor asks which armor to destroy
+archeologists' fedora is lucky
 
 
 Platform- and/or Interface-Specific New Features
