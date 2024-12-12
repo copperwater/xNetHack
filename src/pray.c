@@ -2084,13 +2084,27 @@ offer_corpse(struct obj *otmp, boolean highaltar, aligntyp altaralign)
             }
         }
     } else {
-        int saved_luck = u.uluck;
+        int orig_luck, luck_increase;
+
         if (bestow_artifact(value))
             return;
-        change_luck((value * LUCKMAX) / (MAXVALUE * 2));
+
+        orig_luck = u.uluck;
+        luck_increase = (value * LUCKMAX) / (MAXVALUE * 2);
+
+        /* sacrificing can't increase non-bonus Luck to above the value of the
+           sacrifice; this prevents players immediately maxing their Luck as
+           soon as they find an altar and a few rations via sacrificing lots
+           of low-valued corpses, which can unbalance the early game */
+        if (orig_luck > value)
+            luck_increase = 0;
+        else if (orig_luck + luck_increase > value)
+            luck_increase = value - orig_luck;
+
+        change_luck(luck_increase);
         if ((int) u.uluck < 0)
             u.uluck = 0;
-        if (u.uluck != saved_luck) {
+        if (u.uluck != orig_luck) {
             if (Blind)
                 You("think %s brushed your %s.", something,
                     body_part(FOOT));

@@ -1490,6 +1490,7 @@ artifact gifts are rebalanced (easier to obtain; higher-value sacrifices are
 	needed for higher-value artifacts; lower-value artifacts are usually
 	gifted enchanted; unaligned artifacts are possible but rare even on
 	the first gift; artifacts you can't use well are less likely)
+luck gains from sacrificing are limited by the value of the sacrifice
 
 
 Fixes to 3.7.0-x General Problems Exposed Via git Repository
