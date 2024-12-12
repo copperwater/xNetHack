@@ -665,7 +665,7 @@ execplinehandler(const char *line)
         args[1] = line;
         args[2] = NULL;
         ret = _spawnv(_P_NOWAIT, sysopt.msghandler, args);
-	nhUse(ret);  /* -Wunused-but-set-variable */
+        nhUse(ret);  /* -Wunused-but-set-variable */
     }
 #else
     use_pline_handler = FALSE;
