@@ -53,10 +53,11 @@ int redirect_stdout;
 
 #ifdef WIN32CON
 typedef HWND(WINAPI *GETCONSOLEWINDOW)(void);
-#ifdef WIN32CON
+#if 0
 static HWND GetConsoleHandle(void);
 static HWND GetConsoleHwnd(void);
-#endif
+#endif /* 0 */
+#endif /* WIN32CON */
 #if !defined(TTY_GRAPHICS)
 extern void backsp(void);
 #endif
@@ -78,7 +79,6 @@ static int max_filename(void);
 
 int def_kbhit(void);
 int (*nt_kbhit)(void) = def_kbhit;
-#endif /* WIN32CON */
 
 #ifndef WIN32CON
 /* this is used as a printf() replacement when the window
@@ -92,7 +92,7 @@ VA_DECL(const char *, fmt)
     VA_END();
     return;
 }
-#endif
+#endif  /* WIN32CON */
 
 char
 switchar(void)
@@ -328,6 +328,7 @@ interject_assistance(int num, int interjection_type, genericptr_t ptr1, genericp
         }
     } break;
     }
+    nhUse(interjection_type);
 }
 
 void
@@ -412,6 +413,7 @@ void port_insert_pastebuf(char *buf)
 }
 
 #ifdef WIN32CON
+#if 0
 static HWND
 GetConsoleHandle(void)
 {
@@ -451,8 +453,9 @@ GetConsoleHwnd(void)
     /*       printf("%d iterations\n", iterations); */
     return hwndFound;
 }
+#endif /* 0 */
 #endif /* WIN32CON */
-#endif
+#endif /* RUNTIME_PASTEBUF_SUPPORT */
 
 #ifdef RUNTIME_PORT_ID
 /*
@@ -748,7 +751,7 @@ sys_random_seed(void)
         time_t datetime = 0;
         const char *emsg;
 
-        if (status == STATUS_NOT_FOUND)
+        if (status == (NTSTATUS) STATUS_NOT_FOUND)
             emsg = "BCRYPT_RNG_ALGORITHM not avail, falling back";
         else
             emsg = "Other failure than algorithm not avail";
@@ -796,11 +799,11 @@ struct CRctxt {
 } ctxp_ = { NULL, NULL, NULL, 0, 0, 0, NULL, 0 };
 struct CRctxt *ctxp = &ctxp_;    // XXX should this now be in gc.* ?
 
-#define win32err(fn) errname = fn; goto error
+#define win32err(fn) errname = (char *) fn; goto error
 
 int
 win32_cr_helper(char cmd, struct CRctxt *contextp, void *p, int d){
-    char *errname = "unknown";
+    char *errname = (char *) "unknown";
     switch (cmd) {
     default:
         /* Not panic - we don't want to upgrade an impossible to a
@@ -960,8 +963,17 @@ printf("E2: M=%s e=%d\n",msg,errnum);
 }
 #endif
 
+#ifdef USE_BACKTRACE
+#define USED_IF_BACKTRACE
+#else
+#define USED_IF_BACKTRACE UNUSED
+#endif
+
 int
-win32_cr_gettrace(int maxframes, char *out, int outsize){
+win32_cr_gettrace(int maxframes USED_IF_BACKTRACE,
+		  char *out USED_IF_BACKTRACE,
+		  int outsize USED_IF_BACKTRACE)
+{
 #ifdef USE_BACKTRACE
     userstate.error_count = 0;
     userstate.good_count = 0;
