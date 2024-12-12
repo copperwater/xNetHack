@@ -1786,7 +1786,7 @@ bestow_artifact(uchar max_giftvalue)
         /* The player can gain an artifact */
         /* The chance goes down as the number of artifacts goes up */
         if (wizard)
-            do_bestow = y_n("Gift an artifact?");
+            do_bestow = y_n("Gift an artifact?") == 'y';
         else
             do_bestow = !rn2(6 + (2 * u.ugifts * nartifacts));
     }

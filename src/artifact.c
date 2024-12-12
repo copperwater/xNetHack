@@ -169,7 +169,7 @@ mk_artifact(
             continue;
         if ((a->spfx & SPFX_NOGEN) || unique)
             continue;
-        if (a->gift_value > max_giftvalue)
+        if (a->gift_value > max_giftvalue && !Role_if(a->role))
             continue;
 
         if (!by_align) {
