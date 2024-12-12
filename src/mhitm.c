@@ -531,7 +531,7 @@ mattackm(
              *
              * That impacts pet use of ranged attacks.  It's rather arbitrary
              * but various parts of the code assume it to be the case, not to
-             * mention a part of player strategy when fighting dragons.
+             * mention a part of player tactics when fighting dragons.
              */
             if (!monnear(magr, mdef->mx, mdef->my)) {
                 int mmtmp = ((mattk->aatyp == AT_BREA)
