@@ -880,7 +880,7 @@ mksobj_init(struct obj *otmp, boolean artif)
             otmp->opoisoned = 1;
 
         if (artif && !rn2(20 + (10 * nartifact_exist())))
-            otmp = mk_artifact(otmp, (aligntyp) A_NONE, 99);
+            otmp = mk_artifact(otmp, (aligntyp) A_NONE, 99, TRUE);
         break;
     case FOOD_CLASS:
         otmp->oeaten = 0;
@@ -1084,7 +1084,7 @@ mksobj_init(struct obj *otmp, boolean artif)
         } else
             blessorcurse(otmp, 10);
         if (artif && !rn2(40 + (10 * nartifact_exist())))
-            otmp = mk_artifact(otmp, (aligntyp) A_NONE, 99);
+            otmp = mk_artifact(otmp, (aligntyp) A_NONE, 99, TRUE);
         /* simulate lacquered armor for samurai */
         if (Role_if(PM_SAMURAI) && otmp->otyp == SPLINT_MAIL
             && (svm.moves <= 1 || In_quest(&u.uz))) {
@@ -1230,7 +1230,7 @@ mksobj(int otyp, boolean init, boolean artif)
 
     /* unique objects may have an associated artifact entry */
     if (objects[otyp].oc_unique && !otmp->oartifact)
-        otmp = mk_artifact(otmp, (aligntyp) A_NONE, 99);
+        otmp = mk_artifact(otmp, (aligntyp) A_NONE, 99, FALSE);
     otmp->owt = weight(otmp);
     return otmp;
 }

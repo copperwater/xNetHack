@@ -151,7 +151,8 @@ struct obj *
 mk_artifact(
     struct obj *otmp,    /* existing object; ignored if alignment specified */
     aligntyp alignment,  /* target alignment, or A_NONE */
-    uchar max_giftvalue) /* cap on generated giftvalue */
+    uchar max_giftvalue, /* cap on generated giftvalue */
+    boolean adjust_spe)  /* whether to add spe to situational artifacts */
 {
     const struct artifact *a;
     int m, n, altn;
@@ -237,10 +238,10 @@ mk_artifact(
         a = &artilist[m];
 
         /* make an appropriate object if necessary, then christen it */
-        if (by_align) {
-            int new_spe;
+        otmp = mksobj((int) a->otyp, TRUE, FALSE);
 
-            otmp = mksobj((int) a->otyp, TRUE, FALSE);
+        if (adjust_spe) {
+            int new_spe;
 
             /* Adjust otmp->spe by a->gen_spe. (This is a no-op for
                non-weapons, which always have a gen_spe of 0, and for many

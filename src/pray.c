@@ -1794,7 +1794,7 @@ bestow_artifact(uchar max_giftvalue)
     if (do_bestow) {
         struct obj *otmp;
         otmp = mk_artifact((struct obj *) 0, a_align(u.ux, u.uy),
-                           max_giftvalue);
+                           max_giftvalue, TRUE);
         if (otmp) {
             char buf[BUFSZ];
 
