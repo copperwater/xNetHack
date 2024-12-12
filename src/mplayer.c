@@ -262,7 +262,7 @@ mk_mplayer(struct permonst *ptr, coordxy x, coordxy y, boolean special)
             else if (!rn2(2))
                 otmp->greased = 1;
             if (special && rn2(2))
-                otmp = mk_artifact(otmp, A_NONE);
+                otmp = mk_artifact(otmp, A_NONE, 99);
             /* usually increase stack size if stackable weapon */
             if (objects[otmp->otyp].oc_merge && !otmp->oartifact
                 && monmightthrowwep(otmp))

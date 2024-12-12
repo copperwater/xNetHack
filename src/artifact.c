@@ -142,13 +142,16 @@ artiname(int artinum)
    If no alignment is given, then 'otmp' is converted
    into an artifact of matching type, or returned as-is if that's not
    possible.
-   For the 2nd case, caller should use ``obj = mk_artifact(obj, A_NONE);''
-   for the 1st, ``obj = mk_artifact((struct obj *) 0, some_alignment);''.
+   For the 2nd case, caller should use ``obj = mk_artifact(obj, A_NONE, 99);''
+   For the 1st, ``obj = mk_artifact((struct obj *) 0, some_alignment, ...);''.
+   The max_giftvalue is the value of the sacrifice, for an artifact obtained
+   by sacrificing, or 99 otherwise.
  */
 struct obj *
 mk_artifact(
-    struct obj *otmp,   /* existing object; ignored if alignment specified */
-    aligntyp alignment) /* target alignment, or A_NONE */
+    struct obj *otmp,    /* existing object; ignored if alignment specified */
+    aligntyp alignment,  /* target alignment, or A_NONE */
+    uchar max_giftvalue) /* cap on generated giftvalue */
 {
     const struct artifact *a;
     int m, n, altn;
@@ -156,6 +159,7 @@ mk_artifact(
     short o_typ = (by_align || !otmp) ? 0 : otmp->otyp;
     boolean unique = !by_align && otmp && objects[o_typ].oc_unique;
     short eligible[NROFARTIFACTS];
+    xint16 skill_compatibility;
 
     n = altn = 0;    /* no candidates found yet */
     eligible[0] = 0; /* lint suppression */
@@ -164,6 +168,8 @@ mk_artifact(
         if (artiexist[m].exists)
             continue;
         if ((a->spfx & SPFX_NOGEN) || unique)
+            continue;
+        if (a->gift_value > max_giftvalue)
             continue;
 
         if (!by_align) {
@@ -186,17 +192,33 @@ mk_artifact(
                 n = 1;
                 break; /* skip all other candidates */
             }
+
+            /* check if this is skill-compatible */
+            skill_compatibility = P_SKILLED;
+            if (objects[a->otyp].oc_class == WEAPON_CLASS) {
+                schar skill = objects[a->otyp].oc_skill;
+                if (skill < 0)
+                    skill_compatibility = P_MAX_SKILL(-skill);
+                else
+                    skill_compatibility = P_MAX_SKILL(skill);
+            }
+
             /* found something to consider for random selection */
-            if (a->alignment != A_NONE || u.ugifts > 0) {
+            if ((a->alignment != A_NONE || u.ugifts > 0 || !rn2(3)) &&
+                (!rn2(4) || skill_compatibility >= P_SKILLED ||
+                 (skill_compatibility >= P_BASIC && rn2(2)))) {
                 /* right alignment, or non-aligned with at least 1
-                   previous gift bestowed, makes this one viable */
+                   previous gift bestowed, makes this one viable;
+                   unaligned artifacts are possible even as the first
+                   gift, but less likely; if it's a bad weapon type
+                   for the role that also makes it less likely */
                 eligible[n++] = m;
             } else {
-                /* non-aligned with no previous gifts;
-                   if no candidates have been found yet, record
+                /* if no candidates have been found yet, record
                    this one as a[nother] fallback possibility in
                    case all aligned candidates have been used up
-                   (via wishing, naming, bones, random generation) */
+                   (via wishing, naming, bones, random generation)
+                   or failed the randomized compatibility checks */
                 if (!n)
                     eligible[altn++] = m;
                 /* [once a regular candidate is found, the list
@@ -215,8 +237,19 @@ mk_artifact(
         a = &artilist[m];
 
         /* make an appropriate object if necessary, then christen it */
-        if (by_align)
+        if (by_align) {
+            int new_spe;
+
             otmp = mksobj((int) a->otyp, TRUE, FALSE);
+
+            /* Adjust otmp->spe by a->gen_spe. (This is a no-op for
+               non-weapons, which always have a gen_spe of 0, and for many
+               weapons, too.) The result is clamped into the "normal" range to
+               prevent an outside chance of +12 artifacts generating. */
+            new_spe = (int)otmp->spe + a->gen_spe;
+            if (new_spe >= -10 && new_spe < 10)
+                otmp->spe = new_spe;
+        }
 
         if (otmp) {
             /* prevent erosion from generating */

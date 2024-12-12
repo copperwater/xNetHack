@@ -27,7 +27,7 @@ staticfn void offer_negative_valued(boolean, aligntyp);
 staticfn void offer_fake_amulet(struct obj *, boolean, aligntyp);
 staticfn void offer_different_alignment_altar(struct obj *, aligntyp);
 staticfn void sacrifice_your_race(struct obj *, boolean, aligntyp);
-staticfn int bestow_artifact(void);
+staticfn int bestow_artifact(uchar);
 staticfn int sacrifice_value(struct obj *);
 staticfn int eval_offering(struct obj *, aligntyp);
 staticfn void offer_corpse(struct obj *, boolean, aligntyp);
@@ -1777,17 +1777,24 @@ sacrifice_your_race(
 }
 
 staticfn int
-bestow_artifact(void)
+bestow_artifact(uchar max_giftvalue)
 {
     int nartifacts = nartifact_exist();
+    boolean do_bestow = u.ulevel > 2 && u.uluck >= 0;
+    if (do_bestow) {
+        /* you were already in pretty good standing */
+        /* The player can gain an artifact */
+        /* The chance goes down as the number of artifacts goes up */
+        if (wizard)
+            do_bestow = y_n("Gift an artifact?");
+        else
+            do_bestow = !rn2(6 + (2 * u.ugifts * nartifacts));
+    }
 
-    /* you were already in pretty good standing */
-    /* The player can gain an artifact */
-    /* The chance goes down as the number of artifacts goes up */
-    if (u.ulevel > 2 && u.uluck >= 0
-        && !rn2(10 + (2 * u.ugifts * nartifacts))) {
+    if (do_bestow) {
         struct obj *otmp;
-        otmp = mk_artifact((struct obj *) 0, a_align(u.ux, u.uy));
+        otmp = mk_artifact((struct obj *) 0, a_align(u.ux, u.uy),
+                           max_giftvalue);
         if (otmp) {
             char buf[BUFSZ];
 
@@ -2078,7 +2085,7 @@ offer_corpse(struct obj *otmp, boolean highaltar, aligntyp altaralign)
         }
     } else {
         int saved_luck = u.uluck;
-        if (bestow_artifact())
+        if (bestow_artifact(value))
             return;
         change_luck((value * LUCKMAX) / (MAXVALUE * 2));
         if ((int) u.uluck < 0)
