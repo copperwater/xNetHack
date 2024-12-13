@@ -341,12 +341,12 @@ ifeq "$(GCC_EXTRA_WARNINGS)" "Y"
 #
 CFLAGSXTRA = -Wall -Wextra -Wreturn-type -Wunused -Wswitch -Wshadow \
 	     -Wwrite-strings -pedantic -Wmissing-declarations \
-	     -Wformat-nonliteral -Wunreachable-code -Wimplicit \
+	     -Wunreachable-code -Wimplicit \
 	     -Wimplicit-function-declaration -Wimplicit-int \
 	     -Wmissing-prototypes -Wold-style-definition \
 	     -Wstrict-prototypes -Wnonnull -Wformat-overflow \
 	     -Wmissing-parameter-type -Wimplicit-fallthrough \
-	     -Wno-cast-function-type
+	     -Wno-cast-function-type -Wno-format
 
 CPPFLAGSXTRA = -Wall -Wextra -Wno-missing-field-initializers -Wreturn-type \
 		-Wunused -Wformat -Wswitch -Wshadow -Wwrite-strings -pedantic \

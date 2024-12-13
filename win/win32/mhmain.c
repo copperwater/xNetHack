@@ -544,6 +544,7 @@ onMSNHCommand(HWND hWnd, WPARAM wParam, LPARAM lParam)
             mswin_select_map_mode(iflags.wc_map_mode);
 
         child = GetNHApp()->windowlist[msg_param->wid].win;
+        nhUse(child);
     } break;
 
     case MSNH_MSG_RANDOM_INPUT: {
@@ -753,14 +754,18 @@ mswin_layout_main_window(HWND changed_child)
     }
     if (IsWindow(changed_child))
         SetForegroundWindow(changed_child);
+    nhUse(data);
 }
+
+VOID CALLBACK FuzzTimerProc( _In_ HWND     hwnd,
+    _In_ UINT     uMsg, _In_ UINT_PTR idEvent,
+    _In_ DWORD    dwTime);
 
 VOID CALLBACK FuzzTimerProc(
     _In_ HWND     hwnd,
-    _In_ UINT     uMsg,
-    _In_ UINT_PTR idEvent,
-    _In_ DWORD    dwTime
-    )
+    _In_ UINT     uMsg UNUSED,
+    _In_ UINT_PTR idEvent UNUSED,
+    _In_ DWORD    dwTime UNUSED)
 {
         INPUT input[16];
         int i_pos = 0;
@@ -1114,6 +1119,7 @@ onWMCommand(HWND hWnd, WPARAM wParam, LPARAM lParam)
     default:
         return 1;
     }
+    nhUse(wmEvent);
     return 0;
 }
 

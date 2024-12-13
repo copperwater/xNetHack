@@ -17,7 +17,9 @@ static const int fieldorder2[] = { BL_LEVELDESC, BL_GOLD,      BL_HP,   BL_HPMAX
                              BL_ENE,       BL_ENEMAX,    BL_AC,   BL_XP,
                              BL_EXP,       BL_HD,        BL_TIME, BL_HUNGER,
                              BL_CAP,       BL_CONDITION, -1 };
+#ifdef MSWPROC_C
 static const int *fieldorders[] = { fieldorder1, fieldorder2, NULL };
+#endif
 static const int fieldcounts[NHSW_LINES] = { SIZE(fieldorder1) - 1, SIZE(fieldorder2) - 1};
 
 #define MSWIN_MAX_LINE1_STRINGS (SIZE(fieldorder1) - 1)

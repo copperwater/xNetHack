@@ -142,12 +142,9 @@ typedef struct mswin_nhwindow_app {
     LPTRANSPARENTBLT lpfnTransparentBlt; /* transparent blt function */
 } NHWinApp, *PNHWinApp;
 
-#define E extern
-
-E PNHWinApp GetNHApp(void);
-E struct window_procs mswin_procs;
-
-#undef E
+extern PNHWinApp GetNHApp(void);
+extern struct window_procs mswin_procs;
+extern void free_winmain_stuff(void);
 
 /* Some prototypes */
 void mswin_init_nhwindows(int *argc, char **argv);
@@ -179,7 +176,7 @@ void mswin_print_glyph(winid wid, coordxy x, coordxy y,
                        const glyph_info *glyph, const glyph_info *bkglyph);
 void mswin_raw_print(const char *str);
 void mswin_raw_print_bold(const char *str);
-void mswin_raw_print_flush();
+void mswin_raw_print_flush(void);
 int mswin_nhgetch(void);
 int mswin_nh_poskey(coordxy *x, coordxy *y, int *mod);
 void mswin_nhbell(void);
@@ -223,6 +220,8 @@ void mswin_write_reg(void);
 void mswin_get_window_placement(int type, LPRECT rt);
 void mswin_update_window_placement(int type, LPRECT rt);
 void mswin_apply_window_style(HWND hwnd);
+
+//boolean mswin_player_selection_window(void);
 
 int NHMessageBox(HWND hWnd, LPCTSTR text, UINT type);
 

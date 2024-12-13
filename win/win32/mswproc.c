@@ -7,6 +7,7 @@
  * code in the mswin port and the rest of the nethack game engine.
 */
 
+#define MSWPROC_C
 #include "hack.h"
 #include "color.h"
 #include "dlb.h"
@@ -28,6 +29,7 @@
 #include "mhmain.h"
 #include "mhfont.h"
 #include "resource.h"
+#undef MSWPROC_C
 
 #define LLEN 128
 
@@ -371,14 +373,15 @@ prompt_for_player_selection(void)
             /* tty_putsym(BASE_WINDOW, (int)strlen(prompt)+1, echoline,
              * pick4u); */
             /* tty_putstr(BASE_WINDOW, 0, ""); */
-        } else
+        } else {
             /* Otherwise it's hard to tell where to echo, and things are
              * wrapping a bit messily anyway, so (try to) make sure the next
              * question shows up well and doesn't get wrapped at the
              * bottom of the window.
              */
-            /* tty_clear_nhwindow(BASE_WINDOW) */;
-
+            /* tty_clear_nhwindow(BASE_WINDOW) */
+		;
+	}
         if (pick4u != 'y' && pick4u != 'n') {
         give_up: /* Quit */
             if (selected)
@@ -450,7 +453,7 @@ prompt_for_player_selection(void)
             any.a_int = i + 1; /* must be non-zero */
             add_menu(win, &nul_glyphinfo, &any, 'q', 0,
                      ATR_NONE, clr, "Quit", MENU_ITEMFLAGS_NONE);
-            Sprintf(pbuf, "Pick a role for your %s", plbuf);
+            Snprintf(pbuf, sizeof pbuf, "Pick a role for your %s", plbuf);
             end_menu(win, pbuf);
             n = select_menu(win, PICK_ONE, &selected);
             destroy_nhwindow(win);
@@ -524,7 +527,7 @@ prompt_for_player_selection(void)
                 any.a_int = i + 1; /* must be non-zero */
                 add_menu(win, &nul_glyphinfo, &any, 'q', 0,
                          ATR_NONE, clr, "Quit", MENU_ITEMFLAGS_NONE);
-                Sprintf(pbuf, "Pick the race of your %s", plbuf);
+                Snprintf(pbuf, sizeof pbuf, "Pick the race of your %s", plbuf);
                 end_menu(win, pbuf);
                 n = select_menu(win, PICK_ONE, &selected);
                 destroy_nhwindow(win);
@@ -599,7 +602,7 @@ prompt_for_player_selection(void)
                 any.a_int = i + 1; /* must be non-zero */
                 add_menu(win, &nul_glyphinfo, &any, 'q', 0,
                          ATR_NONE, clr, "Quit", MENU_ITEMFLAGS_NONE);
-                Sprintf(pbuf, "Pick the gender of your %s", plbuf);
+                Snprintf(pbuf, sizeof pbuf, "Pick the gender of your %s", plbuf);
                 end_menu(win, pbuf);
                 n = select_menu(win, PICK_ONE, &selected);
                 destroy_nhwindow(win);
@@ -673,7 +676,7 @@ prompt_for_player_selection(void)
                 any.a_int = i + 1; /* must be non-zero */
                 add_menu(win, &nul_glyphinfo, &any, 'q', 0,
                          ATR_NONE, clr, "Quit", MENU_ITEMFLAGS_NONE);
-                Sprintf(pbuf, "Pick the alignment of your %s", plbuf);
+                Snprintf(pbuf, sizeof pbuf, "Pick the alignment of your %s", plbuf);
                 end_menu(win, pbuf);
                 n = select_menu(win, PICK_ONE, &selected);
                 destroy_nhwindow(win);
@@ -1260,7 +1263,7 @@ mswin_update_inventory(int arg)
 
 win_request_info *
 mswin_ctrl_nhwindow(
-    winid window,
+    winid window UNUSED,
     int request,
     win_request_info *wri)
 {
@@ -1365,10 +1368,12 @@ mswin_print_glyph(winid wid, coordxy x, coordxy y,
  * mswin_raw_print_accumulate() accumulate the given text into
  *   raw_print_strbuf.
  */
+void mswin_raw_print_accumulate(const char * str, boolean bold);
+
 void
 mswin_raw_print_accumulate(const char * str, boolean bold)
 {
-    bold; // ignored for now
+    nhUse(bold); // ignored for now
 
     if (raw_print_strbuf.str != NULL) strbuf_append(&raw_print_strbuf, "\n");
     strbuf_append(&raw_print_strbuf, str);
@@ -1704,7 +1709,7 @@ mswin_yn_function(const char *question, const char *choices, char def)
         res_ch[1] = '\x0';
         mswin_putstr_ex(WIN_MESSAGE, ATR_BOLD, res_ch, 1);
     }
-
+    nhUse(yn_esc_map);
     return ch;
 }
 
@@ -1916,7 +1921,7 @@ char *
 mswin_get_color_string(void)
 {
     logDebug("mswin_get_color_string()\n");
-    return ("");
+    return (char *) "";
 }
 
 /*
@@ -2557,7 +2562,7 @@ mswin_write_reg(void)
 
         if (RegOpenKeyEx(HKEY_CURRENT_USER, keystring, 0, KEY_WRITE, &key)
             != ERROR_SUCCESS) {
-            RegCreateKeyEx(HKEY_CURRENT_USER, keystring, 0, "",
+            RegCreateKeyEx(HKEY_CURRENT_USER, keystring, 0, NULL,
                            REG_OPTION_NON_VOLATILE, KEY_ALL_ACCESS, NULL,
                            &key, &disposition);
         }
@@ -2694,7 +2699,7 @@ static color_table_value color_table[] = {
 };
 
 typedef struct ctbv {
-    char *colorstring;
+    const char *colorstring;
     int syscolorvalue;
 } color_table_brush_value;
 
@@ -2729,7 +2734,7 @@ mswin_color_from_string(char *colorstring, HBRUSH *brushptr,
     color_table_value *ctv_ptr = color_table;
     color_table_brush_value *ctbv_ptr = color_table_brush;
     int red_value, blue_value, green_value;
-    static char *hexadecimals = "0123456789abcdef";
+    static const char *hexadecimals = "0123456789abcdef";
 
     if (colorstring == NULL)
         return;
@@ -2880,36 +2885,36 @@ static mswin_status_string _condition_strings[CONDITION_COUNT];
 static mswin_status_field _status_fields[MAXBLSTATS];
 
 static mswin_condition_field _condition_fields[CONDITION_COUNT] = {
-    { BL_MASK_BAREH,     "Bare" },
-    { BL_MASK_BLIND,     "Blind" },
-    { BL_MASK_BUSY,      "Busy" },
-    { BL_MASK_CONF,      "Conf" },
-    { BL_MASK_DEAF,      "Deaf" },
-    { BL_MASK_ELF_IRON,  "Iron" },
-    { BL_MASK_FLY,       "Fly" },
-    { BL_MASK_FOODPOIS,  "FoodPois" },
-    { BL_MASK_GLOWHANDS, "Glow" },
-    { BL_MASK_GRAB,      "Grab" },
-    { BL_MASK_HALLU,     "Hallu" },
-    { BL_MASK_HELD,      "Held" },
-    { BL_MASK_ICY,       "Icy" },
-    { BL_MASK_INLAVA,    "Lava" },
-    { BL_MASK_LEV,       "Lev" },
-    { BL_MASK_PARLYZ,    "Parlyz" },
-    { BL_MASK_RIDE,      "Ride" },
-    { BL_MASK_SLEEPING,  "Zzz" },
-    { BL_MASK_SLIME,     "Slime" },
-    { BL_MASK_SLIPPERY,  "Slip" },
-    { BL_MASK_STONE,     "Stone" },
-    { BL_MASK_STRNGL,    "Strngl" },
-    { BL_MASK_STUN,      "Stun" },
-    { BL_MASK_SUBMERGED, "Sub" },
-    { BL_MASK_TERMILL,   "TermIll" },
-    { BL_MASK_TETHERED,  "Teth" },
-    { BL_MASK_TRAPPED,   "Trap" },
-    { BL_MASK_UNCONSC,   "Out" },
-    { BL_MASK_WOUNDEDL,  "Legs" },
-    { BL_MASK_HOLDING,   "Uhold" },
+    { BL_MASK_BAREH,     "Bare", 0},
+    { BL_MASK_BLIND,     "Blind", 0 },
+    { BL_MASK_BUSY,      "Busy", 0 },
+    { BL_MASK_CONF,      "Conf", 0 },
+    { BL_MASK_DEAF,      "Deaf", 0 },
+    { BL_MASK_ELF_IRON,  "Iron", 0 },
+    { BL_MASK_FLY,       "Fly", 0 },
+    { BL_MASK_FOODPOIS,  "FoodPois", 0 },
+    { BL_MASK_GLOWHANDS, "Glow", 0 },
+    { BL_MASK_GRAB,      "Grab", 0 },
+    { BL_MASK_HALLU,     "Hallu", 0 },
+    { BL_MASK_HELD,      "Held", 0 },
+    { BL_MASK_ICY,       "Icy", 0 },
+    { BL_MASK_INLAVA,    "Lava", 0 },
+    { BL_MASK_LEV,       "Lev", 0 },
+    { BL_MASK_PARLYZ,    "Parlyz", 0 },
+    { BL_MASK_RIDE,      "Ride", 0 },
+    { BL_MASK_SLEEPING,  "Zzz", 0 },
+    { BL_MASK_SLIME,     "Slime", 0 },
+    { BL_MASK_SLIPPERY,  "Slip", 0 },
+    { BL_MASK_STONE,     "Stone", 0 },
+    { BL_MASK_STRNGL,    "Strngl", 0 },
+    { BL_MASK_STUN,      "Stun", 0 },
+    { BL_MASK_SUBMERGED, "Sub", 0 },
+    { BL_MASK_TERMILL,   "TermIll", 0 },
+    { BL_MASK_TETHERED,  "Teth", 0 },
+    { BL_MASK_TRAPPED,   "Trap", 0 },
+    { BL_MASK_UNCONSC,   "Out", 0 },
+    { BL_MASK_WOUNDEDL,  "Legs", 0 },
+    { BL_MASK_HOLDING,   "Uhold", 0 },
 };
 
 extern winid WIN_STATUS;

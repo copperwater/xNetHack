@@ -297,6 +297,7 @@ onMSNHCommand(HWND hWnd, WPARAM wParam, LPARAM lParam)
             break;
 
     }
+    nhUse(InRipText);
 }
 
 void

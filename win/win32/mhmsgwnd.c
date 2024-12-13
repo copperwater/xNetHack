@@ -481,8 +481,8 @@ onMSNH_VScroll(HWND hWnd, WPARAM wParam, LPARAM lParam)
     // of the scroll box, and update the window. UpdateWindow
     // sends the WM_PAINT message.
 
-    if (yInc = max(MSG_VISIBLE_LINES - data->yPos,
-                   min(yInc, data->yMax - data->yPos))) {
+    if ((yInc = max(MSG_VISIBLE_LINES - data->yPos,
+                   min(yInc, data->yMax - data->yPos)))) {
         data->yPos += yInc;
         /* ScrollWindowEx(hWnd, 0, -data->yChar * yInc,
                 (CONST RECT *) NULL, (CONST RECT *) NULL,

@@ -923,7 +923,7 @@ SetMenuListType(HWND hWnd, int how)
     for (i = 0; i < data->menui.menu.size; i++) {
         LVITEM lvitem;
         ZeroMemory(&lvitem, sizeof(lvitem));
-        sprintf(buf, "%c - %s", max(data->menui.menu.items[i].accelerator, ' '),
+        Snprintf(buf, sizeof buf, "%c - %s", max(data->menui.menu.items[i].accelerator, ' '),
                 data->menui.menu.items[i].str);
 
         lvitem.mask = LVIF_PARAM | LVIF_STATE | LVIF_TEXT;
@@ -940,6 +940,7 @@ SetMenuListType(HWND hWnd, int how)
     }
     if (data->is_active)
         SetFocus(control);
+    nhUse(nItem);
 }
 /*-----------------------------------------------------------------------------*/
 HWND
@@ -1036,7 +1037,7 @@ onDrawItem(HWND hWnd, WPARAM wParam, LPARAM lParam)
     lpdis = (LPDRAWITEMSTRUCT) lParam;
 
     /* If there are no list box items, skip this message. */
-    if (lpdis->itemID == -1)
+    if (lpdis->itemID == (UINT) -1)
         return FALSE;
 
     data = (PNHMenuWindow) GetWindowLongPtr(hWnd, GWLP_USERDATA);

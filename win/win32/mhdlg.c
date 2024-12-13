@@ -12,7 +12,10 @@
 #include "mhdlg.h"
 
 #include <assert.h>
-
+int list_view_height(HWND hWnd, int count);
+void get_rect_size(RECT *rect, SIZE *size);
+void center_dialog(HWND dialog);
+void size_dialog(HWND dialog, SIZE new_client_size);
 
 /*---------------------------------------------------------------*/
 /* data for getlin dialog */
@@ -346,6 +349,11 @@ INT_PTR CALLBACK PlayerSelectorDlgProc(HWND, UINT, WPARAM, LPARAM);
 static void plselAdjustSelections(HWND hWnd);
 static boolean plselRandomize(plsel_data_t * data);
 static BOOL plselDrawItem(HWND hWnd, WPARAM wParam, LPARAM lParam);
+void  calculate_player_selector_layout(plsel_data_t * data);
+void move_controls(control_t * controls, int count);
+void do_player_selector_layout(plsel_data_t * data);
+void plselInitDialog(struct plsel_data * data);
+int plselFinalSelection(HWND hWnd);
 
 boolean
 mswin_player_selection_window(void)
@@ -874,7 +882,7 @@ plselAdjustSelections(HWND hWnd)
 
 /* player made up his mind - get final selection here */
 int
-plselFinalSelection(HWND hWnd)
+plselFinalSelection(HWND hWnd UNUSED)
 {
     int role, race, gender, alignment;
 
@@ -984,7 +992,7 @@ plselDrawItem(HWND hWnd, WPARAM wParam, LPARAM lParam)
     struct plsel_data * data = (plsel_data_t *) GetWindowLongPtr(hWnd, GWLP_USERDATA);
 
     /* If there are no list box items, skip this message. */
-    if (lpdis->itemID < 0)
+    if (lpdis->itemID == (UINT) -1)
         return FALSE;
 
     HWND control = GetDlgItem(hWnd, (int) wParam);

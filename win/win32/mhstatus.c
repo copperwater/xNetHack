@@ -19,7 +19,6 @@
 
 
 extern COLORREF nhcolor_to_RGB(int c); /* from mhmap */
-
 typedef struct back_buffer {
     HWND hWnd;
     HDC hdc;
@@ -28,6 +27,11 @@ typedef struct back_buffer {
     int width;
     int height;
 } back_buffer_t;
+
+void back_buffer_free(back_buffer_t * back_buffer);
+void back_buffer_allocate(back_buffer_t * back_buffer, int width, int height);
+void back_buffer_size(back_buffer_t * back_buffer, int width, int height);
+void back_buffer_init(back_buffer_t * back_buffer, HWND hWnd, int width, int height);
 
 void back_buffer_free(back_buffer_t * back_buffer)
 {
@@ -274,7 +278,7 @@ StatusWndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 }
 
 static LRESULT
-onWMPaint(HWND hWnd, WPARAM wParam, LPARAM lParam)
+onWMPaint(HWND hWnd, WPARAM wParam UNUSED, LPARAM lParam UNUSED)
 {
     SIZE sz;
     WCHAR wbuf[BUFSZ];

@@ -259,6 +259,7 @@ NHSplashWndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
         DrawText(hdc, VersionString, strlen(VersionString), &rt,
                  DT_LEFT | DT_NOPREFIX);
         EndPaint(hWnd, &ps);
+	nhUse(OldFont);
     } break;
 
     case WM_COMMAND:
