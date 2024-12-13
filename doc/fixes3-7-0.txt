@@ -2069,6 +2069,8 @@ non-fireproof water walking boots wouldn't be burnt up if fire resistant hero
 	at wall locations
 if a pile of objects had plain arrow(s) on top, map location classification
 	got confused and reported 'unexplored area'
+when the 'fireassist' option was on, 'f' would choose uquiver over wielded
+	throw-and-return uwep
 
 
 Fixes to 3.7.0-x Platform and/or Interface Problems Exposed Via git Repository

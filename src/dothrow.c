@@ -472,7 +472,8 @@ dofire(void)
        on its caller to make sure hero is strong enough to throw that */
     boolean uwep_Throw_and_Return = (uwep && AutoReturn(uwep, uwep->owornmask)
                                      && (uwep->oartifact != ART_MJOLLNIR
-                                         || ACURR(A_STR) >= STR19(25)));
+                                         || ACURR(A_STR) >= STR19(25))),
+            skip_fireassist = FALSE;
     int altres, res = ECMD_OK;
 
     /*
@@ -502,6 +503,7 @@ dofire(void)
        throwing Mjollnir if quiver contains daggers] */
     if (uwep_Throw_and_Return && (!obj || is_ammo(obj))) {
         obj = uwep;
+        skip_fireassist = TRUE;
 
     } else if (!obj) {
         if (!flags.autoquiver) {
@@ -550,7 +552,8 @@ dofire(void)
         obj = uquiver;
     }
 
-    if (uquiver && is_ammo(uquiver) && iflags.fireassist) {
+    if (uquiver && is_ammo(uquiver) && iflags.fireassist
+        && !skip_fireassist) {
         struct obj *olauncher;
 
         if (uwep && is_pole(uwep) && could_pole_mon())
@@ -2074,7 +2077,7 @@ thitmonst(
                 /* ...or any special item, if you've made him angry */
                 || !mon->mpeaceful) {
                 /* give an explanation for keeping the item only if leader is
-                   not doing it out of anger */ 
+                   not doing it out of anger */
                 if (mon->mpeaceful && !Deaf) {
                     /* just in case, identify the object so its name will
                        appear in the message */
@@ -2090,7 +2093,7 @@ thitmonst(
                 (void) mpickobj(mon, obj);
             } else {
                 /* under normal circumstances, leader will say something and
-                   then return the item to the hero */ 
+                   then return the item to the hero */
                 boolean next2u = monnear(mon, u.ux, u.uy);
 
                 finish_quest(obj); /* acknowledge quest completion */
