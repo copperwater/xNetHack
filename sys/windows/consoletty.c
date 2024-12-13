@@ -146,7 +146,7 @@ static void xputc_core(int);
 #endif /* VIRTUAL_TERMINAL_SEQUENCES */
 void cmov(int, int);
 void nocmov(int, int);
-int process_keystroke(INPUT_RECORD *, boolean *, boolean numberpad,
+int process_keystroke(INPUT_RECORD *, boolean *, uchar numberpad,
                       int portdebug);
 static void init_ttycolor(void);
 static void really_move_cursor(void);
@@ -273,27 +273,27 @@ const char *const legal_key_handling[] = {
 enum windows_key_handling keyh[] = { no_keyhandling, default_keyhandling, ray_keyhandling,
                                      nh340_keyhandling };
 
-int default_processkeystroke(HANDLE, INPUT_RECORD *, boolean *, boolean, int);
+int default_processkeystroke(HANDLE, INPUT_RECORD *, boolean *, uchar, int);
 int default_kbhit(HANDLE, INPUT_RECORD *);
-int default_checkinput(HANDLE, INPUT_RECORD *, DWORD *, boolean,
+int default_checkinput(HANDLE, INPUT_RECORD *, DWORD *, uchar,
                        int, int *, coord *);
 
-int ray_processkeystroke(HANDLE, INPUT_RECORD *, boolean *, boolean, int);
+int ray_processkeystroke(HANDLE, INPUT_RECORD *, boolean *, uchar, int);
 int ray_kbhit(HANDLE, INPUT_RECORD *);
-int ray_checkinput(HANDLE, INPUT_RECORD *, DWORD *, boolean,
+int ray_checkinput(HANDLE, INPUT_RECORD *, DWORD *, uchar,
                        int, int *, coord *);
 
-int nh340_processkeystroke(HANDLE, INPUT_RECORD *, boolean *, boolean, int);
+int nh340_processkeystroke(HANDLE, INPUT_RECORD *, boolean *, uchar, int);
 int nh340_kbhit(HANDLE, INPUT_RECORD *);
-int nh340_checkinput(HANDLE, INPUT_RECORD *, DWORD *, boolean,
+int nh340_checkinput(HANDLE, INPUT_RECORD *, DWORD *, uchar,
                        int, int *, coord *);
 
 struct keyboard_handling_t {
     enum windows_key_handling khid;
     int (*pProcessKeystroke)(HANDLE, INPUT_RECORD *, boolean *,
-                                          boolean, int);
+                                          uchar, int);
     int (*pNHkbhit)(HANDLE, INPUT_RECORD *);
-    int (*pCheckInput)(HANDLE, INPUT_RECORD *, DWORD *, boolean,
+    int (*pCheckInput)(HANDLE, INPUT_RECORD *, DWORD *, uchar,
                                    int, int *, coord *);
 } keyboard_handling = {
     no_keyhandling,
@@ -1181,7 +1181,7 @@ int
 process_keystroke(
     INPUT_RECORD *ir,
     boolean *valid,
-    boolean numberpad,
+    uchar numberpad,
     int portdebug)
 {
     int ch;
@@ -2086,7 +2086,7 @@ win32con_debug_keystrokes(void)
         nocmov(ttyDisplay->curx, ttyDisplay->cury);
         ReadConsoleInput(console.hConIn, &gbl_ir, 1, &count);
         if ((gbl_ir.EventType == KEY_EVENT) && gbl_ir.Event.KeyEvent.bKeyDown)
-            ch = process_keystroke(&gbl_ir, &valid, iflags.num_pad, 1);
+            ch = process_keystroke(&gbl_ir, &valid, (uchar) iflags.num_pad, 1);
     }
     (void) doredraw();
 }
@@ -2985,7 +2985,7 @@ default_processkeystroke(
     HANDLE hConIn UNUSED,
     INPUT_RECORD *ir,
     boolean *valid,
-    boolean numberpad,
+    uchar numberpad,
     int portdebug)
 {
     int k = 0;
@@ -3421,7 +3421,7 @@ int ray_processkeystroke(
     HANDLE hConIn,
     INPUT_RECORD *ir,
     boolean *valid,
-    boolean numberpad,
+    uchar numberpad,
     int portdebug)
 {
     int keycode, vk;
