@@ -5267,6 +5267,24 @@ cnv_trap_obj(
     deltrap(ttmp);
 }
 
+/* whether moving to a trap location is moving "into" the trap or "onto" it */
+boolean
+into_vs_onto(int traptype)
+{
+    switch (traptype) {
+    case BEAR_TRAP:
+    case PIT:
+    case SPIKED_PIT:
+    case HOLE:
+    case TELEP_TRAP:
+    case LEVEL_TELEP:
+    case MAGIC_PORTAL:
+    case WEB:
+        return TRUE;
+    }
+    return FALSE;
+}
+
 /* while attempting to disarm an adjacent trap, we've fallen into it */
 staticfn void
 move_into_trap(struct trap *ttmp)
@@ -5276,9 +5294,13 @@ move_into_trap(struct trap *ttmp)
     boolean unused;
 
     bx = by = cx = cy = 0; /* lint suppression */
-    /* we know there's no monster in the way, and we're not trapped */
-    if (!Punished
-        || drag_ball(x, y, &bc, &bx, &by, &cx, &cy, &unused, TRUE)) {
+    /* we know there's no monster in the way and we're not trapped, but
+       need to make sure the move is not diagonally into or out of a
+       doorway; the sgn() calls are redundant since ttmp is adjacent */
+    if (test_move(u.ux, u.uy, sgn(x - u.ux), sgn(y - u.uy), TEST_MOVE)
+        && (!Punished
+            || drag_ball(x, y, &bc, &bx, &by, &cx, &cy, &unused, TRUE))) {
+        /* move hero and update map */
         u.ux0 = u.ux, u.uy0 = u.uy;
         /* set u.ux,u.uy and u.usteed->mx,my plus handle CLIPPING */
         u_on_newpos(x, y);
@@ -5303,6 +5325,11 @@ move_into_trap(struct trap *ttmp)
         if ((ttmp = t_at(u.ux, u.uy)) != 0)
             ttmp->tseen = 1;
         exercise(A_WIS, FALSE);
+    } else {
+        /* caller has just printed "Whoops..." so if hero is prevented from
+           moving, a followup message is needed */
+        pline("Fortunately, you don't move %s it.",
+              into_vs_onto(ttmp->ttyp) ? "into" : "onto");
     }
 }
 

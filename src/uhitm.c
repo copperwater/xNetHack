@@ -5140,6 +5140,26 @@ mhitm_knockback(
     if (rn2(6))
         return FALSE;
 
+    /* decide where the first step will place the target; not accurate
+       for being knocked out of saddle but doesn't need to be; used for
+       test_move() and for message before actual hurtle */
+    defx = u_def ? u.ux : mdef->mx;
+    defy = u_def ? u.uy : mdef->my;
+    dx = sgn(defx - (u_agr ? u.ux : magr->mx));
+    dy = sgn(defy - (u_agr ? u.uy : magr->my));
+
+    /* can't move most targets into or out of a doorway diagonally */
+    if (u_def) {
+        if (!test_move(defx, defy, dx, dy, TEST_MOVE))
+            return FALSE;
+    } else {
+        /* subset of test_move() */
+        if (IS_DOOR(levl[defx][defy].typ)
+            && (defx - magr->mx && defy - magr->my)
+            && !doorless_door(defx, defy))
+            return FALSE;
+    }
+
     /* if hero is stuck to a cursed saddle, knock the steed back */
     if (u_def && u.usteed) {
         if ((otmp = which_armor(u.usteed, W_SADDLE)) != 0 && otmp->cursed) {
@@ -5191,13 +5211,6 @@ mhitm_knockback(
         return FALSE;
     }
 
-    /* decide where the first step will place the target; not accurate
-       for being knocked out of saddle but doesn't need to be; used for
-       message before actual hurtle */
-    defx = u_def ? u.ux : mdef->mx;
-    defy = u_def ? u.uy : mdef->my;
-    dx = sgn(defx - (u_agr ? u.ux : magr->mx));
-    dy = sgn(defy - (u_agr ? u.uy : magr->my));
     /* subtly vary the message text if monster won't actually move */
     knockedhow = dismount ? "out of your saddle"
                  : will_hurtle(mdef, defx + dx, defy + dy) ? "backward"
