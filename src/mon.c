@@ -5838,4 +5838,15 @@ see_nearby_monsters(void)
             }
 }
 
+/* monster resists something.
+   make a shield effect at monster's location and give a message */
+void
+shieldeff_mon(struct monst *mtmp)
+{
+    shieldeff(mtmp->mx, mtmp->my);
+    /* does not depend on seeing the monster; the shield effect is visible */
+    if (cansee(mtmp->mx, mtmp->my))
+        pline_xy(mtmp->mx, mtmp->my, "%s resists!", Monnam(mtmp));
+}
+
 /*mon.c*/

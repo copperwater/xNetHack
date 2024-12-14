@@ -2444,7 +2444,7 @@ trapeffect_poly_trap(
         boolean in_sight = canseemon(mtmp) || (mtmp == u.usteed);
 
         if (resists_magm(mtmp)) {
-            shieldeff(mtmp->mx, mtmp->my);
+            shieldeff_mon(mtmp);
         } else if (!resist(mtmp, WAND_CLASS, 0, NOTELL)) {
             (void) newcham(mtmp, (struct permonst *) 0, NC_SHOW_MSG);
             if (in_sight)

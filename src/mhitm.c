@@ -1137,7 +1137,7 @@ mon_poly(struct monst *magr, struct monst *mdef, int dmg)
         if (resists_magm(mdef)) {
             /* Magic resistance */
             if (gv.vis)
-                shieldeff(mdef->mx, mdef->my);
+                shieldeff_mon(mdef);
         } else if (resist(mdef, WAND_CLASS, 0, TELL)) {
             /* general resistance to magic... */
             ;
