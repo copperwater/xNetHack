@@ -791,8 +791,7 @@ keepdogs(
                 mdrop_special_objs(mtmp); /* drop Amulet */
             } else if (mtmp->meating || mtmp->mtrapped) {
                 if (canseemon(mtmp))
-                    pline_xy(mtmp->mx, mtmp->my,
-                             "%s is still %s.", Monnam(mtmp),
+                    pline_mon(mtmp, "%s is still %s.", Monnam(mtmp),
                              mtmp->meating ? "eating" : "trapped");
                 stay_behind = TRUE;
             } else if (mon_has_amulet(mtmp)) {
@@ -1128,7 +1127,7 @@ tamedog(
 
     /* worst case, at least it'll be peaceful. */
     if (givemsg && !mtmp->mpeaceful && canspotmon(mtmp)) {
-        pline_xy(mtmp->mx, mtmp->my, "%s seems %s.", Monnam(mtmp),
+        pline_mon(mtmp, "%s seems %s.", Monnam(mtmp),
               Hallucination ? "really chill" : "more amiable");
         givemsg = FALSE; /* don't give another message below */
     }
@@ -1163,8 +1162,8 @@ tamedog(
                 boolean big_corpse =
                     (obj->otyp == CORPSE && ismnum(obj->corpsenm)
                      && mons[obj->corpsenm].msize > mtmp->data->msize);
-                pline_xy(mtmp->mx, mtmp->my,
-                         "%s catches %s%s", Monnam(mtmp), the(xname(obj)),
+                pline_mon(mtmp, "%s catches %s%s",
+                          Monnam(mtmp), the(xname(obj)),
                          !big_corpse ? "." : ", or vice versa!");
             } else if (cansee(mtmp->mx, mtmp->my))
                 pline("%s.", Tobjnam(obj, "stop"));
@@ -1225,7 +1224,7 @@ tamedog(
     }
 
     if (givemsg && canspotmon(mtmp))
-        pline_xy(mtmp->mx, mtmp->my, "%s seems quite %s.", Monnam(mtmp),
+        pline_mon(mtmp, "%s seems quite %s.", Monnam(mtmp),
               Hallucination ? "approachable" : "friendly");
 
     newsym(mtmp->mx, mtmp->my);
@@ -1272,13 +1271,12 @@ wary_dog(struct monst *mtmp, boolean was_dead)
         if (!quietly && cansee(mtmp->mx, mtmp->my)) {
             if (haseyes(gy.youmonst.data)) {
                 if (haseyes(mtmp->data))
-                    pline_xy(mtmp->mx, mtmp->my,
+                    pline_mon(mtmp,
                              "%s %s to look you in the %s.", Monnam(mtmp),
                              mtmp->mpeaceful ? "seems unable" : "refuses",
                              body_part(EYE));
                 else
-                    pline_xy(mtmp->mx, mtmp->my,
-                             "%s avoids your gaze.", Monnam(mtmp));
+                    pline_mon(mtmp, "%s avoids your gaze.", Monnam(mtmp));
             }
         }
     } else {
@@ -1290,7 +1288,7 @@ wary_dog(struct monst *mtmp, boolean was_dead)
 
     if (!mtmp->mtame) {
         if (!quietly && canspotmon(mtmp))
-            pline_xy(mtmp->mx, mtmp->my, "%s %s.", Monnam(mtmp),
+            pline_mon(mtmp, "%s %s.", Monnam(mtmp),
                   mtmp->mpeaceful ? "is no longer tame" : "has become feral");
         newsym(mtmp->mx, mtmp->my);
         /* a life-saved monster might be leashed;

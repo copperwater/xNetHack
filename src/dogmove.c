@@ -283,9 +283,9 @@ dog_eat(struct monst *mtmp,
                result won't be printed */
             obj_name = distant_name(obj, doname);
             if (tunnels(mtmp->data))
-                pline_xy(mtmp->mx, mtmp->my, "%s digs in.", noit_Monnam(mtmp));
+                pline_mon(mtmp, "%s digs in.", noit_Monnam(mtmp));
             else
-                pline_xy(mtmp->mx, mtmp->my, "%s %s %s.", noit_Monnam(mtmp),
+                pline_mon(mtmp, "%s %s %s.", noit_Monnam(mtmp),
                       devour ? "devours" : "eats", obj_name);
         } else if (seeobj) {
             obj_name = distant_name(obj, doname);
@@ -335,7 +335,7 @@ dog_starve(struct monst *mtmp)
     if (mtmp->mleashed && mtmp != u.usteed)
         Your("leash goes slack.");
     else if (cansee(mtmp->mx, mtmp->my))
-        pline_xy(mtmp->mx, mtmp->my, "%s starves.", Monnam(mtmp));
+        pline_mon(mtmp, "%s starves.", Monnam(mtmp));
     else
         You_feel("%s for a moment.",
                     Hallucination ? "bummed" : "sad");
@@ -363,8 +363,7 @@ dog_hunger(struct monst *mtmp, struct edog *edog)
                 return TRUE;
             }
             if (cansee(mtmp->mx, mtmp->my))
-                pline_xy(mtmp->mx, mtmp->my,
-                         "%s is confused from hunger.", Monnam(mtmp));
+                pline_mon(mtmp, "%s is confused from hunger.", Monnam(mtmp));
             else if (couldsee(mtmp->mx, mtmp->my))
                 beg(mtmp);
             else
@@ -1264,7 +1263,7 @@ dog_move(
 
         if (info[chi] & ALLOW_U) {
             if (mtmp->mleashed) { /* play it safe */
-                pline_xy(mtmp->mx, mtmp->my, "%s breaks loose of %s leash!",
+                pline_mon(mtmp, "%s breaks loose of %s leash!",
                          Monnam(mtmp), mhis(mtmp));
                 m_unleash(mtmp, FALSE);
             }
@@ -1289,8 +1288,7 @@ dog_move(
                                ? vobj_at(nix, niy) : 0;
             const char *what = o ? distant_name(o, doname) : something;
 
-            pline_xy(mtmp->mx, mtmp->my, "%s %s reluctantly %s %s.",
-                     noit_Monnam(mtmp),
+            pline_mon(mtmp, "%s %s reluctantly %s %s.", noit_Monnam(mtmp),
                   vtense((char *) 0, locomotion(mtmp->data, "step")),
                   (is_flyer(mtmp->data) || is_floater(mtmp->data)) ? "over"
                                                                    : "onto",
