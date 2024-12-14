@@ -716,7 +716,7 @@ possibly_unwield(struct monst *mon, boolean polyspot)
         mon->weapon_check = NO_WEAPON_WANTED;
         /* if we're going to call distant_name(), do so before extract_self */
         if (cansee(mon->mx, mon->my)) {
-            pline("%s drops %s.", Monnam(mon), distant_name(obj, doname));
+            pline_mon(mon, "%s drops %s.", Monnam(mon), distant_name(obj, doname));
             newsym(mon->mx, mon->my);
         }
         obj_extract_self(obj);
@@ -827,7 +827,7 @@ mon_wield_item(struct monst *mon)
                     pline("%s cannot wield that %s.", mon_nam(mon),
                           xname(obj));
                 } else {
-                    pline("%s tries to wield %s.", Monnam(mon), doname(obj));
+                    pline_mon(mon, "%s tries to wield %s.", Monnam(mon), doname(obj));
                     pline("%s %s!", Yname2(mw_tmp), welded_buf);
                 }
                 mw_tmp->bknown = 1;
