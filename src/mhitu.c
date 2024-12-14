@@ -269,7 +269,7 @@ expels(
         if (digests(mdat)) {
             You("get regurgitated!");
         } else if (enfolds(mdat)) {
-            pline("%s unfolds and you are released!", Monnam(mtmp));
+            pline_mon(mtmp, "%s unfolds and you are released!", Monnam(mtmp));
         } else {
             char blast[40];
             struct attack *attk = attacktype_fordmg(mdat, AT_ENGL, AD_ANY);
@@ -549,7 +549,7 @@ mattacku(struct monst *mtmp)
                    so mtmp's next move will be a regular attack */
                 place_monster(mtmp, mtmp->mx, mtmp->my); /* put back */
                 newsym(u.ux, u.uy); /* u.uundetected was toggled */
-                pline("%s draws back as you drop!", Monnam(mtmp));
+                pline_mon(mtmp, "%s draws back as you drop!", Monnam(mtmp));
                 return 0;
             }
 
@@ -717,7 +717,7 @@ mattacku(struct monst *mtmp)
     if (u.uinvulnerable) { /* in the midst of successful prayer */
         /* monsters won't attack you */
         if (mtmp == u.ustuck) {
-            pline("%s loosens its grip slightly.", Monnam(mtmp));
+            pline_mon(mtmp, "%s loosens its grip slightly.", Monnam(mtmp));
         } else if (!range2) {
             if (youseeit || sensemon(mtmp))
                 pline("%s starts to attack you, but pulls back.",
@@ -821,10 +821,11 @@ mattacku(struct monst *mtmp)
                         missmu(mtmp, (tmp == j), mattk);
                     }
                 } else if (digests(mtmp->data)) {
-                    pline("%s gulps some air!", Monnam(mtmp));
+                    pline_mon(mtmp, "%s gulps some air!", Monnam(mtmp));
                 } else {
                     if (youseeit) {
-                        pline("%s lunges forward and recoils!", Monnam(mtmp));
+                        pline_mon(mtmp, "%s lunges forward and recoils!",
+                                  Monnam(mtmp));
                     } else {
                         if (is_whirly(mtmp->data)) {
                             Soundeffect(se_rushing_wind_noise, 60);
@@ -956,7 +957,7 @@ summonmu(struct monst *mtmp, boolean youseeit)
 
             Strcpy(genericwere, "creature");
             if (youseeit)
-                pline("%s summons help!", Monnam(mtmp));
+                pline_mon(mtmp, "%s summons help!", Monnam(mtmp));
             numhelp = were_summon(mdat, FALSE, &numseen, genericwere);
             if (youseeit) {
                 if (numhelp > 0) {
@@ -1026,7 +1027,7 @@ u_slip_free(struct monst *mtmp, struct attack *mattk)
        protection might fail (33% chance) when the armor is cursed */
     if (obj && (obj->greased || obj->otyp == OILSKIN_CLOAK)
         && (!obj->cursed || rn2(3))) {
-        pline("%s %s your %s %s!", Monnam(mtmp),
+        pline_mon(mtmp, "%s %s your %s %s!", Monnam(mtmp),
               (mattk->adtyp == AD_WRAP) ? "slips off of"
                                         : "grabs you, but cannot hold onto",
               obj->greased ? "greased" : "slippery",
@@ -1662,7 +1663,7 @@ gazemu(struct monst *mtmp, struct attack *mattk)
             if (is_medusa && Hallucination && !rn2(3))
                 pline("Someone seems overdue for a serpent cut.");
             else
-                pline("%s %s.", Monnam(mtmp),
+                pline_mon(mtmp, "%s %s.", Monnam(mtmp),
                       (is_medusa && mtmp->mcan && !react)
                           ? "doesn't look all that ugly"
                           : "gazes ineffectually");
@@ -1686,7 +1687,7 @@ gazemu(struct monst *mtmp, struct attack *mattk)
                 break;
             }
             if (useeit)
-                pline("%s is turned to stone!", Monnam(mtmp));
+                pline_mon(mtmp, "%s is turned to stone!", Monnam(mtmp));
             gs.stoned = TRUE;
             killed(mtmp);
 
@@ -1716,7 +1717,8 @@ gazemu(struct monst *mtmp, struct attack *mattk)
 
                 mtmp->mspec_used = mtmp->mspec_used + (conf + rn2(6));
                 if (!Confusion)
-                    pline("%s gaze confuses you!", s_suffix(Monnam(mtmp)));
+                    pline_mon(mtmp, "%s gaze confuses you!",
+                              s_suffix(Monnam(mtmp)));
                 else
                     You("are getting more and more confused.");
                 make_confused(HConfusion + conf, FALSE);
@@ -1733,7 +1735,7 @@ gazemu(struct monst *mtmp, struct attack *mattk)
                 int stun = d(2, 6);
 
                 mtmp->mspec_used = mtmp->mspec_used + (stun + rn2(6));
-                pline("%s stares piercingly at you!", Monnam(mtmp));
+                pline_mon(mtmp, "%s stares piercingly at you!", Monnam(mtmp));
                 make_stunned((HStun & TIMEOUT) + (long) stun, TRUE);
                 stop_occupation();
             }
@@ -1777,7 +1779,8 @@ gazemu(struct monst *mtmp, struct attack *mattk)
             } else {
                 int dmg = d(2, 6), orig_dmg = dmg, lev = (int) mtmp->m_lev;
 
-                pline("%s attacks you with a fiery gaze!", Monnam(mtmp));
+                pline_mon(mtmp, "%s attacks you with a fiery gaze!",
+                          Monnam(mtmp));
                 stop_occupation();
                 if (Fire_resistance) {
                     shieldeff(u.ux, u.uy);
@@ -1837,7 +1840,7 @@ gazemu(struct monst *mtmp, struct attack *mattk)
             react = rn2(SIZE(reactions));
         /* cancelled/hallucinatory feedback; monster might look "confused",
            "stunned",&c but we don't actually set corresponding attribute */
-        pline("%s looks %s%s.", Monnam(mtmp),
+        pline_mon(mtmp, "%s looks %s%s.", Monnam(mtmp),
               !rn2(3) ? "" : already ? "quite "
                                      : (!rn2(2) ? "a bit " : "somewhat "),
               reactions[react]);
@@ -1941,12 +1944,13 @@ doseduce(struct monst *mon)
     char qbuf[QBUFSZ], Who[QBUFSZ];
 
     if (mon->mcan || mon->mspec_used) {
-        pline("%s acts as though %s has got a %sheadache.", Monnam(mon),
-              mhe(mon), mon->mcan ? "severe " : "");
+        pline_mon(mon, "%s acts as though %s has got a %sheadache.",
+                  Monnam(mon), mhe(mon), mon->mcan ? "severe " : "");
         return 0;
     }
     if (unresponsive()) {
-        pline("%s seems dismayed at your lack of response.", Monnam(mon));
+        pline_mon(mon, "%s seems dismayed at your lack of response.",
+                  Monnam(mon));
         return 0;
     }
     seewho = canseemon(mon);
@@ -2104,7 +2108,7 @@ doseduce(struct monst *mon)
                                      : "");
             }
         } else if (seewho)
-            pline("%s appears to sigh.", Monnam(mon));
+            pline_mon(mon, "%s appears to sigh.", Monnam(mon));
         /* else no regret message if can't see or hear seducer */
 
         if (!tele_restrict(mon))
@@ -2214,7 +2218,8 @@ doseduce(struct monst *mon)
         pline("%s demands that you pay %s, but you refuse...",
               noit_Monnam(mon), noit_mhim(mon));
     } else if (u.umonnum == PM_LEPRECHAUN) {
-        pline("%s tries to take your gold, but fails...", noit_Monnam(mon));
+        pline_mon(mon, "%s tries to take your gold, but fails...",
+                  noit_Monnam(mon));
     } else {
         long cost;
         long umoney = money_cnt(gi.invent);
@@ -2234,8 +2239,8 @@ doseduce(struct monst *mon)
             SetVoice(mon, 0, 80, 0);
             verbalize("It's on the house!");
         } else {
-            pline("%s takes %ld %s for services rendered!", noit_Monnam(mon),
-                  cost, currency(cost));
+            pline_mon(mon, "%s takes %ld %s for services rendered!",
+                      noit_Monnam(mon), cost, currency(cost));
             money2mon(mon, cost);
             disp.botl = TRUE;
         }
@@ -2298,7 +2303,7 @@ staticfn int
 assess_dmg(struct monst *mtmp, int tmp)
 {
     if ((mtmp->mhp -= tmp) <= 0) {
-        pline("%s dies!", Monnam(mtmp));
+        pline_mon(mtmp, "%s dies!", Monnam(mtmp));
         xkilled(mtmp, XKILL_NOMSG);
         if (!DEADMONSTER(mtmp))
             return M_ATTK_HIT;
@@ -2402,13 +2407,13 @@ passiveum(
     switch (oldu_mattk->adtyp) {
     case AD_ACID:
         if (!rn2(2)) {
-            pline("%s is splashed by %s%s!", Monnam(mtmp),
+            pline_mon(mtmp, "%s is splashed by %s%s!", Monnam(mtmp),
                   /* temporary? hack for sequencing issue:  "your acid"
                      looks strange coming immediately after player has
                      been told that hero has reverted to normal form */
                   !Upolyd ? "" : "your ", hliquid("acid"));
             if (resists_acid(mtmp)) {
-                pline("%s is not affected.", Monnam(mtmp));
+                pline_mon(mtmp, "%s is not affected.", Monnam(mtmp));
                 tmp = 0;
             }
         } else
@@ -2435,7 +2440,7 @@ passiveum(
                 mon_to_stone(mtmp);
                 return 1;
             }
-            pline("%s turns to stone!", Monnam(mtmp));
+            pline_mon(mtmp, "%s turns to stone!", Monnam(mtmp));
             gs.stoned = 1;
             xkilled(mtmp, XKILL_NOMSG);
             if (!DEADMONSTER(mtmp))
@@ -2485,13 +2490,14 @@ passiveum(
                         if (mon_reflects(mtmp,
                                          "Your gaze is reflected by %s %s."))
                             return 1;
-                        pline("%s is frozen by your gaze!", Monnam(mtmp));
+                        pline_mon(mtmp, "%s is frozen by your gaze!",
+                                  Monnam(mtmp));
                         paralyze_monst(mtmp, tmp);
                         return M_ATTK_AGR_DONE;
                     }
                 }
             } else { /* gelatinous cube */
-                pline("%s is frozen by you.", Monnam(mtmp));
+                pline_mon(mtmp, "%s is frozen by you.", Monnam(mtmp));
                 paralyze_monst(mtmp, tmp);
                 return M_ATTK_AGR_DONE;
             }
@@ -2499,12 +2505,12 @@ passiveum(
         case AD_COLD: /* Brown mold or blue jelly */
             if (resists_cold(mtmp)) {
                 shieldeff(mtmp->mx, mtmp->my);
-                pline("%s is mildly chilly.", Monnam(mtmp));
+                pline_mon(mtmp, "%s is mildly chilly.", Monnam(mtmp));
                 golemeffects(mtmp, AD_COLD, tmp);
                 tmp = 0;
                 break;
             }
-            pline("%s is suddenly very cold!", Monnam(mtmp));
+            pline_mon(mtmp, "%s is suddenly very cold!", Monnam(mtmp));
             u.mh += (tmp + rn2(2)) / 2;
             if (u.mhmax < u.mh)
                 u.mhmax = u.mh;
@@ -2514,7 +2520,7 @@ passiveum(
         case AD_STUN: /* Yellow mold */
             if (!mtmp->mstun) {
                 mtmp->mstun = 1;
-                pline("%s %s.", Monnam(mtmp),
+                pline_mon(mtmp, "%s %s.", Monnam(mtmp),
                       makeplural(stagger(mtmp->data, "stagger")));
             }
             tmp = 0;
@@ -2522,22 +2528,23 @@ passiveum(
         case AD_FIRE: /* Red mold */
             if (resists_fire(mtmp)) {
                 shieldeff(mtmp->mx, mtmp->my);
-                pline("%s is mildly warm.", Monnam(mtmp));
+                pline_mon(mtmp, "%s is mildly warm.", Monnam(mtmp));
                 golemeffects(mtmp, AD_FIRE, tmp);
                 tmp = 0;
                 break;
             }
-            pline("%s is suddenly very hot!", Monnam(mtmp));
+            pline_mon(mtmp, "%s is suddenly very hot!", Monnam(mtmp));
             break;
         case AD_ELEC:
             if (resists_elec(mtmp)) {
                 shieldeff(mtmp->mx, mtmp->my);
-                pline("%s is slightly tingled.", Monnam(mtmp));
+                pline_mon(mtmp, "%s is slightly tingled.", Monnam(mtmp));
                 golemeffects(mtmp, AD_ELEC, tmp);
                 tmp = 0;
                 break;
             }
-            pline("%s is jolted with your electricity!", Monnam(mtmp));
+            pline_mon(mtmp, "%s is jolted with your electricity!",
+                      Monnam(mtmp));
             break;
         default:
             tmp = 0;
