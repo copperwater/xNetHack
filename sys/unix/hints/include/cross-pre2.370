@@ -134,6 +134,26 @@ override TARGET_CXX = $(TOOLTOP1)/i586-pc-msdosdjgpp-g++
 override TARGET_AR = $(TOOLTOP1)/i586-pc-msdosdjgpp-gcc-ar
 override TARGET_STUBEDIT = ../lib/djgpp/i586-pc-msdosdjgpp/bin/stubedit
 #
+ifdef DOSBOX
+dosbox=$(DOSBOX)
+endif
+ifdef dosbox
+dosboxgameid=NH370
+dosboxtop=$(dosbox)
+dosboxnhfolder=$(dosboxtop)/$(dosboxgameid)
+dosboxnhsrc=$(dosboxnhfolder)/NHSRC
+dosboxconfigfile=NETHACK.CNF
+dosgdburl=http://www.mirrorservice.org/sites/ftp.delorie.com/pub/djgpp/current/v2gnu/gdb801b.zip
+ifdef MAKEFILE_SRC
+FLDR=../
+endif
+ifdef MAKEFILE_TOP
+FLDR=
+endif
+WANT_DEBUG=1
+DEPLOY=deploytodosbox
+endif  # dosbox
+#
 ifeq "$(WANT_DEBUG)" "1"
 DBGFLAGS = -g
 else
