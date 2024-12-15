@@ -31,6 +31,10 @@
 #ifndef CROSSCOMPILE
 #define SHORT_FILENAMES
 #endif
+/* this is not fully-implemented yet for msdos */
+#ifdef ENHANCED_SYMBOLS
+#undef ENHANCED_SYMBOLS
+#endif
 #endif
 
 /*

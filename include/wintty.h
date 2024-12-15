@@ -210,7 +210,7 @@ extern void docorner(int, int, int);
 extern void end_glyphout(void);
 extern void g_putch(int);
 #ifdef ENHANCED_SYMBOLS
-#if defined(WIN32) || defined(UNIX)
+#if defined(WIN32) || defined(UNIX) || defined(MSDOS)
 extern void g_pututf8(uint8 *);
 #endif
 #endif /* ENHANCED_SYMBOLS */

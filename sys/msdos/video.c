@@ -14,6 +14,7 @@
  */
 
 #include "hack.h"
+#include "wintty.h"
 
 #ifndef STUBVIDEO
 #include "pcvideo.h"
@@ -87,6 +88,14 @@ get_scr_size(void)
 #endif
         txt_get_scr_size();
 }
+
+#ifdef ENHANCED_SYMBOLS
+void g_pututf8(uint8 *utf8str)
+{
+    /* not implemented for msdos (yet) */
+    nhUse(utf8str);
+}
+#endif
 
 /*
  * --------------------------------------------------------------

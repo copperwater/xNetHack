@@ -27,12 +27,6 @@ extern void msmsg(const char *, ...);
 #endif
 #endif
 
-#ifdef MSDOS
-#ifdef ENHANCED_SYMBOLS
-#undef ENHANCED_SYMBOLS
-#endif
-#endif /* MSDOS */
-
 #ifndef NO_TERMS
 #include "tcap.h"
 #endif
