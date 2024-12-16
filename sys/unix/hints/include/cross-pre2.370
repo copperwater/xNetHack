@@ -150,6 +150,7 @@ endif
 ifdef MAKEFILE_TOP
 FLDR=
 endif
+dostargetexes=$(FLDR)lib/djgpp/target
 WANT_DEBUG=1
 DEPLOY=deploytodosbox
 endif  # dosbox

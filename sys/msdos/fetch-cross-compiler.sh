@@ -135,30 +135,60 @@ if [ ! -d djgpp/djgpp-patch ]; then
     cd ../../
 fi
 
-# get a copy of symify to insert in the final zip package
-# to make bug reports more useful
-# curl --output djdev205.zip http://www.mirrorservice.org/sites/ftp.delorie.com/pub/djgpp/current/v2/djdev205.zip
-if [ ! -d djgpp/symify ]; then
-    echo "Getting djdev205.zip" ;
+# create a directory hold native DOS executables that might get deployed
+if [ ! -d djgpp/target ]; then
     cd djgpp
-    mkdir -p symify
-    cd symify
-    if [ "$(uname)" = "Darwin" ]; then
-	#Mac
+    mkdir -p target
+    cd ../
+fi
+if [ -d djgpp/target ]; then
+  cd djgpp/target
+# symify to make bug reports more useful
+  if [ ! -f symify.exe ]; then
+    if [ ! -f djdev205.zip ]; then
+      echo "Getting djdev205.zip" ;
+      if [ "$(uname)" = "Darwin" ]; then
+        #Mac
 	curl --output djdev205.zip http://www.mirrorservice.org/sites/ftp.delorie.com/pub/djgpp/current/v2/djdev205.zip
         export cmdstatus=$?
-    else
+      else
 	wget --quiet --no-hsts http://www.mirrorservice.org/sites/ftp.delorie.com/pub/djgpp/current/v2/djdev205.zip
         export cmdstatus=$?
+      fi
+      if [ $cmdstatus -eq 0 ]; then
+	echo "fetch of djdev205.zip was successful"
+      fi
     fi
-    ls -l
-    if [ $cmdstatus -eq 0 ]; then
-	echo "fetch of symify was successful"
-	unzip -p djdev205.zip bin/symify.exe >./simify.exe
+    if [ -f djdev205.zip ]; then
+        echo "unzipping djdev205.zip"
+        unzip -p djdev205.zip bin/symify.exe >./symify.exe
     fi
-    cd ../../
+  fi
+# gdb
+  if [ ! -f gdb.exe ]; then
+    if [ ! -f gdb801b.zip ]; then
+      echo "getting gdb801b.zip" ;
+      if [ "$(uname)" = "Darwin" ]; then
+        #Mac
+	curl --output gdb801b.zip http://www.mirrorservice.org/sites/ftp.delorie.com/pub/djgpp/current/v2gnu/gdb801b.zip
+        export cmdstatus=$?
+      else
+	wget --quiet --no-hsts http://www.mirrorservice.org/sites/ftp.delorie.com/pub/djgpp/current/v2gnu/gdb801b.zip
+        export cmdstatus=$?
+      fi
+      if [ $cmdstatus -eq 0 ]; then
+	echo "fetch of gdb801b.zip was successful"
+      fi
+    fi
+    if [ -f gdb801b.zip ]; then
+        echo "unzipping gdb801b.zip"
+        unzip -p gdb801b.zip bin/gdb.exe >./gdb.exe
+    fi
+  fi
+  echo "Native DOS executables:"
+  ls -l *.exe
+  cd ../../
 fi
-
 
 FONT_VERSION="4.49"
 FONT_FILE="terminus-font-$FONT_VERSION"
