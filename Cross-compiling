@@ -472,10 +472,10 @@ Cross-compiler pre-built binary downloads:
        or pdcursesmod from:
            https://github.com/Bill-Gray/PDCursesMod.git
 
-    - A shell script to download that djgpp cross-compiler and associated
+    - A bash script to download that djgpp cross-compiler and associated
       pieces for either linux or macOS is available:
 
-           sh sys/msdos/fetch-cross-compiler.sh
+           bash sys/msdos/fetch-cross-compiler.sh
 
     That script won't install anything, it just does file fetches and stores
     them in subfolders of lib. The linux.370 and macOS.370 hints files are
@@ -483,7 +483,7 @@ Cross-compiler pre-built binary downloads:
         CROSS_TO_MSDOS=1
     on your make command line.
 
-    Note: Both the fetch-cross-compiler.sh script and the msdos
+    Note: Both the fetch-cross-compiler.sh bash script and the msdos
     cross-compile and package procedures require unzip and zip to be available
     on your host build system.
 

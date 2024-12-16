@@ -56,9 +56,9 @@ II. There once was a time when people built NetHack right on their DOS machine.
         pdcurses from:
             https://github.com/wmcbrine/PDCurses.git
 
-    - A shell script to download the above-mentioned djgpp cross-compiler and
+    - A bash script to download the above-mentioned djgpp cross-compiler and
       associated support pieces for either linux or macOS is available:
-        sh sys/msdos/fetch-cross-compiler.sh
+        sys/msdos/fetch-cross-compiler.sh
 
     That script won't install anything, it just does file fetches and stores
     them in subfolders of lib. The linux.370 and macOS.370 hints files are
@@ -66,7 +66,7 @@ II. There once was a time when people built NetHack right on their DOS machine.
         CROSS_TO_MSDOS=1
     on your make command line.
 
-    Note: Both the fetch-cross-compiler.sh script and the msdos
+    Note: Both the fetch-cross-compiler.sh bash script and the msdos
     cross-compile and package procedures require unzip and zip to be available
     on your host build system.
 
@@ -136,8 +136,8 @@ Appendix B - Common Difficulties Encountered
          make: *** [Makefile:1531: nethack] Error 2
 
      That result usually indicates that you haven't successfully run
-     the script to fetch the cross-compiler. Try again:
-         sh sys/msdos/fetch-cross-compiler.sh
+     the bash script to fetch the cross-compiler. Try again:
+         sys/msdos/fetch-cross-compiler.sh
 
   ii) The cross-compile stops with an error "libfl.so.2: cannot open
       shared object file: No such file or directory.

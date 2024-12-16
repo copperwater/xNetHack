@@ -225,7 +225,7 @@ steps:
     sh setup.sh hints/linux.370
     cd ../..
     make fetch-lua
-    sh sys/msdos/fetch-cross-compiler.sh
+    sys/msdos/fetch-cross-compiler.sh
     retVal=$?
     if [ $retVal -eq 0 ]; then
         make LUA_VERSION=5.4.6 WANT_WIN_TTY=1 WANT_WIN_CURSES=1 CROSS_TO_MSDOS=1 package
