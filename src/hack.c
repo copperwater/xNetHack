@@ -1073,9 +1073,9 @@ test_move(
                             " but can't squeeze your possessions through.");
                     if (flags.autoopen && !svc.context.run
                         && !Confusion && !Stunned && !Fumbling) {
-                        svc.context.door_opened
-                        = svc.context.move
-                          = (doopen_indir(x, y) == ECMD_TIME ? 1 : 0);
+                        (void) doopen_indir(x, y);
+                        svc.context.door_opened = !closed_door(x, y);
+                        svc.context.move = (x != u.ux || y != u.uy);
                     } else if (x == ux || y == uy) {
                         if (Blind || Stunned || ACURR(A_DEX) < 10
                             || Fumbling) {
