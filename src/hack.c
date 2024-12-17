@@ -972,10 +972,16 @@ test_move(
 {
     coordxy x = ux + dx;
     coordxy y = uy + dy;
-    struct rm *tmpr = &levl[x][y];
+    struct rm *tmpr;
     struct rm *ust;
 
     svc.context.door_opened = FALSE;
+
+    if (!isok(x, y))
+        return FALSE;
+
+    tmpr = &levl[x][y];
+
     /*
      *  Check for physical obstacles.  First, the place we are going.
      */
