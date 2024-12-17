@@ -5160,6 +5160,8 @@ mhitm_knockback(
             return FALSE;
     } else {
         /* subset of test_move() */
+        if (!isok(defx + dx, defy + dy))
+            return FALSE;
         if (IS_DOOR(levl[defx][defy].typ)
             && (defx - magr->mx && defy - magr->my)
             && !doorless_door(defx, defy))
