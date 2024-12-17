@@ -1322,8 +1322,8 @@ mazexy(coord *cc)
         x = rnd(gx.x_maze_max);
         y = rnd(gy.y_maze_max);
         if (levl[x][y].typ == allowedtyp) {
-            cc->x = (coordxy) x;
-            cc->y = (coordxy) y;
+            cc->x = x;
+            cc->y = y;
             return;
         }
     } while (++cpt < 100);
@@ -1331,8 +1331,8 @@ mazexy(coord *cc)
     for (x = 1; x <= gx.x_maze_max; x++)
         for (y = 1; y <= gy.y_maze_max; y++)
             if (levl[x][y].typ == allowedtyp) {
-                cc->x = (coordxy) x;
-                cc->y = (coordxy) y;
+                cc->x = x;
+                cc->y = y;
                 return;
             }
     /* every spot on the area of map allowed for mazes has been rejected */

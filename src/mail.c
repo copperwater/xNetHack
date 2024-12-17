@@ -201,7 +201,7 @@ md_start(coord *startp)
                     startp->y = row;
                     startp->x = gv.viz_rmin[row];
 
-                } else if (enexto(&testcc, (coordxy) gv.viz_rmin[row], row,
+                } else if (enexto(&testcc, gv.viz_rmin[row], row,
                                   (struct permonst *) 0)
                            && !cansee(testcc.x, testcc.y)
                            && couldsee(testcc.x, testcc.y)) {
@@ -216,7 +216,7 @@ md_start(coord *startp)
                     startp->y = row;
                     startp->x = gv.viz_rmax[row];
 
-                } else if (enexto(&testcc, (coordxy) gv.viz_rmax[row], row,
+                } else if (enexto(&testcc, gv.viz_rmax[row], row,
                                   (struct permonst *) 0)
                            && !cansee(testcc.x, testcc.y)
                            && couldsee(testcc.x, testcc.y)) {

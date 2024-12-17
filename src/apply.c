@@ -1965,8 +1965,8 @@ display_jump_positions(boolean on_off)
         tmp_at(DISP_BEAM, cmap_to_glyph(S_goodpos));
         for (dx = -4; dx <= 4; dx++)
             for (dy = -4; dy <= 4; dy++) {
-                x = dx + (coordxy) u.ux;
-                y = dy + (coordxy) u.uy;
+                x = dx + u.ux;
+                y = dy + u.uy;
                 if (get_valid_jump_position(x, y) && !u_at(x, y))
                     tmp_at(x, y);
             }

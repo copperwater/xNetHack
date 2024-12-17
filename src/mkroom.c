@@ -293,7 +293,7 @@ fill_zoo(struct mkroom *sroom)
             (void) somexyspace(sroom, &mm);
             tx = mm.x;
             ty = mm.y;
-        } while (occupied((coordxy) tx, (coordxy) ty) && --i > 0);
+        } while (occupied(tx, ty) && --i > 0);
  throne_placed:
         mk_zoo_thronemon(tx, ty);
         break;

@@ -807,7 +807,7 @@ scatter(coordxy sx, coordxy sy,  /* location of objects to scatter */
         } else if ((scflags & MAY_DESTROY) != 0
                    && (!rn2(10) || (objects[otmp->otyp].oc_material == GLASS
                                     || otmp->otyp == EGG))) {
-            if (breaks(otmp, (coordxy) sx, (coordxy) sy))
+            if (breaks(otmp, sx, sy))
                 used_up = TRUE;
         }
 
