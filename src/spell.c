@@ -1575,7 +1575,8 @@ spelleffects(int spell_otyp, boolean atme, boolean force)
     }
 
     /* gain skill for successful cast */
-    use_skill(skill, spellev(spell));
+    if (!force)
+        use_skill(skill, spellev(spell));
 
     obfree(pseudo, (struct obj *) 0); /* now, get rid of it */
     return ECMD_TIME;
