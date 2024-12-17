@@ -228,6 +228,17 @@ override RECOVERBIN = $(TARGETPFX)recover.exe
 override PACKAGE = dospkg
 override PREGAME += mkdir -p $(TARGETDIR) ; make $(TARGETPFX)exceptn.o ;
 override CLEANMORE += rm -f -r $(TARGETDIR) ; rm -f -r $(FONTTARGETS) ;
+ifeq "$(WANT_DEBUG)" "1"
+GDBEXE=../lib/djgpp/target/gdb.exe
+GDBBAT=NHGDB.BAT
+GDBCMDLINE=directory nhsrc/src nhsrc/include nhsrc/sys/msdos \
+		nhsrc/sys/share nhsrc/win/share nhsrc/win/curses \
+		nhsrc/win/tty nhsrc/util
+else
+GDBEXE=
+GDBBAT=
+GDBCMDLINE=
+endif
 VARDATND += nhtiles.bmp
 #
 ifdef WANT_WIN_CURSES

@@ -70,6 +70,18 @@ dospkg: dodata dosfonts $(GAMEBIN) $(TARGETPFX)recover.exe ../dat/nhtiles.bmp
           else \
               pwd; echo "../lib/djgpp/target/symify.exe not found"; \
 	  fi; )
+ifeq "$(WANT_DEBUG)" "1"
+	( if [ -f $(GDBEXE) ]; \
+	  then \
+		cp  $(GDBEXE) $(TARGETPFX)pkg/GDB.EXE; \
+		echo "gdb -ex '$(GDBCMDLINE)' NETHACK.EXE"> $(TARGETPFX)pkg/$(GDBBAT); \
+          else \
+		pwd; echo "$(GDBEXE) not found and WANT_DEBUG=1 specified"; \
+	  fi; )
+else
+	-rm $(TARGETPFX)pkg/GDB.EXE
+	-rm $(TARGETPFX)pkg/NHGDB.BAT
+endif
 	-touch $(TARGETPFX)pkg/RECORD
 	cd $(TARGETPFX)pkg ; zip -9 ../NH370DOS.ZIP * ; cd ../../..
 	@echo msdos package zip file $(TARGETPFX)NH370DOS.ZIP
@@ -78,7 +90,6 @@ $(LUABIN):
 	( cd .. && make luabin && cd src)
 dodata:
 	( cd .. && make dlb && cd src)
-
 ifdef dosbox
 # make CROSS_TO_MSDOS=1 dosbox=~/dosbox deploy-to-dosbox
 ifdef MAKEFILE_TOP
@@ -92,11 +103,9 @@ deploytodosbox: $(TARGETPFX)NH370DOS.ZIP $(dosboxnhfolder) $(dosboxnhsrc) \
 			$(dosboxnhsrc)/sys/msdos $(dosboxnhsrc)/sys/share \
 			$(dosboxnhsrc)/win/share $(dosboxnhsrc)/win/curses \
 			$(dosboxnhsrc)/win/tty $(dosboxnhsrc)/util \
-			$(dosboxnhfolder)/NETHACK.EXE \
-			$(dosboxnhfolder)/GDB.EXE $(dosboxnhfolder)/nhgdb.bat
+			$(dosboxnhfolder)/NETHACK.EXE
 	@echo DOS NetHack deployed to dosbox at $(dosboxnhfolder)
 $(TARGETPFX)NH370DOS.ZIP: dospkg
-#	( cd ..; make CROSS_TO_MSDOS=1 WANT_DEBUG=1 dospkg; cd src)
 $(dosboxnhfolder):
 	mkdir -p $@
 $(dosboxnhsrc): $(dosboxnhfolder)
@@ -132,13 +141,6 @@ $(dosboxnhfolder)/NETHACK.EXE: $(TARGETPFX)NH370DOS.ZIP
 	unzip -o $(TARGETPFX)NH370DOS.ZIP -d $(dosboxnhfolder)
 	find $(dosboxnhfolder) -type f -name "$(dosboxconfigfile)" \
 		| xargs sed -i 's/#OPTIONS=video:autodetect/OPTIONS=video:autodetect/g'
-$(dosboxnhfolder)/GDB.EXE: $(dosboxnhfolder) $(dostargetexes)/gdb801b.zip
-	cp --preserve=timestamps $(dostargetexes)/gdb.exe $@
-$(dostargetexes)/gdb801b.zip:
-	curl --output $(dostargetexes)/gdb801b.zip $(dosgdburl)
-	unzip -p $(dostargetexes)/gdb801b.zip bin/gdb.exe >$@
-$(dosboxnhfolder)/nhgdb.bat: $(FLDR)src/Makefile
-	echo "gdb -ex 'directory nhsrc/src nhsrc/include nhsrc/sys/msdos nhsrc/sys/share nhsrc/win/share nhsrc/win/curses nhsrc/win/tty nhsrc/util' NETHACK.EXE"> $@
 endif  # dosbox
 endif  # CROSS_TO_MSDOS
 
