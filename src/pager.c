@@ -50,7 +50,8 @@ staticfn void domenucontrols(void);
 extern void port_help(void);
 #endif
 staticfn char *setopt_cmd(char *) NONNULL NONNULLARG1;
-staticfn boolean add_quoted_engraving(coordxy, coordxy, char *) NONNULLARG3;
+staticfn boolean add_quoted_engraving(coordxy, coordxy, char *, boolean)
+                                                                  NONNULLARG3;
 
 enum checkfileflags {
     chkfilNone     = 0,
@@ -1581,7 +1582,7 @@ do_screen_description(
                 *firstmatch = look_buf;
             if (*(*firstmatch)) {
                 Sprintf(temp_buf, " (%s", *firstmatch);
-                (void) add_quoted_engraving(cc.x, cc.y, temp_buf);
+                (void) add_quoted_engraving(cc.x, cc.y, temp_buf, FALSE);
                 Strcat(temp_buf, ")");
                 (void) strncat(out_str, temp_buf,
                                BUFSZ - strlen(out_str) - 1);
@@ -1600,7 +1601,10 @@ do_screen_description(
 
 /* when farlook is reporting on an engraving, include its text */
 staticfn boolean
-add_quoted_engraving(coordxy x, coordxy y, char *buf)
+add_quoted_engraving(
+    coordxy x, coordxy y,
+    char *buf,
+    boolean force) /* True: '/e' or '/E', False: '//' or ';' */
 {
     char temp_buf[BUFSZ];
     struct engr *ep = engr_at(x, y);
@@ -1617,7 +1621,10 @@ add_quoted_engraving(coordxy x, coordxy y, char *buf)
      * or object) that happens to be on top of an engraving, so we won't
      * append the engraving text.
      */
-    if (!ep || (!floorengr && !headstone))
+    if (!ep)
+        return FALSE;
+
+    if (!floorengr && !headstone && !force)
         return FALSE;
 
     if (ep->eread)
@@ -2100,13 +2107,12 @@ look_engrs(boolean nearby)
             if (!e)
                 continue;
             glyph = glyph_at(x, y);
-            sym = ((levl[x][y].typ == GRAVE || svl.lastseentyp[x][y] == GRAVE)
-                   ? S_grave
+            is_headstone = IS_GRAVE(svl.lastseentyp[x][y]);
+            sym = (is_headstone ? S_grave
                    : (levl[x][y].typ == CORR) ? S_engrcorr
                      : S_engroom);
-            is_headstone = (sym == S_grave);
-            Sprintf(lookbuf, "(%s", is_headstone ? "grave" : "engraving");
-            (void) add_quoted_engraving(x, y, lookbuf);
+            Sprintf(lookbuf, " (%s", is_headstone ? "grave" : "engraving");
+            (void) add_quoted_engraving(x, y, lookbuf, TRUE);
             /* the paren is used by farlook and add_quoted_engraving()
                expected to see it; we don't want it here */
             if (is_headstone) {
@@ -2114,7 +2120,7 @@ look_engrs(boolean nearby)
                 (void) strsubst(lookbuf, "(grave whose ", "");
             } else {
                 (void) strsubst(lookbuf, "(engraving with ", "");
-                (void) strsubst(lookbuf, "(engraving that ", "one that ");
+                (void) strsubst(lookbuf, "(engraving ", "engraving ");
             }
 
             if (glyph_is_cmap(glyph) && !glyph_is_trap(glyph)) {
@@ -2150,7 +2156,7 @@ look_engrs(boolean nearby)
                                   : (cmode == GPCOORDS_MAP) ? "%8s  "
                                       : "%12s  ",
                         coord_desc(x, y, coordbuf, cmode));
-                Sprintf(eos(outbuf), "%s  ", encglyph(glyph));
+                Sprintf(eos(outbuf), "%s ", encglyph(glyph));
                 /* guard against potential overflow */
                 lookbuf[sizeof lookbuf - 1 - strlen(outbuf)] = '\0';
                 Strcat(outbuf, lookbuf);

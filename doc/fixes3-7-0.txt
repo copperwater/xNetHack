@@ -1491,6 +1491,7 @@ artifact gifts are rebalanced (easier to obtain; higher-value sacrifices are
 	gifted enchanted; unaligned artifacts are possible but rare even on
 	the first gift; artifacts you can't use well are less likely)
 luck gains from sacrificing are limited by the value of the sacrifice
+failed #untrap could move hero diagonally into or out of an open doorway
 
 
 Fixes to 3.7.0-x General Problems Exposed Via git Repository
@@ -2071,6 +2072,10 @@ if a pile of objects had plain arrow(s) on top, map location classification
 	got confused and reported 'unexplored area'
 when the 'fireassist' option was on, 'f' would choose uquiver over wielded
 	throw-and-return uwep
+knockback could move hero diagonally into or out of an open doorway
+farlook of /e or /E stopped reporting engraving and headstone text after a fix
+	for the situation where // or ; reported such text when there was an
+	object or monster in the way
 
 
 Fixes to 3.7.0-x Platform and/or Interface Problems Exposed Via git Repository
