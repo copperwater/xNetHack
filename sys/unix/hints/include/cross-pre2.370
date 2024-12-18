@@ -439,6 +439,9 @@ override RECOVERBIN = $(TARGETPFX)recover
 override PACKAGE = mipspkg
 override PREGAME += mkdir -p $(TARGETDIR) ;
 override CLEANMORE += rm -f -r $(TARGETDIR) ;
+NCURSES_CONFIGURE_BUILD=i686-pc-linux-gnu
+NCURSES_CONFIGURE_HOST=mipsel-linux-gnu
+NCURSES_PLATFORM=MIPS
 # Rule for file in sys/unix
 #$(TARGETPFX)%.o : ../sys/unix/%.c
 #	$(TARGET_CC) $(TARGET_CFLAGS) -c -o$@ $<
