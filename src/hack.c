@@ -1075,7 +1075,7 @@ test_move(
                         && !Confusion && !Stunned && !Fumbling) {
                         (void) doopen_indir(x, y);
                         svc.context.door_opened = !closed_door(x, y);
-                        svc.context.move = (x != u.ux || y != u.uy);
+                        svc.context.move = (ux != u.ux || uy != u.uy);
                     } else if (x == ux || y == uy) {
                         if (Blind || Stunned || ACURR(A_DEX) < 10
                             || Fumbling) {
