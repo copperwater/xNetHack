@@ -1334,6 +1334,9 @@ doname_base(
             Strcat(prefix, "uncursed ");
     }
 
+    /* "a large trapped box" would perhaps be more correct */
+    if (Is_box(obj) && obj->otrapped && obj->tknown && obj->dknown)
+        Strcat(prefix,"trapped ");
     if (lknown && Is_box(obj)) {
         if (obj->obroken)
             /* 3.6.0 used "unlockable" here but that could be misunderstood

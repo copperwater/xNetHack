@@ -852,6 +852,7 @@ unknow_object(struct obj *obj)
 
     obj->bknown = obj->rknown = 0;
     obj->cknown = obj->lknown = 0;
+    obj->tknown = 0;
     /* for an existing object, awareness of charges or enchantment has
        gone poof...  [object types which don't use the known flag have
        it set True for some reason] */
@@ -1000,6 +1001,7 @@ mksobj_init(struct obj *otmp, boolean artif)
         case LARGE_BOX:
             otmp->olocked = !!(rn2(5));
             otmp->otrapped = !(rn2(10));
+            otmp->tknown = otmp->otrapped && !rn2(100); /* obvious trap */
             FALLTHROUGH;
             /*FALLTHRU*/
         case ICE_BOX:

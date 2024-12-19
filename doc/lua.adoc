@@ -849,6 +849,7 @@ The table parameter accepts the following:
 | eroded      | int      | Object erosion
 | locked      | boolean  | Is the object locked?
 | trapped     | boolean  | Is the object trapped?
+| trap_known  | boolean  | If container is trapped, is it obvious?
 | recharged   | boolean  | Is the object recharged?
 | greased     | boolean  | Is the object greased?
 | broken      | boolean  | Is the object broken?

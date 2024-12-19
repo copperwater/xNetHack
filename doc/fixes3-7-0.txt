@@ -1492,6 +1492,7 @@ artifact gifts are rebalanced (easier to obtain; higher-value sacrifices are
 	the first gift; artifacts you can't use well are less likely)
 luck gains from sacrificing are limited by the value of the sacrifice
 failed #untrap could move hero diagonally into or out of an open doorway
+remember box is trapped after finding the trap
 
 
 Fixes to 3.7.0-x General Problems Exposed Via git Repository

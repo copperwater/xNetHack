@@ -930,6 +930,8 @@ detect_obj_traps(
                 continue;
         }
         if (Is_box(otmp) && otmp->otrapped) {
+            otmp->tknown = 1;
+            otmp->dknown = 1;
             result |= u_at(x, y) ? OTRAP_HERE : OTRAP_THERE;
             if (ft) {
                 flash_glyph_at(x, y, trapglyph, FOUND_FLASH_COUNT);

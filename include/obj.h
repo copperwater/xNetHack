@@ -141,9 +141,9 @@ struct obj {
                           * they have no locks */
     Bitfield(pickup_prev, 1); /* was picked up previously */
     Bitfield(ghostly, 1); /* it just got placed into a bones file */
+    Bitfield(tknown, 1); /* trap status known for chests */
 #if 0
     /* not implemented */
-    Bitfield(tknown, 1); /* trap status known for chests */
     Bitfield(eknown, 1); /* effect known for wands zapped or rings worn when
                           * not seen yet after being picked up while blind
                           * [maybe for remaining stack of used potion too] */
