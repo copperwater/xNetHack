@@ -2091,13 +2091,17 @@ look_engrs(boolean nearby)
     char lookbuf[BUFSZ], outbuf[BUFSZ];
     coordxy x, y, lo_x, lo_y, hi_x, hi_y;
     boolean is_headstone;
+    nhsym sym;
     int glyph, count = 0;
 
     win = create_nhwindow(NHW_TEXT);
     look_region_nearby(&lo_x, &lo_y, &hi_x, &hi_y, nearby);
+    /*assert(lo_x >= 1 && lo_y >= 0 && hi_x < MAXCO && hi_y < MAXLI);*/
     for (y = lo_y; y <= hi_y; y++) {
         for (x = lo_x; x <= hi_x; x++) {
             lookbuf[0] = '\0';
+            if (!levl[x][y].seenv)
+                continue;
             /* this won't find remembered engravings which aren't there
                anymore (in case the hero is unaware that they're gone;
                scuffed away by monster movement or deleted during shop
@@ -2105,7 +2109,6 @@ look_engrs(boolean nearby)
             e = engr_at(x, y);
             if (!e)
                 continue;
-            glyph = glyph_at(x, y);
             is_headstone = IS_GRAVE(svl.lastseentyp[x][y]);
             Sprintf(lookbuf, " (%s", is_headstone ? "grave" : "engraving");
             (void) add_quoted_engraving(x, y, lookbuf, TRUE);
@@ -2119,18 +2122,18 @@ look_engrs(boolean nearby)
                 (void) strsubst(lookbuf, "(engraving ", "engraving ");
             }
 
-            if (glyph_is_cmap(glyph) && !glyph_is_trap(glyph)) {
+            glyph = glyph_at(x, y);
+            sym = glyph_is_cmap(glyph) ? glyph_to_cmap(glyph) : SYM_NOTHING;
+            if (is_cmap_engraving(sym) || sym == S_grave) {
                 /* engraving or grave+headstone shown on the map */
                 ++count;
-            } else if (e->eread || is_headstone) {
+            } else {
                 /* engraving or grave covered by object(s) */
                 Snprintf(eos(lookbuf), sizeof lookbuf - strlen(lookbuf),
                          ", obscured by %s", encglyph(glyph));
                 glyph = is_headstone ? cmap_to_glyph(S_grave)
                                      : engraving_to_glyph(e);
                 ++count;
-            } else {
-                continue;
             }
             if (*lookbuf) { /* (redundant) */
                 char coordbuf[20], cmode;
