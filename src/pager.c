@@ -2089,7 +2089,6 @@ look_engrs(boolean nearby)
     winid win;
     struct engr *e;
     char lookbuf[BUFSZ], outbuf[BUFSZ];
-    nhsym sym;
     coordxy x, y, lo_x, lo_y, hi_x, hi_y;
     boolean is_headstone;
     int glyph, count = 0;
@@ -2108,9 +2107,6 @@ look_engrs(boolean nearby)
                 continue;
             glyph = glyph_at(x, y);
             is_headstone = IS_GRAVE(svl.lastseentyp[x][y]);
-            sym = (is_headstone ? S_grave
-                   : (levl[x][y].typ == CORR) ? S_engrcorr
-                     : S_engroom);
             Sprintf(lookbuf, " (%s", is_headstone ? "grave" : "engraving");
             (void) add_quoted_engraving(x, y, lookbuf, TRUE);
             /* the paren is used by farlook and add_quoted_engraving()
