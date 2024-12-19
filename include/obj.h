@@ -87,6 +87,7 @@ struct obj {
 #define NOBJ_STATES 10
     xint16 timed; /* # of fuses (timers) attached to this obj */
 
+    /* Bitfields currently require 5 bytes minimum */
     Bitfield(cursed, 1);    /* uncursed when neither cursed nor blessed */
     Bitfield(blessed, 1);
     Bitfield(unpaid, 1);    /* owned by shop; valid for objects in hero's
@@ -98,6 +99,10 @@ struct obj {
                              * items on shop floor or in containers there;
                              * implicit for items at any other location
                              * unless carried and explicitly flagged unpaid */
+    Bitfield(recharged, 3); /* number of times it's been recharged */
+#define on_ice recharged    /* corpse on ice */
+    Bitfield(lamplit, 1);   /* a light-source -- can be lit */
+
     Bitfield(known, 1);     /* exact nature known (for instance, charge count
                              * or enchantment); many items have this preset if
                              * they lack anything interesting to discover */
@@ -105,6 +110,14 @@ struct obj {
                              * some types of items always have dknown set */
     Bitfield(bknown, 1);    /* BUC (blessed/uncursed/cursed) known */
     Bitfield(rknown, 1);    /* rustproofing status known */
+    Bitfield(cknown, 1); /* for containers (including statues): the contents
+                          * are known; also applicable to tins; also applies
+                          * to horn of plenty but only for empty/non-empty */
+    Bitfield(lknown, 1); /* locked/unlocked status is known; assigned for bags
+                          * and for horn of plenty (when tipping) even though
+                          * they have no locks */
+    Bitfield(tknown, 1); /* trap status known for chests */
+    Bitfield(nomerge, 1);   /* set temporarily to prevent merging */
 
     Bitfield(oeroded, 2);  /* rusted/burnt weapon/armor */
     Bitfield(oeroded2, 2); /* corroded/rotted weapon/armor */
@@ -123,33 +136,23 @@ struct obj {
 /* or accidental tripped rolling boulder trap */
 #define opoisoned otrapped /* object (weapon) is coated with poison */
 
-    Bitfield(recharged, 3); /* number of times it's been recharged */
-#define on_ice recharged    /* corpse on ice */
-    Bitfield(lamplit, 1);   /* a light-source -- can be lit */
     Bitfield(globby, 1);    /* combines with like types on adjacent squares */
     Bitfield(greased, 1);   /* covered with grease */
-    Bitfield(nomerge, 1);   /* set temporarily to prevent merging */
-    Bitfield(how_lost, 2);  /* stolen by mon or thrown, dropped by hero */
-
     Bitfield(in_use, 1); /* for magic items before useup items */
     Bitfield(bypass, 1); /* mark this as an object to be skipped by bhito() */
-    Bitfield(cknown, 1); /* for containers (including statues): the contents
-                          * are known; also applicable to tins; also applies
-                          * to horn of plenty but only for empty/non-empty */
-    Bitfield(lknown, 1); /* locked/unlocked status is known; assigned for bags
-                          * and for horn of plenty (when tipping) even though
-                          * they have no locks */
     Bitfield(pickup_prev, 1); /* was picked up previously */
     Bitfield(ghostly, 1); /* it just got placed into a bones file */
-    Bitfield(tknown, 1); /* trap status known for chests */
+    Bitfield(how_lost, 2);  /* stolen by mon or thrown, dropped by hero */
+
+    Bitfield(named_how, 1);  /* source of name per TODO in resetobjs() */
 #if 0
     /* not implemented */
     Bitfield(eknown, 1); /* effect known for wands zapped or rings worn when
                           * not seen yet after being picked up while blind
                           * [maybe for remaining stack of used potion too] */
-    /* 7 free bits */
+    /* 6 free bits */
 #else
-    /* 1 free bit */
+    /* 7 free bits */
 #endif
 
     int corpsenm;         /* type of corpse is mons[corpsenm] */
@@ -465,11 +468,15 @@ struct obj {
 #define POTHIT_MONST_THROW 2 /* thrown by a monster */
 #define POTHIT_OTHER_THROW 3 /* propelled by some other means [scatter()] */
 
-/* tracking how an item left your inventory */
+/* tracking how an item left your inventory via how_lost field */
 #define LOST_NONE    0 /* still in inventory, or method not covered below */
 #define LOST_THROWN  1 /* thrown or fired by the hero */
 #define LOST_DROPPED 2 /* dropped or tipped out of a container by the hero */
 #define LOST_STOLEN  3 /* stolen from hero's inventory by a monster */
+
+/* tracking how a name got acquired by an object in named_how field */
+#define NAMED_PLAIN 0 /* nothing special, typical naming */
+#define NAMED_KEEP  1 /* historic statue, or stoned/killed monster */
 
 /*
  *  Notes for adding new oextra structures:
