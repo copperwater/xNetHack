@@ -285,6 +285,31 @@ wipe_engr_at(coordxy x, coordxy y, xint16 cnt, boolean magical)
     }
 }
 
+/*
+ * Returns:
+ *    non-zero if it can be felt
+ */
+boolean
+engr_can_be_felt(struct engr *ep)
+{
+    boolean canfeel = FALSE;
+
+    switch (ep->engr_type) {
+        case ENGRAVE:
+        case HEADSTONE:
+        case BURN:
+            canfeel = TRUE;
+            break;
+        case DUST:
+        case MARK:
+        case ENGR_BLOOD:
+        default:
+            canfeel = FALSE;
+            break;
+    }
+    return canfeel;
+}
+
 void
 read_engr_at(coordxy x, coordxy y)
 {
@@ -355,6 +380,7 @@ read_engr_at(coordxy x, coordxy y)
             You("%s: \"%s\".", (Blind) ? "feel the words" : "read", et);
             Strcpy(ep->engr_txt[remembered_text], ep->engr_txt[actual_text]);
             ep->eread = 1;
+            ep->erevealed = 1;
             if (svc.context.run > 0)
                 nomul(0);
         }
@@ -399,7 +425,8 @@ make_engr_at(
     ep->engr_type = (xint8) ((e_type > 0) ? e_type : rnd(N_ENGRAVE - 1));
     ep->engr_szeach = smem;
     ep->engr_alloc = smem * 3;
-    /* we do not set ep->eread; the caller will need to if required */
+    /* we do not set ep->eread or ep->erevealed;
+     * the caller will need to if required */
 }
 
 /* delete any engraving at location <x,y> */
@@ -996,6 +1023,7 @@ doengrave(void)
     if (de->teleengr) {
         rloc_engr(de->oep);
         de->oep->eread = 0;
+        de->oep->erevealed = 0;
         de->disprefresh = TRUE;
         de->oep = (struct engr *) 0;
     }
@@ -1014,6 +1042,7 @@ doengrave(void)
             if (tmp_ep != 0) {
                 pline_The("engraving now reads: \"%s\".", de->buf);
                 tmp_ep->eread = 1;
+                tmp_ep->erevealed = 1;
                 de->disprefresh = TRUE;
             }
         }
@@ -1395,8 +1424,10 @@ engrave(void)
     make_engr_at(u.ux, u.uy, buf, svm.moves - gm.multi,
                  svc.context.engraving.type);
     oep = engr_at(u.ux, u.uy);
-    if (oep)
+    if (oep) {
         oep->eread = 1;
+        oep->erevealed = 1;
+    }
 
     if (*endc) {
         svc.context.engraving.nextc = endc;
@@ -1640,6 +1671,7 @@ void
 feel_engraving(struct engr *ep)
 {
     ep->eread = 1;
+    ep->erevealed = 1;
     map_engraving(ep, 1);
     /* in case it's beneath something, redisplay the something */
     newsym(ep->engr_x, ep->engr_y);
