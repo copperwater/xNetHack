@@ -2077,6 +2077,7 @@ knockback could move hero diagonally into or out of an open doorway
 farlook of /e or /E stopped reporting engraving and headstone text after a fix
 	for the situation where // or ; reported such text when there was an
 	object or monster in the way
+message was garbled when lightning or acid breath hit iron bars
 
 
 Fixes to 3.7.0-x Platform and/or Interface Problems Exposed Via git Repository
