@@ -420,8 +420,9 @@ unmap_object(coordxy x, coordxy y)
         struct rm *lev = &levl[x][y];
 
         if (spot_shows_engravings(x, y)
-               && (ep = engr_at(x, y)) != 0 && !covers_traps(x, y)) {
-            ep->erevealed = 0;
+            && (ep = engr_at(x, y)) != 0 && !covers_traps(x, y)) {
+            if (cansee(x, y))
+                ep->erevealed = 1;
             map_engraving(ep, 0);
         } else {
             map_background(x, y, 0);
@@ -458,7 +459,7 @@ unmap_object(coordxy x, coordxy y)
             map_trap(trap, show);                                       \
         } else if (spot_shows_engravings(x, y)                          \
                  && (ml_ep = engr_at(x, y)) != 0                        \
-                 && ml_ep->erevealed != 0                               \
+                 && ml_ep->erevealed                                    \
                  && !covers_traps(x, y)) {                              \
             map_engraving(ml_ep, show);                                 \
         } else {                                                        \
@@ -857,7 +858,7 @@ feel_location(coordxy x, coordxy y)
                 show_glyph(x, y, lev->glyph = cmap_to_glyph(S_darkroom));
         }
     } else {
-        if ((ep = engr_at(x, y)) && !ep->erevealed && engr_can_be_felt(ep))
+        if ((ep = engr_at(x, y)) != 0 && engr_can_be_felt(ep))
             ep->erevealed = 1;
 
         _map_location(x, y, 1);
@@ -959,6 +960,8 @@ newsym(coordxy x, coordxy y)
         mon = m_at(x, y);
         worm_tail = is_worm_tail(mon);
 
+        if ((ep = engr_at(x, y)) != 0)
+            ep->erevealed = 1; /* even when covered by objects or a monster */
         /*
          * Normal region shown only on accessible positions, but
          * poison clouds and steam clouds also shown above lava,
@@ -1020,8 +1023,6 @@ newsym(coordxy x, coordxy y)
             } else if (glyph_is_invisible(lev->glyph)) {
                 map_invisible(x, y);
             } else {
-                if ((ep = engr_at(x, y)) && !ep->erevealed)
-                    ep->erevealed = 1;
                 _map_location(x, y, 1); /* map the location */
             }
         }

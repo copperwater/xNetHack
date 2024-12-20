@@ -47,8 +47,7 @@ struct engr {
 
 #define spot_shows_engravings(x,y) \
     (levl[(x)][(y)].typ == CORR         \
-     || levl[(x)][(y)].typ == SCORR     \
      || levl[(x)][(y)].typ == ICE       \
-     || levl[(x)][(y)].typ == ROOM )
+     || levl[(x)][(y)].typ == ROOM)
 
 #endif /* ENGRAVE_H */

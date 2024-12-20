@@ -317,7 +317,7 @@ read_engr_at(coordxy x, coordxy y)
     const char *eloc = surface(x, y);
     int sensed = 0;
 
-    /* Sensing an engraving does not require sight,
+    /* Sensing an engraving does not require sight for some engraving types,
      * nor does it necessarily imply comprehension (literacy).
      */
     if (ep && ep->engr_txt[actual_text][0]) {
@@ -1467,6 +1467,22 @@ sanitize_engravings(void)
     }
 }
 
+/* mark all engravings as not-discovered/not-read when saving bones */
+void
+forget_engravings(void)
+{
+    struct engr *ep;
+
+    for (ep = head_engr; ep; ep = ep->nxt_engr) {
+        ep->erevealed = ep->eread = 0;
+
+        /* Note: engr_txt[actual_text], engr_txt[rememberd_text], and
+         * engr_txt[pristine_text] retain their original text rather
+         * than get updated to reflect each engraving's current text.
+         * Does it matter? */
+    }
+}
+
 void
 engraving_sanity_check(void)
 {
@@ -1665,16 +1681,18 @@ see_engraving(struct engr *ep)
     newsym(ep->engr_x, ep->engr_y);
 }
 
-/* like see_engravings() but overrides vision, but
-   only for some types of engravings that can be felt */
+/* like see_engravings() but overrides vision, but only for some types
+   of engravings that can be felt  [this isn't actually used anywhere?] */
 void
 feel_engraving(struct engr *ep)
 {
-    ep->eread = 1;
-    ep->erevealed = 1;
-    map_engraving(ep, 1);
-    /* in case it's beneath something, redisplay the something */
-    newsym(ep->engr_x, ep->engr_y);
+    if (engr_can_be_felt(ep)) {
+        ep->eread = 1;
+        ep->erevealed = 1;
+        map_engraving(ep, 1);
+        /* in case it's beneath something, redisplay the something */
+        newsym(ep->engr_x, ep->engr_y);
+    }
 }
 
 static const char blind_writing[][21] = {
