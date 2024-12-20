@@ -3248,17 +3248,9 @@ create_particular_creation(
         /* if asking for 'hidden', show location of every created monster
            that can't be seen--whether that's due to successfully hiding
            or vision issues (line-of-sight, invisibility, blindness) */
-        if ((d->hidden || d->invisible) && !canspotmon(mtmp)) {
-            int count = couldsee(mx, my) ? 8 : 4;
-            char saveviz = gv.viz_array[my][mx];
+        if ((d->hidden || d->invisible) && !canspotmon(mtmp))
+            flash_mon(mtmp);
 
-            if (!flags.sparkle)
-                count /= 2;
-            gv.viz_array[my][mx] |= (IN_SIGHT | COULD_SEE);
-            flash_glyph_at(mx, my, mon_to_glyph(mtmp, newsym_rn2), count);
-            gv.viz_array[my][mx] = saveviz;
-            newsym(mx, my);
-        }
         madeany = TRUE;
         /* in case we got a doppelganger instead of what was asked
            for, make it start out looking like what was asked for */

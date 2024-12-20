@@ -5848,4 +5848,18 @@ shieldeff_mon(struct monst *mtmp)
         pline_mon(mtmp, "%s resists!", Monnam(mtmp));
 }
 
+void
+flash_mon(struct monst *mtmp)
+{
+    coordxy mx = mtmp->mx, my = mtmp->my;
+    int count = couldsee(mx, my) ? 8 : 4;
+    char saveviz = gv.viz_array[my][mx];
+
+    if (!flags.sparkle)
+        count /= 2;
+    gv.viz_array[my][mx] |= (IN_SIGHT | COULD_SEE);
+    flash_glyph_at(mx, my, mon_to_glyph(mtmp, newsym_rn2), count);
+    gv.viz_array[my][mx] = saveviz;
+    newsym(mx, my);
+}
 /*mon.c*/

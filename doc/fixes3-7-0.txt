@@ -2751,6 +2751,7 @@ tourists gain experience by seeing new types of creatures up close, and
 healers gain experience by healing pets
 blessed scroll of destroy armor asks which armor to destroy
 archeologists' fedora is lucky
+telepathic hero can discern which particular monster just read a scroll
 
 
 Platform- and/or Interface-Specific New Features

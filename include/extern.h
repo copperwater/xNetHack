@@ -1785,6 +1785,7 @@ extern void adj_erinys(unsigned);
 extern void see_monster_closeup(struct monst *) NONNULLARG1;
 extern void see_nearby_monsters(void);
 extern void shieldeff_mon(struct monst *) NONNULLARG1;
+extern void flash_mon(struct monst *) NONNULLARG1;
 
 /* ### mondata.c ### */
 
