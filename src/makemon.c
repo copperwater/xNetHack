@@ -5,8 +5,6 @@
 
 #include "hack.h"
 
-#include <ctype.h>
-
 /* this assumes that a human quest leader or nemesis is an archetype
    of the corresponding role; that isn't so for some roles (tourist
    for instance) but is for the priests and monks we use it for... */

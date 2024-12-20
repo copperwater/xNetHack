@@ -10,8 +10,6 @@
 #include "func_tab.h"
 #include "dlb.h"
 
-#include <ctype.h>
-
 /* Misc. curses interface functions */
 
 /* Private declarations */

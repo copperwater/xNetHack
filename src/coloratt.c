@@ -3,7 +3,6 @@
 /* NetHack may be freely redistributed.  See license for details. */
 
 #include "hack.h"
-#include <ctype.h>
 
 struct color_names {
     const char *name;

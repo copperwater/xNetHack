@@ -8,7 +8,6 @@
 #include "wincurs.h"
 #include "cursmesg.h"
 #include "curswins.h"
-#include <ctype.h>
 
 /* defined in sys/<foo>/<foo>tty.c or cursmain.c as last resort;
    set up by curses_init_nhwindows() */

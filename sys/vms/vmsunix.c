@@ -29,7 +29,6 @@
 #include <stat.h>
 #undef umask
 #endif
-#include <ctype.h>
 
 extern int debuggable; /* defined in vmsmisc.c */
 

@@ -105,7 +105,6 @@ void g_pututf8(uint8 *utf8str)
 
 #ifdef NO_TERMS
 
-#include <ctype.h>
 #include "wintty.h"
 
 #ifdef __GO32__

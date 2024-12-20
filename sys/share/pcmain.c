@@ -12,8 +12,6 @@
 #include <signal.h>
 #endif
 
-#include <ctype.h>
-
 #if !defined(AMIGA) && !defined(__DJGPP__)
 #include <sys\stat.h>
 #else

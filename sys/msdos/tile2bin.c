@@ -18,10 +18,6 @@
 #include "pctiles.h"
 
 /* #include <dos.h> */
-#ifndef MONITOR_HEAP
-#include <stdlib.h>
-#endif
-#include <time.h>
 
 #ifdef __GO32__
 #include <unistd.h>

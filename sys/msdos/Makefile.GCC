@@ -458,18 +458,11 @@ endif
 INCLDIR=$(PDCINCL) -I../include -I../sys/msdos $(LUAINCL)
 
 # Debugging
-#cflags = -pg -c $(INCLDIR) $(DLBFLG) $(CURSESDEF) -DSUPPRESS_GRAPHICS
+#cflags = -pg -c -D_NAIVE_DOS_REGS $(INCLDIR) $(DLBFLG) $(CURSESDEF) -DSUPPRESS_GRAPHICS
 #LFLAGS = -pg
 
-cflags = -c -O $(INCLDIR) $(DLBFLG) $(CURSESDEF) -DSUPPRESS_GRAPHICS
-LFLAGS =
-
-# Debugging
-#cflags = -g -c $(INCLDIR) $(DLBFLG) $(CURSESDEF) -DTILES_IN_GLYPHMAP
-#LFLAGS = -g
-
 #    Normal
-cflags = -c -O $(INCLDIR) $(DLBFLG) $(CURSESDEF) -DTILES_IN_GLYPHMAP
+cflags = -c -O -D_NAIVE_DOS_REGS $(INCLDIR) $(DLBFLG) $(CURSESDEF) -DTILES_IN_GLYPHMAP
 LFLAGS =
 
 #==========================================

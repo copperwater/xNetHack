@@ -5,7 +5,6 @@
 
 #include "hack.h"
 #include "mfndpos.h"
-#include <ctype.h>
 
 staticfn void sanity_check_single_mon(struct monst *, boolean, const char *);
 staticfn struct obj *make_corpse(struct monst *, unsigned);

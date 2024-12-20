@@ -20,7 +20,6 @@ struct mail_info *parse_next_broadcast(void);
 #ifdef MAIL
 #include "wintype.h"
 #include "winprocs.h"
-#include <ctype.h>
 #include <descrip.h>
 #include <errno.h>
 #ifndef __GNUC__

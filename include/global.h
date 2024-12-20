@@ -6,8 +6,6 @@
 #ifndef GLOBAL_H
 #define GLOBAL_H
 
-#include <stdio.h>
-
 /*
  * Files expected to exist in the playground directory (possibly inside
  * a dlb container file).

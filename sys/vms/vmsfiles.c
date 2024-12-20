@@ -8,7 +8,6 @@
  *  routines or substitute for ones where we want behavior modification.
  */
 #include "config.h"
-#include <ctype.h>
 
 #ifdef VMSVSI
 #include <descrip.h>

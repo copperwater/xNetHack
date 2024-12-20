@@ -165,8 +165,6 @@ typedef SSIZE_T ssize_t;
 
 
 #include <sys/types.h>
-#include <stdlib.h>
-#include <stdio.h>
 #ifdef __BORLANDC__
 #undef randomize
 #undef random
@@ -185,10 +183,6 @@ typedef SSIZE_T ssize_t;
 #endif
 
 #define NO_SIGNAL
-
-/* Time stuff */
-#include <time.h>
-
 #define USE_STDARG
 
 /* Use the high quality random number routines. */

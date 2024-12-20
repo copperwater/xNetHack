@@ -20,7 +20,6 @@
 #ifndef __BORLANDC__
 #include <direct.h>
 #endif
-#include <ctype.h>
 #ifdef TTY_GRAPHICS
 #include "wintty.h"
 #endif

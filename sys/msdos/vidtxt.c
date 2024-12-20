@@ -18,7 +18,6 @@
 #include "wintty.h"
 
 #include <dos.h>
-#include <ctype.h>
 
 #if defined(_MSC_VER)
 #if _MSC_VER >= 700

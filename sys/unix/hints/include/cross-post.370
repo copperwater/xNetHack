@@ -79,8 +79,14 @@ ifeq "$(WANT_DEBUG)" "1"
 		pwd; echo "$(GDBEXE) not found and WANT_DEBUG=1 specified"; \
 	  fi; )
 else
-	-rm $(TARGETPFX)pkg/GDB.EXE
-	-rm $(TARGETPFX)pkg/NHGDB.BAT
+	-( if [ -f $(TARGETPFX)pkg/GDB.EXE ]; \
+	  then \
+		rm $(TARGETPFX)pkg/GDB.EXE; \
+	  fi; )
+	-( if [ -f $(TARGETPFX)pkg/NHGDB.BAT ]; \
+	  then \
+		rm $(TARGETPFX)pkg/NHGDB.BAT; \
+	  fi; )
 endif
 	-touch $(TARGETPFX)pkg/RECORD
 	cd $(TARGETPFX)pkg ; zip -9 ../NH370DOS.ZIP * ; cd ../../..

@@ -9,7 +9,6 @@
 # ifndef NO_SIGNAL
 #include <signal.h>
 # endif
-#include <ctype.h>
 # ifndef LONG_MAX
 #include <limits.h>
 # endif

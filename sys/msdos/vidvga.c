@@ -14,7 +14,6 @@
 #include "font.h"
 
 #include <dos.h>
-#include <ctype.h>
 #include "wintty.h"
 
 #ifdef __GO32__

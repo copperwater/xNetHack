@@ -8,8 +8,6 @@
 #include "wincurs.h"
 #include "cursinit.h"
 
-#include <ctype.h>
-
 /* Initialization and startup functions for curses interface */
 
 /* Private declarations */

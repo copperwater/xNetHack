@@ -10,8 +10,6 @@
 #ifdef DLB
 #include "dlb.h"
 #endif
-#include <ctype.h>
-#include <stdlib.h>
 #include <sys\stat.h>
 #include <errno.h>
 #include <ShlObj.h>

@@ -27,9 +27,9 @@
  * <stddef.h>            Common macro definitions
  * <stdint.h> (C99)      Fixed-width integer types
  * <stdio.h>             Input/output program utilities
- *
- * General utilities:    memory management, program utilities, string
- *                       conversions, random numbers, algorithms
+ * <stdlib.h>            General utilities: memory management,
+ *                       program utilities, string conversions,
+ *                       random numbers, algorithms
  * <string.h>            String handling
  * <tgmath.h> (C99)      Type-generic math (macros wrapping math.h and
  *                       complex.h)
@@ -51,13 +51,17 @@
  *
  */
 #if !defined(__cplusplus)
-
 #include <stdio.h>
+#include <stdlib.h>
 #include <string.h>
 #include <signal.h>
 #include <assert.h>
 #include <stdarg.h>
 #include <ctype.h>
+#include <time.h>
 
+#else /* !__cplusplus */
+/* for FILE */
+#include <stdio.h>
 #endif /* !__cplusplus */
 #endif /* CSTD_H */

@@ -97,6 +97,8 @@ GCC_EXTRA_WARNINGS = N
 #
 #==============================================================================
 
+$(info Using $(lastword $(MAKEFILE_LIST)))
+
 SKIP_NETHACKW = N
 USE_LUADLL = Y
 WANT_LUAC = N

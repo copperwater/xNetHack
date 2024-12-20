@@ -302,8 +302,6 @@
 
 #if defined(BSD) || defined(ULTRIX)
 #include <sys/time.h>
-#else
-#include <time.h>
 #endif
 
 /* these might be needed for include/system.h;
@@ -324,10 +322,7 @@
 #define SHELL /* do not delete the '!' command */
 #endif
 
-/* #include "system.h" */
-
 #if defined(POSIX_TYPES) || defined(__GNUC__)
-#include <stdlib.h>
 #include <unistd.h>
 #endif
 

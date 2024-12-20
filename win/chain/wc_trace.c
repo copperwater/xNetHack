@@ -6,7 +6,6 @@
 #include "wintty.h"
 #include "func_tab.h"
 
-#include <ctype.h>
 #include <errno.h>
 
 #ifdef WIN32

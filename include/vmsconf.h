@@ -213,7 +213,6 @@ PANICTRACE_GDB=2  #at conclusion of panic, show a call traceback and then
 #include <types.h>
 #include <unistd.h>
 #include <fcntl.h>
-#include <stdlib.h>
 #include <signal.h>
 #include <stat.h>
 #include <errno.h>
@@ -245,8 +244,6 @@ typedef __mode_t mode_t;
 typedef int32_t off_t;
 #endif
 #endif /* _DECC_V4_SOURCE */
-
-#include <time.h>
 
 #ifndef VMSVSI
 #if 0 /* <file.h> is missing for old gcc versions; skip it to save time */

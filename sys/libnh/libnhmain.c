@@ -8,7 +8,6 @@
 #include "hack.h"
 #include "dlb.h"
 
-#include <ctype.h>
 #include <sys/stat.h>
 #include <signal.h>
 #include <pwd.h>

@@ -11,7 +11,6 @@
 #include "cursmisc.h"
 #include "cursdial.h"
 #include "func_tab.h"
-#include <ctype.h>
 
 #if defined(FILENAME_CMP) && !defined(strcasecmp)
 #define strcasecmp FILENAME_CMP

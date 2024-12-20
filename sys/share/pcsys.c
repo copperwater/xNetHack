@@ -10,7 +10,6 @@
 #include "hack.h"
 #include "wintty.h"
 
-#include <ctype.h>
 #include <fcntl.h>
 #if !defined(MSDOS) && !defined(WIN_CE) && !defined(CROSS_TO_AMIGA)
 #include <process.h>
