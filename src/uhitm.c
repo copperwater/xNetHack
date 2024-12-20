@@ -1732,7 +1732,7 @@ hmon_hitmon(
     hmd.silverobj = FALSE;
     hmd.lightobj = FALSE;
     hmd.material = obj ? objects[obj->otyp].oc_material
-                       : 0; /* 0 == NO_MATERIAL */
+                       : NO_MATERIAL;
     hmd.jousting = 0;
     hmd.hittxt = FALSE;
     hmd.get_dmg_bonus = TRUE;
