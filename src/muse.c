@@ -265,7 +265,8 @@ mreadmsg(struct monst *mtmp, struct obj *otmp)
         /* monster can't be seen; hero might be blind or monster might
            be at a spot that isn't in view or might be invisible; remember
            it if the spot is within line of sight and relatively close */
-        if (couldsee(mtmp->mx, mtmp->my) && mdistu(mtmp) <= 10 * 10)
+        if (!sensemon(mtmp)
+            && couldsee(mtmp->mx, mtmp->my) && mdistu(mtmp) <= 10 * 10)
             map_invisible(mtmp->mx, mtmp->my);
 
         Snprintf(blindbuf, sizeof blindbuf, "reading %s", onambuf);
