@@ -13,6 +13,8 @@
 #
 #  Visual Studio nmake  : make -f dat/luahelper devhelp-nmake >file.txt
 #
+#  Visual Studio project: make -f dat/luahelper devhelp-vstudio >file.txt
+#
 #  MSYS2 GNUmakefile    : make -f dat/luahelper devhelp-msys >file.txt
 #
 #  Xcode project.pbxproj: make -f dat/luahelper devhelp-xcode >file.txt
@@ -72,6 +74,21 @@ devhelp-xcode:
 		i % 1? " ": ((i == NF)? "\n" : ",\n\t")} \
 		i % 1{print ""}'
 	@echo "\t\t\t);"
+#
+# generates lines to insert into
+# sys/windows/vs/files.props
+#
+devhelp-vstudio:
+	@echo "  <ItemGroup>"
+	@echo "$(notdir $(alllua))" | \
+	    awk '{for (i=1; i<=NF; ++i)printf "%s%s%s%s%s", \
+	        i == 1? "    " : "", \
+		"<Luafiles Include = \042", \
+		$$i, \
+		"\042/>", \
+		i % 1? " ": ((i == NF)? "\n" : "\n    ")} \
+		i % 1{print ""}'
+	@echo "  </ItemGroup>"
 
 all:
 	make -f dat/luahelper devhelp-nmake >./luahelp-nmake.txt
