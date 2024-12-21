@@ -20,6 +20,7 @@
 #  Xcode project.pbxproj: make -f dat/luahelper devhelp-xcode >file.txt
 #
 #
+MAKEFLAGS += --no-print-directory
 
 luanames = asmodeus baalz bigrm-* castle fakewiz? juiblex knox medusa-? \
 	minend-? minefill minetn-? oracle orcus sanctum soko?-? tower? \
