@@ -94,4 +94,5 @@ all:
 	make -f dat/luahelper devhelp-nmake >./luahelp-nmake.txt
 	make -f dat/luahelper devhelp-msys2 >./luahelp-msys2.txt
 	make -f dat/luahelper devhelp-xcode >./luahelp-xcode.txt
+	make -f dat/luahelper devhelp-vstudio >./luahelp-vstudio.txt
 # end
