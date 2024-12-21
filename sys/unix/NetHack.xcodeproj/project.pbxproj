@@ -1423,6 +1423,8 @@
 				"$(NH_DAT_DIR)/Bar-strt.lua",
 				"$(NH_DAT_DIR)/bigrm-1.lua",
 				"$(NH_DAT_DIR)/bigrm-10.lua",
+				"$(NH_DAT_DIR)/bigrm-11.lua",
+				"$(NH_DAT_DIR)/bigrm-12.lua",
 				"$(NH_DAT_DIR)/bigrm-2.lua",
 				"$(NH_DAT_DIR)/bigrm-3.lua",
 				"$(NH_DAT_DIR)/bigrm-4.lua",
