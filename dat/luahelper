@@ -15,7 +15,7 @@
 #
 #  Visual Studio project: make -f dat/luahelper devhelp-vstudio >file.txt
 #
-#  MSYS2 GNUmakefile    : make -f dat/luahelper devhelp-msys >file.txt
+#  MSYS2 GNUmakefile    : make -f dat/luahelper devhelp-msys2 >file.txt
 #
 #  Xcode project.pbxproj: make -f dat/luahelper devhelp-xcode >file.txt
 #
