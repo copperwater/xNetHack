@@ -20,7 +20,10 @@
 #  Xcode project.pbxproj: make -f dat/luahelper devhelp-xcode >file.txt
 #
 #
+
 MAKEFLAGS += --no-print-directory
+AWK=awk
+
 
 luanames = asmodeus baalz bigrm-* castle fakewiz? juiblex knox medusa-? \
 	minend-? minefill minetn-? oracle orcus sanctum soko?-? tower? \
@@ -36,9 +39,9 @@ alllua = $(wildcard $(addsuffix .lua,$(addprefix dat/, $(luanames))))
 # 
 devhelp-nmake:
 	@echo "$(notdir $(alllua))" | \
-	    awk '{for (i=1; i<=NF; ++i)printf "%s%s%s%s", \
-	        i == 1? "ALL_LUA_FILES = " : "", \
-	        "$$(DAT)\\", \
+	    $(AWK) '{for (i=1; i<=NF; ++i)printf "%s%s%s%s", \
+	        i == 1? "LUA_FILES = " : "", \
+	        "$$(DAT)", \
 		$$i, \
 	        i % 3? " ": ((i == NF)? "\n" : " \\\n\t")} \
 	        i % 3{print ""}'
@@ -50,7 +53,7 @@ devhelp-nmake:
 #
 devhelp-msys2:
 	@echo "$(basename $(notdir $(alllua)))" | \
-	    awk '{for (i=1; i<=NF; ++i)printf "%s%s%s", \
+	    $(AWK) '{for (i=1; i<=NF; ++i)printf "%s%s%s", \
 	        i == 1? "LUALIST = " : "", \
 		$$i, \
 	        i % 5? " ": ((i == NF)? "\n" : " \\\n\t")} \
@@ -67,7 +70,7 @@ xcodeextra = bogusmon cmdhelp data engrave epitaph help hh \
 devhelp-xcode:
 	@echo "\t\t\tinputPaths = ("
 	@echo "$(xcodeextra) $(notdir $(alllua))" | \
-	    awk '{for (i=1; i<=NF; ++i)printf "%s%s%s%s%s", \
+	    $(AWK) '{for (i=1; i<=NF; ++i)printf "%s%s%s%s%s", \
 	        i == 1? "\t" : "", \
 		"\t\t\t\042$$(NH_DAT_DIR)/", \
 		$$i, \
@@ -82,7 +85,7 @@ devhelp-xcode:
 devhelp-vstudio:
 	@echo "  <ItemGroup>"
 	@echo "$(notdir $(alllua))" | \
-	    awk '{for (i=1; i<=NF; ++i)printf "%s%s%s%s%s", \
+	    $(AWK) '{for (i=1; i<=NF; ++i)printf "%s%s%s%s%s", \
 	        i == 1? "    " : "", \
 		"<Luafiles Include = \042", \
 		$$i, \
