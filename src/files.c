@@ -4467,12 +4467,34 @@ assure_syscf_file(void)
         close(fd);
         return;
     }
+    if (gd.deferred_showpaths)
+        do_deferred_showpaths(1);  /* does not return */
     raw_printf("Unable to open SYSCF_FILE.\n");
     exit(EXIT_FAILURE);
 }
 
 #endif /* SYSCF_FILE */
 #endif /* SYSCF */
+
+ATTRNORETURN void
+do_deferred_showpaths(int code)
+{
+    gd.deferred_showpaths = FALSE;
+    reveal_paths(code);
+
+#ifdef UNIX
+    after_opt_showpaths(gd.deferred_showpaths_dir);
+#else
+#ifdef CHDIR
+    chdirx(gd.deferred_showpaths_dir, 0);
+#endif
+#if defined(WIN32) || defined(MICRO) || defined(OS2)
+    nethack_exit(EXIT_SUCCESS);
+#else
+    exit(EXIT_SUCCESS);
+#endif
+#endif
+}
 
 #ifdef DEBUG
 /* used by debugpline() to decide whether to issue a message
@@ -4534,9 +4556,11 @@ debugcore(const char *filename, boolean wildcards)
 #endif
 
 void
-reveal_paths(void)
+reveal_paths(int code)
 {
-    const char *fqn, *nodumpreason;
+    const char *fqn, *nodumpreason,
+	  *sysconffile = "system configuration file";
+
     char buf[BUFSZ];
 #if defined(SYSCF) || !defined(UNIX) || defined(DLB)
     const char *filep;
@@ -4570,7 +4594,8 @@ reveal_paths(void)
 #else
     buf[0] = '\0';
 #endif
-    raw_printf("%s system configuration file%s:", s_suffix(gamename), buf);
+    raw_printf("%s %s%s:",
+               s_suffix(gamename), sysconffile, buf);
 #ifdef SYSCF_FILE
     filep = SYSCF_FILE;
 #else
@@ -4582,6 +4607,10 @@ reveal_paths(void)
         filep = configfile;
     }
     raw_printf("    \"%s\"", filep);
+    if (code == 1) {
+        raw_printf("NOTE: The %s above is missing or inaccessible!",
+                   sysconffile);
+    }
 #else /* !SYSCF */
     raw_printf("No system configuration file.");
 #endif /* ?SYSCF */

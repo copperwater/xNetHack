@@ -18,9 +18,9 @@
 #error You must #define SAFEPROCS to build windmain.c
 #endif
 
-static void process_options(int argc, char **argv);
 static void nhusage(void);
 static char *get_executable_path(void);
+static void early_options(int argc, char **argv);
 char *translate_path_variables(const char *, char *);
 char *exename(void);
 boolean fakeconsole(void);
@@ -242,6 +242,7 @@ _CrtSetReportFile(_CRT_ASSERT, _CRTDBG_FILE_STDERR);*/
     iflags.windowtype_deferred = TRUE;
     copy_sysconf_content();
     copy_symbols_content();
+    early_options(argc, argv);
     initoptions();
 
     /* Now that sysconf has had a chance to set the TROUBLEPREFIX, don't
@@ -249,7 +250,6 @@ _CrtSetReportFile(_CRT_ASSERT, _CRTDBG_FILE_STDERR);*/
     fqn_prefix_locked[TROUBLEPREFIX] = TRUE;
 
     copy_config_content();
-    process_options(argc, argv);
 
     /* did something earlier flag a need to exit without starting a game? */
     if (windows_startup_state > 0) {
@@ -462,23 +462,18 @@ attempt_restore:
 RESTORE_WARNING_UNREACHABLE_CODE
 
 static void
-process_options(int argc, char * argv[])
+early_options(int argc, char *argv[])
 {
     int i;
 
-    /*
-     * Process options.
-     */
     if (argc > 1) {
         if (argcheck(argc, argv, ARG_VERSION) == 2)
             nethack_exit(EXIT_SUCCESS);
 
         if (argcheck(argc, argv, ARG_SHOWPATHS) == 2) {
-            iflags.initoptions_noterminate = TRUE;
-            initoptions();
-            iflags.initoptions_noterminate = FALSE;
-            reveal_paths();
-            nethack_exit(EXIT_SUCCESS);
+            gd.deferred_showpaths = TRUE;
+            /* gd.deferred_showpaths is not used by windows */
+            return;
         }
 #ifndef NODUMPENUMS
         if (argcheck(argc, argv, ARG_DUMPENUMS) == 2) {
@@ -509,7 +504,7 @@ process_options(int argc, char * argv[])
              */
             argc--;
             argv++;
-            const char * dir = argv[0] + 2;
+            const char *dir = argv[0] + 2;
             if (*dir == '=' || *dir == ':')
                 dir++;
             if (!*dir && argc > 1) {
@@ -578,7 +573,8 @@ process_options(int argc, char * argv[])
 #endif
         case 'u':
             if (argv[0][2])
-                (void) strncpy(svp.plname, argv[0] + 2, sizeof(svp.plname) - 1);
+                (void) strncpy(svp.plname, argv[0] + 2,
+                               sizeof(svp.plname) - 1);
             else if (argc > 1) {
                 argc--;
                 argv++;
@@ -634,8 +630,8 @@ process_options(int argc, char * argv[])
                 break;
             } else
                 raw_printf("\nUnknown switch: %s", argv[0]);
-        FALLTHROUGH;
-	/* FALLTHRU */
+            FALLTHROUGH;
+        /* FALLTHRU */
         case '?':
             nhusage();
             nethack_exit(EXIT_SUCCESS);

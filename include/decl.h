@@ -340,6 +340,10 @@ struct instance_globals_d {
     boolean decor_fumble_override;
     boolean decor_levitate_override;
 
+    /* new */
+    boolean deferred_showpaths;
+    const char *deferred_showpaths_dir;
+
     boolean havestate;
     unsigned long magic; /* validate that structure layout is preserved */
 };

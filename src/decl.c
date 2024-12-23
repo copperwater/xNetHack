@@ -339,6 +339,8 @@ static const struct instance_globals_d g_init_d = {
     /* pickup.c */
     FALSE, /* decor_fumble_override */
     FALSE, /* decor_levitate_override */
+    FALSE, /* deferred_showpaths */
+    NULL,  /* deferred_showpaths_dir  */
     TRUE, /* havestate*/
     IVMAGIC  /* d_magic to validate that structure layout has been preserved */
 };
