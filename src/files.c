@@ -4565,6 +4565,7 @@ debugcore(const char *filename, boolean wildcards)
 void
 reveal_paths(int code)
 {
+    boolean skip_sysopt = FALSE;
     const char *fqn, *nodumpreason,
 	  *sysconffile = "system configuration file";
 
@@ -4617,6 +4618,7 @@ reveal_paths(int code)
     if (code == 1) {
         raw_printf("NOTE: The %s above is missing or inaccessible!",
                    sysconffile);
+	skip_sysopt = TRUE;
     }
 #else /* !SYSCF */
     raw_printf("No system configuration file.");
@@ -4690,17 +4692,20 @@ reveal_paths(int code)
 
     /* dumplog */
 
+    fqn = (char *) 0;
 #ifndef DUMPLOG
     nodumpreason = "not supported";
 #else
     nodumpreason = "disabled";
 #ifdef SYSCF
-    fqn = sysopt.dumplogfile;
+    if (!skip_sysopt) {
+        fqn = sysopt.dumplogfile;
+    } else {
+        nodumpreason = "dumplogfile setting unavailable from missing sysconf";
+    }
 #else  /* !SYSCF */
 #ifdef DUMPLOG_FILE
     fqn = DUMPLOG_FILE;
-#else
-    fqn = (char *) 0;
 #endif
 #endif /* ?SYSCF */
     if (fqn && *fqn) {
@@ -4708,20 +4713,23 @@ reveal_paths(int code)
         (void) dump_fmtstr(fqn, buf, FALSE);
         buf[sizeof buf - sizeof "    \"\""] = '\0';
         raw_printf("    \"%s\"", buf);
-    } else
+    } else {
+        raw_printf("No end-of-game disclosure file (%s)", nodumpreason);
+    }
 #endif /* ?DUMPLOG */
-        raw_printf("No end-of-game disclosure file (%s).", nodumpreason);
 
 #ifdef WIN32
-    if (sysopt.portable_device_paths) {
-        const char *pd = get_portable_device();
+    if (!skip_sysopt) {
+        if (sysopt.portable_device_paths) {
+            const char *pd = get_portable_device();
 
-        /* an empty value for pd indicates that portable_device_paths
-           got set TRUE in a sysconf file other than the one containing
-           the executable; disregard it */
-        if (strlen(pd) > 0) {
-            raw_printf("portable_device_paths (set in sysconf):");
-            raw_printf("    \"%s\"", pd);
+            /* an empty value for pd indicates that portable_device_paths
+               got set TRUE in a sysconf file other than the one containing
+               the executable; disregard it */
+            if (strlen(pd) > 0) {
+                raw_printf("portable_device_paths (set in sysconf):");
+                raw_printf("    \"%s\"", pd);
+            }
         }
     }
 #endif
