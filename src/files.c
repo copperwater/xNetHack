@@ -4482,11 +4482,18 @@ do_deferred_showpaths(int code)
     gd.deferred_showpaths = FALSE;
     reveal_paths(code);
 
+    /* cleanup before heading to an exit */
+    freedynamicdata();
+    dlb_cleanup();
+    l_nhcore_done();
+
 #ifdef UNIX
     after_opt_showpaths(gd.deferred_showpaths_dir);
 #else
+#ifndef WIN32
 #ifdef CHDIR
     chdirx(gd.deferred_showpaths_dir, 0);
+#endif
 #endif
 #if defined(WIN32) || defined(MICRO) || defined(OS2)
     nethack_exit(EXIT_SUCCESS);

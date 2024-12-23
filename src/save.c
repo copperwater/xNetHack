@@ -1278,6 +1278,9 @@ freedynamicdata(void)
     if (options_set_window_colors_flag)
         options_free_window_colors();
 
+    if (glyphid_cache_status())
+        free_glyphid_cache();
+
     /* last, because it frees data that might be used by panic() to provide
        feedback to the user; conceivably other freeing might trigger panic */
     sysopt_release(); /* SYSCF strings */

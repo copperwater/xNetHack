@@ -342,7 +342,7 @@ struct instance_globals_d {
 
     /* new */
     boolean deferred_showpaths;
-    const char *deferred_showpaths_dir;
+    char *deferred_showpaths_dir;
 
     boolean havestate;
     unsigned long magic; /* validate that structure layout is preserved */
