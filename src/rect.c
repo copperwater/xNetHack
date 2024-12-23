@@ -46,6 +46,7 @@ free_rect(void)
 {
     if (rect)
         free(rect);
+    rect = 0;
     n_rects = rect_cnt = 0;
 }
 
