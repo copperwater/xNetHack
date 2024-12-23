@@ -1495,6 +1495,7 @@ failed #untrap could move hero diagonally into or out of an open doorway
 remember box is trapped after finding the trap
 when you hear a monster incant a scroll, ensure that the 'I' invisible
 	monster indicator doesn't trump telepathy briefly
+proceed with showpaths option even if the sysconf file is missing
 
 
 Fixes to 3.7.0-x General Problems Exposed Via git Repository
