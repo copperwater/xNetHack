@@ -134,8 +134,9 @@
 \\$1\\$2
 ..
 .
-.\" Don't hyphenate the last word on a page or column.  groff and AT&T-
-.\" descended troffs use different hyphenation patterns.
-.ie \n(.g .hy 6
-.el       .hy 2
+.\" groff and AT&T-descended troffs use different hyphenation patterns.
+.\" Don't hyphenate the last word on a page or column, or
+.\" before/after last/first 2 characters of a word.
+.ie \n(.g .hy 12
+.el       .hy 14
 .\"tmac.nh/"
