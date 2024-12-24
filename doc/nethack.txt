@@ -278,7 +278,7 @@ BUGS
        Probably infinite.
 
 COPYRIGHT
-       This  file  is  Copyright  (C)  Robert Patrick Rankin, 2024 for version
+       This  file  is  Copyright  (C)  Robert Patrick Rankin, 2022 for version
        NetHack-3.7:1.31.  NetHack may be freely  redistributed.   See  license
        for details.
 
@@ -286,4 +286,4 @@ COPYRIGHT
 
 
 
-NETHACK                        28 February 2024                     NETHACK(6)
+NETHACK                        21 February 2022                     NETHACK(6)

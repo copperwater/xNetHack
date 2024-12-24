@@ -1,4 +1,4 @@
-DLB(6)                                                                  DLB(6)
+DLB(6)                           Games Manual                           DLB(6)
 
 
 
@@ -13,8 +13,8 @@ DESCRIPTION
        NetHack version 3.1 and higher.  It is used  to  maintain  the  archive
        files  from which NetHack reads special level files and other read-only
        information.  Note that like tar the command and option specifiers  are
-       specified  as  a  continuous  string  and are followed by any arguments
-       required in the same order as the option specifiers.
+       specified  as a continuous string and are followed by any arguments re-
+       quired in the same order as the option specifiers.
 
        This facility is optional and may be excluded during NetHack configura-
        tion.
@@ -55,16 +55,16 @@ SEE ALSO
        nethack(6), tar(1)
 
 BUGS
-       Not  a  good  tar  emulation;  - does not mean stdin or stdout.  Should
-       include an optional compression facility.  Not all read-only files  for
+       Not  a good tar emulation; - does not mean stdin or stdout.  Should in-
+       clude an optional compression facility.  Not all  read-only  files  for
        NetHack can be read out of an archive; examining the source is the only
        way to know which files can be.
 
 COPYRIGHT
-       This  file  is  Copyright  (C)  Kenneth  Lorber,   2022   for   version
-       NetHack-3.7:1.12.   NetHack  may  be freely redistributed.  See license
-       for details.
+       This file is Copyright (C) Kenneth Lorber, DATE(%Y) for  version  keni-
+       gitset:1.13.  NetHack may be freely redistributed.  See license for de-
+       tails.
 
 
 
-NETHACK                         8 February 2022                         DLB(6)
+NETHACK                         DATE(1-d 1B 1Y)                         DLB(6)
