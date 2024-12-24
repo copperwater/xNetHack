@@ -151,7 +151,7 @@ sub nhversioning {
 	# Check for pre-v4 source repo.
     my $is_sourcerepo;
     {
-	chomp($is_sourcerepo = `git config --type=int --get nethack.is-sourcerepo`);
+	chomp($is_sourcerepo = `git config --int --get nethack.is-sourcerepo`);
 	if(0 == length $is_sourcerepo){	# not set - assume old repo
 	    $is_sourcerepo = 1;
 	}elsif($is_sourcerepo==1){
