@@ -15,7 +15,7 @@
                        Original version - Eric S. Raymond
      (Edited and expanded for NetHack 3.7.0 by Mike Stephenson and others)
 
-                               November 16, 2024
+                               December 25, 2024
 
 
 
@@ -126,7 +126,7 @@
 
 
 
-     NetHack 3.7.0                                        November 16, 2024
+     NetHack 3.7.0                                        December 25, 2024
 
 
 
@@ -192,7 +192,7 @@
      NetHack  continues  this  fine tradition.  Unlike text adventure games
 
 
-     NetHack 3.7.0                                        November 16, 2024
+     NetHack 3.7.0                                        December 25, 2024
 
 
 
@@ -258,7 +258,7 @@
 
 
 
-     NetHack 3.7.0                                        November 16, 2024
+     NetHack 3.7.0                                        December 25, 2024
 
 
 
@@ -324,7 +324,7 @@
 
 
 
-     NetHack 3.7.0                                        November 16, 2024
+     NetHack 3.7.0                                        December 25, 2024
 
 
 
@@ -390,7 +390,7 @@
 
 
 
-     NetHack 3.7.0                                        November 16, 2024
+     NetHack 3.7.0                                        December 25, 2024
 
 
 
@@ -456,7 +456,7 @@
           The  number  of  turns  elapsed so far, displayed if you have the
 
 
-     NetHack 3.7.0                                        November 16, 2024
+     NetHack 3.7.0                                        December 25, 2024
 
 
 
@@ -522,7 +522,7 @@
 
 
 
-     NetHack 3.7.0                                        November 16, 2024
+     NetHack 3.7.0                                        December 25, 2024
 
 
 
@@ -588,7 +588,7 @@
 
 
 
-     NetHack 3.7.0                                        November 16, 2024
+     NetHack 3.7.0                                        December 25, 2024
 
 
 
@@ -654,7 +654,7 @@
 
 
 
-     NetHack 3.7.0                                        November 16, 2024
+     NetHack 3.7.0                                        December 25, 2024
 
 
 
@@ -720,7 +720,7 @@
           instead.  Only these one-step  movement  commands  cause  you  to
 
 
-     NetHack 3.7.0                                        November 16, 2024
+     NetHack 3.7.0                                        December 25, 2024
 
 
 
@@ -786,7 +786,7 @@
           ing  <Control>.  ^<key>  is  used  as  shorthand elsewhere in the
 
 
-     NetHack 3.7.0                                        November 16, 2024
+     NetHack 3.7.0                                        December 25, 2024
 
 
 
@@ -852,7 +852,7 @@
 
 
 
-     NetHack 3.7.0                                        November 16, 2024
+     NetHack 3.7.0                                        December 25, 2024
 
 
 
@@ -918,7 +918,7 @@
 
 
 
-     NetHack 3.7.0                                        November 16, 2024
+     NetHack 3.7.0                                        December 25, 2024
 
 
 
@@ -984,7 +984,7 @@
 
 
 
-     NetHack 3.7.0                                        November 16, 2024
+     NetHack 3.7.0                                        December 25, 2024
 
 
 
@@ -1050,7 +1050,7 @@
           at an adjacent "remembered, unseen monster" marker.
 
 
-     NetHack 3.7.0                                        November 16, 2024
+     NetHack 3.7.0                                        December 25, 2024
 
 
 
@@ -1116,7 +1116,7 @@
 
 
 
-     NetHack 3.7.0                                        November 16, 2024
+     NetHack 3.7.0                                        December 25, 2024
 
 
 
@@ -1182,7 +1182,7 @@
      (R)UNIX is a registered trademark of The Open Group.
 
 
-     NetHack 3.7.0                                        November 16, 2024
+     NetHack 3.7.0                                        December 25, 2024
 
 
 
@@ -1248,7 +1248,7 @@
           menu_next_page, and menu_last_page keys (`^', `<',  `>',  `|'  by
 
 
-     NetHack 3.7.0                                        November 16, 2024
+     NetHack 3.7.0                                        December 25, 2024
 
 
 
@@ -1314,7 +1314,7 @@
           doesn't  and give that name to the result, while splitting (count
 
 
-     NetHack 3.7.0                                        November 16, 2024
+     NetHack 3.7.0                                        December 25, 2024
 
 
 
@@ -1380,7 +1380,7 @@
 
 
 
-     NetHack 3.7.0                                        November 16, 2024
+     NetHack 3.7.0                                        December 25, 2024
 
 
 
@@ -1446,7 +1446,7 @@
           extinct.
 
 
-     NetHack 3.7.0                                        November 16, 2024
+     NetHack 3.7.0                                        December 25, 2024
 
 
 
@@ -1512,7 +1512,7 @@
 
 
 
-     NetHack 3.7.0                                        November 16, 2024
+     NetHack 3.7.0                                        December 25, 2024
 
 
 
@@ -1578,7 +1578,7 @@
 
 
 
-     NetHack 3.7.0                                        November 16, 2024
+     NetHack 3.7.0                                        December 25, 2024
 
 
 
@@ -1644,7 +1644,7 @@
           right away.)  Since using this  command  by  accident  can  cause
 
 
-     NetHack 3.7.0                                        November 16, 2024
+     NetHack 3.7.0                                        December 25, 2024
 
 
 
@@ -1710,7 +1710,7 @@
           Default key is `M-R'.
 
 
-     NetHack 3.7.0                                        November 16, 2024
+     NetHack 3.7.0                                        December 25, 2024
 
 
 
@@ -1776,7 +1776,7 @@
           (worn blindfold or towel or lenses, lit lamp(s) and/or candle(s),
 
 
-     NetHack 3.7.0                                        November 16, 2024
+     NetHack 3.7.0                                        December 25, 2024
 
 
 
@@ -1842,7 +1842,7 @@
 
 
 
-     NetHack 3.7.0                                        November 16, 2024
+     NetHack 3.7.0                                        December 25, 2024
 
 
 
@@ -1908,7 +1908,7 @@
           line will show "(no travel path)" if your character does not know
 
 
-     NetHack 3.7.0                                        November 16, 2024
+     NetHack 3.7.0                                        December 25, 2024
 
 
 
@@ -1974,7 +1974,7 @@
 
 
 
-     NetHack 3.7.0                                        November 16, 2024
+     NetHack 3.7.0                                        December 25, 2024
 
 
 
@@ -2040,7 +2040,7 @@
           Set one or more intrinsic attributes.  Autocompletes.  Debug mode
 
 
-     NetHack 3.7.0                                        November 16, 2024
+     NetHack 3.7.0                                        December 25, 2024
 
 
 
@@ -2106,7 +2106,7 @@
      "high"]  bit),  you  can invoke many extended commands by meta-ing the
 
 
-     NetHack 3.7.0                                        November 16, 2024
+     NetHack 3.7.0                                        December 25, 2024
 
 
 
@@ -2172,7 +2172,7 @@
 
 
 
-     NetHack 3.7.0                                        November 16, 2024
+     NetHack 3.7.0                                        December 25, 2024
 
 
 
@@ -2238,7 +2238,7 @@
 
 
 
-     NetHack 3.7.0                                        November 16, 2024
+     NetHack 3.7.0                                        December 25, 2024
 
 
 
@@ -2304,7 +2304,7 @@
 
 
 
-     NetHack 3.7.0                                        November 16, 2024
+     NetHack 3.7.0                                        December 25, 2024
 
 
 
@@ -2370,7 +2370,7 @@
      them).  Some monsters who can open doors can also use unlocking tools.
 
 
-     NetHack 3.7.0                                        November 16, 2024
+     NetHack 3.7.0                                        December 25, 2024
 
 
 
@@ -2436,7 +2436,7 @@
      been  nullified,  giving  access  to  whatever is beyond them.  In the
 
 
-     NetHack 3.7.0                                        November 16, 2024
+     NetHack 3.7.0                                        December 25, 2024
 
 
 
@@ -2502,7 +2502,7 @@
      play.
 
 
-     NetHack 3.7.0                                        November 16, 2024
+     NetHack 3.7.0                                        December 25, 2024
 
 
 
@@ -2568,7 +2568,7 @@
 
 
 
-     NetHack 3.7.0                                        November 16, 2024
+     NetHack 3.7.0                                        December 25, 2024
 
 
 
@@ -2634,7 +2634,7 @@
      attack, when guessing where an unseen monster is or when  deliberately
 
 
-     NetHack 3.7.0                                        November 16, 2024
+     NetHack 3.7.0                                        December 25, 2024
 
 
 
@@ -2700,7 +2700,7 @@
      noid_confirmation:attack  option  to  require  a  response  of   "yes"
 
 
-     NetHack 3.7.0                                        November 16, 2024
+     NetHack 3.7.0                                        December 25, 2024
 
 
 
@@ -2766,7 +2766,7 @@
 
 
 
-     NetHack 3.7.0                                        November 16, 2024
+     NetHack 3.7.0                                        December 25, 2024
 
 
 
@@ -2832,7 +2832,7 @@
      are  encumbered,  one  of the conditions Burdened, Stressed, Strained,
 
 
-     NetHack 3.7.0                                        November 16, 2024
+     NetHack 3.7.0                                        December 25, 2024
 
 
 
@@ -2898,7 +2898,7 @@
 
 
 
-     NetHack 3.7.0                                        November 16, 2024
+     NetHack 3.7.0                                        December 25, 2024
 
 
 
@@ -2964,7 +2964,7 @@
      `X'  command  to engage or disengage that.  Only some types of charac-
 
 
-     NetHack 3.7.0                                        November 16, 2024
+     NetHack 3.7.0                                        December 25, 2024
 
 
 
@@ -3030,7 +3030,7 @@
 
 
 
-     NetHack 3.7.0                                        November 16, 2024
+     NetHack 3.7.0                                        December 25, 2024
 
 
 
@@ -3096,7 +3096,7 @@
      you'll be told that you feel more confident in your skills.   At  that
 
 
-     NetHack 3.7.0                                        November 16, 2024
+     NetHack 3.7.0                                        December 25, 2024
 
 
 
@@ -3162,7 +3162,7 @@
 
 
 
-     NetHack 3.7.0                                        November 16, 2024
+     NetHack 3.7.0                                        December 25, 2024
 
 
 
@@ -3228,7 +3228,7 @@
      what you eat."
 
 
-     NetHack 3.7.0                                        November 16, 2024
+     NetHack 3.7.0                                        December 25, 2024
 
 
 
@@ -3294,7 +3294,7 @@
      ever,  for this is often unwise.  Other types of wands don't require a
 
 
-     NetHack 3.7.0                                        November 16, 2024
+     NetHack 3.7.0                                        December 25, 2024
 
 
 
@@ -3360,7 +3360,7 @@
 
 
 
-     NetHack 3.7.0                                        November 16, 2024
+     NetHack 3.7.0                                        December 25, 2024
 
 
 
@@ -3426,7 +3426,7 @@
      play  the  entire game without being able to see (a self-imposed chal-
 
 
-     NetHack 3.7.0                                        November 16, 2024
+     NetHack 3.7.0                                        December 25, 2024
 
 
 
@@ -3492,7 +3492,7 @@
 
 
 
-     NetHack 3.7.0                                        November 16, 2024
+     NetHack 3.7.0                                        December 25, 2024
 
 
 
@@ -3558,7 +3558,7 @@
      set the goldX option if you prefer to have gold pieces be  treated  as
 
 
-     NetHack 3.7.0                                        November 16, 2024
+     NetHack 3.7.0                                        December 25, 2024
 
 
 
@@ -3624,7 +3624,7 @@
      eating such items still counts against foodless conduct.
 
 
-     NetHack 3.7.0                                        November 16, 2024
+     NetHack 3.7.0                                        December 25, 2024
 
 
 
@@ -3690,7 +3690,7 @@
      "X"  (the  traditional signature of an illiterate person).  Reading an
 
 
-     NetHack 3.7.0                                        November 16, 2024
+     NetHack 3.7.0                                        December 25, 2024
 
 
 
@@ -3756,7 +3756,7 @@
 
 
 
-     NetHack 3.7.0                                        November 16, 2024
+     NetHack 3.7.0                                        December 25, 2024
 
 
 
@@ -3822,7 +3822,7 @@
      achievement.
 
 
-     NetHack 3.7.0                                        November 16, 2024
+     NetHack 3.7.0                                        December 25, 2024
 
 
 
@@ -3888,7 +3888,7 @@
      (the closing `]' can be followed by whitespace and then  an  arbitrary
 
 
-     NetHack 3.7.0                                        November 16, 2024
+     NetHack 3.7.0                                        December 25, 2024
 
 
 
@@ -3954,7 +3954,7 @@
        problems is kept. Defaults to HACKDIR, must be writable.
 
 
-     NetHack 3.7.0                                        November 16, 2024
+     NetHack 3.7.0                                        December 25, 2024
 
 
 
@@ -4020,7 +4020,7 @@
        Custom symbols for the rogue level's symbol set.  See SYMBOLS below.
 
 
-     NetHack 3.7.0                                        November 16, 2024
+     NetHack 3.7.0                                        December 25, 2024
 
 
 
@@ -4086,7 +4086,7 @@
      You turn one of these on by adding the name of the option to the list,
 
 
-     NetHack 3.7.0                                        November 16, 2024
+     NetHack 3.7.0                                        December 25, 2024
 
 
 
@@ -4152,7 +4152,7 @@
        and  the non-human races restrict which alignments are allowed.  See
 
 
-     NetHack 3.7.0                                        November 16, 2024
+     NetHack 3.7.0                                        December 25, 2024
 
 
 
@@ -4218,7 +4218,7 @@
                    wielded weapon (if you omit untrap or decline to attempt
 
 
-     NetHack 3.7.0                                        November 16, 2024
+     NetHack 3.7.0                                        December 25, 2024
 
 
 
@@ -4284,7 +4284,7 @@
        If this option is on, items you dropped will  not  be  automatically
 
 
-     NetHack 3.7.0                                        November 16, 2024
+     NetHack 3.7.0                                        December 25, 2024
 
 
 
@@ -4350,7 +4350,7 @@
        Name  your starting dog (for example "dogname:Fang").  Cannot be set
 
 
-     NetHack 3.7.0                                        November 16, 2024
+     NetHack 3.7.0                                        December 25, 2024
 
 
 
@@ -4416,7 +4416,7 @@
        blessed  or  cursed, but it is not described as "uncursed" even when
 
 
-     NetHack 3.7.0                                        November 16, 2024
+     NetHack 3.7.0                                        December 25, 2024
 
 
 
@@ -4482,7 +4482,7 @@
 
 
 
-     NetHack 3.7.0                                        November 16, 2024
+     NetHack 3.7.0                                        December 25, 2024
 
 
 
@@ -4548,7 +4548,7 @@
        response  to  the  Drop  (aka droptype) command, for instance).  The
 
 
-     NetHack 3.7.0                                        November 16, 2024
+     NetHack 3.7.0                                        December 25, 2024
 
 
 
@@ -4614,7 +4614,7 @@
 
 
 
-     NetHack 3.7.0                                        November 16, 2024
+     NetHack 3.7.0                                        December 25, 2024
 
 
 
@@ -4680,7 +4680,7 @@
 
 
 
-     NetHack 3.7.0                                        November 16, 2024
+     NetHack 3.7.0                                        December 25, 2024
 
 
 
@@ -4746,7 +4746,7 @@
        are filled in at the end from the previous order.
 
 
-     NetHack 3.7.0                                        November 16, 2024
+     NetHack 3.7.0                                        December 25, 2024
 
 
 
@@ -4812,7 +4812,7 @@
        new  entries  and  remove  some old ones, you can use multiple para-
 
 
-     NetHack 3.7.0                                        November 16, 2024
+     NetHack 3.7.0                                        December 25, 2024
 
 
 
@@ -4878,7 +4878,7 @@
        Persistent.
 
 
-     NetHack 3.7.0                                        November 16, 2024
+     NetHack 3.7.0                                        December 25, 2024
 
 
 
@@ -4944,7 +4944,7 @@
 
 
 
-     NetHack 3.7.0                                        November 16, 2024
+     NetHack 3.7.0                                        December 25, 2024
 
 
 
@@ -5010,7 +5010,7 @@
        trol+direction  and  so  forth,  or  via the travel command or mouse
 
 
-     NetHack 3.7.0                                        November 16, 2024
+     NetHack 3.7.0                                        December 25, 2024
 
 
 
@@ -5076,7 +5076,7 @@
        ants,  or  you are making screenshots or streaming video.  Using the
 
 
-     NetHack 3.7.0                                        November 16, 2024
+     NetHack 3.7.0                                        December 25, 2024
 
 
 
@@ -5142,7 +5142,7 @@
            others;
 
 
-     NetHack 3.7.0                                        November 16, 2024
+     NetHack 3.7.0                                        December 25, 2024
 
 
 
@@ -5208,7 +5208,7 @@
 
 
 
-     NetHack 3.7.0                                        November 16, 2024
+     NetHack 3.7.0                                        December 25, 2024
 
 
 
@@ -5274,7 +5274,7 @@
        on  a doorway, it will consider the area on the side of the door you
 
 
-     NetHack 3.7.0                                        November 16, 2024
+     NetHack 3.7.0                                        December 25, 2024
 
 
 
@@ -5340,7 +5340,7 @@
        right)
 
 
-     NetHack 3.7.0                                        November 16, 2024
+     NetHack 3.7.0                                        December 25, 2024
 
 
 
@@ -5406,7 +5406,7 @@
 
 
 
-     NetHack 3.7.0                                        November 16, 2024
+     NetHack 3.7.0                                        December 25, 2024
 
 
 
@@ -5472,7 +5472,7 @@
 
 
 
-     NetHack 3.7.0                                        November 16, 2024
+     NetHack 3.7.0                                        December 25, 2024
 
 
 
@@ -5538,7 +5538,7 @@
 
 
 
-     NetHack 3.7.0                                        November 16, 2024
+     NetHack 3.7.0                                        December 25, 2024
 
 
 
@@ -5604,7 +5604,7 @@
 
 
 
-     NetHack 3.7.0                                        November 16, 2024
+     NetHack 3.7.0                                        December 25, 2024
 
 
 
@@ -5670,7 +5670,7 @@
        strokes that the operating system returns to NetHack to help compen-
 
 
-     NetHack 3.7.0                                        November 16, 2024
+     NetHack 3.7.0                                        December 25, 2024
 
 
 
@@ -5736,7 +5736,7 @@
 
 
 
-     NetHack 3.7.0                                        November 16, 2024
+     NetHack 3.7.0                                        December 25, 2024
 
 
 
@@ -5802,7 +5802,7 @@
        The menu control or accelerator keys can also be rebound via OPTIONS
 
 
-     NetHack 3.7.0                                        November 16, 2024
+     NetHack 3.7.0                                        December 25, 2024
 
 
 
@@ -5868,7 +5868,7 @@
 
 
 
-     NetHack 3.7.0                                        November 16, 2024
+     NetHack 3.7.0                                        December 25, 2024
 
 
 
@@ -5934,7 +5934,7 @@
        ing  for  more  info, and exit the location asking loop.  Default is
 
 
-     NetHack 3.7.0                                        November 16, 2024
+     NetHack 3.7.0                                        December 25, 2024
 
 
 
@@ -6000,7 +6000,7 @@
 
 
 
-     NetHack 3.7.0                                        November 16, 2024
+     NetHack 3.7.0                                        December 25, 2024
 
 
 
@@ -6066,7 +6066,7 @@
 
 
 
-     NetHack 3.7.0                                        November 16, 2024
+     NetHack 3.7.0                                        December 25, 2024
 
 
 
@@ -6132,7 +6132,7 @@
      cause  the  hitpoints  field  to display in the color red if your hit-
 
 
-     NetHack 3.7.0                                        November 16, 2024
+     NetHack 3.7.0                                        December 25, 2024
 
 
 
@@ -6198,7 +6198,7 @@
 
 
 
-     NetHack 3.7.0                                        November 16, 2024
+     NetHack 3.7.0                                        December 25, 2024
 
 
 
@@ -6264,7 +6264,7 @@
 
 
 
-     NetHack 3.7.0                                        November 16, 2024
+     NetHack 3.7.0                                        December 25, 2024
 
 
 
@@ -6330,7 +6330,7 @@
      value,  and  the ^ prefix causes the following character to be treated
 
 
-     NetHack 3.7.0                                        November 16, 2024
+     NetHack 3.7.0                                        December 25, 2024
 
 
 
@@ -6396,7 +6396,7 @@
 
 
 
-     NetHack 3.7.0                                        November 16, 2024
+     NetHack 3.7.0                                        December 25, 2024
 
 
 
@@ -6462,7 +6462,7 @@
 
 
 
-     NetHack 3.7.0                                        November 16, 2024
+     NetHack 3.7.0                                        December 25, 2024
 
 
 
@@ -6528,7 +6528,7 @@
 
 
 
-     NetHack 3.7.0                                        November 16, 2024
+     NetHack 3.7.0                                        December 25, 2024
 
 
 
@@ -6594,7 +6594,7 @@
 
 
 
-     NetHack 3.7.0                                        November 16, 2024
+     NetHack 3.7.0                                        December 25, 2024
 
 
 
@@ -6660,7 +6660,7 @@
 
 
 
-     NetHack 3.7.0                                        November 16, 2024
+     NetHack 3.7.0                                        December 25, 2024
 
 
 
@@ -6726,7 +6726,7 @@
        seen via the "#attributes" command.
 
 
-     NetHack 3.7.0                                        November 16, 2024
+     NetHack 3.7.0                                        December 25, 2024
 
 
 
@@ -6792,7 +6792,7 @@
 
 
 
-     NetHack 3.7.0                                        November 16, 2024
+     NetHack 3.7.0                                        December 25, 2024
 
 
 
@@ -6858,7 +6858,7 @@
        the livelog file if one is present.  The sample sysconf file  accom-
 
 
-     NetHack 3.7.0                                        November 16, 2024
+     NetHack 3.7.0                                        December 25, 2024
 
 
 
@@ -6924,7 +6924,7 @@
      are left for the trepid reader to discover.
 
 
-     NetHack 3.7.0                                        November 16, 2024
+     NetHack 3.7.0                                        December 25, 2024
 
 
 
@@ -6990,7 +6990,7 @@
      1.4 in 1987.  He then coordinated a cast of thousands in enhancing and
 
 
-     NetHack 3.7.0                                        November 16, 2024
+     NetHack 3.7.0                                        December 25, 2024
 
 
 
@@ -7056,7 +7056,7 @@
      NetHack  3.1  to  the  Atari.   Pat  Rankin,  with  help  from  Joshua
 
 
-     NetHack 3.7.0                                        November 16, 2024
+     NetHack 3.7.0                                        December 25, 2024
 
 
 
@@ -7122,7 +7122,7 @@
      Slash'EM, and with the help of Kevin Hugo, added more features.  Kevin
 
 
-     NetHack 3.7.0                                        November 16, 2024
+     NetHack 3.7.0                                        December 25, 2024
 
 
 
@@ -7188,7 +7188,7 @@
      the Macintosh port of 3.4.
 
 
-     NetHack 3.7.0                                        November 16, 2024
+     NetHack 3.7.0                                        December 25, 2024
 
 
 
@@ -7254,7 +7254,7 @@
 
 
 
-     NetHack 3.7.0                                        November 16, 2024
+     NetHack 3.7.0                                        December 25, 2024
 
 
 
@@ -7320,7 +7320,7 @@
 
 
 
-     NetHack 3.7.0                                        November 16, 2024
+     NetHack 3.7.0                                        December 25, 2024
 
 
 
@@ -7386,7 +7386,7 @@
 
 
 
-     NetHack 3.7.0                                        November 16, 2024
+     NetHack 3.7.0                                        December 25, 2024
 
 
 
@@ -7452,7 +7452,7 @@
 
 
 
-     NetHack 3.7.0                                        November 16, 2024
+     NetHack 3.7.0                                        December 25, 2024
 
 
 
@@ -7518,7 +7518,7 @@
 
 
 
-     NetHack 3.7.0                                        November 16, 2024
+     NetHack 3.7.0                                        December 25, 2024
 
 
 
@@ -7584,7 +7584,7 @@
 
 
 
-     NetHack 3.7.0                                        November 16, 2024
+     NetHack 3.7.0                                        December 25, 2024
 
 
 
