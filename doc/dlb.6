@@ -70,22 +70,28 @@ The
 .B t
 command lists the files in the archive.
 .SH OPTIONS AND ARGUMENTS
-.DT
-.ta \w'f archive\ \ \ 'u
-v	verbose output
+.TP 12em
+\fBv
+verbose output
 .br
 .sp 1
-f archive	specify the archive.  Default if f not specified is
+.TP
+\fBf\fI\ archive
+specify the archive.  Default if f not specified is
 LIBFILE (usually the nhdat file in the playground).
 .br
 .sp 1
-I lfile	specify the file containing the list of files to
+.TP
+\fBI\fI\ lfile
+specify the file containing the list of files to
 put in to or extract from the archive if no files are listed
 on the command line.  Default for archive creation if no files
 are listed is LIBLISTFILE.
 .br
 .sp 1
-C dir	change directory.  Changes directory before trying to
+.TP
+\fBC\fI\ dir
+change directory.  Changes directory before trying to
 read any files (including the archive and the lfile).
 .br
 .SH EXAMPLES
