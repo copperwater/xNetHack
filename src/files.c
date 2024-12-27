@@ -4567,7 +4567,9 @@ debugcore(const char *filename, boolean wildcards)
 void
 reveal_paths(int code)
 {
+#if defined(SYSCF)
     boolean skip_sysopt = FALSE;
+#endif
     const char *fqn, *nodumpreason;
 
     char buf[BUFSZ];
@@ -4721,6 +4723,7 @@ reveal_paths(int code)
     }
 #endif /* ?DUMPLOG */
 
+#ifdef SYSCF
 #ifdef WIN32
     if (!skip_sysopt) {
         if (sysopt.portable_device_paths) {
@@ -4735,6 +4738,7 @@ reveal_paths(int code)
             }
         }
     }
+#endif
 #endif
 
     /* personal configuration file */
@@ -4792,6 +4796,12 @@ reveal_paths(int code)
     raw_print("");
 #if defined(WIN32) && !defined(WIN32CON)
     wait_synch();
+#endif
+#ifndef DUMPLOG
+#ifdef SYSCF
+    nhUse(skip_sysopt);
+#endif
+    nhUse(nodumpreason);
 #endif
 }
 
