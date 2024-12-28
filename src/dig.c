@@ -715,7 +715,10 @@ digactualhole(coordxy x, coordxy y, struct monst *madeby, int ttyp)
         pline("%s digs %s %s the %s.", Monnam(madeby), an(tname), in_thru,
               surface_type);
     } else if (cansee(x, y) && flags.verbose) {
-        pline("%s appears in the %s.", An(tname), surface_type);
+        if (IS_STWALL(old_typ))
+            pline_The("%s crumbles into %s.", surface_type, an(tname));
+        else
+            pline("%s appears in the %s.", An(tname), surface_type);
     }
     if (IS_FURNITURE(old_typ) && cansee(x, y))
         pline_The("%s falls into the %s!", furniture, tname);
