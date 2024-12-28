@@ -608,6 +608,7 @@ invault(void)
         EGD(guard)->fakecorr[0].ftyp = typ;
         EGD(guard)->fakecorr[0].flags = levl[x][y].flags;
         /* guard's entry point where confrontation with hero takes place */
+        spot_stop_timers(x, y, MELT_ICE_AWAY);
         levl[x][y].typ = DOOR;
         levl[x][y].doormask = D_NODOOR;
         unblock_point(x, y); /* empty doorway doesn't block light */
