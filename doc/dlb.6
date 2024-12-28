@@ -21,18 +21,35 @@
 dlb \- NetHack data librarian
 .SH SYNOPSIS
 .B dlb
-{
-.B xct
-}
-[
-.B vfIC
-]
-arguments...
-[
-.B files...
-]
-.SH DESCRIPTION
+.\" We'd use `RB` with 7 arguments, but Unix troff man(7) has a limit of
+.\" 6 arguments to its macros.
+{\c
+.BR c | t | x\c
+}\c
+.RB [ v ]\c
+.RB [ C
+.IR directory ]
+.RI [ file ]
+\&.\|.\|.
 .PP
+.B dlb
+{\c
+.BR c | t | x\c
+}\c
+.RB [ v ]\c
+.B I
+.IR list-file
+.PP
+.B dlb
+{\c
+.BR c | t | x\c
+}\c
+.RB [ v ]\c
+.RB [ f
+.IR archive-file-name ]
+.RI [ file ]
+\&.\|.\|.
+.SH DESCRIPTION
 .I Dlb
 is a file archiving tool in the spirit (and tradition) of tar for
 NetHack version 3.1 and higher.  It is used to maintain the
