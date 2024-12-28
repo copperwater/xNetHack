@@ -2924,7 +2924,12 @@ fill_empty_maze(void)
                             TRUE);
         }
         for (x = rnd((int) (12 * mapfact) / 100); x; x--) {
+            struct trap *ttmp;
+
             maze1xy(&mm, DRY);
+            if ((ttmp = t_at(mm.x, mm.y)) != 0
+                && (is_pit(ttmp->ttyp) || is_hole(ttmp->ttyp)))
+                continue;
             (void) mksobj_at(BOULDER, mm.x, mm.y, TRUE, FALSE);
         }
         for (x = rn2(2); x; x--) {
