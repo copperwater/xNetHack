@@ -1130,6 +1130,7 @@ use_defensive(struct monst *mtmp)
         place_monster(mtmp, gt.trapx, gt.trapy);
         if (mtmp->wormno)
             worm_move(mtmp);
+        maybe_unhide_at(mtmp->mx, mtmp->my);
         newsym(gt.trapx, gt.trapy);
         /* 0: 'no object' rather than STRANGE_OBJECT; FALSE: obj not seen */
         m_tele(mtmp, vismon, FALSE, 0);
