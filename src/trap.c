@@ -3133,6 +3133,7 @@ blow_up_landmine(struct trap *trap)
             }
         }
     }
+    fill_pit(x, y);
     spot_checks(x, y, old_typ);
 }
 
