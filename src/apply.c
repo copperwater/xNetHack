@@ -4020,6 +4020,7 @@ do_break_wand(struct obj *obj)
                                        && !levl[x][y].candig)) ? PIT : HOLE);
                 }
             }
+            fill_pit(x, y);
             continue;
         } else if (obj->otyp == WAN_CREATE_MONSTER) {
             /* u.ux,u.uy creates it near you--x,y might create it in rock */
