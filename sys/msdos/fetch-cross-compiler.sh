@@ -209,7 +209,7 @@ if [ -d djgpp/target ]; then
    done
 
    echo "Native DOS executables in lib/djgpp/target:"
-   ls -l *.exe
+   ls -l bin/*.exe
    #
    cd ../../
 fi
