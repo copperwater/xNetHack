@@ -3991,8 +3991,9 @@ do_break_wand(struct obj *obj)
 
         if (obj->otyp == WAN_DIGGING) {
             schar typ;
+            enum digcheck_result dcres = dig_check(BY_OBJECT, x, y);
 
-            if (dig_check(BY_OBJECT, x, y) < DIGCHECK_FAILED) {
+            if (dcres < DIGCHECK_FAILED || dcres == DIGCHECK_FAIL_BOULDER) {
                 if (IS_WALL(levl[x][y].typ) || IS_DOOR(levl[x][y].typ)) {
                     /* normally, pits and holes don't anger guards, but they
                      * do if it's a wall or door that's being dug */
