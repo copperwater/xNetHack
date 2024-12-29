@@ -65,10 +65,10 @@ dospkg: dodata dosfonts $(GAMEBIN) $(TARGETPFX)recover.exe ../dat/nhtiles.bmp
 	cp $(DOSFONT)/ter-u28b.psf $(TARGETPFX)pkg/TER-U28B.PSF
 	cp $(DOSFONT)/ter-u32b.psf $(TARGETPFX)pkg/TER-U32B.PSF
 	cp  ../lib/djgpp/cwsdpmi/bin/CWSDPMI.EXE $(TARGETPFX)pkg/CWSDPMI.EXE
-	( if [ -f ../lib/djgpp/target/symify.exe ]; then \
-	      cp  ../lib/djgpp/target/symify.exe $(TARGETPFX)pkg/SYMIFY.EXE; \
+	( if [ -f ../lib/djgpp/target/bin/symify.exe ]; then \
+	      cp  ../lib/djgpp/target/bin/symify.exe $(TARGETPFX)pkg/SYMIFY.EXE; \
           else \
-              pwd; echo "../lib/djgpp/target/symify.exe not found"; \
+              pwd; echo "../lib/djgpp/target/bin/symify.exe not found"; \
 	  fi; )
 ifeq "$(WANT_DEBUG)" "1"
 	( if [ -f $(GDBEXE) ]; \
