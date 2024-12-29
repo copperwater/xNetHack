@@ -133,6 +133,13 @@ override TARGET_CC = $(TOOLTOP1)/i586-pc-msdosdjgpp-gcc
 override TARGET_CXX = $(TOOLTOP1)/i586-pc-msdosdjgpp-g++
 override TARGET_AR = $(TOOLTOP1)/i586-pc-msdosdjgpp-gcc-ar
 override TARGET_STUBEDIT = ../lib/djgpp/i586-pc-msdosdjgpp/bin/stubedit
+ifdef MAKEFILE_SRC
+FLDR=../
+endif
+ifdef MAKEFILE_TOP
+FLDR=
+endif
+dostargetexes=$(FLDR)lib/djgpp/target/bin/
 #
 ifdef DOSBOX
 dosbox=$(DOSBOX)
@@ -144,13 +151,6 @@ dosboxnhfolder=$(dosboxtop)/$(dosboxgameid)
 dosboxnhsrc=$(dosboxnhfolder)/NHSRC
 dosboxconfigfile=NETHACK.CNF
 dosgdburl=http://www.mirrorservice.org/sites/ftp.delorie.com/pub/djgpp/current/v2gnu/gdb801b.zip
-ifdef MAKEFILE_SRC
-FLDR=../
-endif
-ifdef MAKEFILE_TOP
-FLDR=
-endif
-dostargetexes=$(FLDR)lib/djgpp/target
 WANT_DEBUG=1
 DEPLOY=deploytodosbox
 endif  # dosbox
@@ -231,7 +231,7 @@ override PACKAGE = dospkg
 override PREGAME += mkdir -p $(TARGETDIR) ; make $(TARGETPFX)exceptn.o ;
 override CLEANMORE += rm -f -r $(TARGETDIR) ; rm -f -r $(FONTTARGETS) ;
 ifeq "$(WANT_DEBUG)" "1"
-GDBEXE=../lib/djgpp/target/gdb.exe
+GDBEXE=$(dostargetexes)gdb.exe
 GDBBAT=NHGDB.BAT
 GDBCMDLINE=directory nhsrc/src nhsrc/include nhsrc/sys/msdos \
 		nhsrc/sys/share nhsrc/win/share nhsrc/win/curses \

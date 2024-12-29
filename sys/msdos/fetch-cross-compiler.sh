@@ -139,12 +139,22 @@ if [ ! -d djgpp/djgpp-patch ]; then
     cd ../../
 fi
 
-# create a directory to hold some native DOS executables that might get deployed
+# create a directories to hold some native DOS pieces that might get deployed
 if [ ! -d djgpp/target ]; then
     cd djgpp
     mkdir -p target
     cd ../
 fi
+if [ ! -d djgpp/target/bin ]; then
+    mkdir -p djgpp/target/bin
+fi
+if [ ! -d djgpp/target/lib ]; then
+    mkdir -p djgpp/target/lib
+fi
+if [ ! -d djgpp/target/include ]; then
+    mkdir -p djgpp/target/include
+fi
+
 
 # These 4 arrays must have their elements kept in synch.
 #
@@ -160,8 +170,9 @@ ziplocal=(
 )
 # name of file after extraction from zip file
 exesought=(
-	"symify.exe"
-	"gdb.exe"
+	"bin/symify.exe"
+	"bin/gdb.exe"
+
 )
 # stored full path inside zip file
 exepathinzip=(
@@ -196,10 +207,13 @@ if [ -d djgpp/target ]; then
      fi
      count=$(( $count + 1 ))
    done
+
    echo "Native DOS executables in lib/djgpp/target:"
    ls -l *.exe
+   #
    cd ../../
 fi
+
 
 FONT_VERSION="4.49"
 FONT_FILE="terminus-font-$FONT_VERSION"
