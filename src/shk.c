@@ -27,7 +27,7 @@ enum billitem_status {
     KnownContainer = 5, /* container->cknown==1, holding unpaid item(s) */
     UndisclosedContainer = 6, /* container->cknown==0 */
 };
-/* this is similar to sortloot; the shop bill gets converted into a array of
+/* this is similar to sortloot; the shop bill gets converted into an array of
    struct sortbill_item so that sorting and traversal don't need to access
    the original bill or even the shk; the array gets sorted by usedup vs
    unpaid and by cost within each of those two categories */
@@ -1570,7 +1570,8 @@ make_itemized_bill(
     }
     ibill[n].bidx = -1; /* end of list; not strictly needed */
 
-    /* ibill[0..n-1] contains data, ibill[n] has Null obj and -1 bidx */
+    /* ibill[0..n-1] contains data, ibill[n] has Null obj and -1 bidx and
+       is excluded from the sort */
     if (n > 1)
         qsort((genericptr_t) ibill, n, sizeof *ibill, sortbill_cmp);
     return n;
@@ -2116,9 +2117,13 @@ update_bill(
         }
         newebillct = eshkp->billct - 1;
         *bp = eshkp->bill_p[newebillct];
+#if 0   /* [this is responsible for github issue #1339; it's not clear why] */
         for (j = 0; j < ibillct; ++j)
             if (ibill[j].bidx == newebillct)
                 ibill[j].bidx = bidx;
+#else
+        nhUse(bidx);
+#endif
         eshkp->billct = newebillct; /* eshkp->billct - 1 */
     }
     return;
@@ -2294,9 +2299,13 @@ buy_container(
         otmp = bp_to_obj(bp);
 
         buy = dopayobj(shkp, bp, otmp, 1, FALSE, sightunseen);
-        if (buy != PAY_BUY)
+        if (buy != PAY_BUY) {
             impossible("Buying %s contents failed unexpectedly (#%u %d).",
                        simpleonames(container), otmp->o_id, buy);
+            continue;
+        }
+        /* [updating cost here is not necessary but useful when debugging] */
+        ibill[indx].cost -= (bp->price * bp->bquan); /* update container */
         update_bill(indx, ibillct, ibill, eshkp, bp, otmp);
         ++buycount;
     }

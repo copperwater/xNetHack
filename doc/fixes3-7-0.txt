@@ -2081,6 +2081,8 @@ farlook of /e or /E stopped reporting engraving and headstone text after a fix
 	for the situation where // or ; reported such text when there was an
 	object or monster in the way
 message was garbled when lightning or acid breath hit iron bars
+shop bug: buying a container with unpaid items in it could produce impossible
+	"unpaid_cost: object not on any bill" warnings
 
 
 Fixes to 3.7.0-x Platform and/or Interface Problems Exposed Via git Repository
