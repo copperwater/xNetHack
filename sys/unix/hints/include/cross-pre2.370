@@ -35,7 +35,8 @@ LUACROSSLIB = $(TARGETPFX)lua$(subst .,,$(LUA_VERSION)).a
 LUAINCL  = -I$(LUASRCDIR)
 override BUILDMORE += $(LUACROSSLIB)
 override CLEANMORE += rm -f $(LUACROSSLIB) ;
-override TARGET_LIBS += $(LUACROSSLIB) -lm
+override TARGET_LIBS += $(LUACROSSLIB)
+LIBLM = -lm
 else
 LUAINCL=
 endif  # BUILD_TARGET_LUA
@@ -178,12 +179,12 @@ MSDOS_TARGET_CFLAGS = -c -O $(DBGFLAGS) -I../include -I../sys/msdos -I../win/sha
 	$(LUAINCL) -DDLB $(PDCURSESDEF) -DTILES_IN_GLYPHMAP \
 	-DCROSSCOMPILE -DCROSSCOMPILE_TARGET -DCROSS_TO_MSDOS \
 	-D_NAIVE_DOS_REGS \
-	$(MSDOS_GCC_CFLAGS)
+	$(MSDOS_GCC_CFLAGS) $(SNDCFLAGS)
 MSDOS_TARGET_CXXFLAGS = -c -O $(DBGFLAGS) -I../include -I../sys/msdos -I../win/share \
         $(LUAINCL) -DDLB $(PDCURSESDEF) \
         -DUSE_TILES -DCROSSCOMPILE -DCROSSCOMPILE_TARGET -DCROSS_TO_MSDOS \
 	-D_NAIVE_DOS_REGS \
-	$(MSDOS_GPP_CFLAGS)
+	$(MSDOS_GPP_CFLAGS) $(SNDCFLAGS)
 PDCINCL += -I$(PDCPORT)
 PDC_TARGET_CFLAGS = $(MSDOS_TARGET_CFLAGS) -Wno-unused-parameter \
 			-Wno-missing-prototypes
@@ -204,7 +205,7 @@ else
 override TARGET_LINK = $(TOOLTOP1)/i586-pc-msdosdjgpp-gcc
 endif
 override TARGET_LFLAGS=
-override TARGET_LIBS += -lpc
+override TARGET_LIBS += -lpc $(LIBLM)
 override SYSSRC = ../sys/share/pcmain.c ../sys/msdos/msdos.c \
 		../sys/share/pcsys.c ../sys/share/pctty.c \
 		../sys/share/pcunix.c ../sys/msdos/video.c \
