@@ -668,7 +668,7 @@ study.  I expect that you will have a fine treatise published soon.
          synopsis = "[\"Resume your search for the Amulet beyond the magic portal to %Z.\"]",
          output = "text",
          text = [["
-Lord Carnarvon raises an eyebrow and hands Itlachiayaque back to you.
+%l raises an eyebrow and hands %o back to you.
 "We've already documented this as thoroughly as we can right now.
 Perhaps some day when your great quest for the Amulet is complete, you
 can return it here.
