@@ -62,6 +62,9 @@ changes:
 - Scrolls of earth work again in all levels besides the non-Earth Planes.
 - Yeenoghu no longer carries a wand of wishing; instead there is a buried chest
   on his level that may contain it.
+- You will only abuse Wisdom when trying to clumsily throw weapons without the
+  proper launcher when you actually perceive you're throwing them at a monster,
+  but the Wisdom penalty now happens 100% of the time instead of 20%.
 
 ### Interface changes
 

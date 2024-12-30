@@ -7,6 +7,7 @@
 
 #include "hack.h"
 
+static boolean valid_throw_target(void);
 static int throw_obj(struct obj *, int);
 static boolean ok_to_throw(int *);
 static int throw_ok(struct obj *);
@@ -76,6 +77,38 @@ multishot_class_bonus(
     }
 
     return multishot;
+}
+
+/* Is there a perceptible monster in a straight line in which we might throw
+ * something?
+ * Assumes u.dx and u.dy have already been set in the direction of the intended
+ * throw. */
+static boolean
+valid_throw_target(void)
+{
+    int maxdist = 10; /* arbitrary */
+    int x = u.ux, y = u.uy;
+    int i;
+    struct monst *mtmp;
+
+    for (i = 0; i < maxdist; ++i) {
+        x += u.dx;
+        y += u.dy;
+        if (!isok(x, y) || IS_ROCK(levl[x][y].typ) || closed_door(x, y)
+            /* terrain types that are not IS_ROCK but which a thrown item
+             * wouldn't fly through - note that missiles can pass iron bars so
+             * they are not checked here */
+            || levl[x][y].typ == DRAWBRIDGE_UP || IS_WATERWALL(levl[x][y].typ)
+            || levl[x][y].typ == LAVAWALL) {
+            return FALSE;
+        }
+        mtmp = m_at(x, y);
+        if ((mtmp && canspotmon(mtmp))
+            || glyph_is_invisible(levl[x][y].glyph)) {
+            return TRUE;
+        }
+    }
+    return FALSE;
 }
 
 /* Throw the selected object, asking for direction */
@@ -290,8 +323,12 @@ throw_obj(struct obj *obj, int shotlimit)
         freeinv(otmp);
         if (badthrow) {
             You("clumsily throw %s.", yname(otmp));
-            if (!rn2(5))
+            /* still give "really throw this item not designed to be thrown?"
+             * and "clumsily" messages unconditionally, but only penalize Wisdom
+             * when actually trying to hit something with it */
+            if (valid_throw_target()) {
                 exercise(A_WIS, FALSE);
+            }
         }
         throwit(otmp, wep_mask, twoweap, oldslot);
         (void) encumber_msg();
