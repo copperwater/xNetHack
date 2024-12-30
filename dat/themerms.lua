@@ -1615,7 +1615,7 @@ xxxxxxx------xxxxxx]], contents = function()
 |.....--x--.....|
 --.....---.....--
 x--.....|.....--x
-xx--....|....--xx
+xx--.........--xx
 xxx-----.-----xxx
 xxxxxx--.--xxxxxx
 xxxxx--...--xxxxx
