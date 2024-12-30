@@ -3741,8 +3741,11 @@ optfn_soundlib(
          */
         if ((op = string_for_env_opt(allopt[optidx].name, opts, FALSE))
             != empty_optstr) {
+            enum soundlib_ids option_id;
 
             get_soundlib_name(soundlibbuf, WINTYPELEN);
+            option_id = soundlib_id_from_opt(op);
+            gc.chosen_soundlib = option_id;
             assign_soundlib(gc.chosen_soundlib);
         } else
             return optn_err;

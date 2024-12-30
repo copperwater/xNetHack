@@ -1879,6 +1879,21 @@ get_soundlib_name(char *dest, int maxlen)
     *dest = '\0';
 }
 
+enum soundlib_ids
+soundlib_id_from_opt(char *op)
+{
+    int idx;
+    struct sound_procs *defproc = &nosound_procs,
+                       *sp = 0;
+
+    for (idx = 0; idx < SIZE(soundlib_choices); ++idx) {
+        sp = soundlib_choices[idx].sndprocs;
+        if (!strcmp(sp->soundname, op))
+            return sp->soundlib_id;
+    }
+    return defproc->soundlib_id;
+}
+
 /*
  * The default sound interface
  *
