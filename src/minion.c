@@ -364,7 +364,7 @@ demon_value(struct obj *obj)
     else if (otyp == WAN_WISHING || otyp == MAGIC_LAMP
              || (In_cocytus(&u.uz) && otyp == RIN_COLD_RESISTANCE))
         return baseval * 2;
-    /* Then, any case where the demon lord is interested in something for the
+    /* Then, any case where the archfiend is interested in something for the
      * plain base value.
      * For rings and amulets, they focus on ones the player is wearing rather
      * than random ones they may happen to have, on the guess that those are
@@ -479,7 +479,8 @@ demon_talk(register struct monst *mtmp)
             else {
                 pline("%s greedily takes it.", Monnam(mtmp));
                 (void) mpickobj(mtmp, shiny); /* could merge and free shiny but
-                                               * won't */ }
+                                               * won't */
+            }
         }
     } while (demand > 0 && rn2(4));
 
