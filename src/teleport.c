@@ -33,6 +33,14 @@ noteleport_level(struct monst* mon)
         if (get_iter_mons(m_blocks_teleporting))
             return TRUE;
 
+    /* quest levels when nemesis remains alive
+     * potential future extension: differentiate between quests where the
+     * nemesis is a being whose magic powers or even very presence would forbid
+     * you from advancing rapidly, and block teleport there, while allowing
+     * teleport for lesser nemeses. */
+    if (In_quest(&u.uz) && !gq.quest_status.killed_nemesis)
+        return TRUE;
+
     /* natural no-teleport level */
     if (gl.level.flags.noteleport)
         return TRUE;
@@ -1274,6 +1282,17 @@ level_tele(void)
     if (u.utrap && u.utraptype == TT_BURIEDBALL)
         buried_ball_to_punishment();
 
+    /* no levelporting down in the quest before the nemesis is killed */
+    if (In_quest(&u.uz) && !gq.quest_status.killed_nemesis
+        && newlev > depth(&u.uz)) {
+        if (wizard) {
+            pline("Overriding quest-levelport restriction.");
+        }
+        else {
+            pline("A malevolent force blocks your attempt to teleport!");
+            return;
+        }
+    }
     if (!next_to_u() && !force_dest) {
         You1(shudder_for_moment);
         return;

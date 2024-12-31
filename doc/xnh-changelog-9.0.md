@@ -65,6 +65,8 @@ changes:
 - You will only abuse Wisdom when trying to clumsily throw weapons without the
   proper launcher when you actually perceive you're throwing them at a monster,
   but the Wisdom penalty now happens 100% of the time instead of 20%.
+- It is no longer possible to levelport downwards or teleport within the same
+  level in the Quest before the nemesis is killed.
 
 ### Interface changes
 
