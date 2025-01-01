@@ -1898,7 +1898,7 @@ m_move(struct monst *mtmp, int after)
         coord poss[9];
 
         cnt = mfndpos(mtmp, poss, info, flag);
-        if (cnt == 0) {
+        if (cnt == 0 && !is_unicorn(mtmp->data)) {
             if (find_defensive(mtmp, TRUE) && use_defensive(mtmp))
                 return MMOVE_DONE;
             return MMOVE_NOMOVES;
