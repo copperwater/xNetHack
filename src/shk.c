@@ -33,11 +33,15 @@ enum billitem_status {
    unpaid and by cost within each of those two categories */
 struct sortbill_item {
     struct obj *obj;
-    long cost;
-    long quan;
-    int bidx;
-    int8 usedup; /* small but signed */
-    boolean queuedpay;
+    long cost;   /* full amount for current quantity, not per-unit amount */
+    long quan;   /* count for this entry; subset if this is partly used or
+                  * partly intact */
+    int bidx;    /* index into ESHK(shkp)->bill_p[]; hero-owned container,
+                  * which isn't in bill_p[], uses bidx == -1 */
+    int8 usedup; /* billitem_status, small but needs to be signed for qsort()
+                  * [for an earlier edition; 'signed' no longer necessary] */
+    boolean queuedpay; /* buy without asking when containers are involved
+                        * or purchase targets have been picked via menu */
 };
 typedef struct sortbill_item Bill;
 
@@ -1457,6 +1461,7 @@ cheapest_item(int ibillct, Bill *ibill)
     return gmin;
 }
 
+
 /* for itemized purchasing, create an alternate shop bill that hides
    container contents */
 staticfn int /* returns number of entries */
@@ -1469,7 +1474,7 @@ make_itemized_bill(
     struct bill_x *bp;
     struct obj *otmp;
     struct eshk *eshkp = ESHK(shkp);
-    int i, n, ebillct = eshkp->billct;
+    int i, n, bidx, ebillct = eshkp->billct;
     int8 used;
     long quan, cost;
 
@@ -1491,6 +1496,7 @@ make_itemized_bill(
             impossible("Can't find shop bill entry for #%d", bp->bo_id);
             continue;
         }
+        bidx = i; /* index into bill_p[], except for hero-owner container */
 
         if (otmp->quan == 0L || otmp->where == OBJ_ONBILL) {
             /* item is completely used up; restore quantity from when it
@@ -1506,7 +1512,7 @@ make_itemized_bill(
             ibill[n].obj = otmp;
             ibill[n].quan = bp->bquan - otmp->quan;
             ibill[n].cost = bp->price * ibill[n].quan;
-            ibill[n].bidx = i; /* duplicate index into eshkp->bill_p[] */
+            ibill[n].bidx = bidx; /* duplicate index into eshkp->bill_p[] */
             ibill[n].usedup = PartlyUsedUp; /* for sorting */
             ++n; /* intact portion will be a separate entry, next */
         }
@@ -1547,6 +1553,8 @@ make_itemized_bill(
             /* include 1 container containing unpaid item(s) */
             quan = 1L;
             cost = unpaid_cost(otmp, COST_CONTENTS);
+            if (!otmp->unpaid)
+                bidx = -1;
             /* an unpaid container without any unpaid contents is classified
                as 'FullyIntact'; a container with unpaid contents will be
                '*Container' regardless of whether it is unpaid itself */
@@ -1564,7 +1572,7 @@ make_itemized_bill(
         ibill[n].obj = otmp;
         ibill[n].quan = quan;
         ibill[n].cost = cost;
-        ibill[n].bidx = i;
+        ibill[n].bidx = bidx;
         ibill[n].usedup = used;
         ++n;
     }
@@ -2034,11 +2042,7 @@ pay_billed_items(
         if (queuedpay && !ibill[indx].queuedpay)
             continue;
 
-        bidx = ibill[indx].bidx;
-        bp = &eshkp->bill_p[bidx];
-        otmp = ibill[indx].obj;
-        pass = (ibill[indx].usedup <= PartlyUsedUp) ? 0 : 1;
-
+        otmp = ibill[indx].obj; /* ordinary object or outermost container */
         if (ibill[indx].usedup >= KnownContainer) {
             /* when successfull, buy_container() will call both
                dopayobj() and update_bill(), possibly multiple times */
@@ -2054,6 +2058,10 @@ pay_billed_items(
                 buy = PAY_CANT;
             }
         } else {
+            bidx = ibill[indx].bidx;
+            bp = &eshkp->bill_p[bidx];
+            pass = (ibill[indx].usedup <= PartlyUsedUp) ? 0 : 1;
+
             buy = dopayobj(shkp, bp, otmp, pass, itemize, FALSE);
 
             if (buy == PAY_BUY)
@@ -2091,12 +2099,11 @@ update_bill(
     struct obj *paiditem)
 {
     int j, newebillct;
-    int bidx = ibill[indx].bidx;
 
     /* remove from eshkp->bill_p[] unless this was the used up portion
        of partly used item (since removal would take out both; note:
        can't buy PartlyIntact until PartlyUsedUp has been paid for) */
-    if (ibill[indx].usedup == PartlyUsedUp) {
+    if (indx >= 0 && ibill[indx].usedup == PartlyUsedUp) {
         /* 'paiditem' points to the partly intact portion still in invent or
            inside a container (ibill[indx].obj points to the container) */
         bp->bquan = paiditem->quan;
@@ -2117,13 +2124,11 @@ update_bill(
         }
         newebillct = eshkp->billct - 1;
         *bp = eshkp->bill_p[newebillct];
-#if 0   /* [this is responsible for github issue #1339; it's not clear why] */
-        for (j = 0; j < ibillct; ++j)
-            if (ibill[j].bidx == newebillct)
-                ibill[j].bidx = bidx;
-#else
-        nhUse(bidx);
-#endif
+        if (indx >= 0) {
+            for (j = 0; j < ibillct; ++j)
+                if (ibill[j].bidx == newebillct)
+                    ibill[j].bidx = ibill[indx].bidx;
+        }
         eshkp->billct = newebillct; /* eshkp->billct - 1 */
     }
     return;
@@ -2306,7 +2311,7 @@ buy_container(
         }
         /* [updating cost here is not necessary but useful when debugging] */
         ibill[indx].cost -= (bp->price * bp->bquan); /* update container */
-        update_bill(indx, ibillct, ibill, eshkp, bp, otmp);
+        update_bill(-1, ibillct, ibill, eshkp, bp, otmp);
         ++buycount;
     }
     if (buycount && sightunseen) {
