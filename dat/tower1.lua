@@ -42,9 +42,9 @@ local Vnames = { nil, nil, nil };
 if (not Vgenod) then
    Vnames = { "Madame", "Marquise", "Countess" };
 end
-des.monster({ id="Vampire Lady", niches[4], name=Vnames[1], waiting=1 })
-des.monster({ id="Vampire Lady", niches[5], name=Vnames[2], waiting=1 })
-des.monster({ id="Vampire Lady", niches[6], name=Vnames[3], waiting=1 })
+des.monster({ id="vampire lady", coord=niches[4], name=Vnames[1], waiting=1 })
+des.monster({ id="vampire lady", coord=niches[5], name=Vnames[2], waiting=1 })
+des.monster({ id="vampire lady", coord=niches[6], name=Vnames[3], waiting=1 })
 -- The doors
 des.door("closed",08,03)
 des.door("closed",10,03)
