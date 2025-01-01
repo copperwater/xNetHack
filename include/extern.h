@@ -1048,7 +1048,7 @@ extern int max_capacity(void);
 extern boolean check_capacity(const char *);
 extern int inv_cnt(boolean);
 extern long money_cnt(struct obj *);
-extern void abattoir_sickness(void);
+extern void nauseating_loc_effects(void);
 extern void spot_checks(coordxy, coordxy, schar);
 extern void environment_damages_u(void);
 

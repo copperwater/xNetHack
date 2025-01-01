@@ -383,9 +383,7 @@ moveloop_core(void)
                     use_unicorn_horn(&uwep, TRUE);
                 }
 
-                if (getroomtype(u.ux, u.uy) == ABATTOIR && !rn2(7)) {
-                    abattoir_sickness();
-                }
+                nauseating_loc_effects();
 
                 if (!gl.level.flags.noautosearch && Searching && gm.multi >= 0)
                     (void) dosearch0(1);

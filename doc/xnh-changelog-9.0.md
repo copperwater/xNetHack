@@ -67,6 +67,8 @@ changes:
   but the Wisdom penalty now happens 100% of the time instead of 20%.
 - It is no longer possible to levelport downwards or teleport within the same
   level in the Quest before the nemesis is killed.
+- Being adjacent to a hezrou may nauseate you, with the odds increasing if there
+  are multiple hezrous.
 
 ### Interface changes
 
