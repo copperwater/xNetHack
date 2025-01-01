@@ -2749,7 +2749,7 @@ enlightenment/attribute disclosure for saving-grace: include a line for have
 	"X " for explore mode, or "D " for debug mode if any of the games
 	shown in its menu weren't saved during normal play; if they're all
 	normal play, the prefix is suppressed
-tourists gain experience by seeing new types of creatures up close, and
+tourists gain experience by "taking photos" of new creatures, and
 	going to new dungeon levels
 healers gain experience by healing pets
 blessed scroll of destroy armor asks which armor to destroy

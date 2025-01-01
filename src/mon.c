@@ -5804,7 +5804,8 @@ adj_erinys(unsigned abuse)
     pm->difficulty = min(10 + (u.ualign.abuse / 3), 25);
 }
 
-/* mark monster type as seen from close-up */
+/* mark monster type as seen from close-up,
+   if we haven't seen it nearby before */
 void
 see_monster_closeup(struct monst *mtmp)
 {
@@ -5823,17 +5824,13 @@ see_nearby_monsters(void)
 {
     coordxy x, y;
 
-    /* currently used only for tourists ... */
-    if (Blind || !Role_if(PM_TOURIST))
-        return;
-
     for (x = u.ux - 1; x <= u.ux + 1; x++)
         for (y = u.uy - 1; y <= u.uy + 1; y++)
             if (isok(x, y) && MON_AT(x, y)) {
                 struct monst *mtmp = m_at(x, y);
 
-                if (canseemon(mtmp))
-                    see_monster_closeup(mtmp);
+                if (canspotmon(mtmp) && !mtmp->mundetected && !M_AP_TYPE(mtmp))
+                    svm.mvitals[monsndx(mtmp->data)].seen_close = TRUE;
             }
 }
 
