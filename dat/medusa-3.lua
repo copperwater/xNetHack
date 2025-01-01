@@ -132,7 +132,7 @@ des.monster("water nymph")
 des.monster("water nymph")
 
 for i=1,30 do
-   des.monster({ id = "raven", hostile = 1 })
+   des.monster({ id = "raven", peaceful = 0 })
 end
 
 --#medusa-3.lua
