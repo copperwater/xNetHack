@@ -5384,7 +5384,11 @@ can_set_perm_invent(void)
         iflags.perminv_mode = InvOptOn;
 
 #ifdef TTY_PERM_INVENT
-    if (WINDOWPORT(tty) && !go.opt_initial) {
+    if ((WINDOWPORT(tty)
+#ifdef WIN32
+         || WINDOWPORT(safestartup)
+#endif
+         ) && !go.opt_initial) {
         perm_invent_toggled(FALSE);
         /* perm_invent_toggled()
            -> sync_perminvent()
@@ -5400,6 +5404,20 @@ can_set_perm_invent(void)
 #endif
     return TRUE;
 }
+
+
+#ifdef TTY_PERM_INVENT
+void
+check_perm_invent_again(void)
+{
+    if (iflags.perm_invent_pending) {
+        iflags.perm_invent = FALSE;
+        if (can_set_perm_invent())
+           iflags.perm_invent = TRUE;
+        iflags.perm_invent_pending = FALSE;
+    }
+}
+#endif
 
 staticfn int
 handler_menustyle(void)

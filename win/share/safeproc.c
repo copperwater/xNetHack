@@ -510,13 +510,23 @@ safe_update_inventory(int arg UNUSED)
     return;
 }
 
+#ifdef WIN32CON
+extern win_request_info *tty_ctrl_nhwindow(winid window UNUSED,
+                                          int request UNUSED,
+                                          win_request_info *wri UNUSED);
+#endif
+
 win_request_info *
 safe_ctrl_nhwindow(
     winid window UNUSED,
     int request UNUSED,
     win_request_info *wri UNUSED)
 {
+#ifdef WIN32CON
+    return (*tty_ctrl_nhwindow)(window, request, wri);
+#else
     return (win_request_info *) 0;
+#endif
 }
 
 /**************************************************************

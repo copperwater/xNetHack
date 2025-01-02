@@ -205,6 +205,7 @@ enum to_core_flags {
     too_small        = 0x002,
     prohibited       = 0x004,
     no_init_done     = 0x008,
+    too_early        = 0x010,
 };
 
 enum from_core_requests {

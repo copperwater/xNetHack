@@ -2262,6 +2262,9 @@ extern int msgtype_type(const char *, boolean) NONNULLARG1;
 extern void hide_unhide_msgtypes(boolean, int);
 extern void msgtype_free(void);
 extern void options_free_window_colors(void);
+#ifdef TTY_PERM_INVENT
+extern void check_perm_invent_again(void);
+#endif
 
 /* ### pager.c ### */
 

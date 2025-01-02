@@ -720,6 +720,10 @@ init_sound_disp_gamewindows(void)
     display_nhwindow(WIN_MESSAGE, FALSE);
     clear_glyph_buffer();
     display_nhwindow(WIN_MAP, FALSE);
+#ifdef TTY_PERM_INVENT
+    if (iflags.perm_invent_pending)
+        check_perm_invent_again();
+#endif
  }
 
 void

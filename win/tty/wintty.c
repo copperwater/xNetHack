@@ -2861,22 +2861,29 @@ tty_ctrl_nhwindow(
         wri->tocore = zero_tocore;
         tty_ok = assesstty(ttyinvmode, &offx, &offy, &rows, &cols, &maxcol,
                            &minrow, &maxrow);
-        wri->tocore.needrows = (int) (minrow + 1 + ROWNO + StatusRows());
-        wri->tocore.needcols = (int) tty_perminv_mincol;
-        wri->tocore.haverows = (int) ttyDisplay->rows;
-        wri->tocore.havecols = (int) ttyDisplay->cols;
-        if (!tty_ok) {
-#ifdef RESIZABLE
-            /* terminal isn't big enough right now but player might resize it
-               and then use 'm O' to try to set 'perm_invent' again */
-            wri->tocore.tocore_flags |= too_small;
-#else
-            wri->tocore.tocore_flags |= prohibited;
-#endif
+        if (!tty_ok && rows == 0 && cols == 0) {
+            /* something is terribly wrong, possibly too early in startup */
+            wri->tocore.tocore_flags |= too_early;
         } else {
-            maxslot = (maxrow - 2) * (!inuse_only ? 2 : 1);
-            wri->tocore.maxslot = maxslot;
-        }
+            wri->tocore.needrows = (int) (minrow + 1 + ROWNO + StatusRows());
+            wri->tocore.needcols = (int) tty_perminv_mincol;
+            wri->tocore.haverows = (int) ttyDisplay->rows;
+            wri->tocore.havecols = (int) ttyDisplay->cols;
+            if (!tty_ok) {
+#ifdef RESIZABLE
+                /* terminal isn't big enough right now but player might 
+		 * resize it and then use 'm O' to try to set 'perm_invent'
+		 * again
+		 */
+                wri->tocore.tocore_flags |= too_small;
+#else
+                wri->tocore.tocore_flags |= prohibited;
+#endif
+            } else {
+                maxslot = (maxrow - 2) * (!inuse_only ? 2 : 1);
+                wri->tocore.maxslot = maxslot;
+            }
+	}
 #endif  /* TTY_PERM_INVENT */
         break;
     case set_menu_promptstyle:
@@ -3541,6 +3548,14 @@ assesstty(
     boolean inuse_only = (invmode & InvInUse) != 0,
             show_gold = (invmode & InvShowGold) != 0 && !inuse_only;
     int perminv_minrow = tty_perminv_minrow + (show_gold ? 1 : 0);
+
+    if (!ttyDisplay) {
+        /* too early */
+	*offx = *offy = *rows = *cols = 0;
+        *maxcol = 0;
+	*minrow = *maxrow = 0;
+	return !(*rows < perminv_minrow || *cols < tty_perminv_mincol);
+    }
 
     *offx = 0;
     /* topline + map rows + status lines */

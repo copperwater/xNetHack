@@ -319,6 +319,7 @@ struct instance_flags {
     boolean news;             /* print news */
     boolean num_pad;          /* use numbers for movement commands */
     boolean perm_invent;      /* display persistent inventory window */
+    boolean perm_invent_pending;  /* need to try again */
     boolean renameallowed;    /* can change hero name during role selection */
     boolean renameinprogress; /* we are changing hero name */
     boolean sounds;           /* master on/off switch for using soundlib */
