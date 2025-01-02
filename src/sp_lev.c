@@ -2165,8 +2165,14 @@ create_monster(monster *m, struct mkroom *croom)
             if (vampshifted(mtmp) && m->appear != M_AP_MONSTER)
                 (void) newcham(mtmp, &mons[mtmp->cham], NO_NC_FLAGS);
         }
-        if (m->has_invent) {
+        if (!(m->has_invent & DEFAULT_INVENT)) {
+            /* guard against someone accidentally specifying e.g. quest nemesis
+             * with custom inventory that lacks Bell or quest artifact but
+             * forgetting to flag them as receiving their default inventory */
+            mdrop_special_objs(mtmp);
             discard_minvent(mtmp, TRUE);
+        }
+        if (m->has_invent & CUSTOM_INVENT) {
             invent_carrying_monster = mtmp;
         }
     }
@@ -3217,7 +3223,7 @@ lspo_monster(lua_State *L)
     tmpmons.stunned = 0;
     tmpmons.confused = 0;
     tmpmons.seentraps = 0;
-    tmpmons.has_invent = 0;
+    tmpmons.has_invent = DEFAULT_INVENT;
     tmpmons.waiting = 0;
     tmpmons.mm_flags = NO_MM_FLAGS;
 
@@ -3265,6 +3271,7 @@ lspo_monster(lua_State *L)
                                 : (mgend == MALE) ? MALE : rn2(2);
         }
     } else {
+        int keep_default_invent = -1; /* -1 = unspecified */
         lcheck_param_table(L);
 
         tmpmons.peaceful = get_table_boolean_opt(L, "peaceful", BOOL_RANDOM);
@@ -3285,7 +3292,8 @@ lspo_monster(lua_State *L)
         tmpmons.confused = get_table_boolean_opt(L, "confused", FALSE);
         tmpmons.waiting = get_table_boolean_opt(L, "waiting", FALSE);
         tmpmons.seentraps = 0; /* TODO: list of trap names to bitfield */
-        tmpmons.has_invent = 0;
+        keep_default_invent =
+            get_table_boolean_opt(L, "keep_default_invent", -1);
 
         if (!get_table_boolean_opt(L, "tail", TRUE))
             tmpmons.mm_flags |= MM_NOTAIL;
@@ -3334,7 +3342,19 @@ lspo_monster(lua_State *L)
 
         lua_getfield(L, 1, "inventory");
         if (!lua_isnil(L, -1)) {
-            tmpmons.has_invent = 1;
+            /* overwrite DEFAULT_INVENT - most times inventory is specified,
+             * the monster should not get its species' default inventory. Only
+             * provide it if explicitly requested. */
+            tmpmons.has_invent = CUSTOM_INVENT;
+            if (keep_default_invent == TRUE)
+                tmpmons.has_invent |= DEFAULT_INVENT;
+        }
+        else {
+            /* if keep_default_invent was not specified (-1), keep has_invent as
+             * DEFAULT_INVENT and provide the species' default inventory.
+             * But if it was explicitly set to false, provide *no* inventory. */
+            if (keep_default_invent == FALSE)
+                tmpmons.has_invent = NO_INVENT;
         }
     }
 
@@ -3348,7 +3368,8 @@ lspo_monster(lua_State *L)
 
     create_monster(&tmpmons, gc.coder->croom);
 
-    if (tmpmons.has_invent && lua_type(L, -1) == LUA_TFUNCTION) {
+    if ((tmpmons.has_invent & CUSTOM_INVENT)
+        && lua_type(L, -1) == LUA_TFUNCTION) {
         lua_remove(L, -2);
         nhl_pcall_handle(L, 0, 0, "lspo_monster", NHLpa_panic);
         spo_end_moninvent();

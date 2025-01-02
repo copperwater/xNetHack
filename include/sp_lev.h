@@ -74,6 +74,11 @@ enum lvlinit_types {
 #define NO_LOC_WARN 0x20 /* no complaints and set x & y to -1, if no loc */
 #define SPACELOC    0x40 /* like DRY, but accepts furniture too */
 
+/* has_invent flags */
+#define NO_INVENT 0         /* monster doesn't get any invent */
+#define CUSTOM_INVENT 0x01  /* monster gets items specified in lua */
+#define DEFAULT_INVENT 0x02 /* monster gets items from makemon() */
+
 #define SP_COORD_X(l) (l & 0xff)
 #define SP_COORD_Y(l) ((l >> 16) & 0xff)
 #define SP_COORD_PACK(x, y) (((x) & 0xff) + (((y) & 0xff) << 16))
