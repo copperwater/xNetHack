@@ -1643,6 +1643,7 @@ rloc_to_core(
     if (u.ustuck == mtmp) {
         if (u.uswallow) {
             u_on_newpos(mtmp->mx, mtmp->my);
+            check_special_room(FALSE);
             docrt();
         } else if (!m_next2u(mtmp)) {
            unstuck(mtmp);
@@ -1652,7 +1653,7 @@ rloc_to_core(
     maybe_unhide_at(x, y);
     newsym(x, y);      /* update new location */
     set_apparxy(mtmp); /* orient monster */
-    if (domsg && (canspotmon(mtmp) || appearmsg)) {
+    if (domsg && (canspotmon(mtmp) || appearmsg) && (u.ustuck != mtmp)) {
         int du = distu(x, y), olddu;
         const char *next = (du <= 2) ? " next to you" : 0, /* next2u() */
                    *nearu = (du <= BOLT_LIM * BOLT_LIM) ? " close by" : 0;
