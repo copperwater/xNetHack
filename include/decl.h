@@ -1044,6 +1044,9 @@ struct instance_globals_w {
     int warn_obj_cnt; /* count of monsters meeting criteria */
     long wailmsg;
 
+    /* do_wear.c */
+    uint8 wasinwater;
+
     /* symbols.c */
     nhsym warnsyms[WARNCOUNT]; /* the current warning display symbols */
 
