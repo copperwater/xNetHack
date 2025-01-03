@@ -1,4 +1,4 @@
-/* NetHack 3.7	wizcmds.c	$NHDT-Date: 1723580901 2024/08/13 20:28:21 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.12 $ */
+/* NetHack 3.7	wizcmds.c	$NHDT-Date: 1735950605 2025/01/03 16:30:05 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.19 $ */
 /*-Copyright (c) Robert Patrick Rankin, 2024. */
 /* NetHack may be freely redistributed.  See license for details. */
 
@@ -1081,6 +1081,10 @@ wiz_intrinsic(void)
                 float_vs_flight();
             else if (p == PROT_FROM_SHAPE_CHANGERS)
                 rescham();
+            if (p == WWALKING || p == LEVITATION || p == FLYING) {
+                if (u.uinwater)
+                    (void) pooleffects(FALSE);
+            }
         }
         if (n >= 1)
             free((genericptr_t) pick_list);
