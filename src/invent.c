@@ -1373,6 +1373,11 @@ freeinv_core(struct obj *obj)
     } else if (obj->otyp == FIGURINE && obj->timed) {
         (void) stop_timer(FIG_TRANSFORM, obj_to_any(obj));
     }
+
+    if (obj == svc.context.tin.tin) {
+        svc.context.tin.tin = (struct obj *) 0;
+        svc.context.tin.o_id = 0;
+    }
 }
 
 /* remove an object from the hero's inventory */
