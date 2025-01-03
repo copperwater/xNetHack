@@ -2813,7 +2813,7 @@ mhitm_ad_tlpt(
         int tmphp;
 
         hitmsg(magr, mattk);
-        if (!mhitm_mgc_atk_negated(magr, mdef, FALSE)) {
+        if (mhitm_mgc_atk_negated(magr, mdef, FALSE)) {
             You("are not affected.");
         } else {
             if (flags.verbose)
