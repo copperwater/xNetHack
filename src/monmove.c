@@ -823,6 +823,40 @@ dochug(register struct monst* mtmp)
             return 0;
         }
     }
+    /* stone giants can unearth new boulders */
+    else if (!nearby && mdat == &mons[PM_STONE_GIANT] && !mtmp->mpeaceful
+             && mtmp->mspec_used < 1 && !m_carrying(mtmp, BOULDER)
+             && levl[mtmp->mx][mtmp->my].typ == ROOM) {
+        /* this will create a pit, so they won't do it next to liquids; also
+         * stop them from doing it in probable choke points */
+        int rms_adj = 0;
+        boolean abort = FALSE;
+        coordxy x, y;
+        for (x = mtmp->mx - 1; x <= mtmp->mx + 1; x++) {
+            for (y = mtmp->my - 1; y <= mtmp->my + 1; y++) {
+                if (x == mtmp->mx && y == mtmp->my)
+                    continue;
+                if (is_pool_or_lava(x, y))
+                    abort = TRUE;
+                if (levl[x][y].typ == ROOM && !t_at(x, y))
+                    rms_adj++;
+            }
+        }
+        if (!abort && rms_adj > 4) {
+            /* they do not fall into the pit they just made */
+            struct trap *ttmp = maketrap(mtmp->mx, mtmp->my, PIT);
+            if (canseemon(mtmp)) {
+                pline("%s rips a boulder out of the ground!", Monnam(mtmp));
+                ttmp->tseen = TRUE;
+            }
+            mongets(mtmp, BOULDER);
+            /* it would be silly if they can fall right back in again */
+            mon_learns_traps(mtmp, PIT);
+            /* can't rip out another boulder immediately */
+            mtmp->mspec_used = rnd(5) + 5;
+            return 0;
+        }
+    }
 
     if (mdat == &mons[PM_JUIBLEX] && special_juiblex_actions(mtmp))
         return 0;
