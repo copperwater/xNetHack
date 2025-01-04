@@ -2085,6 +2085,8 @@ farlook of /e or /E stopped reporting engraving and headstone text after a fix
 message was garbled when lightning or acid breath hit iron bars
 shop bug: buying a container with unpaid items in it could produce impossible
 	"unpaid_cost: object not on any bill" warnings
+when walking into/against a locked closed door, 'autounlock'==kick didn't
+	execute kick when player answered yes to "Door is locked.  Kick it?"
 
 
 Fixes to 3.7.0-x Platform and/or Interface Problems Exposed Via git Repository
