@@ -7064,7 +7064,8 @@ trap_ice_effects(coordxy x, coordxy y, boolean ice_is_melting)
             int otyp = (ttmp->ttyp == LANDMINE) ? LAND_MINE : BEARTRAP;
             cnv_trap_obj(otyp, 1, ttmp, TRUE);
         } else {
-            deltrap(ttmp);
+            if (!undestroyable_trap(ttmp->ttyp))
+                deltrap(ttmp);
         }
     }
 }
