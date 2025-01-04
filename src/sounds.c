@@ -10,7 +10,6 @@ staticfn boolean morgue_mon_sound(struct monst *);
 staticfn boolean zoo_mon_sound(struct monst *);
 staticfn boolean temple_priest_sound(struct monst *);
 staticfn boolean mon_is_gecko(struct monst *);
-staticfn int domonnoise(struct monst *);
 staticfn int dochat(void);
 staticfn struct monst *responsive_mon_at(int, int);
 staticfn int mon_in_room(struct monst *, int);
@@ -675,7 +674,7 @@ mon_is_gecko(struct monst *mon)
 
 DISABLE_WARNING_FORMAT_NONLITERAL
 
-staticfn int /* check calls to this */
+int /* check calls to this */
 domonnoise(struct monst *mtmp)
 {
     char verbuf[BUFSZ];

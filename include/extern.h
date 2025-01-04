@@ -762,7 +762,7 @@ extern struct obj *droppables(struct monst *) NONNULLARG1;
 extern int dog_nutrition(struct monst *, struct obj *) NONNULLPTRS;
 extern int dog_eat(struct monst *, struct obj *,
                    coordxy, coordxy, boolean) NONNULLPTRS;
-extern int pet_ranged_attk(struct monst *) NONNULLARG1;
+extern int pet_ranged_attk(struct monst *, boolean) NONNULLARG1;
 extern int dog_move(struct monst *, int) NONNULLARG1;
 extern boolean could_reach_item(struct monst *, coordxy, coordxy) NONNULLARG1;
 extern void finish_meating(struct monst *) NONNULLARG1;
@@ -2911,6 +2911,7 @@ extern void whimper(struct monst *) NONNULLARG1;
 extern void beg(struct monst *) NONNULLARG1;
 extern const char *maybe_gasp(struct monst *) NONNULLARG1;
 extern const char *cry_sound(struct monst *) NONNULLARG1;
+extern int domonnoise(struct monst *) NONNULLARG1;
 extern int dotalk(void);
 extern int tiphat(void);
 #ifdef USER_SOUNDS
