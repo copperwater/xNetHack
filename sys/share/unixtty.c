@@ -11,7 +11,9 @@
 
 #define NEED_VARARGS
 #include "hack.h"
+#if defined(TTY_GRAPHICS) && !defined(NOTTYGRAPHICS)
 #include "wintty.h"
+#endif
 
 /*
  * The distinctions here are not BSD - rest but rather USG - rest, as
