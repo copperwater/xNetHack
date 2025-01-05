@@ -62,8 +62,7 @@ struct window_procs amii_procs = {
 #ifdef CHANGE_COLOR /* only a Mac option currently */
     amii_change_color, amii_get_color_string,
 #endif
-    /* other defs that really should go away (they're tty specific) */
-    amii_delay_output, amii_delay_output, amii_outrip, genl_preference_update,
+    amii_outrip, genl_preference_update,
     genl_getmsghistory, genl_putmsghistory,
     genl_status_init, genl_status_finish, genl_status_enablefield,
     genl_status_update,
@@ -97,8 +96,7 @@ struct window_procs amiv_procs = {
 #ifdef CHANGE_COLOR /* only a Mac option currently */
     amii_change_color, amii_get_color_string,
 #endif
-    /* other defs that really should go away (they're tty specific) */
-    amii_delay_output, amii_delay_output, amii_outrip, genl_preference_update,
+    amii_outrip, genl_preference_update,
     genl_getmsghistory, genl_putmsghistory,
     genl_status_init, genl_status_finish, genl_status_enablefield,
     genl_status_update,

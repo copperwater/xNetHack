@@ -1221,7 +1221,6 @@ struct window_procs Qt_procs = {
 #endif
     nethack_qt_::NetHackQtBind::qt_get_color_string,
 #endif
-    /* other defs that really should go away (they're tty specific) */
 #ifdef GRAPHIC_TOMBSTONE
     nethack_qt_::NetHackQtBind::qt_outrip,
 #else
