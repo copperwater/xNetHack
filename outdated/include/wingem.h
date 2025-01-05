@@ -101,10 +101,6 @@ extern void Gem_change_color(int color, long rgb, int reverse);
 extern char *Gem_get_color_string(void);
 #endif
 
-/* other defs that really should go away (they're tty specific) */
-extern void Gem_start_screen(void);
-extern void Gem_end_screen(void);
-
 extern void genl_outrip(winid, int, time_t);
 
 

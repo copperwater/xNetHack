@@ -38,7 +38,7 @@ settty(const char *s)
 #if defined(MSDOS) && defined(NO_TERMS)
     gr_finish();
 #endif
-    end_screen();
+    term_end_screen();
     if (s)
         raw_print(s);
 #if !defined(TOS)
@@ -50,7 +50,7 @@ settty(const char *s)
 void
 setftty(void)
 {
-    start_screen();
+    term_start_screen();
 }
 
 #if defined(TIMED_DELAY) && defined(_MSC_VER)
@@ -77,7 +77,7 @@ VA_DECL(const char *, s)
     VA_INIT(s, const char *);
     /* error() may get called before tty is initialized */
     if (iflags.window_inited)
-        end_screen();
+        term_end_screen();
     putchar('\n');
     Vprintf(s, VA_ARGS);
     putchar('\n');

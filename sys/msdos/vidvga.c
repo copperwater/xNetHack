@@ -290,7 +290,7 @@ void vga_cl_eos(int cy)
 }
 
 void
-vga_tty_end_screen(void)
+vga_term_end_screen(void)
 {
     vga_clear_screen(BACKGROUND_VGA_COLOR);
     vga_SwitchMode(MODETEXT);

@@ -146,8 +146,6 @@ struct window_procs X11_procs = {
 #ifdef CHANGE_COLOR /* only a Mac option currently */
     donull, donull,
 #endif
-    /* other defs that really should go away (they're tty specific) */
-    X11_start_screen, X11_end_screen,
 #ifdef GRAPHIC_TOMBSTONE
     X11_outrip,
 #else
@@ -1393,20 +1391,6 @@ X11_number_pad(int state) /* called from options.c */
 {
     nhUse(state);
 
-    return;
-}
-
-/* called from setftty() in unixtty.c */
-void
-X11_start_screen(void)
-{
-    return;
-}
-
-/* called from settty() in unixtty.c */
-void
-X11_end_screen(void)
-{
     return;
 }
 

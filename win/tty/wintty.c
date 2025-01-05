@@ -148,8 +148,7 @@ struct window_procs tty_procs = {
     tty_get_color_string,
 #endif
 
-    /* other defs that really should go away (they're tty specific) */
-    tty_start_screen, tty_end_screen, genl_outrip,
+    genl_outrip,
     tty_preference_update,
     tty_getmsghistory, tty_putmsghistory,
     tty_status_init,
@@ -530,7 +529,7 @@ tty_init_nhwindows(int *argcp UNUSED, char **argv UNUSED)
 
     /* to port dependant tty setup */
     term_startup(&wid, &hgt);
-    setftty(); /* calls start_screen */
+    setftty(); /* calls term_start_screen */
     term_curs_set(0);
 
     /* set up tty descriptor */
@@ -793,7 +792,7 @@ void
 tty_resume_nhwindows(void)
 {
     gettty();
-    setftty(); /* calls start_screen */
+    setftty(); /* calls term_start_screen */
     term_curs_set(0);
     docrt();
 }

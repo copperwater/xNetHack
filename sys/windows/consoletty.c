@@ -1052,7 +1052,7 @@ void
 settty(const char *s)
 {
     cmov(ttyDisplay->curx, ttyDisplay->cury);
-    end_screen();
+    term_end_screen();
     if (s)
         raw_print(s);
     restore_original_console_font();
@@ -1075,7 +1075,7 @@ settty(const char *s)
 void
 setftty(void)
 {
-    start_screen();
+    term_start_screen();
 }
 
 void
@@ -1113,7 +1113,7 @@ graph_off(void)
 #endif
 
 void
-tty_end_screen(void)
+term_end_screen(void)
 {
     term_clear_screen();
     really_move_cursor();
@@ -1123,7 +1123,7 @@ tty_end_screen(void)
 }
 
 void
-tty_start_screen(void)
+term_start_screen(void)
 {
     if (iflags.num_pad)
         tty_number_pad(1); /* make keypad send digits */

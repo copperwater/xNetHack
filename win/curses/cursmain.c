@@ -126,8 +126,6 @@ struct window_procs curses_procs = {
 #endif
     curses_get_color_string,
 #endif
-    curses_start_screen,
-    curses_end_screen,
     genl_outrip,
     curses_preference_update,
     curses_getmsghistory,
@@ -1205,27 +1203,6 @@ curses_delay_output(void)
         napms(50);
     }
 #endif
-}
-
-/*
-start_screen()  -- Only used on Unix tty ports, but must be declared for
-               completeness.  Sets up the tty to work in full-screen
-               graphics mode.  Look at win/tty/termcap.c for an
-               example.  If your window-port does not need this function
-               just declare an empty function.
-*/
-void
-curses_start_screen(void)
-{
-}
-
-/*
-end_screen()    -- Only used on Unix tty ports, but must be declared for
-               completeness.  The complement of start_screen().
-*/
-void
-curses_end_screen(void)
-{
 }
 
 /*

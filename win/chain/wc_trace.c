@@ -91,9 +91,6 @@ short trace_set_font_name(void *,winid, char *);
 char *trace_get_color_string(void *);
 #endif
 
-    /* other defs that really should go away (they're tty specific) */
-void trace_start_screen(void *);
-void trace_end_screen(void *);
 void trace_outrip(void *,winid, int, time_t);
 void trace_preference_update(void *,const char *);
 char *trace_getmsghistory(void *,boolean);
@@ -1011,31 +1008,6 @@ trace_get_color_string(void *vp)
 
 #endif
 
-/* other defs that really should go away (they're tty specific) */
-void
-trace_start_screen(void *vp)
-{
-    struct trace_data *tdp = vp;
-
-    fprintf(wc_tracelogf, "%sstart_screen()\n", INDENT);
-
-    PRE;
-    (*tdp->nprocs->win_start_screen)(tdp->ndata);
-    POST;
-}
-
-void
-trace_end_screen(void *vp)
-{
-    struct trace_data *tdp = vp;
-
-    fprintf(wc_tracelogf, "%send_screen()\n", INDENT);
-
-    PRE;
-    (*tdp->nprocs->win_end_screen)(tdp->ndata);
-    POST;
-}
-
 void
 trace_outrip(
     void *vp,
@@ -1244,8 +1216,6 @@ struct chain_procs trace_procs = {
 #endif
     trace_get_color_string,
 #endif
-
-    trace_start_screen, trace_end_screen,
 
     trace_outrip, trace_preference_update, trace_getmsghistory,
     trace_putmsghistory,

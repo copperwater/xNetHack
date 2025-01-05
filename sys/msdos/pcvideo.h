@@ -277,7 +277,7 @@ extern void vga_update_positionbar(char *);
 extern void vga_HideCursor(void);
 #endif
 extern void vga_Init(void);
-extern void vga_tty_end_screen(void);
+extern void vga_term_end_screen(void);
 extern void vga_term_startup(int *, int *);
 extern void vga_xputs(const char *, int, int);
 extern void vga_xputc(char, int);
@@ -308,7 +308,7 @@ extern void vesa_update_positionbar(char *);
 extern void vesa_HideCursor(void);
 #endif
 extern void vesa_Init(void);
-extern void vesa_tty_end_screen(void);
+extern void vesa_term_end_screen(void);
 extern void vesa_term_startup(int *, int *);
 extern void vesa_xputs(const char *, int, int);
 extern void vesa_xputc(char, int);

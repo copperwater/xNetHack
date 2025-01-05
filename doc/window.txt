@@ -649,14 +649,6 @@ can_suspend()   -- Tell the core if the window system will allow the game
                    to be suspended now.  If unconditionally yes or no, use
 		   genl_can_suspend_yes() or genl_can_suspend_no().
 
-start_screen()	-- Only used on Unix tty ports, but must be declared for
-		   completeness.  Sets up the tty to work in full-screen
-		   graphics mode.  Look at win/tty/termcap.c for an
-		   example.  If your window-port does not need this function
-		   just declare an empty function.
-end_screen()	-- Only used on Unix tty ports, but must be declared for
-		   completeness.  The complement of start_screen().
-
 outrip(winid, int, time_t)
 		-- The tombstone code.  If you want the traditional code use
 		   genl_outrip for the value and check the #if in rip.c.

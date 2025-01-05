@@ -184,13 +184,16 @@ extern void term_end_attr(int attr);
 extern void term_end_color(void);
 extern void term_end_extracolor(void);
 extern void term_end_raw_bold(void);
+extern void term_end_screen(void);
 extern void term_start_attr(int attr);
 extern void term_start_bgcolor(int color);
 extern void term_start_color(int color);
 extern void term_start_extracolor(uint32, uint16);
 extern void term_start_raw_bold(void);
+extern void term_start_screen(void);
 extern void term_startup(int *, int *);
 extern void term_shutdown(void);
+
 extern int xputc(int);
 extern void xputs(const char *);
 #if 0
@@ -286,10 +289,6 @@ extern void tty_status_enablefield(int, const char *, const char *, boolean);
 extern void tty_status_init(void);
 extern void tty_status_update(int, genericptr_t, int, int,
                               int, unsigned long *);
-
-/* other defs that really should go away (they're tty specific) */
-extern void tty_start_screen(void);
-extern void tty_end_screen(void);
 
 extern void genl_outrip(winid, int, time_t);
 

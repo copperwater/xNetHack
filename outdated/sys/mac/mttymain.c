@@ -581,13 +581,13 @@ tty_number_pad(int arg)
 }
 
 void
-tty_start_screen(void)
+term_start_screen(void)
 {
     iflags.cbreak = 1;
 }
 
 void
-tty_end_screen(void)
+term_end_screen(void)
 {
 }
 

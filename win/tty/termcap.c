@@ -505,7 +505,7 @@ tty_ascgraphics_hilite_fixup(void)
 #endif /* PC9800 */
 
 void
-tty_start_screen(void)
+term_start_screen(void)
 {
     xputs(TI);
     xputs(VS);
@@ -537,7 +537,7 @@ tty_start_screen(void)
 }
 
 void
-tty_end_screen(void)
+term_end_screen(void)
 {
     term_clear_screen();
     xputs(VE);

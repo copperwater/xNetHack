@@ -471,7 +471,7 @@ tty_delay_output(void)
 }
 
 void
-tty_end_screen(void)
+term_end_screen(void)
 {
     if (!iflags.grmode) {
         txt_clear_screen();
@@ -480,11 +480,11 @@ tty_end_screen(void)
 #endif
 #ifdef SCREEN_VGA
     } else if (iflags.usevga) {
-        vga_tty_end_screen();
+        vga_term_end_screen();
 #endif
 #ifdef SCREEN_VESA
     } else if (iflags.usevesa) {
-        vesa_tty_end_screen();
+        vesa_term_end_screen();
 #endif
     }
 }
@@ -546,7 +546,7 @@ term_startup(int *wid, int *hgt)
 }
 
 void
-tty_start_screen(void)
+term_start_screen(void)
 {
 #ifdef PC9800
     fputs("\033[>1h", stdout);

@@ -80,10 +80,6 @@ struct window_procs {
     char *(*win_get_color_string)(void);
 #endif
 
-    /* other defs that really should go away (they're tty specific) */
-    void (*win_start_screen)(void);
-    void (*win_end_screen)(void);
-
     void (*win_outrip)(winid, int, time_t);
     void (*win_preference_update)(const char *);
     char *(*win_getmsghistory)(boolean);
@@ -176,10 +172,6 @@ extern
  *        invoking the window port routine. yn_function() is in cmd.c
  */
 /* #define yn_function (*windowprocs.win_yn_function) */
-
-/* other defs that really should go away (they're tty specific) */
-#define start_screen (*windowprocs.win_start_screen)
-#define end_screen (*windowprocs.win_end_screen)
 
 #define outrip (*windowprocs.win_outrip)
 #define preference_update (*windowprocs.win_preference_update)
@@ -404,10 +396,6 @@ struct chain_procs {
     char *(*win_get_color_string)(CARGS);
 #endif
 
-    /* other defs that really should go away (they're tty specific) */
-    void (*win_start_screen)(CARGS);
-    void (*win_end_screen)(CARGS);
-
     void (*win_outrip)(CARGS, winid, int, time_t);
     void (*win_preference_update)(CARGS, const char *);
     char *(*win_getmsghistory)(CARGS, boolean);
@@ -481,8 +469,6 @@ extern short safe_set_font_name(winid, char *);
 #endif
 extern char *safe_get_color_string(void);
 #endif
-extern void safe_start_screen(void);
-extern void safe_end_screen(void);
 extern void safe_outrip(winid, int, time_t);
 extern void safe_preference_update(const char *);
 extern char *safe_getmsghistory(boolean);

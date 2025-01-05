@@ -5152,16 +5152,6 @@ void NetHackQtBind::qt_delay_output()
     delay.wait();
 }
 
-void NetHackQtBind::qt_start_screen()
-{
-    // Ignore.
-}
-
-void NetHackQtBind::qt_end_screen()
-{
-    // Ignore.
-}
-
 void NetHackQtBind::qt_outrip(winid wid, int how, time_t when)
 {
     NetHackQtWindow* window=id_to_window[wid];
@@ -5285,9 +5275,6 @@ struct window_procs Qt_procs = {
     donull,
     donull,
 #endif
-    /* other defs that really should go away (they're tty specific) */
-    NetHackQtBind::qt_start_screen,
-    NetHackQtBind::qt_end_screen,
 #ifdef GRAPHIC_TOMBSTONE
     NetHackQtBind::qt_outrip,
 #else

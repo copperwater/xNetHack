@@ -598,8 +598,6 @@ static struct window_procs hup_procs = {
 #endif
     hup_get_color_string,
 #endif /* CHANGE_COLOR */
-    hup_void_ndecl,                                   /* start_screen */
-    hup_void_ndecl,                                   /* end_screen */
     hup_outrip, genl_preference_update, genl_getmsghistory,
     genl_putmsghistory,
     hup_void_ndecl,                                   /* status_init */

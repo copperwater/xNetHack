@@ -489,10 +489,6 @@ extern void X11_status_enablefield(int, const char *, const char *, boolean);
 extern void X11_status_update(int, genericptr_t, int, int, int,
                               unsigned long *);
 
-/* other defs that really should go away (they're tty specific) */
-extern void X11_start_screen(void);
-extern void X11_end_screen(void);
-
 #ifdef GRAPHIC_TOMBSTONE
 extern void X11_outrip(winid, int, time_t);
 #else

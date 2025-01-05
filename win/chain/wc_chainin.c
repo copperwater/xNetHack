@@ -59,9 +59,6 @@ short chainin_set_font_name(winid, char *);
 char *chainin_get_color_string(void);
 #endif
 
-    /* other defs that really should go away (they're tty specific) */
-void chainin_start_screen(void);
-void chainin_end_screen(void);
 void chainin_outrip(winid, int, time_t);
 void chainin_preference_update(const char *);
 char *chainin_getmsghistory(boolean);
@@ -489,19 +486,6 @@ trace_get_color_string(void)
 
 #endif
 
-/* other defs that really should go away (they're tty specific) */
-void
-chainin_start_screen(void)
-{
-    (*cibase->nprocs->win_start_screen)(cibase->ndata);
-}
-
-void
-chainin_end_screen(void)
-{
-    (*cibase->nprocs->win_end_screen)(cibase->ndata);
-}
-
 void
 chainin_outrip(
     winid tmpwin,
@@ -628,8 +612,6 @@ struct window_procs chainin_procs = {
 #endif
     chainin_get_color_string,
 #endif
-
-    chainin_start_screen, chainin_end_screen,
 
     chainin_outrip, chainin_preference_update, chainin_getmsghistory,
     chainin_putmsghistory,

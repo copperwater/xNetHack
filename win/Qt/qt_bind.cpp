@@ -966,16 +966,6 @@ NetHackQtBind::qt_get_color_string(void)
 
 #endif
 
-void NetHackQtBind::qt_start_screen()
-{
-    // Ignore.
-}
-
-void NetHackQtBind::qt_end_screen()
-{
-    // Ignore.
-}
-
 void NetHackQtBind::qt_outrip(winid wid, int how, time_t when)
 {
     NetHackQtWindow* window=id_to_window[(int)wid];
@@ -1232,8 +1222,6 @@ struct window_procs Qt_procs = {
     nethack_qt_::NetHackQtBind::qt_get_color_string,
 #endif
     /* other defs that really should go away (they're tty specific) */
-    nethack_qt_::NetHackQtBind::qt_start_screen,
-    nethack_qt_::NetHackQtBind::qt_end_screen,
 #ifdef GRAPHIC_TOMBSTONE
     nethack_qt_::NetHackQtBind::qt_outrip,
 #else

@@ -123,7 +123,7 @@ struct window_procs safe_procs = {
 #endif
     safe_get_color_string,
 #endif
-    safe_start_screen, safe_end_screen, safe_outrip,
+    safe_outrip,
     safe_preference_update,
     safe_getmsghistory, safe_putmsghistory,
     safe_status_init,
@@ -436,18 +436,6 @@ safe_number_pad(int mode UNUSED)
 
 void
 safe_delay_output(void)
-{
-    return;
-}
-
-void
-safe_start_screen(void)
-{
-    return;
-}
-
-void
-safe_end_screen(void)
 {
     return;
 }

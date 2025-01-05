@@ -44,8 +44,7 @@ struct window_procs Gnome_procs = {
 #ifdef CHANGE_COLOR /* only a Mac option currently */
     donull, donull,
 #endif
-    /* other defs that really should go away (they're tty specific) */
-    gnome_start_screen, gnome_end_screen, gnome_outrip,
+    gnome_outrip,
     genl_preference_update, genl_getmsghistory, genl_putmsghistory,
     genl_status_init, genl_status_finish, genl_status_enablefield,
     genl_status_update,
@@ -1130,29 +1129,6 @@ gnome_delay_output()
         gtk_signal_emit(GTK_OBJECT(gnome_windowlist[WIN_MESSAGE].win),
                         ghack_signals[GHSIG_DELAY], (guint) 50);
     }
-}
-
-/*
-start_screen()  -- Only used on Unix tty ports, but must be declared for
-               completeness.  Sets up the tty to work in full-screen
-               graphics mode.  Look at win/tty/termcap.c for an
-               example.  If your window-port does not need this function
-               just declare an empty function.
-*/
-void
-gnome_start_screen()
-{
-    /* Do Nothing */
-}
-
-/*
-end_screen()    -- Only used on Unix tty ports, but must be declared for
-               completeness.  The complement of start_screen().
-*/
-void
-gnome_end_screen()
-{
-    /* Do Nothing */
 }
 
 /*

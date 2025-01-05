@@ -11,12 +11,12 @@ staticfn struct _savedsym *savedsym_find(const char *, int);
 extern const uchar def_r_oc_syms[MAXOCLASSES];      /* drawing.c */
 
 #if defined(TERMLIB) || defined(CURSES_GRAPHICS)
-void (*decgraphics_mode_callback)(void) = 0; /* set in tty_start_screen() */
+void (*decgraphics_mode_callback)(void) = 0; /* set in term_start_screen() */
 #endif /* TERMLIB || CURSES */
 
 #ifdef PC9800
-void (*ibmgraphics_mode_callback)(void) = 0; /* set in tty_start_screen() */
-void (*ascgraphics_mode_callback)(void) = 0; /* set in tty_start_screen() */
+void (*ibmgraphics_mode_callback)(void) = 0; /* set in term_start_screen() */
+void (*ascgraphics_mode_callback)(void) = 0; /* set in term_start_screen() */
 #endif
 #ifdef CURSES_GRAPHICS
 void (*cursesgraphics_mode_callback)(void) = 0;
@@ -25,7 +25,7 @@ void (*cursesgraphics_mode_callback)(void) = 0;
 void (*ibmgraphics_mode_callback)(void) = 0;
 #endif
 #ifdef ENHANCED_SYMBOLS
-void (*utf8graphics_mode_callback)(void) = 0; /* set in tty_start_screen and
+void (*utf8graphics_mode_callback)(void) = 0; /* set in term_start_screen and
                                                * found in unixtty,windtty,&c */
 #endif
 

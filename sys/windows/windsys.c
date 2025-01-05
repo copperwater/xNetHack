@@ -231,8 +231,10 @@ VA_DECL(const char *, s)
     VA_START(s);
     VA_INIT(s, const char *);
     /* error() may get called before tty is initialized */
+#ifdef TTY_GRAPHICS
     if (iflags.window_inited)
-        end_screen();
+        term_end_screen();
+#endif
     if (WINDOWPORT(tty)) {
         buf[0] = '\n';
         (void) vsnprintf(&buf[1], sizeof buf - (1 + sizeof "\n"), s, VA_ARGS);

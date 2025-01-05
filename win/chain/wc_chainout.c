@@ -59,9 +59,6 @@ short chainout_set_font_name(void *,winid, char *);
 char *chainout_get_color_string(void *);
 #endif
 
-    /* other defs that really should go away (they're tty specific) */
-void chainout_start_screen(void *);
-void chainout_end_screen(void *);
 void chainout_outrip(void *,winid, int, time_t);
 void chainout_preference_update(void *,const char *);
 char *chainout_getmsghistory(void *,boolean);
@@ -582,23 +579,6 @@ trace_get_color_string(void *vp)
 
 #endif
 
-/* other defs that really should go away (they're tty specific) */
-void
-chainout_start_screen(void *vp)
-{
-    struct chainout_data *tdp = vp;
-
-    (*tdp->nprocs->win_start_screen)();
-}
-
-void
-chainout_end_screen(void *vp)
-{
-    struct chainout_data *tdp = vp;
-
-    (*tdp->nprocs->win_end_screen)();
-}
-
 void
 chainout_outrip(
     void *vp,
@@ -754,8 +734,6 @@ struct chain_procs chainout_procs = {
 #endif
     chainout_get_color_string,
 #endif
-
-    chainout_start_screen, chainout_end_screen,
 
     chainout_outrip, chainout_preference_update, chainout_getmsghistory,
     chainout_putmsghistory,

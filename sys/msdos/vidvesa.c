@@ -596,7 +596,7 @@ vesa_cl_eos(int cy)
 }
 
 void
-vesa_tty_end_screen(void)
+vesa_term_end_screen(void)
 {
     vesa_clear_screen(BACKGROUND_VESA_COLOR);
     vesa_SwitchMode(MODETEXT);

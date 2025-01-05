@@ -69,8 +69,7 @@ struct window_procs Gem_procs = {
     Gem_get_color_string,
 #endif
 
-    /* other defs that really should go away (they're tty specific) */
-    Gem_start_screen, Gem_end_screen, Gem_outrip, Gem_preference_update,
+    Gem_outrip, Gem_preference_update,
     genl_getmsghistory, genl_putmsghistory
                             genl_status_init,
     genl_status_finish, genl_status_enablefield, genl_status_update,
@@ -520,16 +519,6 @@ const char *str;
 
 void
 Gem_resume_nhwindows()
-{
-}
-
-void
-Gem_end_screen()
-{
-}
-
-void
-Gem_start_screen()
 {
 }
 
