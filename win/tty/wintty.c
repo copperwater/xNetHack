@@ -2866,10 +2866,10 @@ tty_ctrl_nhwindow(
             wri->tocore.havecols = (int) ttyDisplay->cols;
             if (!tty_ok) {
 #ifdef RESIZABLE
-                /* terminal isn't big enough right now but player might 
-		 * resize it and then use 'm O' to try to set 'perm_invent'
-		 * again
-		 */
+                /* terminal isn't big enough right now but player might
+                 * resize it and then use 'm O' to try to set 'perm_invent'
+                 * again
+                 */
                 wri->tocore.tocore_flags |= too_small;
 #else
                 wri->tocore.tocore_flags |= prohibited;
@@ -2878,7 +2878,7 @@ tty_ctrl_nhwindow(
                 maxslot = (maxrow - 2) * (!inuse_only ? 2 : 1);
                 wri->tocore.maxslot = maxslot;
             }
-	}
+        }
 #endif  /* TTY_PERM_INVENT */
         break;
     case set_menu_promptstyle:
@@ -3396,7 +3396,7 @@ ttyinv_populate_slot(
         if (cell->color != color + 1) {
             /* offset color by 1 so 0 is not valid */
             if (ccnt >= (col + clroffset))
-                cell->color = color + 1; 
+                cell->color = color + 1;
             else
                 cell->color = NO_COLOR + 1;
             cell->refresh = 1;
@@ -3546,10 +3546,10 @@ assesstty(
 
     if (!ttyDisplay) {
         /* too early */
-	*offx = *offy = *rows = *cols = 0;
+        *offx = *offy = *rows = *cols = 0;
         *maxcol = 0;
-	*minrow = *maxrow = 0;
-	return !(*rows < perminv_minrow || *cols < tty_perminv_mincol);
+        *minrow = *maxrow = 0;
+        return !(*rows < perminv_minrow || *cols < tty_perminv_mincol);
     }
 
     *offx = 0;
@@ -3864,9 +3864,9 @@ tty_print_glyph(
 
 #ifndef NO_TERMS
     if (ul_hack && ch == '_') { /* non-destructive underscore */
-         (void) putchar((char) ' ');
-         backsp();
-     }
+        (void) putchar((char) ' ');
+        backsp();
+    }
 #endif
     if (iflags.use_color) {
         ttyDisplay->colorflags = NH_BASIC_COLOR;
