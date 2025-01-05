@@ -603,7 +603,7 @@ vesa_tty_end_screen(void)
 }
 
 void
-vesa_tty_startup(int *wid, int *hgt)
+vesa_term_startup(int *wid, int *hgt)
 {
     /* code to sense display adapter is required here - MJA */
 
@@ -2040,6 +2040,16 @@ vesa_SetSoftPalette(const struct Pixel *palette)
         ++p;
     }
     return TRUE;
+}
+
+void
+vesa_hide_cursor(void)
+{
+}
+
+void
+vesa_show_cursor(void)
+{
 }
 
 #ifdef POSITIONBAR

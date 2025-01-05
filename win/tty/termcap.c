@@ -78,7 +78,7 @@ static char tgotobuf[20];
 static char tty_standout_on[16], tty_standout_off[16];
 
 void
-tty_startup(int *wid, int *hgt)
+term_startup(int *wid, int *hgt)
 {
 #ifdef TERMLIB
     const char *term;
@@ -336,7 +336,7 @@ tty_startup(int *wid, int *hgt)
  */
 /* deallocate resources prior to final termination */
 void
-tty_shutdown(void)
+term_shutdown(void)
 {
     /* we only attempt to clean up a few individual termcap variables */
 #if defined(TERMLIB) || defined(ANSI_DEFAULT)
@@ -1494,10 +1494,16 @@ term_start_bgcolor(int color)
 void
 term_curs_set(int visibility)
 {
+    static int vis = -1;
+
+    if (vis == visibility)
+        return;
+
     if (!visibility && nh_VI)
         xputs(nh_VI);
     else if (visibility && nh_VE)
         xputs(nh_VE);
+    vis = visibility;
 }
 
 #ifdef CHANGE_COLOR

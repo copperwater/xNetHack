@@ -22,12 +22,6 @@
 #include <unistd.h> /* for getcwd() prototype */
 #endif
 
-#if defined(MICRO) || defined(OS2)
-ATTRNORETURN void nethack_exit(int) NORETURN;
-#else
-#define nethack_exit exit
-#endif
-
 char *exepath(char *);
 char orgdir[PATHLEN]; /* also used in pcsys.c, amidos.c */
 

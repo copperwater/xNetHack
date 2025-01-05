@@ -235,8 +235,8 @@ ifeq "$(WANT_DEBUG)" "1"
 GDBEXE=$(dostargetexes)gdb.exe
 GDBBAT=NHGDB.BAT
 GDBCMDLINE=directory nhsrc/src nhsrc/include nhsrc/sys/msdos \
-		nhsrc/sys/share nhsrc/win/share nhsrc/win/curses \
-		nhsrc/win/tty nhsrc/util
+		nhsrc/sys/share nhsrc/win/curses \
+		nhsrc/win/tty
 else
 GDBEXE=
 GDBBAT=

@@ -197,7 +197,7 @@ static int clipy = 0, clipymax = 0;
 extern void adjust_cursor_flags(struct WinDesc *);
 #endif
 
-#if defined(ASCIIGRAPH) && !defined(NO_TERMS)
+#if defined(ASCIIGRAPH)
 boolean GFlag = FALSE;
 boolean HE_resets_AS; /* see termcap.c */
 #endif
@@ -518,9 +518,9 @@ tty_init_nhwindows(int *argcp UNUSED, char **argv UNUSED)
     /*
      *  Remember tty modes, to be restored on exit.
      *
-     *  gettty() must be called before tty_startup()
+     *  gettty() must be called before term_startup()
      *    due to ordering of LI/CO settings
-     *  tty_startup() must be called before initoptions()
+     *  term_startup() must be called before initoptions()
      *    due to ordering of graphics settings
      */
 #if defined(UNIX) || defined(VMS)
@@ -529,7 +529,7 @@ tty_init_nhwindows(int *argcp UNUSED, char **argv UNUSED)
     gettty();
 
     /* to port dependant tty setup */
-    tty_startup(&wid, &hgt);
+    term_startup(&wid, &hgt);
     setftty(); /* calls start_screen */
     term_curs_set(0);
 
@@ -840,12 +840,7 @@ tty_exit_nhwindows(const char *str)
     ttyDisplay = (struct DisplayDesc *) 0;
 #endif
 
-#ifndef NO_TERMS    /*(until this gets added to the window interface)*/
-    tty_shutdown(); /* cleanup termcap/terminfo/whatever */
-#endif
-#ifdef WIN32CON
-    consoletty_exit();
-#endif
+    term_shutdown(); /* cleanup termcap/terminfo/whatever */
     iflags.window_inited = 0;
 }
 
@@ -3720,15 +3715,15 @@ end_glyphout(void)
     }
 }
 
-#ifndef WIN32CON
 void
 g_putch(int in_ch)
 {
     char ch = (char) in_ch;
 
+#ifndef WIN32CON
     HUPSKIP();
 
-#if defined(ASCIIGRAPH) && !defined(NO_TERMS)
+#if defined(ASCIIGRAPH)
     if (SYMHANDLING(H_UTF8)) {
         (void) putchar(ch);
     } else if (SYMHANDLING(H_IBM)
@@ -3762,14 +3757,16 @@ g_putch(int in_ch)
         (void) putchar(ch);
     }
 
-#else
+#else  /* ?ASCIIGRAPH */
     (void) putchar(ch);
 
-#endif /* ASCIIGRAPH && !NO_TERMS */
-
+#endif /* ASCIIGRAPH */
+#else  /* WIN32CON */
+    console_g_putch(in_ch);
+    nhUse(ch);
+#endif /* WIN32CON */
     return;
 }
-#endif /* !WIN32CON */
 
 #if defined(UNIX) || defined(VMS)
 #if defined(ENHANCED_SYMBOLS)
@@ -3867,9 +3864,9 @@ tty_print_glyph(
 
 #ifndef NO_TERMS
     if (ul_hack && ch == '_') { /* non-destructive underscore */
-        (void) putchar((char) ' ');
-        backsp();
-    }
+         (void) putchar((char) ' ');
+         backsp();
+     }
 #endif
     if (iflags.use_color) {
         ttyDisplay->colorflags = NH_BASIC_COLOR;
@@ -3965,13 +3962,12 @@ term_start_bgcolor(int color)
 {
     /* placeholder for now */
 }
-#endif  /* !MSDOS && !WIN32 */
-
 void
 term_curs_set(int visibility UNUSED)
 {
     /* nothing */
 }
+#endif
 
 #ifdef CHANGE_COLOR
 void

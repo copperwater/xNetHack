@@ -146,6 +146,61 @@ boolean traditional = FALSE; /* traditional TTY character mode */
 boolean inmap = FALSE;       /* in the map window */
 char ttycolors[CLR_MAX]; /* also used/set in options.c */
 
+/* for linkage from wintty.c */
+
+void
+term_shutdown(void)
+{
+}
+
+#ifdef ASCIIGRAPH
+void
+graph_on(void)
+{
+}
+
+void
+graph_off(void)
+{
+}
+#endif
+
+void
+term_curs_set(int visibility)
+{
+    static int vis = -1;
+
+    if (vis == visibility)
+        return;
+
+    if (!visibility) {
+	if (!iflags.grmode) {
+            txt_hide_cursor();
+#ifdef SCREEN_VGA
+	} else if (iflags.usevga) {
+	    vga_hide_cursor();
+#endif
+#ifdef SCREEN_VESA
+	} else if (iflags.usevesa) {
+	    vesa_hide_cursor();
+	}
+#endif
+    } else if (visibility) {
+	if (!iflags.grmode) {
+            txt_show_cursor();
+#ifdef SCREEN_VGA
+	} else if (iflags.usevga) {
+            vga_show_cursor();
+#endif
+#ifdef SCREEN_VESA
+	} else if (iflags.usevesa) {
+            vesa_show_cursor();
+	}
+#endif
+    }
+    vis = visibility;
+}
+
 void
 backsp(void)
 {
@@ -447,7 +502,7 @@ tty_number_pad(int state)
 }
 
 void
-tty_startup(int *wid, int *hgt)
+term_startup(int *wid, int *hgt)
 {
     /* code to sense display adapter is required here - MJA */
 
@@ -461,12 +516,12 @@ tty_startup(int *wid, int *hgt)
 
 #ifdef SCREEN_VGA
     if (iflags.usevga) {
-        vga_tty_startup(wid, hgt);
+        vga_term_startup(wid, hgt);
     } else
 #endif
 #ifdef SCREEN_VESA
     if (iflags.usevesa) {
-        vesa_tty_startup(wid, hgt);
+        vesa_term_startup(wid, hgt);
     } else
 #endif
         txt_startup(wid, hgt);

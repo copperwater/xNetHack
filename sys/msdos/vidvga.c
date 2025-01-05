@@ -297,7 +297,7 @@ vga_tty_end_screen(void)
 }
 
 void
-vga_tty_startup(int *wid, int *hgt)
+vga_term_startup(int *wid, int *hgt)
 {
     /* code to sense display adapter is required here - MJA */
 
@@ -1157,6 +1157,16 @@ vga_SetPalette(const struct Pixel *p)
         (void) int86(VIDEO_BIOS, &regs, &regs);
         regs.x.bx += 0x0101;
     }
+}
+
+void
+vga_hide_cursor(void)
+{
+}
+
+void
+vga_show_cursor(void)
+{
 }
 
 /*static unsigned char colorbits[]={0x01,0x02,0x04,0x08}; */ /* wrong */

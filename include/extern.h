@@ -2098,6 +2098,7 @@ extern void consoletty_open(int);
 extern void consoletty_rubout(void);
 extern int tgetch(void);
 extern int console_poskey(coordxy *, coordxy *, int *);
+void console_g_putch(int in_ch);
 extern void set_output_mode(int);
 extern void synch_cursor(void);
 extern void nethack_enter_consoletty(void);
@@ -2302,7 +2303,14 @@ extern int getlock(void);
 extern const char *get_portable_device(void);
 #endif
 
-/* ### pcsys.c ### */
+/* ### pcsys.c, windsys.c ### */
+#if defined(MICRO) || defined(WIN32)
+ATTRNORETURN extern void nethack_exit(int) NORETURN;
+#else
+#define nethack_exit exit
+#endif
+
+/* ### pcsys.c  ### */
 
 #if defined(MICRO) || defined(WIN32)
 extern void flushout(void);

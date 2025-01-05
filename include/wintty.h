@@ -129,6 +129,8 @@ struct tty_status_fields {
 #endif
 #define NHW_BASE (NHW_LAST_TYPE + 1)
 
+/* external declarations */
+
 extern struct window_procs tty_procs;
 
 /* port specific variable declarations */
@@ -144,24 +146,53 @@ extern char defmorestr[]; /* default --more-- prompt */
 /* port specific external function references */
 
 /* ### getline.c ### */
+
 extern void xwaitforspace(const char *);
 
 /* ### termcap.c, video.c ### */
 
-extern void tty_startup(int *, int *);
-#ifndef NO_TERMS
-extern void tty_shutdown(void);
-#endif
-extern int xputc(int);
-extern void xputs(const char *);
-#if defined(SCREEN_VGA) || defined(SCREEN_8514) || defined(SCREEN_VESA)
-extern void xputg(const glyph_info *, const glyph_info *);
-#endif
+/*
+ * TERM or NO_TERMS
+ *
+ * The tty windowport interface relies on lower-level support routines
+ * to actually manipulate the terminal/display. Those are the right place
+ * for doing strange and arcane things such as outputting escape sequences
+ * to select a color or whatever.  wintty.c should concern itself with WHERE
+ * to put stuff in a window.
+
+ * The TERM routines are found in:
+ *
+ * !NO_TERMS:          termcap.c
+ *
+ * NO_TERMS:
+ *            WINCON   sys/windows/consoletty.c
+ *            MSDOS    sys/msdos/video.c
+ *
+ */
+extern void backsp(void);
 extern void cl_end(void);
-extern void term_clear_screen(void);
+extern void cl_eos(void);
+extern void graph_on(void);
+extern void graph_off(void);
 extern void home(void);
 extern void standoutbeg(void);
 extern void standoutend(void);
+extern int term_attr_fixup(int);
+extern void term_clear_screen(void);
+extern void term_curs_set(int);
+extern void term_end_attr(int attr);
+extern void term_end_color(void);
+extern void term_end_extracolor(void);
+extern void term_end_raw_bold(void);
+extern void term_start_attr(int attr);
+extern void term_start_bgcolor(int color);
+extern void term_start_color(int color);
+extern void term_start_extracolor(uint32, uint16);
+extern void term_start_raw_bold(void);
+extern void term_startup(int *, int *);
+extern void term_shutdown(void);
+extern int xputc(int);
+extern void xputs(const char *);
 #if 0
 extern void revbeg(void);
 extern void boldbeg(void);
@@ -169,29 +200,9 @@ extern void blinkbeg(void);
 extern void dimbeg(void);
 extern void m_end(void);
 #endif
-extern void backsp(void);
-extern void graph_on(void);
-extern void graph_off(void);
-extern void cl_eos(void);
-
-/*
- * termcap.c (or facsimiles in other ports) is the right place for doing
- * strange and arcane things such as outputting escape sequences to select
- * a color or whatever.  wintty.c should concern itself with WHERE to put
- * stuff in a window.
- */
-extern int term_attr_fixup(int);
-extern void term_start_attr(int attr);
-extern void term_end_attr(int attr);
-extern void term_start_raw_bold(void);
-extern void term_end_raw_bold(void);
-
-extern void term_end_color(void);
-extern void term_start_color(int color);
-extern void term_start_bgcolor(int color);
-extern void term_start_extracolor(uint32, uint16);
-extern void term_end_extracolor(void); /* termcap.c, consoletty.c */
-extern void term_curs_set(int);
+#if defined(SCREEN_VGA) || defined(SCREEN_8514) || defined(SCREEN_VESA)
+extern void xputg(const glyph_info *, const glyph_info *);
+#endif
 
 /* ### topl.c ### */
 
@@ -203,6 +214,7 @@ extern void update_topl(const char *);
 extern void putsyms(const char *);
 
 /* ### wintty.c ### */
+
 #ifdef CLIPPING
 extern void setclipped(void);
 #endif
@@ -217,7 +229,7 @@ extern void g_pututf8(uint8 *);
 extern void erase_tty_screen(void);
 extern void win_tty_init(int);
 
-/* external declarations */
+/* tty interface */
 extern void tty_init_nhwindows(int *, char **);
 extern void tty_preference_update(const char *);
 extern void tty_player_selection(void);

@@ -27,11 +27,6 @@
 #define filesize filesize_nh
 #endif
 
-#if defined(MICRO) || defined(OS2)
-ATTRNORETURN void nethack_exit(int) NORETURN;
-#else
-#define nethack_exit exit
-#endif
 static void msexit(void);
 
 #ifdef MOVERLAY
@@ -276,6 +271,7 @@ msexit(void)
         restore_colors();
 #endif
     wait_synch();
+    term_curs_set(1);
     return;
 }
 #endif /* MICRO || OS2 */

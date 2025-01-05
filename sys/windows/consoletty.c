@@ -1079,7 +1079,7 @@ setftty(void)
 }
 
 void
-tty_startup(int *wid, int *hgt)
+term_startup(int *wid, int *hgt)
 {
     *wid = console.width;
     *hgt = console.height;
@@ -1090,6 +1090,36 @@ void
 tty_number_pad(int state UNUSED)
 {
     // do nothing
+}
+
+/* stub tcap replacements for linkage from wintty.c */
+
+void
+term_shutdown(void)
+{
+    consoletty_exit();
+}
+
+#ifdef ASCIIGRAPH
+void
+graph_on(void)
+{
+}
+
+void
+graph_off(void)
+{
+}
+#endif
+
+void
+tty_end_screen(void)
+{
+    term_clear_screen();
+    really_move_cursor();
+    buffer_fill_to_end(console.back_buffer, &clear_cell, 0, 0);
+    back_buffer_flip();
+    FlushConsoleInputBuffer(console.hConIn);
 }
 
 void
@@ -1105,16 +1135,6 @@ tty_start_screen(void)
 #endif
 #endif
 #endif /* VIRTUAL_TERMINAL_SEQUENCES */
-}
-
-void
-tty_end_screen(void)
-{
-    term_clear_screen();
-    really_move_cursor();
-    buffer_fill_to_end(console.back_buffer, &clear_cell, 0, 0);
-    back_buffer_flip();
-    FlushConsoleInputBuffer(console.hConIn);
 }
 
 static BOOL
@@ -1251,6 +1271,7 @@ console_poskey(coordxy *x, coordxy *y, int *mod)
     if (gc.Cmd.swap_yz)
         numberpad |= 0x10;
 #endif
+    term_curs_set(1);
     ch = (program_state.done_hup)
              ? '\033'
              : keyboard_handling.pCheckInput(
@@ -1262,6 +1283,7 @@ console_poskey(coordxy *x, coordxy *y, int *mod)
         *x = cc.x;
         *y = cc.y;
     }
+    term_curs_set(0);
     return ch;
 }
 
@@ -1462,7 +1484,7 @@ xputc_core(int ch)
   */
 #endif
 void
-g_putch(int in_ch)
+console_g_putch(int in_ch)
 {
     unsigned char ch;
     cell_t cell;
@@ -1642,6 +1664,25 @@ term_clear_screen(void)
 {
     buffer_fill_to_end(console.back_buffer, &clear_cell, 0, 0);
     home();
+}
+
+void
+term_curs_set(int visibility)
+{
+    static int vis = -1;
+
+    if (vis == visibility)
+        return;
+
+    static CONSOLE_CURSOR_INFO cursorinfo = { 0, 0 };
+
+    if (!cursorinfo.dwSize) {
+        GetConsoleCursorInfo(console.hConOut, &cursorinfo);
+        vis = cursorinfo.bVisible ? 1 : 0;
+    }
+    cursorinfo.bVisible = visibility ? (BOOL) TRUE : (BOOL) FALSE;
+    SetConsoleCursorInfo(console.hConOut, &cursorinfo);
+    vis = visibility;
 }
 
 void

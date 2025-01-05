@@ -541,7 +541,7 @@ setftty(void)
 }
 
 void
-tty_startup(int *width, int *height)
+term_startup(int *width, int *height)
 {
     _mt_init_stuff();
     *width = CO;

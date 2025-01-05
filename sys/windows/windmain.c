@@ -25,7 +25,6 @@ char *translate_path_variables(const char *, char *);
 char *exename(void);
 boolean fakeconsole(void);
 void freefakeconsole(void);
-ATTRNORETURN extern void nethack_exit(int) NORETURN;
 #if defined(MSWIN_GRAPHICS)
 extern void mswin_destroy_reg(void);
 #endif

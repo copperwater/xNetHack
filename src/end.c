@@ -36,12 +36,6 @@ staticfn void fixup_death(int);
 staticfn int wordcount(char *);
 staticfn void bel_copy1(char **, char *);
 
-#if defined(__BEOS__) || defined(MICRO) || defined(OS2) || defined(WIN32)
-ATTRNORETURN extern void nethack_exit(int) NORETURN;
-#else
-#define nethack_exit exit
-#endif
-
 #define done_stopprint program_state.stopprint
 
 /*

@@ -268,7 +268,6 @@ extern int alternative_palette(char *);
 #endif
 
 #define nethack_enter(argc, argv) nethack_enter_windows()
-ATTRNORETURN extern void nethack_exit(int) NORETURN;
 extern boolean file_exists(const char *);
 extern boolean file_newer(const char *, const char *);
 #ifndef SYSTEM_H
