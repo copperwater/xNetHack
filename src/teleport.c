@@ -1,4 +1,4 @@
-/* NetHack 3.7	teleport.c	$NHDT-Date: 1685863331 2023/06/04 07:22:11 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.206 $ */
+/* NetHack 3.7	teleport.c	$NHDT-Date: 1736129950 2025/01/05 18:19:10 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.235 $ */
 /* Copyright (c) Stichting Mathematisch Centrum, Amsterdam, 1985. */
 /*-Copyright (c) Robert Patrick Rankin, 2011. */
 /* NetHack may be freely redistributed.  See license for details. */
@@ -1653,14 +1653,16 @@ rloc_to_core(
     maybe_unhide_at(x, y);
     newsym(x, y);      /* update new location */
     set_apparxy(mtmp); /* orient monster */
-    if (domsg && (canspotmon(mtmp) || appearmsg) && (u.ustuck != mtmp)) {
+    if (domsg && (canspotmon(mtmp) || appearmsg || mtmp == u.ustuck)) {
         int du = distu(x, y), olddu;
         const char *next = (du <= 2) ? " next to you" : 0, /* next2u() */
                    *nearu = (du <= BOLT_LIM * BOLT_LIM) ? " close by" : 0;
 
         set_msg_xy(x, y);
         mtmp->mstrategy &= ~STRAT_APPEARMSG; /* one chance only */
-        if (telemsg && (couldsee(x, y) || sensemon(mtmp))) {
+        if (mtmp == u.ustuck && !u_at(u.ux0, u.uy0)) {
+            You("and %s teleport together.", mon_nam(mtmp));
+        } else if (telemsg && (couldsee(x, y) || sensemon(mtmp))) {
             pline("%s vanishes and reappears%s.",
                   Monnam(mtmp),
                   next ? next
@@ -1675,11 +1677,18 @@ rloc_to_core(
                   !Blind ? "appears" : "arrives",
                   next ? next : nearu ? nearu : "");
         }
+        /* wand discovery only happens if a messaage is delivered (bug?);
+           if spell or q.mechanic attack or artifact #invoke for banish
+           then current_wand will be Null */
+        if (gc.current_wand && gc.current_wand->otyp == WAN_TELEPORTATION)
+            makeknown(WAN_TELEPORTATION);
     }
 
     /* shopkeepers will only teleport if you zap them with a wand of
        teleportation or if they've been transformed into a jumpy monster;
-       the latter only happens if you've attacked them with polymorph */
+       the latter only happens if you've attacked them with polymorph
+       [FIXME? or they've been hit by a genetic engineer, which won't
+       necessarily be due to Conflict by hero] */
     if (resident_shk && !inhishop(mtmp))
         make_angry_shk(mtmp, oldx, oldy);
 
@@ -2200,7 +2209,9 @@ random_teleport_level(void)
 /* you teleport a monster (via wand, spell, or poly'd q.mechanic attack);
    return false iff the attempt fails */
 boolean
-u_teleport_mon(struct monst *mtmp, boolean give_feedback)
+u_teleport_mon(
+    struct monst *mtmp,
+    boolean give_feedback)
 {
     coord cc;
 
@@ -2215,10 +2226,12 @@ u_teleport_mon(struct monst *mtmp, boolean give_feedback)
         if (!rloc(mtmp, RLOC_MSG))
             m_into_limbo(mtmp);
     } else if ((is_rider(mtmp->data) || control_teleport(mtmp->data))
-               && rn2(13) && enexto(&cc, u.ux, u.uy, mtmp->data))
+               && rn2(13) && enexto(&cc, u.ux, u.uy, mtmp->data)) {
         rloc_to(mtmp, cc.x, cc.y);
-    else
-        (void) rloc(mtmp, RLOC_MSG);
+    } else {
+        if (!rloc(mtmp, RLOC_MSG))
+            return FALSE;
+    }
     return TRUE;
 }
 
