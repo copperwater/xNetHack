@@ -2443,9 +2443,8 @@ remove_object(struct obj *otmp)
         panic("remove_object: obj not on floor");
     extract_nexthere(otmp, &svl.level.objects[x][y]);
     extract_nobj(otmp, &fobj);
-    /* update vision iff this was the only boulder at its spot */
-    if (otmp->otyp == BOULDER && !sobj_at(BOULDER, x, y))
-        unblock_point(x, y); /* vision */
+    if (otmp->otyp == BOULDER)
+        recalc_block_point(x, y); /* vision */
     if (otmp->timed)
         obj_timer_checks(otmp, x, y, 0);
 }
