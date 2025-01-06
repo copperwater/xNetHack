@@ -3508,6 +3508,7 @@ extern void vision_reset(void);
 extern void vision_recalc(int);
 extern void block_point(int, int);
 extern void unblock_point(int, int);
+extern void recalc_block_point(coordxy, coordxy);
 extern boolean clear_path(int, int, int, int);
 extern void do_clear_area(coordxy, coordxy, int,
                           void(*)(coordxy, coordxy, void *), genericptr_t);

@@ -887,7 +887,17 @@ unblock_point(int x, int y)
         gv.vision_full_recalc = 1;
 }
 
-/*==========================================================================*\
+/* recalc if point should be blocked or unblocked */
+void
+recalc_block_point(coordxy x, coordxy y)
+{
+    if (does_block(x, y, &levl[x][y]))
+        block_point(x, y);
+    else
+        unblock_point(x, y);
+}
+
+/*==========================================================================* \
  :                                                                          :
  :      Everything below this line uses (y,x) instead of (x,y) --- the      :
  :      algorithms are faster if they are less recursive and can scan       :
