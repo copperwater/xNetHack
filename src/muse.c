@@ -931,11 +931,13 @@ use_defensive(struct monst *mtmp)
                       surface(mtmp->mx, mtmp->my));
             }
             fill_pit(mtmp->mx, mtmp->my);
+            recalc_block_point(mtmp->mx, mtmp->my);
             return (mintrap(mtmp, FORCEBUNGLE) == Trap_Killed_Mon) ? 1 : 2;
         }
         t = maketrap(mtmp->mx, mtmp->my, HOLE);
         if (!t)
             return 2;
+        recalc_block_point(mtmp->mx, mtmp->my);
         seetrap(t);
         if (vis) {
             pline_mon(mtmp, "%s has made a hole in the %s.", Monnam(mtmp),
