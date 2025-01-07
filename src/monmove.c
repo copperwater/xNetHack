@@ -1502,7 +1502,7 @@ postmov(
     do {                                                        \
         (where)->doormask = (what);                             \
         newsym((who)->mx, (who)->my);                           \
-        unblock_point((who)->mx, (who)->my);                    \
+        recalc_block_point((who)->mx, (who)->my);               \
         vision_recalc(0);                                       \
         /* update cached value since it might change */         \
         canseeit = didseeit || cansee((who)->mx, (who)->my);    \

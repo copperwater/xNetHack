@@ -911,7 +911,7 @@ doopen_indir(coordxy x, coordxy y)
         } else
             door->doormask = D_ISOPEN;
         feel_newsym(cc.x, cc.y); /* the hero knows she opened it */
-        unblock_point(cc.x, cc.y); /* vision: new see through there */
+        recalc_block_point(cc.x, cc.y); /* vision: new see through there */
     } else {
         exercise(A_STR, TRUE);
         set_msg_xy(cc.x, cc.y);
