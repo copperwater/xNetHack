@@ -959,6 +959,7 @@ gd_move(struct monst *grd)
                 mnexto(grd, RLOC_NOMSG);
                 levl[m][n].typ = egrd->fakecorr[0].ftyp;
                 levl[m][n].flags = egrd->fakecorr[0].flags;
+                recalc_block_point(m, n);
                 del_engr_at(m, n);
                 newsym(m, n);
                 return -1;
