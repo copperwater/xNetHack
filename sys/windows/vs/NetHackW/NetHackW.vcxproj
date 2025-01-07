@@ -81,7 +81,6 @@
     </Manifest>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="..\..\guitty.c" />
     <ClCompile Include="$(SrcDir)allmain.c" />
     <ClCompile Include="$(SrcDir)alloc.c" />
     <ClCompile Include="$(SrcDir)apply.c" />
@@ -232,6 +231,7 @@
     </ClCompile>
     <ClCompile Include="$(SysShareDir)cppregex.cpp" />
     <ClCompile Include="$(SysShareDir)random.c" />
+    <ClCompile Include="$(SysWindDir)guitty.c" />
     <ClCompile Include="$(SysWindDir)windmain.c" />
     <ClCompile Include="$(SysWindDir)windsys.c" />
     <ClCompile Include="$(SysWindDir)win10.c" />

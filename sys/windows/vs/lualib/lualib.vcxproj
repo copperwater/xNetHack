@@ -25,7 +25,7 @@
     </ProjectConfiguration>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="..\..\..\..\lib\lua-5.4.6\src\lapi.c">
+    <ClCompile Include="$(LuaDir)lapi.c">
       <DisableSpecificWarnings Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">4701;4702;4244;4310;4774</DisableSpecificWarnings>
       <DisableSpecificWarnings Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">4701;4702;4244;4310;4774</DisableSpecificWarnings>
       <DisableSpecificWarnings Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">4701;4702;4244;4310;4774</DisableSpecificWarnings>
@@ -35,7 +35,7 @@
       <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">%(AdditionalOptions) /wd4774</AdditionalOptions>
       <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Release|x64'">%(AdditionalOptions) /wd4774</AdditionalOptions>
     </ClCompile>
-    <ClCompile Include="..\..\..\..\lib\lua-5.4.6\src\lauxlib.c">
+    <ClCompile Include="$(LuaDir)lauxlib.c">
       <DisableSpecificWarnings Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">4701;4702;4244;4310;4774</DisableSpecificWarnings>
       <DisableSpecificWarnings Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">4701;4702;4244;4310;4774</DisableSpecificWarnings>
       <DisableSpecificWarnings Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">4701;4702;4244;4310;4774</DisableSpecificWarnings>
@@ -45,7 +45,7 @@
       <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">%(AdditionalOptions) /wd4774</AdditionalOptions>
       <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Release|x64'">%(AdditionalOptions) /wd4774</AdditionalOptions>
     </ClCompile>
-    <ClCompile Include="..\..\..\..\lib\lua-5.4.6\src\lbaselib.c">
+    <ClCompile Include="$(LuaDir)lbaselib.c">
       <DisableSpecificWarnings Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">4701;4702;4244;4310;4774</DisableSpecificWarnings>
       <DisableSpecificWarnings Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">4701;4702;4244;4310;4774</DisableSpecificWarnings>
       <DisableSpecificWarnings Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">4701;4702;4244;4310;4774</DisableSpecificWarnings>
@@ -55,7 +55,7 @@
       <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">%(AdditionalOptions) /wd4774</AdditionalOptions>
       <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Release|x64'">%(AdditionalOptions) /wd4774</AdditionalOptions>
     </ClCompile>
-    <ClCompile Include="..\..\..\..\lib\lua-5.4.6\src\lcode.c">
+    <ClCompile Include="$(LuaDir)lcode.c">
       <DisableSpecificWarnings Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">4701;4702;4244;4310;4774</DisableSpecificWarnings>
       <DisableSpecificWarnings Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">4701;4702;4244;4310;4774</DisableSpecificWarnings>
       <DisableSpecificWarnings Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">4701;4702;4244;4310;4774</DisableSpecificWarnings>
@@ -65,7 +65,7 @@
       <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">%(AdditionalOptions) /wd4774</AdditionalOptions>
       <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Release|x64'">%(AdditionalOptions) /wd4774</AdditionalOptions>
     </ClCompile>
-    <ClCompile Include="..\..\..\..\lib\lua-5.4.6\src\lcorolib.c">
+    <ClCompile Include="$(LuaDir)lcorolib.c">
       <DisableSpecificWarnings Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">4701;4702;4244;4310;4774</DisableSpecificWarnings>
       <DisableSpecificWarnings Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">4701;4702;4244;4310;4774</DisableSpecificWarnings>
       <DisableSpecificWarnings Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">4701;4702;4244;4310;4774</DisableSpecificWarnings>
@@ -75,7 +75,7 @@
       <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">%(AdditionalOptions) /wd4774</AdditionalOptions>
       <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Release|x64'">%(AdditionalOptions) /wd4774</AdditionalOptions>
     </ClCompile>
-    <ClCompile Include="..\..\..\..\lib\lua-5.4.6\src\lctype.c">
+    <ClCompile Include="$(LuaDir)lctype.c">
       <DisableSpecificWarnings Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">4701;4702;4244;4310;4774</DisableSpecificWarnings>
       <DisableSpecificWarnings Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">4701;4702;4244;4310;4774</DisableSpecificWarnings>
       <DisableSpecificWarnings Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">4701;4702;4244;4310;4774</DisableSpecificWarnings>
@@ -85,7 +85,7 @@
       <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">%(AdditionalOptions) /wd4774</AdditionalOptions>
       <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Release|x64'">%(AdditionalOptions) /wd4774</AdditionalOptions>
     </ClCompile>
-    <ClCompile Include="..\..\..\..\lib\lua-5.4.6\src\ldblib.c">
+    <ClCompile Include="$(LuaDir)ldblib.c">
       <DisableSpecificWarnings Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">4701;4702;4244;4310;4774</DisableSpecificWarnings>
       <DisableSpecificWarnings Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">4701;4702;4244;4310;4774</DisableSpecificWarnings>
       <DisableSpecificWarnings Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">4701;4702;4244;4310;4774</DisableSpecificWarnings>
@@ -95,7 +95,7 @@
       <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">%(AdditionalOptions) /wd4774</AdditionalOptions>
       <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Release|x64'">%(AdditionalOptions) /wd4774</AdditionalOptions>
     </ClCompile>
-    <ClCompile Include="..\..\..\..\lib\lua-5.4.6\src\ldebug.c">
+    <ClCompile Include="$(LuaDir)ldebug.c">
       <DisableSpecificWarnings Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">4701;4702;4244;4310;4774</DisableSpecificWarnings>
       <DisableSpecificWarnings Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">4701;4702;4244;4310;4774</DisableSpecificWarnings>
       <DisableSpecificWarnings Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">4701;4702;4244;4310;4774</DisableSpecificWarnings>
@@ -105,7 +105,7 @@
       <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">%(AdditionalOptions) /wd4774</AdditionalOptions>
       <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Release|x64'">%(AdditionalOptions) /wd4774</AdditionalOptions>
     </ClCompile>
-    <ClCompile Include="..\..\..\..\lib\lua-5.4.6\src\ldo.c">
+    <ClCompile Include="$(LuaDir)ldo.c">
       <DisableSpecificWarnings Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">4701;4702;4244;4310;4774</DisableSpecificWarnings>
       <DisableSpecificWarnings Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">4701;4702;4244;4310;4774</DisableSpecificWarnings>
       <DisableSpecificWarnings Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">4701;4702;4244;4310;4774</DisableSpecificWarnings>
@@ -115,7 +115,7 @@
       <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">%(AdditionalOptions) /wd4774</AdditionalOptions>
       <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Release|x64'">%(AdditionalOptions) /wd4774</AdditionalOptions>
     </ClCompile>
-    <ClCompile Include="..\..\..\..\lib\lua-5.4.6\src\ldump.c">
+    <ClCompile Include="$(LuaDir)ldump.c">
       <DisableSpecificWarnings Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">4701;4702;4244;4310;4774</DisableSpecificWarnings>
       <DisableSpecificWarnings Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">4701;4702;4244;4310;4774</DisableSpecificWarnings>
       <DisableSpecificWarnings Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">4701;4702;4244;4310;4774</DisableSpecificWarnings>
@@ -125,7 +125,7 @@
       <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">%(AdditionalOptions) /wd4774</AdditionalOptions>
       <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Release|x64'">%(AdditionalOptions) /wd4774</AdditionalOptions>
     </ClCompile>
-    <ClCompile Include="..\..\..\..\lib\lua-5.4.6\src\lfunc.c">
+    <ClCompile Include="$(LuaDir)lfunc.c">
       <DisableSpecificWarnings Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">4701;4702;4244;4310;4774</DisableSpecificWarnings>
       <DisableSpecificWarnings Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">4701;4702;4244;4310;4774</DisableSpecificWarnings>
       <DisableSpecificWarnings Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">4701;4702;4244;4310;4774</DisableSpecificWarnings>
@@ -135,7 +135,7 @@
       <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">%(AdditionalOptions) /wd4774</AdditionalOptions>
       <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Release|x64'">%(AdditionalOptions) /wd4774</AdditionalOptions>
     </ClCompile>
-    <ClCompile Include="..\..\..\..\lib\lua-5.4.6\src\lgc.c">
+    <ClCompile Include="$(LuaDir)lgc.c">
       <DisableSpecificWarnings Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">4701;4702;4244;4310;4774</DisableSpecificWarnings>
       <DisableSpecificWarnings Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">4701;4702;4244;4310;4774</DisableSpecificWarnings>
       <DisableSpecificWarnings Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">4701;4702;4244;4310;4774</DisableSpecificWarnings>
@@ -145,7 +145,7 @@
       <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">%(AdditionalOptions) /wd4774</AdditionalOptions>
       <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Release|x64'">%(AdditionalOptions) /wd4774</AdditionalOptions>
     </ClCompile>
-    <ClCompile Include="..\..\..\..\lib\lua-5.4.6\src\linit.c">
+    <ClCompile Include="$(LuaDir)linit.c">
       <DisableSpecificWarnings Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">4701;4702;4244;4310;4774</DisableSpecificWarnings>
       <DisableSpecificWarnings Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">4701;4702;4244;4310;4774</DisableSpecificWarnings>
       <DisableSpecificWarnings Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">4701;4702;4244;4310;4774</DisableSpecificWarnings>
@@ -155,7 +155,7 @@
       <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">%(AdditionalOptions) /wd4774</AdditionalOptions>
       <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Release|x64'">%(AdditionalOptions) /wd4774</AdditionalOptions>
     </ClCompile>
-    <ClCompile Include="..\..\..\..\lib\lua-5.4.6\src\liolib.c">
+    <ClCompile Include="$(LuaDir)liolib.c">
       <DisableSpecificWarnings Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">4701;4702;4244;4310;4774</DisableSpecificWarnings>
       <DisableSpecificWarnings Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">4701;4702;4244;4310;4774</DisableSpecificWarnings>
       <DisableSpecificWarnings Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">4701;4702;4244;4310;4774</DisableSpecificWarnings>
@@ -165,7 +165,7 @@
       <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">%(AdditionalOptions) /wd4774</AdditionalOptions>
       <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Release|x64'">%(AdditionalOptions) /wd4774</AdditionalOptions>
     </ClCompile>
-    <ClCompile Include="..\..\..\..\lib\lua-5.4.6\src\llex.c">
+    <ClCompile Include="$(LuaDir)llex.c">
       <DisableSpecificWarnings Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">4701;4702;4244;4310;4774</DisableSpecificWarnings>
       <DisableSpecificWarnings Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">4701;4702;4244;4310;4774</DisableSpecificWarnings>
       <DisableSpecificWarnings Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">4701;4702;4244;4310;4774</DisableSpecificWarnings>
@@ -175,7 +175,7 @@
       <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">%(AdditionalOptions) /wd4774</AdditionalOptions>
       <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Release|x64'">%(AdditionalOptions) /wd4774</AdditionalOptions>
     </ClCompile>
-    <ClCompile Include="..\..\..\..\lib\lua-5.4.6\src\lmathlib.c">
+    <ClCompile Include="$(LuaDir)lmathlib.c">
       <DisableSpecificWarnings Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">4701;4702;4244;4310;4774</DisableSpecificWarnings>
       <DisableSpecificWarnings Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">4701;4702;4244;4310;4774</DisableSpecificWarnings>
       <DisableSpecificWarnings Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">4701;4702;4244;4310;4774</DisableSpecificWarnings>
@@ -185,7 +185,7 @@
       <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">%(AdditionalOptions) /wd4774</AdditionalOptions>
       <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Release|x64'">%(AdditionalOptions) /wd4774</AdditionalOptions>
     </ClCompile>
-    <ClCompile Include="..\..\..\..\lib\lua-5.4.6\src\lmem.c">
+    <ClCompile Include="$(LuaDir)lmem.c">
       <DisableSpecificWarnings Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">4701;4702;4244;4310;4774</DisableSpecificWarnings>
       <DisableSpecificWarnings Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">4701;4702;4244;4310;4774</DisableSpecificWarnings>
       <DisableSpecificWarnings Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">4701;4702;4244;4310;4774</DisableSpecificWarnings>
@@ -195,7 +195,7 @@
       <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">%(AdditionalOptions) /wd4774</AdditionalOptions>
       <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Release|x64'">%(AdditionalOptions) /wd4774</AdditionalOptions>
     </ClCompile>
-    <ClCompile Include="..\..\..\..\lib\lua-5.4.6\src\loadlib.c">
+    <ClCompile Include="$(LuaDir)loadlib.c">
       <DisableSpecificWarnings Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">4701;4702;4244;4310;4774</DisableSpecificWarnings>
       <DisableSpecificWarnings Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">4701;4702;4244;4310;4774</DisableSpecificWarnings>
       <DisableSpecificWarnings Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">4701;4702;4244;4310;4774</DisableSpecificWarnings>
@@ -205,7 +205,7 @@
       <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">%(AdditionalOptions) /wd4774</AdditionalOptions>
       <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Release|x64'">%(AdditionalOptions) /wd4774</AdditionalOptions>
     </ClCompile>
-    <ClCompile Include="..\..\..\..\lib\lua-5.4.6\src\lobject.c">
+    <ClCompile Include="$(LuaDir)lobject.c">
       <DisableSpecificWarnings Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">4701;4702;4244;4310;4774</DisableSpecificWarnings>
       <DisableSpecificWarnings Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">4701;4702;4244;4310;4774</DisableSpecificWarnings>
       <DisableSpecificWarnings Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">4701;4702;4244;4310;4774</DisableSpecificWarnings>
@@ -215,7 +215,7 @@
       <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">%(AdditionalOptions) /wd4774</AdditionalOptions>
       <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Release|x64'">%(AdditionalOptions) /wd4774</AdditionalOptions>
     </ClCompile>
-    <ClCompile Include="..\..\..\..\lib\lua-5.4.6\src\lopcodes.c">
+    <ClCompile Include="$(LuaDir)lopcodes.c">
       <DisableSpecificWarnings Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">4701;4702;4244;4310;4774</DisableSpecificWarnings>
       <DisableSpecificWarnings Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">4701;4702;4244;4310;4774</DisableSpecificWarnings>
       <DisableSpecificWarnings Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">4701;4702;4244;4310;4774</DisableSpecificWarnings>
@@ -225,7 +225,7 @@
       <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">%(AdditionalOptions) /wd4774</AdditionalOptions>
       <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Release|x64'">%(AdditionalOptions) /wd4774</AdditionalOptions>
     </ClCompile>
-    <ClCompile Include="..\..\..\..\lib\lua-5.4.6\src\loslib.c">
+    <ClCompile Include="$(LuaDir)loslib.c">
       <DisableSpecificWarnings Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">4701;4702;4244;4310;4774</DisableSpecificWarnings>
       <DisableSpecificWarnings Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">4701;4702;4244;4310;4774</DisableSpecificWarnings>
       <DisableSpecificWarnings Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">4701;4702;4244;4310;4774</DisableSpecificWarnings>
@@ -235,7 +235,7 @@
       <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">%(AdditionalOptions) /wd4774</AdditionalOptions>
       <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Release|x64'">%(AdditionalOptions) /wd4774</AdditionalOptions>
     </ClCompile>
-    <ClCompile Include="..\..\..\..\lib\lua-5.4.6\src\lparser.c">
+    <ClCompile Include="$(LuaDir)lparser.c">
       <DisableSpecificWarnings Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">4701;4702;4244;4310;4774</DisableSpecificWarnings>
       <DisableSpecificWarnings Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">4701;4702;4244;4310;4774</DisableSpecificWarnings>
       <DisableSpecificWarnings Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">4701;4702;4244;4310;4774</DisableSpecificWarnings>
@@ -245,7 +245,7 @@
       <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">%(AdditionalOptions) /wd4774</AdditionalOptions>
       <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Release|x64'">%(AdditionalOptions) /wd4774</AdditionalOptions>
     </ClCompile>
-    <ClCompile Include="..\..\..\..\lib\lua-5.4.6\src\lstate.c">
+    <ClCompile Include="$(LuaDir)lstate.c">
       <DisableSpecificWarnings Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">4701;4702;4244;4310;4774</DisableSpecificWarnings>
       <DisableSpecificWarnings Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">4701;4702;4244;4310;4774</DisableSpecificWarnings>
       <DisableSpecificWarnings Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">4701;4702;4244;4310;4774</DisableSpecificWarnings>
@@ -255,7 +255,7 @@
       <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">%(AdditionalOptions) /wd4774</AdditionalOptions>
       <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Release|x64'">%(AdditionalOptions) /wd4774</AdditionalOptions>
     </ClCompile>
-    <ClCompile Include="..\..\..\..\lib\lua-5.4.6\src\lstring.c">
+    <ClCompile Include="$(LuaDir)lstring.c">
       <DisableSpecificWarnings Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">4701;4702;4244;4310;4774</DisableSpecificWarnings>
       <DisableSpecificWarnings Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">4701;4702;4244;4310;4774</DisableSpecificWarnings>
       <DisableSpecificWarnings Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">4701;4702;4244;4310;4774</DisableSpecificWarnings>
@@ -265,7 +265,7 @@
       <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">%(AdditionalOptions) /wd4774</AdditionalOptions>
       <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Release|x64'">%(AdditionalOptions) /wd4774</AdditionalOptions>
     </ClCompile>
-    <ClCompile Include="..\..\..\..\lib\lua-5.4.6\src\lstrlib.c">
+    <ClCompile Include="$(LuaDir)lstrlib.c">
       <DisableSpecificWarnings Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">4701;4702;4244;4310;4774</DisableSpecificWarnings>
       <DisableSpecificWarnings Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">4701;4702;4244;4310;4774</DisableSpecificWarnings>
       <DisableSpecificWarnings Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">4701;4702;4244;4310;4774</DisableSpecificWarnings>
@@ -275,7 +275,7 @@
       <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">%(AdditionalOptions) /wd4774</AdditionalOptions>
       <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Release|x64'">%(AdditionalOptions) /wd4774</AdditionalOptions>
     </ClCompile>
-    <ClCompile Include="..\..\..\..\lib\lua-5.4.6\src\ltable.c">
+    <ClCompile Include="$(LuaDir)ltable.c">
       <DisableSpecificWarnings Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">4701;4702;4244;4310;4774</DisableSpecificWarnings>
       <DisableSpecificWarnings Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">4701;4702;4244;4310;4774</DisableSpecificWarnings>
       <DisableSpecificWarnings Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">4701;4702;4244;4310;4774</DisableSpecificWarnings>
@@ -285,7 +285,7 @@
       <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">%(AdditionalOptions) /wd4774</AdditionalOptions>
       <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Release|x64'">%(AdditionalOptions) /wd4774</AdditionalOptions>
     </ClCompile>
-    <ClCompile Include="..\..\..\..\lib\lua-5.4.6\src\ltablib.c">
+    <ClCompile Include="$(LuaDir)ltablib.c">
       <DisableSpecificWarnings Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">4701;4702;4244;4310;4774</DisableSpecificWarnings>
       <DisableSpecificWarnings Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">4701;4702;4244;4310;4774</DisableSpecificWarnings>
       <DisableSpecificWarnings Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">4701;4702;4244;4310;4774</DisableSpecificWarnings>
@@ -295,7 +295,7 @@
       <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">%(AdditionalOptions) /wd4774</AdditionalOptions>
       <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Release|x64'">%(AdditionalOptions) /wd4774</AdditionalOptions>
     </ClCompile>
-    <ClCompile Include="..\..\..\..\lib\lua-5.4.6\src\ltm.c">
+    <ClCompile Include="$(LuaDir)ltm.c">
       <DisableSpecificWarnings Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">4701;4702;4244;4310;4774</DisableSpecificWarnings>
       <DisableSpecificWarnings Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">4701;4702;4244;4310;4774</DisableSpecificWarnings>
       <DisableSpecificWarnings Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">4701;4702;4244;4310;4774</DisableSpecificWarnings>
@@ -305,7 +305,7 @@
       <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">%(AdditionalOptions) /wd4774</AdditionalOptions>
       <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Release|x64'">%(AdditionalOptions) /wd4774</AdditionalOptions>
     </ClCompile>
-    <ClCompile Include="..\..\..\..\lib\lua-5.4.6\src\lundump.c">
+    <ClCompile Include="$(LuaDir)lundump.c">
       <DisableSpecificWarnings Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">4701;4702;4244;4310;4774</DisableSpecificWarnings>
       <DisableSpecificWarnings Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">4701;4702;4244;4310;4774</DisableSpecificWarnings>
       <DisableSpecificWarnings Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">4701;4702;4244;4310;4774</DisableSpecificWarnings>
@@ -315,7 +315,7 @@
       <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">%(AdditionalOptions) /wd4774</AdditionalOptions>
       <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Release|x64'">%(AdditionalOptions) /wd4774</AdditionalOptions>
     </ClCompile>
-    <ClCompile Include="..\..\..\..\lib\lua-5.4.6\src\lutf8lib.c">
+    <ClCompile Include="$(LuaDir)lutf8lib.c">
       <DisableSpecificWarnings Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">4701;4702;4244;4310;4774</DisableSpecificWarnings>
       <DisableSpecificWarnings Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">4701;4702;4244;4310;4774</DisableSpecificWarnings>
       <DisableSpecificWarnings Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">4701;4702;4244;4310;4774</DisableSpecificWarnings>
@@ -325,7 +325,7 @@
       <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">%(AdditionalOptions) /wd4774</AdditionalOptions>
       <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Release|x64'">%(AdditionalOptions) /wd4774</AdditionalOptions>
     </ClCompile>
-    <ClCompile Include="..\..\..\..\lib\lua-5.4.6\src\lvm.c">
+    <ClCompile Include="$(LuaDir)lvm.c">
       <DisableSpecificWarnings Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">4701;4702;4244;4310;4774</DisableSpecificWarnings>
       <DisableSpecificWarnings Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">4701;4702;4244;4310;4774</DisableSpecificWarnings>
       <DisableSpecificWarnings Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">4701;4702;4244;4310;4774</DisableSpecificWarnings>
@@ -335,7 +335,7 @@
       <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">%(AdditionalOptions) /wd4774</AdditionalOptions>
       <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Release|x64'">%(AdditionalOptions) /wd4774</AdditionalOptions>
     </ClCompile>
-    <ClCompile Include="..\..\..\..\lib\lua-5.4.6\src\lzio.c">
+    <ClCompile Include="$(LuaDir)lzio.c">
       <DisableSpecificWarnings Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">4701;4702;4244;4310;4774</DisableSpecificWarnings>
       <DisableSpecificWarnings Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">4701;4702;4244;4310;4774</DisableSpecificWarnings>
       <DisableSpecificWarnings Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">4701;4702;4244;4310;4774</DisableSpecificWarnings>
@@ -345,8 +345,6 @@
       <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">%(AdditionalOptions) /wd4774</AdditionalOptions>
       <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Release|x64'">%(AdditionalOptions) /wd4774</AdditionalOptions>
     </ClCompile>
-    <ClCompile Include="..\..\..\..\src\light.c" />
-    <ClCompile Include="..\..\..\..\src\lock.c" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <VCProjectVersion>17.0</VCProjectVersion>
