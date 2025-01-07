@@ -22,15 +22,11 @@ DESCRIPTION
        The -d option, which must be the first argument if it appears, supplies
        a directory which is the NetHack playground.  It  overrides  the  value
        from NETHACKDIR, HACKDIR, or the directory specified by the game admin-
-       istrator during compilation (usually /usr/games/lib/nethackdir).
-
-       For recovery to be possible, nethack must have been compiled  with  the
-       INSURANCE  option,  and  the  run-time option checkpoint must also have
-       been on.  NetHack normally writes out files for levels  as  the  player
-       leaves them, so they will be ready for return visits.  When checkpoint-
-       ing, NetHack also writes out the level entered  and  the  current  game
-       state  on  every level change.  This naturally slows level changes down
-       somewhat.
+       istrator  during   compilation   (usually   /usr/games/lib/nethackdir).
+       NetHack normally writes out files for levels as the player leaves them,
+       so they will be ready for return visits.  When  checkpointing,  NetHack
+       also  writes  out the level entered and the current game state on every
+       level change.  This naturally slows level changes down somewhat.
 
        The level file names are of the form base.nn, where nn is  an  internal
        bookkeeping  number  for  the  level.  The file base.0 is used for game
