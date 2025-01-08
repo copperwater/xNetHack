@@ -1,4 +1,4 @@
-/* NetHack 3.7	cmd.c	$NHDT-Date: 1717967336 2024/06/09 21:08:56 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.729 $ */
+/* NetHack 3.7	cmd.c	$NHDT-Date: 1736401574 2025/01/08 21:46:14 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.744 $ */
 /* Copyright (c) Stichting Mathematisch Centrum, Amsterdam, 1985. */
 /*-Copyright (c) Robert Patrick Rankin, 2013. */
 /* NetHack may be freely redistributed.  See license for details. */
@@ -3595,6 +3595,7 @@ rhack(int key)
         custompline(SUPPRESS_HISTORY, "Unknown command '%s'.", visctrl(key));
         cmdq_clear(CQ_CANNED);
         cmdq_clear(CQ_REPEAT);
+        iflags.sanity_no_check = iflags.sanity_check; /* skip sanity check */
     }
     /* didn't move */
     svc.context.move = FALSE;
