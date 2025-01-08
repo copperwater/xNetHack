@@ -561,6 +561,7 @@ maketrap(coordxy x, coordxy y, int typ)
             lev->flags = 0; /* set_levltyp doesn't take care of this [yet?] */
 
         unearth_objs(x, y);
+        recalc_block_point(x, y);
         break;
     case TELEP_TRAP:
         if (isok(gl.launchplace.x, gl.launchplace.y)) {
