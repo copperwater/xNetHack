@@ -20,6 +20,7 @@ staticfn void mon_chain(winid, const char *, struct monst *, boolean, long *,
 staticfn void contained_stats(winid, const char *, long *, long *);
 staticfn void misc_stats(winid, long *, long *);
 staticfn void you_sanity_check(void);
+staticfn void levl_sanity_check(void);
 staticfn void makemap_unmakemon(struct monst *, boolean);
 staticfn int QSORTCALLBACK migrsort_cmp(const genericptr, const genericptr);
 staticfn void list_migrating_mons(d_level *);
@@ -1437,6 +1438,22 @@ you_sanity_check(void)
     (void) check_invent_gold("invent");
 }
 
+staticfn void
+levl_sanity_check(void)
+{
+    coordxy x, y;
+
+    if (Underwater)
+        return; /* Underwater uses different vision */
+
+    for (y = 0; y < ROWNO; y++) {
+        for (x = 1; x < COLNO; x++) {
+            if ((does_block(x, y, &levl[x][y]) ? 1 : 0) != get_viz_clear(x, y))
+                impossible("levl[%i][%i] vision blocking", x, y);
+        }
+    }
+}
+
 void
 sanity_check(void)
 {
@@ -1457,6 +1474,7 @@ sanity_check(void)
     bc_sanity_check();
     trap_sanity_check();
     engraving_sanity_check();
+    levl_sanity_check();
     program_state.in_sanity_check--;
 }
 

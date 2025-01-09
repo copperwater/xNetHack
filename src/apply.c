@@ -452,6 +452,7 @@ use_stethoscope(struct obj *obj)
         Soundeffect(se_hollow_sound, 100);
         You_hear(hollow_str, "door");
         cvt_sdoor_to_door(lev); /* ->typ = DOOR */
+        recalc_block_point(rx, ry);
         feel_newsym(rx, ry);
         return res;
     case SCORR:

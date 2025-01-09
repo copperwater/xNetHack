@@ -1651,6 +1651,7 @@ findone(coordxy zx, coordxy zy, genericptr_t whatfound)
 
         flash_glyph_at(zx, zy, cmap_to_glyph(sym), FOUND_FLASH_COUNT);
         cvt_sdoor_to_door(lev); /* set lev->typ = DOOR */
+        recalc_block_point(zx, zy);
         magic_map_background(zx, zy, 0);
         foundone(zx, zy, back_to_glyph(zx, zy));
         found_p->num_sdoors++;
@@ -2040,6 +2041,7 @@ dosearch0(int aflag) /* intrinsic autosearch vs explicit searching */
                     if (rnl(7 - fund))
                         continue;
                     cvt_sdoor_to_door(&levl[x][y]); /* .typ = DOOR */
+                    recalc_block_point(x, y);
                     exercise(A_WIS, TRUE);
                     nomul(0);
                     feel_location(x, y); /* make sure it shows up */

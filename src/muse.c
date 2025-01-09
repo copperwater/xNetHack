@@ -758,8 +758,7 @@ reveal_trap(struct trap *t, boolean seeit)
 
     if (lev->typ == SCORR) {
         lev->typ = CORR, lev->flags = 0; /* set_levltyp(,,CORR) */
-        if (seeit)
-            unblock_point(t->tx, t->ty);
+        unblock_point(t->tx, t->ty);
     }
     if (seeit)
         seetrap(t);

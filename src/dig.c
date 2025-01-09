@@ -541,6 +541,7 @@ dig(void)
         if (IS_DOOR(lev->typ) && (lev->doormask & D_TRAPPED)) {
             lev->doormask = D_NODOOR;
             b_trapped("door", NO_PART);
+            recalc_block_point(dpx, dpy);
             newsym(dpx, dpy);
         }
  cleanup:
@@ -1682,7 +1683,7 @@ zap_dig(void)
                 pline_The("door is razed!");
             watch_dig((struct monst *) 0, zx, zy, TRUE);
             room->doormask = D_NODOOR;
-            unblock_point(zx, zy); /* vision */
+            recalc_block_point(zx, zy); /* vision */
             digdepth -= 2;
             if (maze_dig)
                 break;

@@ -3502,6 +3502,7 @@ extern int assign_videocolors(char *) NONNULLARG1;
 
 /* ### vision.c ### */
 
+extern boolean get_viz_clear(int, int);
 extern void vision_init(void);
 extern int does_block(int, int, struct rm *) NONNULLARG3;
 extern void vision_reset(void);

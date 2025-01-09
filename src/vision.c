@@ -100,6 +100,15 @@ staticfn void rogue_vision(seenV **, coordxy *, coordxy *);
 #define sign(z) ((z) < 0 ? -1 : ((z) ? 1 : 0))
 #define v_abs(z) ((z) < 0 ? -(z) : (z)) /* don't use abs -- it may exist */
 
+/* expose viz_clear[][] for sanity checking */
+boolean
+get_viz_clear(int x, int y)
+{
+    if (isok(x,y) && !viz_clear[y][x])
+        return TRUE;
+    return FALSE;
+}
+
 /*
  * vision_init()
  *
