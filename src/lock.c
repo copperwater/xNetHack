@@ -1232,7 +1232,7 @@ doorlock(struct obj *otmp, coordxy x, coordxy y)
             }
             sawit = cansee(x, y);
             door->doormask = D_BROKEN;
-            unblock_point(x, y);
+            recalc_block_point(x, y);
             seeit = cansee(x, y);
             newsym(x, y);
             if (flags.verbose) {
