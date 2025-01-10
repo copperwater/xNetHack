@@ -1,4 +1,4 @@
-/* NetHack 3.7	uhitm.c	$NHDT-Date: 1732979463 2024/11/30 07:11:03 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.451 $ */
+/* NetHack 3.7	uhitm.c	$NHDT-Date: 1736575153 2025/01/10 21:59:13 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.461 $ */
 /* Copyright (c) Stichting Mathematisch Centrum, Amsterdam, 1985. */
 /*-Copyright (c) Robert Patrick Rankin, 2012. */
 /* NetHack may be freely redistributed.  See license for details. */
@@ -6070,12 +6070,20 @@ that_is_a_mimic(
         else if (M_AP_TYPE(mtmp) == M_AP_MONSTER)
             what = a_monnam(mtmp); /* differs from what was sensed */
     } else {
-        int glyph = levl[u.ux + u.dx][u.uy + u.dy].glyph;
+        int glyph = glyph_at(u.ux + u.dx, u.uy + u.dy);
 
         if (glyph_is_cmap(glyph)) {
+            int sym = glyph_to_cmap(glyph);
+
+#ifdef EXTRA_SANITY_CHECKS
+            if (iflags.sanity_check && (int) mtmp->mappearance != sym)
+                impossible("mimic appearance %u does not match"
+                           " map feature %d (glyph=%d)",
+                           mtmp->mappearance, sym, glyph);
+#endif
             /* note: defsyms[stairs] yields singular "staircase {up|down}" */
             Snprintf(fmtbuf, sizeof fmtbuf, "That %s actually is %%s!",
-                     defsyms[mtmp->mappearance].explanation);
+                     defsyms[sym].explanation);
         } else if (glyph_is_object(glyph)) {
             boolean fakeobj;
             const char *otmp_name;
