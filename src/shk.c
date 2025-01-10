@@ -1,4 +1,4 @@
-/* NetHack 3.7	shk.c	$NHDT-Date: 1720717993 2024/07/11 17:13:13 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.298 $ */
+/* NetHack 3.7	shk.c	$NHDT-Date: 1736516428 2025/01/10 05:40:28 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.306 $ */
 /* Copyright (c) Stichting Mathematisch Centrum, Amsterdam, 1985. */
 /*-Copyright (c) Robert Patrick Rankin, 2012. */
 /* NetHack may be freely redistributed.  See license for details. */
@@ -2091,7 +2091,7 @@ pay_billed_items(
 /* update shk's bill and augmented bill after an item has been purchased */
 staticfn void
 update_bill(
-    int indx,
+    int indx, /* index into ibill[]; -1 for unpaid contained item */
     int ibillct,
     Bill *ibill,
     struct eshk *eshkp,
@@ -2117,18 +2117,16 @@ update_bill(
            from shop bill; if it was used up, remove it from the billobjs
            list and delete it; update shop's bill by moving last bill_p[]
            entry into vacated slot; also update ibill[] indices for that */
-        paiditem->unpaid = 0; /* set before maybe deallocating */
+        paiditem->unpaid = 0; /* clear before maybe deallocating */
         if (paiditem->where == OBJ_ONBILL) {
             obj_extract_self(paiditem);
             dealloc_obj(paiditem);
         }
         newebillct = eshkp->billct - 1;
         *bp = eshkp->bill_p[newebillct];
-        if (indx >= 0) {
-            for (j = 0; j < ibillct; ++j)
-                if (ibill[j].bidx == newebillct)
-                    ibill[j].bidx = ibill[indx].bidx;
-        }
+        for (j = 0; j < ibillct; ++j)
+            if (ibill[j].bidx == newebillct)
+                ibill[j].bidx = (int) (bp - eshkp->bill);
         eshkp->billct = newebillct; /* eshkp->billct - 1 */
     }
     return;
@@ -2145,7 +2143,7 @@ dopayobj(
     struct monst *shkp,
     struct bill_x *bp,
     struct obj *obj,
-    int which /* 0 => used-up item, 1 => other (unpaid or lost) */,
+    int which, /* 0 => used-up item, 1 => other (unpaid or lost) */
     boolean itemize,
     boolean unseen)
 {
@@ -2311,7 +2309,8 @@ buy_container(
         }
         /* [updating cost here is not necessary but useful when debugging] */
         ibill[indx].cost -= (bp->price * bp->bquan); /* update container */
-        update_bill(-1, ibillct, ibill, eshkp, bp, otmp);
+        update_bill((boid == container->o_id) ? indx : -1,
+                    ibillct, ibill, eshkp, bp, otmp);
         ++buycount;
     }
     if (buycount && sightunseen) {
