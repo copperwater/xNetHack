@@ -1,4 +1,4 @@
-/* NetHack 3.7	shknam.c	$NHDT-Date: 1715203028 2024/05/08 21:17:08 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.78 $ */
+/* NetHack 3.7	shknam.c	$NHDT-Date: 1736530208 2025/01/10 09:30:08 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.82 $ */
 /* Copyright (c) Stichting Mathematisch Centrum, Amsterdam, 1985. */
 /*-Copyright (c) Robert Patrick Rankin, 2011. */
 /* NetHack may be freely redistributed.  See license for details. */
@@ -201,7 +201,7 @@ static const char *const shkhealthfoods[] = {
  * *_CLASS enum value) or a specific object enum value.
  * In the latter case, prepend it with a unary minus so the code can know
  * (by testing the sign) whether to use mkobj() or mksobj().
- * shtypes[] is externally referenced from mkroom.c, mon.c and shk.c. 
+ * shtypes[] is externally referenced from mkroom.c, mon.c and shk.c.
  *
  * The second, usually shorter, store type name is used in automatically
  * generated annotations for #overview.  If Null, the first name gets used.

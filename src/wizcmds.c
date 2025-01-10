@@ -1,4 +1,4 @@
-/* NetHack 3.7	wizcmds.c	$NHDT-Date: 1735950605 2025/01/03 16:30:05 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.19 $ */
+/* NetHack 3.7	wizcmds.c	$NHDT-Date: 1736530208 2025/01/10 09:30:08 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.21 $ */
 /*-Copyright (c) Robert Patrick Rankin, 2024. */
 /* NetHack may be freely redistributed.  See license for details. */
 
@@ -1887,7 +1887,7 @@ wiz_custom(void)
     if (wizard) {
         static const char wizcustom[] = "#wizcustom";
         winid win;
-        char buf[BUFSZ], bufa[BUFSZ];  
+        char buf[BUFSZ], bufa[BUFSZ];
         int n;
 #if 0
         int j, glyph;

@@ -1,4 +1,4 @@
-/* NetHack 3.7	hack.c	$NHDT-Date: 1723410639 2024/08/11 21:10:39 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.452 $ */
+/* NetHack 3.7	hack.c	$NHDT-Date: 1736530208 2025/01/10 09:30:08 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.477 $ */
 /* Copyright (c) Stichting Mathematisch Centrum, Amsterdam, 1985. */
 /*-Copyright (c) Derek S. Ray, 2015. */
 /* NetHack may be freely redistributed.  See license for details. */
@@ -962,7 +962,7 @@ invocation_pos(coordxy x, coordxy y)
                       && x == svi.inv_pos.x && y == svi.inv_pos.y);
 }
 
-/* return TRUE if (ux+dx,ux+dy) is an OK place to move;
+/* return TRUE if (ux+dx,uy+dy) is an OK place to move;
    mode is one of DO_MOVE, TEST_MOVE, TEST_TRAV, or TEST_TRAP */
 boolean
 test_move(

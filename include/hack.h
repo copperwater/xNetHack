@@ -1,4 +1,4 @@
-/* NetHack 3.7	hack.h	$NHDT-Date: 1725653009 2024/09/06 20:03:29 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.262 $ */
+/* NetHack 3.7	hack.h	$NHDT-Date: 1736530208 2025/01/10 09:30:08 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.266 $ */
 /* Copyright (c) Stichting Mathematisch Centrum, Amsterdam, 1985. */
 /*-Copyright (c) Pasi Kallinen, 2017. */
 /* NetHack may be freely redistributed.  See license for details. */
@@ -347,7 +347,6 @@ enum digcheck_result {
     DIGCHECK_FAIL_OBJ_POOL_OR_TRAP
 };
 
-    
 
 /* Dismount: causes for why you are no longer riding */
 enum dismount_types {

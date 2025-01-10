@@ -1,4 +1,4 @@
-/* NetHack 3.7	winprocs.h	$NHDT-Date: 1725653017 2024/09/06 20:03:37 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.81 $ */
+/* NetHack 3.7	winprocs.h	$NHDT-Date: 1736530208 2025/01/10 09:30:08 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.83 $ */
 /* Copyright (c) David Cohrs, 1992                                */
 /* NetHack may be freely redistributed.  See license for details. */
 
@@ -10,7 +10,7 @@
 #include "color.h"
 #endif
 
-enum wp_ids { wp_tty = 1, wp_X11, wp_Qt, wp_mswin, wp_curses, 
+enum wp_ids { wp_tty = 1, wp_X11, wp_Qt, wp_mswin, wp_curses,
               wp_chainin, wp_chainout, wp_safestartup, wp_shim,
               wp_hup, wp_guistubs, wp_ttystubs,
 #ifdef OUTDATED_STUFF
@@ -124,10 +124,9 @@ extern
 #define display_file (*windowprocs.win_display_file)
 #define start_menu (*windowprocs.win_start_menu)
 #define end_menu (*windowprocs.win_end_menu)
-/* 3.7: There are real add_menu() and select_menu
- *      in the core now.
+/* 3.7: There are real add_menu() and select_menu in the core now.
  *      add_menu does some common activities, such as menu_colors.
- *      select_menu does some before and after activities. 
+ *      select_menu does some before and after activities.
  *      add_menu() and select_menu() are in windows.c
  */
 /* #define add_menu (*windowprocs.win_add_menu) */
@@ -185,10 +184,10 @@ extern
 #define ctrl_nhwindow (*windowprocs.win_ctrl_nhwindow)
 
 /*
- * 
+ *
  */
 #define WPID(name) #name, wp_##name
-#define WPIDMINUS(name) "-" #name, wp_##name 
+#define WPIDMINUS(name) "-" #name, wp_##name
 
 /*
  * WINCAP

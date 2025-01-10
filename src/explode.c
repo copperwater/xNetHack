@@ -1,4 +1,4 @@
-/* NetHack 3.7	explode.c	$NHDT-Date: 1619553210 2021/04/27 19:53:30 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.77 $ */
+/* NetHack 3.7	explode.c	$NHDT-Date: 1736530208 2025/01/10 09:30:08 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.122 $ */
 /*      Copyright (C) 1990 by Ken Arromdee */
 /* NetHack may be freely redistributed.  See license for details. */
 
@@ -794,7 +794,7 @@ scatter(coordxy sx, coordxy sy,  /* location of objects to scatter */
                 if (cansee(sx, sy)) {
                     pline("%s.", Tobjnam(otmp, "crumble"));
                 } else {
-                    Soundeffect(se_stone_crumbling, 100); 
+                    Soundeffect(se_stone_crumbling, 100);
                     You_hear("stone crumbling.");
                 }
                 (void) break_statue(otmp);

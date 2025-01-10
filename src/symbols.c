@@ -1,4 +1,4 @@
-/* NetHack 3.7	symbols.c	$NHDT-Date: 1711477037 2024/03/26 18:17:17 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.120 $ */
+/* NetHack 3.7	symbols.c	$NHDT-Date: 1736530208 2025/01/10 09:30:08 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.123 $ */
 /* Copyright (c) NetHack Development Team 2020.                   */
 /* NetHack may be freely redistributed.  See license for details. */
 
@@ -371,7 +371,7 @@ symset_is_compatible(
  * particular types of symset "handling", define a
  * H_XXX macro in include/sym.h and add the name
  * to this array at the matching offset.
- * Externally referenced from files.c, options.c, utf8map.c. 
+ * Externally referenced from files.c, options.c, utf8map.c.
  */
 const char *const known_handling[] = {
     "UNKNOWN", /* H_UNK  */

@@ -1,4 +1,4 @@
-/* NetHack 3.7	dig.c	$NHDT-Date: 1724613307 2024/08/25 19:15:07 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.219 $ */
+/* NetHack 3.7	dig.c	$NHDT-Date: 1736530208 2025/01/10 09:30:08 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.225 $ */
 /* Copyright (c) Stichting Mathematisch Centrum, Amsterdam, 1985. */
 /*-Copyright (c) Michael Allison, 2012. */
 /* NetHack may be freely redistributed.  See license for details. */
@@ -898,7 +898,7 @@ dighole(boolean pit_only, boolean by_magic, coord *cc)
     coordxy dig_x, dig_y;
     boolean nohole, retval = FALSE;
     enum digcheck_result dig_check_result;
- 
+
     if (!cc) {
         dig_x = u.ux;
         dig_y = u.uy;

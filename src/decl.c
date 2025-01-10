@@ -1,4 +1,4 @@
-/* NetHack 3.7	decl.c	$NHDT-Date: 1725138480 2024/08/31 21:08:00 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.337 $ */
+/* NetHack 3.7	decl.c	$NHDT-Date: 1736530208 2025/01/10 09:30:08 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.341 $ */
 /* Copyright (c) Stichting Mathematisch Centrum, Amsterdam, 1985. */
 /*-Copyright (c) Michael Allison, 2009. */
 /* NetHack may be freely redistributed.  See license for details. */
@@ -1168,7 +1168,7 @@ decl_globals_init(void)
     gv.valuables[1].size = SIZE(ga.amulets);
     gv.valuables[2].list = NULL;
     gv.valuables[2].size = 0;
-    
+
 #if 0
     MAGICCHECK(g_init);
 #endif
