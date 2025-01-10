@@ -1,4 +1,4 @@
-/* NetHack 3.7	tilemap.c	$NHDT-Date: 1640987372 2021/12/31 21:49:32 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.64 $ */
+/* NetHack 3.7	tilemap.c	$NHDT-Date: 1736530790 2025/01/10 09:39:50 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.86 $ */
 /*      Copyright (c) 2016 by Michael Allison                     */
 /* NetHack may be freely redistributed.  See license for details. */
 
@@ -1362,7 +1362,7 @@ main(int argc UNUSED, char *argv[] UNUSED)
 #ifdef ENHANCED_SYMBOLS
     enhanced = ", 0"; /* replace ", utf8rep" since we're done with that */
 #endif
-    Fprintf(ofp, "const glyph_info nul_glyphinfo = { \n");
+    Fprintf(ofp, "const glyph_info nul_glyphinfo = {\n");
     Fprintf(ofp, "%sNO_GLYPH, ' ', NO_COLOR,\n", indent);
     Fprintf(ofp, "%s%s/* glyph_map */\n", indent, indent);
     Fprintf(ofp, "%s%s{ %s, TILE_UNEXPLORED%s }\n", indent, indent,
