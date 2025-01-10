@@ -357,11 +357,14 @@ remove_region(NhRegion *reg)
     reg->ttl = -2L; /* for visible_region_at */
     if (reg->visible) {
         int pass;
+        boolean tmp_uinwater = u.uinwater;
 
         /* need to process the region's spots twice, first unblocking all
            locations which no longer block line-of-sight, then redrawing
            spots within revised line-of-sight; skip second pass if blind */
         for (pass = 1; pass <= (Blind ? 1 : 2); ++pass) {
+            u.uinwater = (pass == 1) ? 0 : tmp_uinwater;
+
             for (x = reg->bounding_box.lx; x <= reg->bounding_box.hx; x++)
                 for (y = reg->bounding_box.ly; y <= reg->bounding_box.hy; y++)
                     if (isok(x, y) && inside_region(reg, x, y)) {
@@ -374,6 +377,7 @@ remove_region(NhRegion *reg)
                         }
                     }
         }
+        u.uinwater = tmp_uinwater;
     }
     free_region(reg);
 }
