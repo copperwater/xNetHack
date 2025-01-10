@@ -74,6 +74,7 @@ staticfn void clear_unpaid_obj(struct monst *, struct obj *);
 staticfn void clear_unpaid(struct monst *, struct obj *);
 staticfn void clear_no_charge_obj(struct monst *, struct obj *);
 staticfn void clear_no_charge(struct monst *, struct obj *);
+staticfn void clear_no_charge_pets(struct monst *);
 staticfn long check_credit(long, struct monst *);
 staticfn void pay(long, struct monst *);
 staticfn long get_cost(struct obj *, struct monst *);
@@ -381,6 +382,17 @@ clear_no_charge(struct monst *shkp, struct obj *list)
         /* move on to next element of list */
         list = list->nobj;
     }
+}
+
+/* clear no_charge from objects in pets' inventories belonging to shkp */
+staticfn void
+clear_no_charge_pets(struct monst *shkp)
+{
+    struct monst *mtmp;
+
+    for (mtmp = fmon; mtmp; mtmp = mtmp->nmon)
+        if (mtmp->mtame && mtmp->minvent)
+            clear_no_charge(shkp, mtmp->minvent);
 }
 
 /* either you paid or left the shop or the shopkeeper died */
@@ -1383,6 +1395,7 @@ hot_pursuit(struct monst *shkp)
        floor of this level (including inside containers on floor), even
        those that are in other shopkeepers' shops */
     clear_no_charge((struct monst *) NULL, fobj);
+    clear_no_charge_pets(shkp);
 }
 
 /* Used when the shkp is teleported or falls (ox == 0) out of his shop, or
