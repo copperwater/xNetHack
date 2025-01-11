@@ -6099,12 +6099,27 @@ that_is_a_mimic(
                 otmp->where = OBJ_FREE; /* object_from_map set to OBJ_FLOOR */
                 dealloc_obj(otmp);
             }
+        } else if (glyph_is_monster(glyph)) {
+            const char *mtmp_name;
+            int sym = glyph_to_mon(glyph);
+
+#ifdef EXTRA_SANITY_CHECKS
+            if (iflags.sanity_check && (int) mtmp->mappearance != sym)
+                impossible("mimic appearance %u does not match"
+                           " monster #%d (glyph=%d)",
+                           mtmp->mappearance, sym, glyph);
+#endif
+            mtmp_name = pmname(&mons[sym], Mgender(mtmp));
+            Snprintf(fmtbuf, sizeof fmtbuf,
+                     "Wait!  That %s is %%s!", mtmp_name);
         }
 
         /* cloned Wiz starts out mimicking some other monster and
            might make himself invisible before being revealed */
         if (mtmp->minvis && !See_invisible)
             what = generic;
+        else if (M_AP_TYPE(mtmp) == M_AP_MONSTER)
+            what = x_monnam(mtmp, ARTICLE_A, (char *) NULL, EXACT_NAME, TRUE);
         else if (mtmp->data->mlet == S_MIMIC
                  && (M_AP_TYPE(mtmp) == M_AP_OBJECT
                      || M_AP_TYPE(mtmp) == M_AP_FURNITURE)
