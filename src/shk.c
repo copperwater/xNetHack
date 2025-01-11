@@ -1173,19 +1173,12 @@ obfree(struct obj *obj, struct obj *merge)
                        merge->unpaid ? 1 : 0);
             return;
         } else {
+            struct eshk *eshkp = ESHK(shkp);
+
             /* this was a merger */
             bpm->bquan += bp->bquan;
-            ESHK(shkp)->billct--;
-#ifdef DUMB
-            {
-                /* DRS/NS 2.2.6 messes up -- Peter Kendell */
-                int indx = ESHK(shkp)->billct;
-
-                *bp = ESHK(shkp)->bill_p[indx];
-            }
-#else
-            *bp = ESHK(shkp)->bill_p[ESHK(shkp)->billct];
-#endif
+            eshkp->billct--;
+            *bp = eshkp->bill_p[eshkp->billct];
         }
     } else {
         /* not on bill; if the item is being merged away rather than
@@ -2139,7 +2132,7 @@ update_bill(
         *bp = eshkp->bill_p[newebillct];
         for (j = 0; j < ibillct; ++j)
             if (ibill[j].bidx == newebillct)
-                ibill[j].bidx = (int) (bp - eshkp->bill);
+                ibill[j].bidx = (int) (bp - eshkp->bill_p);
         eshkp->billct = newebillct; /* eshkp->billct - 1 */
     }
     return;
@@ -3153,7 +3146,7 @@ gem_learned(int oindx)
     for (shkp = next_shkp(fmon, TRUE); shkp;
          shkp = next_shkp(shkp->nmon, TRUE)) {
         ct = ESHK(shkp)->billct;
-        bp = ESHK(shkp)->bill;
+        bp = ESHK(shkp)->bill_p;
         while (--ct >= 0) {
             obj = find_oid(bp->bo_id);
             if (!obj) /* shouldn't happen */
@@ -3593,6 +3586,7 @@ staticfn void
 sub_one_frombill(struct obj *obj, struct monst *shkp)
 {
     struct bill_x *bp;
+    struct eshk *eshkp;
 
     if ((bp = onbill(obj, shkp, FALSE)) != 0) {
         struct obj *otmp;
@@ -3610,17 +3604,9 @@ sub_one_frombill(struct obj *obj, struct monst *shkp)
             add_to_billobjs(otmp);
             return;
         }
-        ESHK(shkp)->billct--;
-#ifdef DUMB
-        {
-            /* DRS/NS 2.2.6 messes up -- Peter Kendell */
-            int indx = ESHK(shkp)->billct;
-
-            *bp = ESHK(shkp)->bill_p[indx];
-        }
-#else
-        *bp = ESHK(shkp)->bill_p[ESHK(shkp)->billct];
-#endif
+        eshkp = ESHK(shkp);
+        eshkp->billct--;
+        *bp = eshkp->bill_p[eshkp->billct];
         return;
     } else if (obj->unpaid) {
         impossible("sub_one_frombill: unpaid object not on bill");
@@ -5954,16 +5940,7 @@ globby_bill_fixup(struct obj *obj_absorber, struct obj *obj_absorbed)
         /* the glob being absorbed has a billing record */
         amount = bp->price;
         eshkp->billct--;
-#ifdef DUMB
-        {
-            /* DRS/NS 2.2.6 messes up -- Peter Kendell */
-            int indx = eshkp->billct;
-
-            *bp = eshkp->bill_p[indx];
-        }
-#else
         *bp = eshkp->bill_p[eshkp->billct];
-#endif
         clear_unpaid_obj(shkp, obj_absorbed);
 
         if (bp_absorber) {
