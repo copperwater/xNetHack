@@ -6101,17 +6101,12 @@ that_is_a_mimic(
             }
         } else if (glyph_is_monster(glyph)) {
             const char *mtmp_name;
-            int sym = glyph_to_mon(glyph);
+            int mndx = glyph_to_mon(glyph);
 
-#ifdef EXTRA_SANITY_CHECKS
-            if (iflags.sanity_check && (int) mtmp->mappearance != sym)
-                impossible("mimic appearance %u does not match"
-                           " monster #%d (glyph=%d)",
-                           mtmp->mappearance, sym, glyph);
-#endif
-            mtmp_name = pmname(&mons[sym], Mgender(mtmp));
+            assert(mndx >= LOW_PM && mndx <= HIGH_PM);
+            mtmp_name = pmname(&mons[mndx], Mgender(mtmp));
             Snprintf(fmtbuf, sizeof fmtbuf,
-                     "Wait!  That %s is %%s!", mtmp_name);
+                     "Wait!  That %s is really %%s!", mtmp_name);
         }
 
         /* cloned Wiz starts out mimicking some other monster and
