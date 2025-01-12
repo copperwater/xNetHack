@@ -142,7 +142,7 @@ struct obj {
     Bitfield(bypass, 1); /* mark this as an object to be skipped by bhito() */
     Bitfield(pickup_prev, 1); /* was picked up previously */
     Bitfield(ghostly, 1); /* it just got placed into a bones file */
-    Bitfield(how_lost, 2);  /* stolen by mon or thrown, dropped by hero */
+    Bitfield(how_lost, 3);  /* stolen by mon or thrown, dropped by hero, etc */
 
     Bitfield(named_how, 1);  /* source of name per TODO in resetobjs() */
 #if 0
@@ -150,9 +150,9 @@ struct obj {
     Bitfield(eknown, 1); /* effect known for wands zapped or rings worn when
                           * not seen yet after being picked up while blind
                           * [maybe for remaining stack of used potion too] */
-    /* 6 free bits */
+    /* 5 free bits */
 #else
-    /* 7 free bits */
+    /* 6 free bits */
 #endif
 
     int corpsenm;         /* type of corpse is mons[corpsenm] */
