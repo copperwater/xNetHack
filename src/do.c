@@ -876,7 +876,7 @@ engulfer_digests_food(struct obj *obj)
         } else if (could_grow) {
             (void) grow_up(u.ustuck, (struct monst *) 0);
         } else if (could_heal) {
-            u.ustuck->mhp = u.ustuck->mhpmax;
+            healmon(u.ustuck, u.ustuck->mhpmax, 0);
             /* False: don't realize that sight is cured from inside */
             mcureblindness(u.ustuck, FALSE);
         }

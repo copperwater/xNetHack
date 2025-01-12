@@ -1740,7 +1740,7 @@ potionhit(struct monst *mon, struct obj *obj, int how)
  do_healing:
             angermon = FALSE;
             if (mon->mhp < mon->mhpmax) {
-                mon->mhp = mon->mhpmax;
+                healmon(mon, mon->mhpmax, 0);
                 if (canseemon(mon))
                     pline("%s looks sound and hale again.", Monnam(mon));
             }
@@ -1827,9 +1827,7 @@ potionhit(struct monst *mon, struct obj *obj, int how)
                     angermon = FALSE;
                     if (canseemon(mon))
                         pline("%s looks healthier.", Monnam(mon));
-                    mon->mhp += d(2, 6);
-                    if (mon->mhp > mon->mhpmax)
-                        mon->mhp = mon->mhpmax;
+                    healmon(mon, d(2, 6), 0);
                     if (is_were(mon->data) && is_human(mon->data)
                         && !Protection_from_shape_changers)
                         new_were(mon); /* transform into beast */

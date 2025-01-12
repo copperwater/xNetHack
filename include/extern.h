@@ -1756,6 +1756,7 @@ extern struct monst *get_iter_mons(boolean (*)(struct monst *));
 extern struct monst *get_iter_mons_xy(boolean (*)(struct monst *,
                                                   coordxy, coordxy),
                                       coordxy, coordxy);
+extern int healmon(struct monst *, int, int) NONNULLARG1;
 extern void rescham(void);
 extern void restartcham(void);
 extern void restore_cham(struct monst *) NONNULLARG1;

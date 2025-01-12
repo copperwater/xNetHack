@@ -1351,9 +1351,7 @@ m_consume_obj(struct monst *mtmp, struct obj *otmp)
 
     /* non-pet: Heal up to the object's weight in hp */
     if (!ispet && mtmp->mhp < mtmp->mhpmax) {
-        mtmp->mhp += objects[otmp->otyp].oc_weight;
-        if (mtmp->mhp > mtmp->mhpmax)
-            mtmp->mhp = mtmp->mhpmax;
+        healmon(mtmp, objects[otmp->otyp].oc_weight, 0);
     }
     if (Has_contents(otmp))
         meatbox(mtmp, otmp);
@@ -1398,7 +1396,7 @@ m_consume_obj(struct monst *mtmp, struct obj *otmp)
             }
         }
         if (heal)
-            mtmp->mhp = mtmp->mhpmax;
+            healmon(mtmp, mtmp->mhpmax, 0);
         if ((eyes || heal) && !mtmp->mcansee)
             mcureblindness(mtmp, canseemon(mtmp));
         if (ispet && deadmimic)
@@ -4462,6 +4460,44 @@ get_iter_mons_xy(
 }
 
 
+/* Heal the given monster by amt hitpoints, unless it is somehow prevented
+   from healing. "overheal" is the maximum amount by which the max HP will
+   increase to allow for the healing (the resulting HP caps at max HP +
+   overheal, and the max HP stays the some unless it needs to increase to
+   accommodate the new HP). Overhealing the player is not currently
+   implemented by this method.
+
+   This function should only be used for situations which are conceptually
+   heals, rather than other situations where a monster's HP is set, so that
+   "prevent healing" effects work correctly. In particular, it should not
+   be used for cases where a monster's HP is restored upon revival, or when
+   a monster is created. It also shouldn't be used for lifesaving, which
+   overrides "cannot heal" effects.
+
+   amt and overheal must not be negative (0 is allowed, and a very common
+   amount for overheal). Returns the number of hitpoints healed. */
+int
+healmon(struct monst *mtmp, int amt, int overheal)
+{
+    if (mtmp == &gy.youmonst) {
+        int oldhp = Upolyd ? u.mh : u.uhp;
+        healup(amt, 0, 0, 0);
+        return (Upolyd ? u.mh : u.uhp) - oldhp;
+    } else {
+        int oldhp = mtmp->mhp;
+        if (mtmp->mhp + amt > mtmp->mhpmax + overheal) {
+            mtmp->mhpmax += overheal;
+            mtmp->mhp = mtmp->mhpmax;
+        } else {
+            mtmp->mhp += amt;
+            if (mtmp->mhp > mtmp->mhpmax)
+                mtmp->mhpmax = mtmp->mhp;
+        }
+        return mtmp->mhp - oldhp;
+    }
+}
+
+
 /* force all chameleons and mimics to become themselves and werecreatures
    to revert to human form; called when Protection_from_shape_changers gets
    activated via wearing or eating ring or via #wizintrinsic */
@@ -5535,10 +5571,7 @@ golemeffects(struct monst *mon, int damtype, int dam)
             mon_adjust_speed(mon, -1, (struct obj *) 0);
     }
     if (heal) {
-        if (mon->mhp < mon->mhpmax) {
-            mon->mhp += heal;
-            if (mon->mhp > mon->mhpmax)
-                mon->mhp = mon->mhpmax;
+        if (healmon(mon, heal, 0)) {
             if (cansee(mon->mx, mon->my))
                 pline_mon(mon, "%s seems healthier.", Monnam(mon));
         }

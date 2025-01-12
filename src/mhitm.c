@@ -1093,7 +1093,7 @@ mdamagem(
                 return (M_ATTK_DEF_DIED
                         | (!DEADMONSTER(magr) ? 0 : M_ATTK_AGR_DIED));
             } else if (pd == &mons[PM_NURSE]) {
-                magr->mhp = magr->mhpmax;
+                healmon(magr, magr->mhpmax, 0);
             }
             mon_givit(magr, pd);
         }
@@ -1390,9 +1390,7 @@ passivemm(
             }
             if (canseemon(magr))
                 pline_mon(magr, "%s is suddenly very cold!", Monnam(magr));
-            mdef->mhp += tmp / 2;
-            if (mdef->mhpmax < mdef->mhp)
-                mdef->mhpmax = mdef->mhp;
+            healmon(mdef, tmp/2, tmp/2);
             if (mdef->mhpmax > ((int) (mdef->m_lev + 1) * 8))
                 (void) split_mon(mdef, magr);
             break;

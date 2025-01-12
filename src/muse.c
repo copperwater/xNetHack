@@ -1139,9 +1139,7 @@ use_defensive(struct monst *mtmp)
     case MUSE_POT_HEALING:
         mquaffmsg(mtmp, otmp);
         i = d(6 + 2 * bcsign(otmp), 4);
-        mtmp->mhp += i;
-        if (mtmp->mhp > mtmp->mhpmax)
-            mtmp->mhp = ++mtmp->mhpmax;
+        healmon(mtmp, i, 1);
         if (!otmp->cursed && !mtmp->mcansee)
             mcureblindness(mtmp, vismon);
         if (vismon)
@@ -1153,9 +1151,7 @@ use_defensive(struct monst *mtmp)
     case MUSE_POT_EXTRA_HEALING:
         mquaffmsg(mtmp, otmp);
         i = d(6 + 2 * bcsign(otmp), 8);
-        mtmp->mhp += i;
-        if (mtmp->mhp > mtmp->mhpmax)
-            mtmp->mhp = (mtmp->mhpmax += (otmp->blessed ? 5 : 2));
+        healmon(mtmp, i, otmp->blessed ? 5 : 2);
         if (!mtmp->mcansee)
             mcureblindness(mtmp, vismon);
         if (vismon)
@@ -1168,7 +1164,7 @@ use_defensive(struct monst *mtmp)
         mquaffmsg(mtmp, otmp);
         if (otmp->otyp == POT_SICKNESS)
             unbless(otmp); /* Pestilence */
-        mtmp->mhp = (mtmp->mhpmax += (otmp->blessed ? 8 : 4));
+        healmon(mtmp, mtmp->mhpmax, otmp->blessed ? 8 : 4);
         if (!mtmp->mcansee && otmp->otyp != POT_SICKNESS)
             mcureblindness(mtmp, vismon);
         if (vismon)

@@ -396,7 +396,7 @@ tactics(struct monst *mtmp)
         /* if you're not around, cast healing spells */
         if (distu(mx, my) > (BOLT_LIM * BOLT_LIM))
             if (mtmp->mhp <= mtmp->mhpmax - 8) {
-                mtmp->mhp += rnd(8);
+                healmon(mtmp, rnd(8), 0);
                 return 1;
             }
         FALLTHROUGH;

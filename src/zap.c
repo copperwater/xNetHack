@@ -434,9 +434,7 @@ bhitm(struct monst *mtmp, struct obj *otmp)
             int delta = mtmp->mhpmax - mtmp->mhp;
 
             wake = FALSE; /* wakeup() makes the target angry */
-            mtmp->mhp += healamt;
-            if (mtmp->mhp > mtmp->mhpmax)
-                mtmp->mhp = mtmp->mhpmax;
+            healmon(mtmp, healamt, 0);
             /* plain healing must be blessed to cure blindness; extra
                healing only needs to not be cursed, so spell always cures
                [potions quaffed by monsters behave slightly differently;
@@ -4250,10 +4248,9 @@ zhitm(
     case ZT_DEATH:                              /* death/disintegration */
         if (abs(type) != ZT_BREATH(ZT_DEATH)) { /* death */
             if (mon->data == &mons[PM_DEATH]) {
-                mon->mhpmax += mon->mhpmax / 2;
+                healmon(mon, mon->mhpmax * 3 / 2, mon->mhpmax / 2);
                 if (mon->mhpmax >= MAGIC_COOKIE)
                     mon->mhpmax = MAGIC_COOKIE - 1;
-                mon->mhp = mon->mhpmax;
                 tmp = 0;
                 break;
             }

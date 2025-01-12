@@ -1636,9 +1636,7 @@ artifact_hit(
                     healup(drain, 0, FALSE, FALSE);
                 } else {
                     assert(magr != 0);
-                    magr->mhp += drain;
-                    if (magr->mhp > magr->mhpmax)
-                        magr->mhp = magr->mhpmax;
+                    healmon(magr, drain, 0);
                 }
             }
             return vis;
@@ -1664,9 +1662,7 @@ artifact_hit(
             }
             losexp("life drainage");
             if (magr && magr->mhp < magr->mhpmax) {
-                magr->mhp += (abs(oldhpmax - u.uhpmax) + 1) / 2;
-                if (magr->mhp > magr->mhpmax)
-                    magr->mhp = magr->mhpmax;
+                healmon(magr, (abs(oldhpmax - u.uhpmax) + 1) / 2, 0);
             }
             return TRUE;
         }
