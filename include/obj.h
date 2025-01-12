@@ -469,10 +469,12 @@ struct obj {
 #define POTHIT_OTHER_THROW 3 /* propelled by some other means [scatter()] */
 
 /* tracking how an item left your inventory via how_lost field */
-#define LOST_NONE    0 /* still in inventory, or method not covered below */
-#define LOST_THROWN  1 /* thrown or fired by the hero */
-#define LOST_DROPPED 2 /* dropped or tipped out of a container by the hero */
-#define LOST_STOLEN  3 /* stolen from hero's inventory by a monster */
+#define LOST_NONE      0 /* still in inventory, or method not covered below */
+#define LOST_THROWN    1 /* thrown or fired by the hero */
+#define LOST_DROPPED   2 /* dropped or tipped out of a container by the hero */
+#define LOST_STOLEN    3 /* stolen from hero's inventory by a monster */
+#define LOSTOVERRIDEMASK 0x3
+#define LOST_EXPLODING 4 /* the object is exploding (i.e. POT_OIL) */
 
 /* tracking how a name got acquired by an object in named_how field */
 #define NAMED_PLAIN 0 /* nothing special, typical naming */

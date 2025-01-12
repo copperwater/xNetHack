@@ -976,6 +976,7 @@ explode_oil(struct obj *obj, coordxy x, coordxy y)
     if (!obj->lamplit)
         impossible("exploding unlit oil");
     end_burn(obj, TRUE);
+    obj->how_lost = LOST_EXPLODING;
     splatter_burning_oil(x, y, diluted_oil);
 }
 
