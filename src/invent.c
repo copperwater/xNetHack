@@ -4943,7 +4943,7 @@ mergable(
 
     if (obj->cursed != otmp->cursed || obj->blessed != otmp->blessed)
         return FALSE;
-    if ((obj->how_lost & LOSTOVERRIDEMASK) != 0)
+    if ((obj->how_lost & ~LOSTOVERRIDEMASK) != 0)
         return FALSE;
 #if 0   /* don't require 'bypass' to match; that results in items dropped
          * via 'D' not stacking with compatible items already on the floor;
