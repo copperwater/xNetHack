@@ -3476,7 +3476,7 @@ extern int doextversion(void);
 extern boolean comp_times(long);
 #endif
 extern boolean check_version(struct version_info *, const char *, boolean,
-                             unsigned long) NONNULLARG12;
+                             unsigned long) NONNULLARG1;
 extern boolean uptodate(NHFILE *, const char *, unsigned long) NONNULLARG1;
 extern void store_formatindicator(NHFILE *) NONNULLARG1;
 extern void store_version(NHFILE *) NONNULLARG1;
