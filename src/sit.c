@@ -316,7 +316,10 @@ dosit(void)
         } else if (obj->otyp == TOWEL) {
             pline("It's probably not a good time for a picnic...");
         } else {
-            You("sit on %s.", the(xname(obj)));
+            if (slithy(gy.youmonst.data))
+                You("coil up around %s.", the(xname(obj)));
+            else
+                You("sit on %s.", the(xname(obj)));
             if (obj->otyp == CORPSE && amorphous(&mons[obj->corpsenm]))
                 pline("It's squishy...");
             else if (obj->otyp == CREAM_PIE) {
