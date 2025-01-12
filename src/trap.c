@@ -6436,7 +6436,8 @@ conjoined_pits(
     struct trap *trap1,
     boolean u_entering_trap2)
 {
-    coordxy dx, dy, diridx, adjidx;
+    coordxy dx, dy;
+    int diridx, adjidx;
 
     if (!trap1 || !trap2)
         return FALSE;
