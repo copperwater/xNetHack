@@ -187,6 +187,7 @@ curs_scroll_invt(WINDOW *win UNUSED)
             res = 1;
             break;
         }
+        FALLTHROUGH;
         /*FALLTHRU*/
     case KEY_RIGHT:
     case KEY_NPAGE:
