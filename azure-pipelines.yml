@@ -8,6 +8,7 @@ strategy:
       imageName: 'ubuntu-24.04'
       toolchainName: clang
       buildTargetName: all
+      warningTaskFilters: '\[\-W+.+\]|^((vs|ms)build|ant(\s+.+)?|gradle(w)?(\s+.+)?|grunt|gulp|maven(\s+.+)?|xamarin(android|ios)|xcode(\s+.+)?|cmake|build\s+.+)$'
     linux_jammy_gcc9_all:
       imageName: 'ubuntu-22.04'
       toolchainName: gcc9
@@ -165,7 +166,6 @@ steps:
     sudo apt-get -qq -y install libx11-dev libxaw7-dev xfonts-utils qtbase5-dev qtmultimedia5-dev qtbase5-dev-tools
   condition: and(eq( variables['Agent.OS'], 'Linux' ), eq( variables.buildTarget, 'all'))
   workingDirectory: $(Agent.BuildDirectory)/$(netHackPath)
-  warningTaskFilters: '\[\-W+.+\]|^((vs|ms)build|ant(\s+.+)?|gradle(w)?(\s+.+)?|grunt|gulp|maven(\s+.+)?|xamarin(android|ios)|xcode(\s+.+)?|cmake|build\s+.+)$'
   displayName: 'Getting linux build dependencies'
 
 - bash: |
