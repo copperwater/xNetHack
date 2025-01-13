@@ -2859,7 +2859,7 @@ always print a message when the hero teleports (pr #265 by copperwater)
 always print a message when the hero level teleports (pr #265 by copperwater)
 remove Sokoban luck penalties for actions you can't cheat with (pr #260 by
 	copperwater)
-sounds for minotaurs (pr #298 by NullCGT)
+sounds for minotaurs (pr #298 by Kestrel Gregorich-Trevor)
 correct the Guidebook descriptions for msdos video_width and video_height to
 	state that they work with video:vesa; the video:vga setting that was
 	described there forces the 640x480x16 mode where video_width and
@@ -2873,7 +2873,7 @@ allow themed rooms constrained by level difficulty (pr #344 by copperwater)
 add a varied form of LIBNH nethack library contribution (pr #385, #403
 	by apowers313)
 add cross-compile to WASM (pr #385, #403, #412 by apowers313)
-differentiating gendered monster tiles (pr #430 by NullCGT)
+differentiating gendered monster tiles (pr #430 by Kestrel Gregorich-Trevor)
 check bones data directly for deja vu messages (pr #374 by entrez)
 unify code for extracting an object from a monster's inventory (pr #455 by
 	copperwater)
