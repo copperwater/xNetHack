@@ -991,8 +991,7 @@ X11_putstr(winid window, int attr, const char *str)
         X11_destroy_nhwindow(window);
         *wp = window_list[new_win];
         window_list[new_win].type = NHW_NONE; /* allow re-use */
-        FALLTHROUGH;
-        /*FALLTHRU*/
+        /* fall through */
     case NHW_TEXT:
         add_to_text_window(wp, attr, str);
         break;
