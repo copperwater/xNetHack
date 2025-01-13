@@ -362,6 +362,13 @@ check_version(
     boolean complain,
     unsigned long utdflags)
 {
+    if (!filename) {
+#ifdef EXTRA_SANITY_CHECKS
+        impossible("check_version() called with"
+                   " 'complain'=True but 'filename'=Null");
+#endif
+        complain = FALSE; /* 'complain' requires 'filename' for pline("%s") */
+    }
     if (
 #ifdef VERSION_COMPATIBILITY /* patchlevel.h */
         version_data->incarnation < VERSION_COMPATIBILITY
