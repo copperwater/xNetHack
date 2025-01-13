@@ -8,7 +8,7 @@ strategy:
       imageName: 'ubuntu-24.04'
       toolchainName: clang
       buildTargetName: all
-      warningTaskFilters: '\[\-W+.+\]|^((vs|ms)build|ant(\s+.+)?|gradle(w)?(\s+.+)?|grunt|gulp|maven(\s+.+)?|xamarin(android|ios)|xcode(\s+.+)?|cmake|build\s+.+)$'
+      checkWarnings: true
     linux_jammy_gcc9_all:
       imageName: 'ubuntu-22.04'
       toolchainName: gcc9
