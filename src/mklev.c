@@ -215,7 +215,7 @@ do_room_or_subroom(struct mkroom *croom,
 }
 
 void
-add_room(int lowx, int lowy, int hix, int hiy,
+add_room(coordxy lowx, coordxy lowy, coordxy hix, coordxy hiy,
          boolean lit, schar rtype, boolean special)
 {
     struct mkroom *croom;
@@ -229,7 +229,9 @@ add_room(int lowx, int lowy, int hix, int hiy,
 }
 
 void
-add_subroom(struct mkroom *proom, int lowx, int lowy, int hix, int hiy,
+add_subroom(struct mkroom *proom,
+            coordxy lowx, coordxy lowy,
+            coordxy hix, coordxy hiy,
             boolean lit, schar rtype, boolean special)
 {
     struct mkroom *croom;
