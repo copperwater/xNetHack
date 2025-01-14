@@ -35,7 +35,7 @@ int amii_doprev_message (void);
 void amii_display_nhwindow(winid  , boolean );
 void amii_display_file(const char * , boolean );
 void amii_curs(winid  , int  , int );
-void amii_print_glyph(winid  , xchar  , xchar  , int, int );
+void amii_print_glyph(winid  , coordxy  , coordxy  , int, int );
 void DoMenuScroll(int  , int );
 void DisplayData(int  , int  , int );
 void SetPropInfo(struct Window * , struct Gadget * , long  , long  , long );

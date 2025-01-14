@@ -1515,8 +1515,7 @@ boolean blocking;
 void
 amii_curs(window, x, y)
 winid window;
-register int x, y; /* not xchar: perhaps xchar is unsigned and
-              curx-x would be unsigned as well */
+register int x, y;
 {
     register struct amii_WinDesc *cw;
     register struct Window *w;
@@ -1954,7 +1953,7 @@ port_help()
 void
 amii_print_glyph(win, x, y, glyph, bkglyph)
 winid win;
-xchar x, y;
+coordxy x, y;
 int glyph, bkglyph;
 {
     struct amii_WinDesc *cw;

@@ -83,7 +83,7 @@ extern void Gem_cliparound(int, int);
 #ifdef POSITIONBAR
 extern void Gem_update_positionbar(char *);
 #endif
-extern void Gem_print_glyph(winid, xchar, xchar, const glyph_info *,
+extern void Gem_print_glyph(winid, coordxy, coordxy, const glyph_info *,
                        const glyph_info *);
 extern void Gem_raw_print(const char *);
 extern void Gem_raw_print_bold(const char *);

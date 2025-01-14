@@ -880,7 +880,7 @@ int x, y;
  *  position and glyph are always correct (checked there)!
  */
 
-void mar_print_gl_char(winid, xchar, xchar, int);
+void mar_print_gl_char(winid, coordxy, coordxy, int);
 
 extern int mar_set_rogue(int);
 
@@ -889,7 +889,7 @@ extern void mar_add_pet_sign(winid, int, int);
 void
 Gem_print_glyph(window, x, y, glyph, bkglyph)
 winid window;
-xchar x, y;
+coordxy x, y;
 int glyph, bkglyph;
 {
     /* Move the cursor. */
@@ -908,12 +908,12 @@ int glyph, bkglyph;
         mar_print_gl_char(window, x, y, glyph);
 }
 
-void mar_print_char(winid, xchar, xchar, char, int);
+void mar_print_char(winid, coordxy, coordxy, char, int);
 
 void
 mar_print_gl_char(window, x, y, glyph)
 winid window;
-xchar x, y;
+coordxy x, y;
 int glyph;
 {
     int ch;

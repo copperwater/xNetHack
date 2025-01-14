@@ -2036,8 +2036,7 @@ erase_tty_screen(void)
 void
 tty_curs(
     winid window,
-    int x, int y) /* not xchar: perhaps xchar is unsigned
-                   * then curx-x would be unsigned too */
+    int x, int y)  /* coordinates (and curx-x) must be signed */
 {
     struct WinDesc *cw = 0;
     int cx = ttyDisplay->curx;

@@ -101,7 +101,7 @@ void amii_resume_nhwindows(void);
 void amii_bell(void);
 void removetopl(int cnt);
 void port_help(void);
-void amii_print_glyph(winid win, xchar x, xchar y, int glyph, int bkglyph);
+void amii_print_glyph(winid win, coordxy x, coordxy y, int glyph, int bkglyph);
 void amii_raw_print(const char *s);
 void amii_raw_print_bold(const char *s);
 void amii_update_inventory(void);
