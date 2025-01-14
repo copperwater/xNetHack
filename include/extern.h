@@ -1547,8 +1547,8 @@ extern void mineralize(int, int, int, int, boolean);
 
 /* ### mkmap.c ### */
 
-extern void flood_fill_rm(int, int, int, boolean, boolean);
-extern void remove_rooms(int, int, int, int);
+extern void flood_fill_rm(coordxy, coordxy, int, boolean, boolean);
+extern void remove_rooms(coordxy, coordxy, coordxy, coordxy);
 extern boolean litstate_rnd(int);
 
 /* ### mkmaze.c ### */

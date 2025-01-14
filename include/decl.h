@@ -619,10 +619,10 @@ struct instance_globals_m {
     boolean made_branch; /* used only during level creation */
 
     /* mkmap.c */
-    int min_rx; /* rectangle bounds for regions */
-    int max_rx;
-    int min_ry;
-    int max_ry;
+    coordxy min_rx; /* rectangle bounds for regions */
+    coordxy max_rx;
+    coordxy min_ry;
+    coordxy max_ry;
 
     /* mkobj.c */
     boolean mkcorpstat_norevive; /* for trolls */
