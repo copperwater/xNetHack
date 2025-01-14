@@ -953,8 +953,8 @@ struct instance_globals_t {
     const char *this_title; /* title for inventory list of specific type */
 
     /* muse.c */
-    int trapx;
-    int trapy;
+    coordxy trapx;
+    coordxy trapy;
 
     /* rumors.c */
     long true_rumor_size; /* rumor size variables are signed so that value -1
