@@ -1,4 +1,4 @@
-/* NetHack 3.7	do_name.c	$NHDT-Date: 1720895738 2024/07/13 18:35:38 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.320 $ */
+/* NetHack 3.7	do_name.c	$NHDT-Date: 1737013431 2025/01/15 23:43:51 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.326 $ */
 /* Copyright (c) Stichting Mathematisch Centrum, Amsterdam, 1985. */
 /*-Copyright (c) Pasi Kallinen, 2018. */
 /* NetHack may be freely redistributed.  See license for details. */
@@ -750,7 +750,7 @@ namefloorobj(void)
     }
     if (fakeobj) {
         obj->where = OBJ_FREE; /* object_from_map() sets it to OBJ_FLOOR */
-        dealloc_obj(obj);
+        dealloc_obj(obj); /* has no contents */
     }
 }
 

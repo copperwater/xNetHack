@@ -1,4 +1,4 @@
-/* NetHack 3.7	pager.c	$NHDT-Date: 1732979463 2024/11/30 07:11:03 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.282 $ */
+/* NetHack 3.7	pager.c	$NHDT-Date: 1737013431 2025/01/15 23:43:51 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.287 $ */
 /* Copyright (c) Stichting Mathematisch Centrum, Amsterdam, 1985. */
 /*-Copyright (c) Robert Patrick Rankin, 2018. */
 /* NetHack may be freely redistributed.  See license for details. */
@@ -226,7 +226,7 @@ mhidden_description(
 
             if (fakeobj && otmp) {
                 otmp->where = OBJ_FREE; /* object_from_map set to OBJ_FLOOR */
-                dealloc_obj(otmp);
+                dealloc_obj(otmp); /* has no contents */
             }
         } else {
             Strcat(outbuf, something);
@@ -375,7 +375,7 @@ look_at_object(
                      : obj_descr[STRANGE_OBJECT].oc_name);
         if (fakeobj) {
             otmp->where = OBJ_FREE; /* object_from_map set it to OBJ_FLOOR */
-            dealloc_obj(otmp), otmp = 0;
+            dealloc_obj(otmp), otmp = NULL; /* has no contents */
         }
     } else
         Strcpy(buf, something); /* sanity precaution */
