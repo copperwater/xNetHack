@@ -289,7 +289,11 @@ object_from_map(
     boolean fakeobj = FALSE, mimic_obj = FALSE;
     struct monst *mtmp;
     struct obj *otmp;
-    int glyphotyp = glyph_to_obj(glyph);
+    int glyphotyp = glyph_is_object(glyph) ? glyph_to_obj(glyph)
+                    /* if not an object, probably a detected chest trap */
+                    : glyph_is_cmap(glyph) /* assume trapped chest|door */
+                      ? (sobj_at(CHEST, x, y) ? CHEST : LARGE_BOX)
+                      : STRANGE_OBJECT;
 
     *obj_p = (struct obj *) 0;
     /* TODO: check inside containers in case glyph came from detection */

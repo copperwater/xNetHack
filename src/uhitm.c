@@ -6068,26 +6068,22 @@ that_is_a_mimic(
         else if (M_AP_TYPE(mtmp) == M_AP_MONSTER)
             what = a_monnam(mtmp); /* differs from what was sensed */
     } else {
-        int glyph = glyph_at(u.ux + u.dx, u.uy + u.dy);
+        coordxy x = u.ux + u.dx, y = u.uy + u.dy;
+        int glyph = glyph_at(x, y);
 
         if (glyph_is_cmap(glyph)) {
             int sym = glyph_to_cmap(glyph);
 
-#ifdef EXTRA_SANITY_CHECKS
-            if (iflags.sanity_check && (int) mtmp->mappearance != sym)
-                impossible("mimic appearance %u does not match"
-                           " map feature %d (glyph=%d)",
-                           mtmp->mappearance, sym, glyph);
-#endif
-            /* note: defsyms[stairs] yields singular "staircase {up|down}" */
-            Snprintf(fmtbuf, sizeof fmtbuf, "That %s actually is %%s!",
-                     defsyms[sym].explanation);
+            if (M_AP_TYPE(mtmp) == M_AP_FURNITURE
+                || (M_AP_TYPE(mtmp) == M_AP_OBJECT && sym == S_trapped_chest))
+                Snprintf(fmtbuf, sizeof fmtbuf, "That %s actually is %%s!",
+                         defsyms[sym].explanation);
         } else if (glyph_is_object(glyph)) {
             boolean fakeobj;
             const char *otmp_name;
             struct obj *otmp = NULL;
 
-            fakeobj = object_from_map(glyph, mtmp->mx, mtmp->my, &otmp);
+            fakeobj = object_from_map(glyph, x, y, &otmp);
             otmp_name = (otmp && otmp->otyp != STRANGE_OBJECT)
                         ? simpleonames(otmp) : "strange object";
             Snprintf(fmtbuf, sizeof fmtbuf, "%s %s %s %%s!",
