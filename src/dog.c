@@ -1208,8 +1208,10 @@ tamedog(
         return FALSE;
 
     /* add the pet extension */
-    newedog(mtmp);
-    initedog(mtmp);
+    if (!has_edog(mtmp)) {
+        newedog(mtmp);
+        initedog(mtmp);
+    }
 
     if (obj) { /* thrown food */
         /* defer eating until the edog extension has been set up */
