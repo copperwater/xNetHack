@@ -120,7 +120,7 @@ staticfn uint8 litter_getpos(uint8 *, coordxy, coordxy, struct monst *);
 staticfn void litter_scatter(uint8 *, coordxy, coordxy, struct monst *);
 staticfn void litter_newsyms(uint8 *, coordxy, coordxy);
 staticfn int repair_damage(struct monst *, struct damage *, boolean);
-staticfn void sub_one_frombill(struct obj *, struct monst *);
+staticfn void sub_one_frombill(struct obj *, struct monst *) NONNULLPTRS;
 staticfn void add_one_tobill(struct obj *, boolean, struct monst *);
 staticfn void dropped_container(struct obj *, struct monst *, boolean);
 staticfn void add_to_billobjs(struct obj *);
@@ -1731,6 +1731,7 @@ dopay(void)
              shkp = next_shkp(shkp->nmon, FALSE))
             if (canspotmon(shkp))
                 break;
+        assert(shkp != NULL); /* seensk==1 =>  traversal will spot one shk */
         if (shkp != resident && !m_next2u(shkp)) {
             pline("%s is not near enough to receive your payment.",
                   Shknam(shkp));
@@ -2243,9 +2244,8 @@ buy_container(
     unsigned boid, boids[BILLSZ];
     int i, j, buy, buycount = 0, boidsct = 0;
     struct eshk *eshkp = ESHK(shkp);
-    int bidx = ibill[indx].bidx,
-        ebillct = eshkp->billct;
-    struct bill_x *bp = &eshkp->bill_p[bidx];
+    int ebillct = eshkp->billct;
+    struct bill_x *bp;
     struct obj *otmp, *otop,
                *container = ibill[indx].obj;
     unsigned unpaidcontainer = container->unpaid;
@@ -3654,6 +3654,7 @@ stolen_container(
             /* billable() returns false for objects already on bill */
             if ((bp = onbill(otmp, shkp, FALSE)) == 0)
                 continue;
+            assert(shkp != NULL); /* onbill() found shkp so it's not Null */
             /* this assumes that we're being called by stolen_value()
                (or by a recursive call to self on behalf of it) where
                the cost of this object is about to be added to shop
@@ -3707,6 +3708,7 @@ stolen_value(
         /* things already on the bill yield a not-billable result, so
            we need to check bill before deciding that shk doesn't care */
         if ((bp = onbill(obj, shkp, FALSE)) != 0) {
+            assert(shkp != NULL); /* onbill() found shkp so it's not Null */
             /* shk does care; take obj off bill to avoid double billing */
             billamt = bp->bquan * bp->price;
             sub_one_frombill(obj, shkp);
@@ -4461,9 +4463,8 @@ discard_damage_owned_by(struct monst *shkp)
                 prevdam->next = dam2;
             if (dam == svl.level.damagelist)
                 svl.level.damagelist = dam2;
-            (void) memset(dam, 0, sizeof(struct damage));
-            free((genericptr_t) dam);
-            dam = dam2;
+            (void) memset(dam, 0, sizeof *dam);
+            free((genericptr_t) dam), dam = (struct damage *) NULL;
         } else {
             prevdam = dam;
             dam2 = dam->next;
