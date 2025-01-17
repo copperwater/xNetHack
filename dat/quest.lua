@@ -3239,9 +3239,9 @@ made changes to become ready for this task..."]],
          output = "text",
          text = [[
 Your pursuit of %n brings you to an area you have visited only
-once or twice before in your life, but there's no way you have forgotten
-it -- here is the majestic rainbow bridge Bifrost, connecting this realm
-to Muspelheim far below.
+once or twice before, but which you shall remember all your life -- here
+is the majestic rainbow bridge Bifrost, connecting this realm to
+Muspelheim far below.
 
 But what is this?  As you draw closer, you %x that it is shattered
 and broken.  Cursing, you remember that this too was prophesied: that it
@@ -3323,6 +3323,12 @@ that this may be the last time you come here.]],
       posthanks = {
          text = [["Greetings, %p.  I have not been able to pay as much
 attention to your search for the Amulet as I have wished.  How do you fare?"]],
+      },
+      restorelevel = {
+         text = [[
+As you near the great bridge once more, you are amazed to see that it is
+no longer shattered!  It is as smooth and glimmering as the first time
+you ever beheld it.]],
       },
    },
    Wiz = {

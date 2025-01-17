@@ -410,6 +410,10 @@ can_make_bones(void)
     if (is_open_air(u.ux, u.uy))
         return FALSE; /* possessions would all fall to another level; rest of
                          this level probably isn't very interesting as bones */
+    if (gl.level.flags.visited_after_event)
+        return FALSE; /* the level has probably been transformed in some way
+                         that someone else shouldn't get when seeing it for the
+                         first time */
     if (!Is_branchlev(&u.uz)) {
         /* no bones on non-branches with portals */
         for (ttmp = gf.ftrap; ttmp; ttmp = ttmp->ntrap)

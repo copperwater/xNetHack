@@ -69,6 +69,19 @@ changes:
   level in the Quest before the nemesis is killed.
 - Being adjacent to a hezrou may nauseate you, with the odds increasing if there
   are multiple hezrous.
+- Hill giants are now the weakest giant, taking over the statblock of the stone
+  giant (equivalent to the plain giant) with its 2d8 weapon attack.
+- Stone giants are slightly stronger, taking over the statblock of the hill
+  giant with its 2d10 weapon attack. They are now able to rip boulders out of
+  the floor when they don't already have one, which creates a pit on that
+  square.
+- Fire giants have a 2d4 fire touch attack.
+- Frost giants have a 3d4 cold touch attack and their own encyclopedia entry.
+- Storm giants have a 4d4 ranged lightning bolt attack.
+- Hrymr's sword on the Valkyrie quest is now named Ice. (Its stats are otherwise
+  unchanged, and it is not an artifact.)
+- Levels that have been changed following some event, such as the Valkyrie
+  locate level, are ineligible to leave bones.
 
 ### Interface changes
 
@@ -98,15 +111,8 @@ changes:
     hallucinating.
   - Being life-saved while hallucinating.
   - Monster drinking a potion where you can't see while hallucinating.
-- Hill giants are now the weakest giant, taking over the statblock of the stone
-  giant (equivalent to the plain giant) with its 2d8 weapon attack.
-- Stone giants are slightly stronger, taking over the statblock of the hill
-  giant with its 2d10 weapon attack. They are now able to rip boulders out of
-  the floor when they don't already have one, which creates a pit on that
-  square.
-- Fire giants have a 2d4 fire touch attack.
-- Frost giants have a 3d4 cold touch attack and their own encyclopedia entry.
-- Storm giants have a 4d4 ranged lightning bolt attack.
+- There is now a pager message for the bridge in the Valkyrie locate level being
+  restored.
 
 ### Architectural changes
 
