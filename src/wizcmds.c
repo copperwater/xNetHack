@@ -69,7 +69,7 @@ RESTORE_WARNING_FORMAT_NONLITERAL
 
 /* used when wiz_makemap() gets rid of monsters for the old incarnation of
    a level before creating a new incarnation of it */
-void
+staticfn void
 makemap_unmakemon(struct monst *mtmp, boolean migratory)
 {
     int ndx = monsndx(mtmp->data);
