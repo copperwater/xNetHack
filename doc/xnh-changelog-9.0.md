@@ -85,6 +85,9 @@ changes:
 - Luck plays a reduced factor in to-hit calculations, now adding +1 to hit for
   every 3 points of luck, rounded to the next greatest increment: +1 for 1 to 3
   luck, +2 for 4 to 6 luck, -1 for -1 to -3 luck, etc.
+- Critical hits on martial arts attacks made at Expert or higher skill may
+  disarm an enemy of its weapon and knock it to an adjacent space, with higher
+  chance for higher levels of skill.
 
 ### Interface changes
 
