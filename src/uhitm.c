@@ -429,7 +429,11 @@ find_roll_to_hit(
 
     *role_roll_penalty = 0; /* default is `none' */
 
-    tmp = 1 + Luck + abon() + find_mac(mtmp) + u.uhitinc
+    tmp = 1 + abon() + find_mac(mtmp) + u.uhitinc
+          /* a popular change is to add in Luck/3 instead of Luck; this keeps
+           * the same scale but shifts the ranges down, so that Luck of +1 or -1
+           * still has a noticeable effect. */
+          + (sgn(Luck) * ((abs(Luck) + 2) / 3))
           + maybe_polyd(gy.youmonst.data->mlevel, u.ulevel);
 
     /* some actions should occur only once during multiple attacks */
