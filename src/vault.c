@@ -731,6 +731,7 @@ gd_mv_monaway(struct monst *grd, int nx, int ny)
         }
         if (!rloc(mtmp, RLOC_ERR | RLOC_MSG) || MON_AT(nx, ny))
             m_into_limbo(mtmp);
+        recalc_block_point(nx, ny);
     }
 }
 
