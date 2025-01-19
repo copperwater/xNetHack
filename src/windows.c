@@ -1,4 +1,4 @@
-/* NetHack 3.7	windows.c	$NHDT-Date: 1700012891 2023/11/15 01:48:11 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.109 $ */
+/* NetHack 3.7	windows.c	$NHDT-Date: 1737345149 2025/01/19 19:52:29 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.138 $ */
 /* Copyright (c) D. Cohrs, 1993. */
 /* NetHack may be freely redistributed.  See license for details. */
 
@@ -1653,12 +1653,11 @@ choose_classes_menu(const char *prompt,
     char buf[BUFSZ];
     const char *text = 0;
     boolean selected;
-    int ret, i, n, next_accelerator, accelerator;
+    int ret, i, n, next_accelerator, accelerator = 0;
     int clr = NO_COLOR;
 
     if (!class_list || !class_select)
         return 0;
-    accelerator = 0;
     next_accelerator = 'a';
     any = cg.zeroany;
     win = create_nhwindow(NHW_MENU);
