@@ -1,4 +1,4 @@
-/* NetHack 3.7	dog.c	$NHDT-Date: 1725227804 2024/09/01 21:56:44 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.164 $ */
+/* NetHack 3.7	dog.c	$NHDT-Date: 1737287993 2025/01/19 03:59:53 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.178 $ */
 /* Copyright (c) Stichting Mathematisch Centrum, Amsterdam, 1985. */
 /*-Copyright (c) Robert Patrick Rankin, 2011. */
 /* NetHack may be freely redistributed.  See license for details. */
@@ -520,6 +520,7 @@ mon_arrive(struct monst *mtmp, int when)
                    && (stway = stairway_find_dir(!builds_up(&u.uz))) != 0) {
             /* debugfuzzer returns from or enters another branch */
             xlocale = stway->sx, ylocale = stway->sy;
+            break;
         } else if (!(u.uevent.qexpelled
                      && (Is_qstart(&u.uz0) || Is_qstart(&u.uz)))) {
             impossible("mon_arrive: no corresponding portal?");
