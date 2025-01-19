@@ -88,6 +88,8 @@ changes:
 - Critical hits on martial arts attacks made at Expert or higher skill may
   disarm an enemy of its weapon and knock it to an adjacent space, with higher
   chance for higher levels of skill.
+- Being Skilled or better in martial arts or bare-handed combat now confers an
+  bonus to AC when not wearing any body armor or a shield.
 
 ### Interface changes
 

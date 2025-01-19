@@ -2475,6 +2475,14 @@ find_ac(void)
     if (uamul && uamul->otyp == AMULET_OF_GUARDING)
         uac -= 2; /* fixed amount; main benefit is to MC */
 
+    /* high skill in bare handed fighting or martial arts confers some ability
+     * to evade blows, if not wearing inconvenient armor pieces */
+    if (!uarms && !uarm && P_SKILL(P_BARE_HANDED_COMBAT) >= P_SKILLED) {
+        /* 1..2 for bare handed, 2..5 for martial arts */
+        uac -= (martial_bonus() ? 2 : 1)
+               + P_SKILL(P_BARE_HANDED_COMBAT) - P_SKILLED;
+    }
+
     /* armor class from other sources */
     if (HProtection & INTRINSIC)
         uac -= u.ublessed;
