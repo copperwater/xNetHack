@@ -1,4 +1,4 @@
-/* NetHack 3.7	engrave.c	$NHDT-Date: 1713657576 2024/04/20 23:59:36 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.157 $ */
+/* NetHack 3.7	engrave.c	$NHDT-Date: 1737345573 2025/01/19 19:59:33 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.165 $ */
 /* Copyright (c) Stichting Mathematisch Centrum, Amsterdam, 1985. */
 /*-Copyright (c) Robert Patrick Rankin, 2012. */
 /* NetHack may be freely redistributed.  See license for details. */
@@ -1348,6 +1348,7 @@ engrave(void)
             obj_extract_self(stylus);
             stylus = hold_another_object(stylus, "You drop one %s!",
                                          doname(stylus), (char *) NULL);
+            nhUse(stylus);
         } else if (dulled && stylus->known) {
             /* reflect change in stylus->spe; not needed for splitstack
                since hold_another_object() does this */
