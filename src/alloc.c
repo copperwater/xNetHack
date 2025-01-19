@@ -1,4 +1,4 @@
-/* NetHack 3.7	alloc.c	$NHDT-Date: 1706213795 2024/01/25 20:16:35 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.34 $ */
+/* NetHack 3.7	alloc.c	$NHDT-Date: 1737281026 2025/01/19 02:03:46 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.38 $ */
 /* Copyright (c) Stichting Mathematisch Centrum, Amsterdam, 1985. */
 /*-Copyright (c) Robert Patrick Rankin, 2012. */
 /* NetHack may be freely redistributed.  See license for details. */
@@ -221,6 +221,10 @@ nhdupstr(const char *string, const char *file, int line)
     /* we've got some info about the caller, so use it instead of __func__ */
     unsigned len = FITSuint_(strlen(string), file, line);
 
+    if (FITSuint(len + 1, file, line) < len)
+        panic("nhdupstr: string length overflow, line %d of %s",
+              line, file);
+
     return strcpy((char *) nhalloc(len + 1, file, line), string);
 }
 #undef dupstr
@@ -233,7 +237,11 @@ nhdupstr(const char *string, const char *file, int line)
 char *
 dupstr(const char *string)
 {
-    unsigned len = FITSuint_(strlen(string), __func__, (int) __LINE__);
+    size_t len = strlen(string);
+
+    /* make sure len+1 doesn't overflow plain unsigned (for alloc()) */
+    if (len > (unsigned) (~0U - 1U))
+        panic("dupstr: string length overflow");
 
     return strcpy((char *) alloc(len + 1), string);
 }
@@ -245,7 +253,7 @@ dupstr_n(const char *string, unsigned int *lenout)
     size_t len = strlen(string);
 
     if (len >= LARGEST_INT)
-        panic("string too long");
+        panic("dupstr_n: string too long");
     *lenout = (unsigned int) len;
     return strcpy((char *) alloc(len + 1), string);
 }
