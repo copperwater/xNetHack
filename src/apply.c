@@ -42,6 +42,7 @@ staticfn void display_grapple_positions(boolean);
 staticfn int use_grapple(struct obj *);
 staticfn void discard_broken_wand(void);
 staticfn void broken_wand_explode(struct obj *, int, int);
+staticfn void maybe_dunk_boulders(coordxy, coordxy);
 staticfn int do_break_wand(struct obj *);
 staticfn int apply_ok(struct obj *);
 staticfn int flip_through_book(struct obj *);
@@ -3854,6 +3855,18 @@ broken_wand_explode(struct obj *obj, int dmg, int expltype)
     discard_broken_wand();
 }
 
+/* if x,y has lava or water, dunk any boulders at that location into it */
+staticfn void
+maybe_dunk_boulders(coordxy x, coordxy y)
+{
+    struct obj *otmp;
+
+    while (is_pool_or_lava(x, y) && (otmp = sobj_at(BOULDER, x, y)) != 0) {
+        obj_extract_self(otmp);
+        (void) boulder_hits_pool(otmp, x,y, FALSE);
+    }
+}
+
 /* return 1 if the wand is broken, hence some time elapsed */
 staticfn int
 do_break_wand(struct obj *obj)
@@ -4022,6 +4035,8 @@ do_break_wand(struct obj *obj)
                 }
             }
             fill_pit(x, y);
+            maybe_dunk_boulders(x, y);
+            recalc_block_point(x, y);
             continue;
         } else if (obj->otyp == WAN_CREATE_MONSTER) {
             /* u.ux,u.uy creates it near you--x,y might create it in rock */
