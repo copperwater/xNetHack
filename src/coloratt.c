@@ -1,4 +1,4 @@
-/* NetHack 3.7	coloratt.c	$NHDT-Date: 1710792438 2024/03/18 20:07:18 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.2 $ */
+/* NetHack 3.7	coloratt.c	$NHDT-Date: 1737286550 2025/01/19 03:35:50 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.14 $ */
 /* Copyright (c) Pasi Kallinen, 2024 */
 /* NetHack may be freely redistributed.  See license for details. */
 
@@ -812,7 +812,6 @@ rgbstr_to_int32(const char *rgbstr)
              rgbstr ? rgbstr : "");
 
     if (*buf && onlyhexdigits(buf)) {
-        r = g = b = 0;
         c_g = c_b = (char *) 0;
         c_r = cp = buf;
         while (*cp) {
