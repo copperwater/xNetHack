@@ -1,4 +1,4 @@
-/* NetHack 3.7	dungeon.c	$NHDT-Date: 1715203022 2024/05/08 21:17:02 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.222 $ */
+/* NetHack 3.7	dungeon.c	$NHDT-Date: 1737343478 2025/01/19 19:24:38 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.228 $ */
 /* Copyright (c) Stichting Mathematisch Centrum, Amsterdam, 1985. */
 /*-Copyright (c) Robert Patrick Rankin, 2012. */
 /* NetHack may be freely redistributed.  See license for details. */
@@ -1153,10 +1153,11 @@ fixup_level_locations(void)
                     if (on_level(&br->end2, &knox_level))
                         break;
 
-                if (br)
+                if (br) {
                     br->end1.dnum = svn.n_dgns;
-                /* adjust the branch's position on the list */
-                insert_branch(br, TRUE);
+                    /* adjust the branch's position on the list */
+                    insert_branch(br, TRUE);
+                }
             }
         }
     }
@@ -2747,7 +2748,7 @@ overview_stats(
     char buf[BUFSZ], hdrbuf[QBUFSZ];
     long ocount, osize, bcount, bsize, acount, asize;
     struct cemetery *ce;
-    mapseen *mptr = find_mapseen(&u.uz);
+    mapseen *mptr;
 
     ocount = bcount = acount = osize = bsize = asize = 0L;
     for (mptr = svm.mapseenchn; mptr; mptr = mptr->next) {
