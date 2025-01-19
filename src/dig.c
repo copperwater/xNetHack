@@ -1642,6 +1642,7 @@ zap_dig(void)
             if (diridx != DIR_ERR
                 && !conjoined_pits(adjpit, trap_with_u, FALSE)) {
                 digdepth = 0; /* limited to the adjacent location only */
+                nhUse(digdepth);
                 if (!(adjpit && is_pit(adjpit->ttyp))) {
                     char buf[BUFSZ];
 
