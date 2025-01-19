@@ -5201,7 +5201,7 @@ zap_over_floor(
                         else
                             lev->typ = HWALL;
                         fix_wall_spines(max(0,x-1), max(0,y-1),
-                                        min(COLNO,x+1), min(ROWNO,y+1));
+                                        min(COLNO-1,x+1), min(ROWNO-1,y+1));
                     } else {
                         lev->typ = lava ? ROOM : ICE;
                     }
