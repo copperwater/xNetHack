@@ -512,7 +512,6 @@ extern struct nomakedefs_s nomakedefs;
 #define C(c) (0x1f & (c))
 #endif
 
-#define unctrl(c) ((c) <= C('z') ? (0x60 | (c)) : (c))
 #define unmeta(c) (0x7f & (c))
 
 /* Game log message type flags */
