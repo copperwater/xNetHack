@@ -2307,7 +2307,7 @@ create_object(object *o, struct mkroom *croom)
                 ; /* ['otmp' remains on floor] */
             } else {
                 remove_object(otmp);
-                if (otmp->otyp == SADDLE)
+                if (otmp->otyp == SADDLE && can_saddle(invent_carrying_monster))
                     put_saddle_on_mon(otmp, invent_carrying_monster);
                 else
                     (void) mpickobj(invent_carrying_monster, otmp);

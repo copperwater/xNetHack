@@ -131,6 +131,7 @@ use_saddle(struct obj *otmp)
         if (otmp->owornmask)
             remove_worn_item(otmp, FALSE);
         freeinv(otmp);
+        /* !can_saddle(mtmp) already eliminated above */
         put_saddle_on_mon(otmp, mtmp);
     } else
         pline("%s resists!", Monnam(mtmp));
@@ -140,8 +141,19 @@ use_saddle(struct obj *otmp)
 void
 put_saddle_on_mon(struct obj *saddle, struct monst *mtmp)
 {
-    if (!can_saddle(mtmp) || which_armor(mtmp, W_SADDLE))
+    if (!can_saddle(mtmp) || which_armor(mtmp, W_SADDLE)) {
+        if (saddle)
+            impossible("put_saddle_on_mon: saddle obj could get orphaned");
         return;
+    }
+    if (!saddle) {
+        if ((saddle = mksobj(SADDLE, TRUE, FALSE)) != 0) {
+            fully_identify_obj(saddle);
+            /* mpickobj can later override identification if out-of-view */
+        } else {
+            return;
+        }
+    }
     if (mpickobj(mtmp, saddle))
         panic("merged saddle?");
     mtmp->misc_worn_check |= W_SADDLE;

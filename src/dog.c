@@ -191,7 +191,6 @@ struct monst *
 makedog(void)
 {
     struct monst *mtmp;
-    struct obj *otmp;
     const char *petname;
     int pettype;
 
@@ -231,12 +230,10 @@ makedog(void)
         svc.context.startingpet_mid = mtmp->m_id;
         if (!u.uroleplay.pauper) {
             /* initial horses start wearing a saddle (pauper hero excluded) */
-            if (pettype == PM_PONY
-                && (otmp = mksobj(SADDLE, TRUE, FALSE)) != 0) {
-                /* pseudo initial inventory; saddle is not actually in hero's
-                 * invent so assume that update_inventory() isn't needed */
-                fully_identify_obj(otmp);
-                put_saddle_on_mon(otmp, mtmp);
+            if (pettype == PM_PONY) {
+                /* NULL obj arg means put_saddle_on_mon()
+                 * will carry out the saddle creation */
+                put_saddle_on_mon((struct obj *) 0, mtmp);
             }
         }
     } else {
