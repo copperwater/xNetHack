@@ -1,4 +1,4 @@
-/* NetHack 3.7	insight.c	$NHDT-Date: 1724094296 2024/08/19 19:04:56 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.115 $ */
+/* NetHack 3.7	insight.c	$NHDT-Date: 1737384766 2025/01/20 06:52:46 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.128 $ */
 /* Copyright (c) Stichting Mathematisch Centrum, Amsterdam, 1985. */
 /* NetHack may be freely redistributed.  See license for details. */
 
@@ -1073,7 +1073,8 @@ status_enlightenment(int mode, int final)
                 || strcmp(MGIVENNAME(u.ustuck), "it") != 0))
             Strcpy(heldmon, "an unseen creature");
     }
-    if (u.uswallow) { /* implies u.ustuck is non-Null */
+    if (u.uswallow) {
+        assert(u.ustuck != NULL); /* implied by u.uswallow */
         Snprintf(buf, sizeof buf, "%s by %s",
                 digests(u.ustuck->data) ? "swallowed" : "engulfed",
                 heldmon);

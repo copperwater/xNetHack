@@ -1,4 +1,4 @@
-/* NetHack 3.7	invent.c	$NHDT-Date: 1724094299 2024/08/19 19:04:59 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.516 $ */
+/* NetHack 3.7	invent.c	$NHDT-Date: 1737384766 2025/01/20 06:52:46 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.531 $ */
 /* Copyright (c) Stichting Mathematisch Centrum, Amsterdam, 1985. */
 /*-Copyright (c) Derek S. Ray, 2015. */
 /* NetHack may be freely redistributed.  See license for details. */
@@ -2804,7 +2804,7 @@ xprname(
     char suffix[80]; /* plenty of room for count and hallucinatory currency */
     int sfxlen, txtlen; /* signed int for %*s formatting */
     const char *fmt;
-    boolean use_invlet = (flags.invlet_constant
+    boolean use_invlet = (flags.invlet_constant && obj != NULL
                           && let != CONTAINED_SYM && let != HANDS_SYM);
     long savequan = 0L;
 
@@ -2819,8 +2819,10 @@ xprname(
      *  >  Then the object is contained and doesn't have an inventory letter.
      */
     fmt = "%c - %.*s%s";
-    if (!txt)
+    if (!txt) {
+        assert(obj != NULL);
         txt = doname(obj);
+    }
     txtlen = (int) strlen(txt);
 
     if (cost != 0L || let == '*') {
@@ -3632,11 +3634,10 @@ display_pickinv(
     Loot *sortedinvent, *srtinv;
     int8_t prevorderclass;
     boolean (*filter)(struct obj *) = (boolean (*)(OBJ_P)) 0;
-
     boolean wizid = (wizard && iflags.override_ID), gotsomething = FALSE;
     int clr = NO_COLOR, menu_behavior = MENU_BEHAVE_STANDARD;
     boolean show_gold = TRUE, inuse_only = FALSE, skipped_gold = FALSE,
-            doing_perm_invent = FALSE, save_flags_sortpack = flags.sortpack,
+            doing_perm_invent = FALSE, save_flags_sortpack,
             usextra = (xtra_choice && allowxtra);
 
     if (lets && !*lets)
@@ -4231,7 +4232,7 @@ dounpaid(
     }
 
     win = create_nhwindow(NHW_MENU);
-    cost = totcost = 0;
+    totcost = 0L;
     num_so_far = 0; /* count of # printed so far */
     if (!flags.invlet_constant)
         reassign();
