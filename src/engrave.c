@@ -316,7 +316,9 @@ read_engr_at(coordxy x, coordxy y)
             } else {
                 et = ep->engr_txt[actual_text];
             }
-            You("%s: \"%s\".", (Blind) ? "feel the words" : "read", et);
+            You("%s: \"%s\"%s", (Blind) ? "feel the words" : "read", et,
+                /* only provide punctuation if there is none in the message */
+                strchr(".?!", *(eos(et) - 1)) ? "" : ".");
             Strcpy(ep->engr_txt[remembered_text], ep->engr_txt[actual_text]);
             ep->eread = 1;
             if (gc.context.run > 0)

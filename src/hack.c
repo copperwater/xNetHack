@@ -3404,7 +3404,8 @@ check_special_room(boolean newlev)
             break;
         case ABATTOIR:
             You("enter a horrific slaughterhouse!");
-            abattoir_sickness();
+            /* this is now nauseating_loc_effects() and isn't called */
+            /* abattoir_sickness(); */
             break;
         case TEMPLE:
         case SEMINARY:
@@ -4115,26 +4116,56 @@ money_cnt(struct obj *otmp)
     return 0L;
 }
 
-/* Maybe get nauseated as the effect of stepping into or being inside an
- * abattoir.
+/* Maybe get nauseated as the effect of being next to a hezrou, or being inside
+ * an abattoir (currently defunct).
+ * Called once per turn.
  * This sometimes skips confusion and stunning to get to vomiting faster. */
 void
-abattoir_sickness(void)
+nauseating_loc_effects(void)
 {
+    coordxy x, y;
+    int i;
+    int hezrous = 0, spotted = 0;
+    char *whose = (char *) 0;
+
     if (Vomiting) {
         return;
     }
-    /* timeout of 15 would immediately produce a "mildly nauseated" message, so
-     * 14 is the upper bound; timeout of 3 would immediately produce "about to
-     * vomit", so that is the lower bound.
-     * At the higher/medium part of the range, it will inflict confusion and
-     * stunning; at the lower end, vomiting and helplessness will come shortly.
-     */
-    int timeout = rn1(12,3);
-    if (rn2(70) >= ACURR(A_CON)) {
-        pline("This room is making you sick to your %s.", body_part(STOMACH));
-        make_vomiting(timeout, FALSE);
+    /* count hezrous next to hero; chance of nausea is stacking 5% chance per
+     * hezrou, but 0% if you cannot smell since the hezrou nausea is only based
+     * on awful stench, whereas abattoirs are nauseating based on multiple
+     * sensations */
+    for (i = 0; i < 8; ++i) {
+        struct monst *mtmp;
+        x = u.ux + xdir[i];
+        y = u.uy + ydir[i];
+        if ((mtmp = m_at(x, y)) && mtmp->data == &mons[PM_HEZROU]) {
+            hezrous++;
+            if (canspotmon(mtmp)) {
+                spotted++;
+                whose = s_suffix(Monnam(mtmp));
+            }
+        }
     }
+    if (hezrous > 0 && olfaction(gy.youmonst.data) && percent(hezrous * 5)) {
+        /* timeout of 15 would immediately produce a "mildly nauseated" message,
+         * so 14 is the upper bound; timeout of 3 would immediately produce
+         * "about to vomit", so that is the lower bound.
+         * At the higher/medium part of the range, it will inflict confusion and
+         * stunning; at the lower end, vomiting and helplessness will come
+         * shortly.
+         */
+        int timeout = rn1(12,3);
+        if (rn2(70) >= ACURR(A_CON)) {
+            pline("%s stench is making you sick to your %s!",
+                  (spotted > 1 ? "The hezrous'" : whose),
+                  body_part(STOMACH));
+            make_vomiting(timeout, FALSE);
+        }
+    }
+    /* defunct abattoir code: if you are in an abattoir, trigger this (down to
+     * the Con save, which is the same) with a 1/7 chance and special message
+     * "This room is making you sick to your <stomach>" */
 }
 
 void

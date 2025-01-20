@@ -1048,7 +1048,7 @@ extern int max_capacity(void);
 extern boolean check_capacity(const char *);
 extern int inv_cnt(boolean);
 extern long money_cnt(struct obj *);
-extern void abattoir_sickness(void);
+extern void nauseating_loc_effects(void);
 extern void spot_checks(coordxy, coordxy, schar);
 extern void environment_damages_u(void);
 
@@ -1643,6 +1643,7 @@ extern void meatbox(struct monst *, struct obj *);
 extern void m_consume_obj(struct monst *, struct obj *);
 extern int meatmetal(struct monst *);
 extern int meatobj(struct monst *);
+extern int meatrocks(struct monst *);
 extern int meatcorpse(struct monst *);
 extern boolean mon_wants_prop(struct permonst *, struct monst *);
 extern void mon_give_prop(struct monst *, int);

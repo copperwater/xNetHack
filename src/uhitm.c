@@ -429,7 +429,11 @@ find_roll_to_hit(
 
     *role_roll_penalty = 0; /* default is `none' */
 
-    tmp = 1 + Luck + abon() + find_mac(mtmp) + u.uhitinc
+    tmp = 1 + abon() + find_mac(mtmp) + u.uhitinc
+          /* a popular change is to add in Luck/3 instead of Luck; this keeps
+           * the same scale but shifts the ranges down, so that Luck of +1 or -1
+           * still has a noticeable effect. */
+          + (sgn(Luck) * ((abs(Luck) + 2) / 3))
           + maybe_polyd(gy.youmonst.data->mlevel, u.ulevel);
 
     /* some actions should occur only once during multiple attacks */
@@ -908,6 +912,7 @@ hmon(struct monst *mon,
 static void
 hmon_hitmon_barehands(struct _hitmon_data *hmd, struct monst *mon)
 {
+    struct obj *mwep;
     if (noncorporeal(hmd->mdat)) {
         hmd->dmg = 0;
     } else {
@@ -924,6 +929,36 @@ hmon_hitmon_barehands(struct _hitmon_data *hmd, struct monst *mon)
      * don't give double bonus. */
     hmd->dmg += special_dmgval(&gy.youmonst, mon, (W_ARMG | W_RINGL | W_RINGR),
                                &hmd->hated_obj);
+
+    /* critical hits at sufficiently high skill may disarm */
+    if (hmd->dieroll == 1
+        && !nohands(gy.youmonst.data)
+        && P_SKILL(P_MARTIAL_ARTS) >= P_EXPERT
+        && P_SKILL(P_MARTIAL_ARTS) - P_EXPERT >= rn2(3) /* guaranteed at GM */
+        && (mwep = MON_WEP(mon)) != 0 && !mwelded(mwep)) {
+        /* currently, this assumes that it could involve hitting mon's limbs and
+         * not necessarily touching the weapon; therefore, being seared or
+         * petrified by the weapon is not checked.
+         * If this is updated at some point to take the weapon into hero's
+         * inventory, similar to bullwhips, those things should be checked. */
+        You("knock away %s %s!", s_suffix(mon_nam(mon)), cxname(mwep));
+        hmd->hittxt = TRUE;
+        obj_extract_self(mwep);
+        possibly_unwield(mon, FALSE);
+        setmnotwielded(mon, mwep);
+        obj_no_longer_held(mwep);
+        /* knock it away in a random direction; if it falls onto mon's space
+         * they will probably waste a couple turns picking it up and re-wielding
+         * it (it's fine if it randomly flies into an adjacent wall and falls to
+         * the floor, but shouldn't happen every time)
+         * this requires a small fudge to reset its ox and oy to satisfy
+         * scatter(); we don't actually want to place the object on the floor
+         * since it's not hitting the floor */
+        mwep->ox = mon->mx;
+        mwep->oy = mon->my;
+        scatter(mon->mx, mon->my, 1, MAY_HITMON | MAY_DESTROY | VIS_EFFECTS,
+                mwep);
+    }
 }
 
 static void

@@ -282,7 +282,8 @@ mquaffmsg(struct monst *mtmp, struct obj *otmp)
         pline("%s drinks %s!", Monnam(mtmp), singular(otmp, doname));
     } else if (!Deaf) {
         Soundeffect(se_mon_chugging_potion, 25);
-        You_hear("a chugging sound.");
+        You_hear(Hallucination ? "a steam locomotive passing by."
+                               : "a chugging sound.");
     }
 }
 

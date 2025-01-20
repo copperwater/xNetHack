@@ -364,7 +364,7 @@ demon_value(struct obj *obj)
     else if (otyp == WAN_WISHING || otyp == MAGIC_LAMP
              || (In_cocytus(&u.uz) && otyp == RIN_COLD_RESISTANCE))
         return baseval * 2;
-    /* Then, any case where the demon lord is interested in something for the
+    /* Then, any case where the archfiend is interested in something for the
      * plain base value.
      * For rings and amulets, they focus on ones the player is wearing rather
      * than random ones they may happen to have, on the guess that those are
@@ -479,7 +479,8 @@ demon_talk(register struct monst *mtmp)
             else {
                 pline("%s greedily takes it.", Monnam(mtmp));
                 (void) mpickobj(mtmp, shiny); /* could merge and free shiny but
-                                               * won't */ }
+                                               * won't */
+            }
         }
     } while (demand > 0 && rn2(4));
 
@@ -609,7 +610,12 @@ dlord(aligntyp atyp)
 
     for (tryct = !In_endgame(&u.uz) ? 20 : 0; tryct > 0; --tryct) {
         pm = rn1(PM_YEENOGHU + 1 - PM_JUIBLEX, PM_JUIBLEX);
-        if (!(gm.mvitals[pm].mvflags & G_GONE)
+        /* This previously checked G_GONE (as dprince still does), but Juiblex
+         * is weird in that he splits, and in order to split he doesn't get
+         * G_EXTINCT set. Instead, check the born counter (which also works fine
+         * for Yeenoghu or any other archfiend since the outcome is the same -
+         * if they have already been generated, they can't be summoned. */
+        if (!(gm.mvitals[pm].born)
             && (atyp == A_NONE || sgn(mons[pm].maligntyp) == sgn(atyp)))
             return pm;
     }

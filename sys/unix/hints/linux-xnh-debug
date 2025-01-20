@@ -134,6 +134,7 @@ NHCFLAGS+= -Wimplicit-fallthrough=2 # 3 usually ok, but nice to enforce
                                     # /* else FALLTHRU */
 NHCFLAGS+=-Warray-bounds=2 # extra checking for struct/pointer array access
 NHCFLAGS+=-DFUZZER_LOG # log things so fuzzer crashes can trace what was happening
+NHCFLAGS+=-DDEBUG # duh
 # END CUSTOM FLAGS
 
 #

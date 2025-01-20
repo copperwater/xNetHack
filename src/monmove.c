@@ -231,13 +231,14 @@ onscary(coordxy x, coordxy y, struct monst *mtmp)
      * humans aren't monsters
      * uniques have ascended their base monster instincts
      * Rodney, lawful minions, Angels, the Riders, shopkeepers
-     * inside their own shop, priests inside their own temple, uniques */
+     * inside their own shop, priests inside their own temple, uniques,
+     * zombies */
     if (mtmp->iswiz || is_lminion(mtmp) || mtmp->data == &mons[PM_ANGEL]
         || is_rider(mtmp->data)
         || mtmp->data->mlet == S_HUMAN || unique_corpstat(mtmp->data)
         || (mtmp->isshk && inhishop(mtmp))
         || (mtmp->ispriest && inhistemple(mtmp))
-        || (mtmp->data->geno & G_UNIQ))
+        || (mtmp->data->geno & G_UNIQ) || is_zombie(mtmp->data))
         return FALSE;
 
     /* <0,0> is used by musical scaring to check for the above;
@@ -819,6 +820,40 @@ dochug(register struct monst* mtmp)
                 mtmp->mcan = 1; /* no infinite skeletons */
             else
                 mtmp->mspec_used = 15 + rnd(15);
+            return 0;
+        }
+    }
+    /* stone giants can unearth new boulders */
+    else if (!nearby && mdat == &mons[PM_STONE_GIANT] && !mtmp->mpeaceful
+             && mtmp->mspec_used < 1 && !m_carrying(mtmp, BOULDER)
+             && levl[mtmp->mx][mtmp->my].typ == ROOM) {
+        /* this will create a pit, so they won't do it next to liquids; also
+         * stop them from doing it in probable choke points */
+        int rms_adj = 0;
+        boolean abort = FALSE;
+        coordxy x, y;
+        for (x = mtmp->mx - 1; x <= mtmp->mx + 1; x++) {
+            for (y = mtmp->my - 1; y <= mtmp->my + 1; y++) {
+                if (x == mtmp->mx && y == mtmp->my)
+                    continue;
+                if (is_pool_or_lava(x, y))
+                    abort = TRUE;
+                if (levl[x][y].typ == ROOM && !t_at(x, y))
+                    rms_adj++;
+            }
+        }
+        if (!abort && rms_adj > 4) {
+            /* they do not fall into the pit they just made */
+            struct trap *ttmp = maketrap(mtmp->mx, mtmp->my, PIT);
+            if (canseemon(mtmp)) {
+                pline("%s rips a boulder out of the ground!", Monnam(mtmp));
+                ttmp->tseen = TRUE;
+            }
+            mongets(mtmp, BOULDER);
+            /* it would be silly if they can fall right back in again */
+            mon_learns_traps(mtmp, PIT);
+            /* can't rip out another boulder immediately */
+            mtmp->mspec_used = rnd(5) + 5;
             return 0;
         }
     }
@@ -1850,10 +1885,19 @@ m_move(register struct monst *mtmp, int after)
                 newsym(mtmp->mx, mtmp->my);
         }
         if (OBJ_AT(mtmp->mx, mtmp->my) && mtmp->mcanmove) {
+            etmp = 0; /* default "nothing happened" from meat*() funcs */
 
-            /* Maybe a rock mole just ate some metal object */
-            if (metallivorous(ptr)) {
-                if (meatmetal(mtmp) == 2)
+            /* Maybe a rock mole just ate some rock object */
+            if (lithivorous(ptr)) {
+                etmp = meatrocks(mtmp);
+                if (etmp == 2) /* not currently possible */
+                    return MMOVE_DIED;
+            }
+
+            /* Or maybe the rock mole just ate some metal object */
+            if (etmp == 0 && metallivorous(ptr)) {
+                etmp = meatmetal(mtmp);
+                if (etmp == 2)
                     return MMOVE_DIED; /* it died */
             }
 

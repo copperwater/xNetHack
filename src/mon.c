@@ -1325,6 +1325,8 @@ m_consume_obj(struct monst *mtmp, struct obj *otmp)
         heal = mhealup(otmp);
         eyes = (otmp->otyp == CARROT);
         mstone = mstoning(otmp);
+        if (otmp->otyp == DILITHIUM_CRYSTAL)
+            mon_adjust_speed(mtmp, 1, otmp);
         delobj(otmp); /* munch */
         if (poly || slimer) {
             struct permonst *ptr = slimer ? &mons[PM_GREEN_SLIME] : 0;
@@ -1563,6 +1565,56 @@ meatobj(struct monst* mtmp) /* for gelatinous cubes */
                      (ecount == 1) ? "a" : "several", plur(ecount));
     }
     return (count > 0 || ecount > 0) ? 1 : 0;
+}
+
+/*
+ * Maybe eat some rocks and gems.
+ * Return value: 0 => nothing happened, 1 => monster ate something,
+ */
+int
+meatrocks(struct monst *mtmp)
+{
+    struct obj *otmp;
+    char *otmpname;
+
+    /* If a pet, eating is handled separately, in dog.c */
+    if (mtmp->mtame)
+        return 0;
+
+    /* Eats topmost rock or gem object if it is there */
+    for (otmp = gl.level.objects[mtmp->mx][mtmp->my]; otmp;
+         otmp = otmp->nexthere) {
+        if (otmp->oclass == ROCK_CLASS)
+            /* boulders and statues are too big to be bothered with */
+            continue;
+        if (otmp->material != MINERAL && otmp->material != GEMSTONE)
+            continue;
+        if (obj_resists(otmp, 5, 95) || !touch_artifact(otmp, mtmp))
+            continue;
+        if (cansee(mtmp->mx, mtmp->my)) {
+            otmpname = distant_name(otmp, doname);
+            if (Verbose(1, meatmetal3))
+                pline("%s eats %s!", Monnam(mtmp), otmpname);
+        } else {
+            if (Verbose(1, meatmetal4)) {
+                Soundeffect(se_crunching_sound, 50);
+                You_hear("a crunching sound.");
+            }
+        }
+        mtmp->meating = otmp->owt / 2 + 1;
+        /* Consume the object if it's a rock or dilithium and the monster
+           needs speed, or a gem one third of the time */
+        if ( (otmp->otyp == DILITHIUM_CRYSTAL && mtmp->permspeed != MFAST)
+            || otmp->otyp == MINERAL || !rn2(3)) {
+            m_consume_obj(mtmp, otmp);
+        } else {
+            obj_extract_self(otmp);
+            add_to_minv(mtmp, otmp);
+        }
+        newsym(mtmp->mx, mtmp->my);
+        return 1;
+    }
+    return 0;
 }
 
 #undef mstoning
@@ -2816,7 +2868,12 @@ m_detach(
     }
     if (is_archfiend(mtmp->data)) {
         struct fiend_info *fiend = lookup_fiend(monsndx(mtmp->data));
-        fiend->num_in_dgn--;
+        if (fiend->num_in_dgn == 0) {
+            impossible("already 0 of this archfiend?");
+        }
+        else {
+            fiend->num_in_dgn--;
+        }
     }
 
     if (mtmp->m_id == gs.stealmid)
@@ -2848,6 +2905,15 @@ faulty_lifesaver(struct obj* obj)
 {
     if (!obj) {
         impossible("faulty_lifesaver with null object");
+        return FALSE;
+    }
+    if (obj->otyp != AMULET_OF_LIFE_SAVING) {
+        /* amulets of LS being the only thing that provides Lifesaved could
+         * theoretically change at some point; if so this condition will need to
+         * be adjusted */
+        impossible("faulty_lifesaver with non-amulet-of-life-saving %d",
+                   obj->otyp);
+        return FALSE;
     }
     if (objects[obj->otyp].oc_oprop != LIFESAVED) {
         impossible("faulty_lifesaver with non-life-saving object");

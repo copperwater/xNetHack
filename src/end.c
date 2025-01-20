@@ -1376,7 +1376,7 @@ done(int how)
         Your("medallion %s!", !Blind ? "begins to glow" : "feels warm");
         /* It's cursed? Well, that's just too bad. */
         if (faulty_lifesaver(uamul)) {
-            pline("But... the chain on your medallion breaks and it falls to the %s!",
+            pline("But... the chain breaks and it falls to the %s!",
                   surface(u.ux, u.uy));
             You_hear(Hallucination ? "someone playing Yakety Sax!"
                                    : "the sound of a distant trombone...");
@@ -1385,7 +1385,11 @@ done(int how)
         else {
             if (how == CHOKING)
                 You("vomit ...");
-            You_feel("much better!");
+            if (!Hallucination) {
+                You_feel("much better!");
+            } else {
+                pline("The world is destroyed and reborn anew exactly as it was!");
+            }
             pline_The("medallion crumbles to dust!");
             if (uamul)
                 useup(uamul);

@@ -24,7 +24,41 @@
 -- pline, unless the text contains newlines, or is too long to fit a message buffer,
 -- then will be shown as a text window instead.
 
-
+-- Return a role-specific variant on the middle part of the first sentence of
+-- the legacy text, "It is written in the Book of %d" (the first and last parts
+-- remain constant so this doesn't handle them)
+function written_in_Book()
+   local role = u.role;
+   if role == 'Archeologist' then
+      return 'written in the Ancient Scrolls'
+   elseif role == 'Barbarian' then
+      return 'etched on the Tablets'
+   elseif role == 'Caveman' then
+      return 'painted in the Sacred Caves'
+   elseif role == 'Healer' then
+      return 'taught in the School'
+   elseif role == 'Knight' then
+      return 'told in the Legends'
+   elseif role == 'Monk' then
+      return 'chanted in the Rites'
+   elseif role == 'Priest' then
+      return 'catechized in the Temples'
+   elseif role == 'Ranger' then
+      return 'remembered in the Grove'
+   elseif role == 'Rogue' then
+      return 'whispered in the Secret History'
+   elseif role == 'Samurai' then
+      return 'illustrated in the Emakimono'
+   elseif role == 'Tourist' then
+      return 'referenced in the Guidebooks'
+   elseif role == 'Valkyrie' then
+      return 'sung in the Sagas'
+   elseif role == 'Wizard' then
+      return 'inscribed in the Tomes'
+   end
+   -- if a role doesn't have a string defined, fall back on the standard message
+   return 'written in the Book'
+end
 
 questtext = {
    -- If a role doesn't have a specific message, try a fallback
@@ -174,7 +208,9 @@ Go now!  You are banished from this place.]],
       legacy = {
          synopsis = "[%dC has chosen you to recover the Amulet of Yendor for %dI.]",
          output = "menu",
-         text = [[It is written in the Book of %d:
+         -- used to be hardcoded "written in the Book", now replaced by
+         -- role-specific strings
+         text = "It is "..written_in_Book()..[[ of %d:
 
     After the Creation, the cruel god Moloch rebelled
     against the authority of Marduk the Creator.
@@ -632,7 +668,7 @@ study.  I expect that you will have a fine treatise published soon.
          synopsis = "[\"Resume your search for the Amulet beyond the magic portal to %Z.\"]",
          output = "text",
          text = [["
-Lord Carnarvon raises an eyebrow and hands Itlachiayaque back to you.
+%l raises an eyebrow and hands %o back to you.
 "We've already documented this as thoroughly as we can right now.
 Perhaps some day when your great quest for the Amulet is complete, you
 can return it here.
@@ -3203,9 +3239,9 @@ made changes to become ready for this task..."]],
          output = "text",
          text = [[
 Your pursuit of %n brings you to an area you have visited only
-once or twice before in your life, but there's no way you have forgotten
-it -- here is the majestic rainbow bridge Bifrost, connecting this realm
-to Muspelheim far below.
+once or twice before, but which you shall remember all your life -- here
+is the majestic rainbow bridge Bifrost, connecting this realm to
+Muspelheim far below.
 
 But what is this?  As you draw closer, you %x that it is shattered
 and broken.  Cursing, you remember that this too was prophesied: that it
@@ -3287,6 +3323,12 @@ that this may be the last time you come here.]],
       posthanks = {
          text = [["Greetings, %p.  I have not been able to pay as much
 attention to your search for the Amulet as I have wished.  How do you fare?"]],
+      },
+      restorelevel = {
+         text = [[
+As you near the great bridge once more, you are amazed to see that it is
+no longer shattered!  It is as smooth and glimmering as the first time
+you ever beheld it.]],
       },
    },
    Wiz = {

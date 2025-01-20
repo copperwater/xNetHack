@@ -1076,11 +1076,12 @@ mksobj_init(struct obj *otmp, boolean artif)
         otmp->corpsenm = 0; /* LOADSTONE hack */
         if (otmp->otyp == ROCK)
             otmp->quan = (long) rn1(6, 6);
-        else if (otmp->otyp != LUCKSTONE && otmp->otyp != THIEFSTONE
-                 && !rn2(6))
-            otmp->quan = 2L;
-        else if (otmp->otyp == THIEFSTONE)
+        else if (otmp->otyp == THIEFSTONE) {
             init_thiefstone(otmp);
+            otmp->quan = 1L;
+        }
+        else if (otmp->otyp != LUCKSTONE && !rn2(6))
+            otmp->quan = 2L;
         else
             otmp->quan = 1L;
         break;

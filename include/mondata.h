@@ -126,6 +126,7 @@
 #define carnivorous(ptr) (((ptr)->mflags1 & M1_CARNIVORE) != 0L)
 #define herbivorous(ptr) (((ptr)->mflags1 & M1_HERBIVORE) != 0L)
 #define metallivorous(ptr) (((ptr)->mflags1 & M1_METALLIVORE) != 0L)
+#define lithivorous(ptr) ((ptr) == &mons[PM_ROCK_MOLE])
 #define polyok(ptr) (((ptr)->mflags2 & M2_NOPOLY) == 0L)
 #define is_shapeshifter(ptr) (((ptr)->mflags2 & M2_SHAPESHIFTER) != 0L)
 #define is_undead(ptr) (((ptr)->mflags2 & M2_UNDEAD) != 0L)
@@ -292,8 +293,10 @@
             || obj->material == VEGGY                 \
             || ((obj)->otyp == CORPSE && (obj)->corpsenm == PM_LICHEN))))
 
-/* Wielding and opening doors use the same flags: handed and not verysmall. */
-#define can_open_doors(ptr) (!cantwield(ptr))
+/* Wielding and opening doors use the same flags: handed and not verysmall.
+   Exception: zombies cannot open doors.
+*/
+#define can_open_doors(ptr) (!cantwield(ptr) && !is_zombie(ptr))
 
 /* Noise that a monster makes when engaged in combat. Assume that vocalizations
  * account for some noise, so monsters capable of vocalizing make more.

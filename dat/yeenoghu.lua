@@ -45,18 +45,18 @@ local Yx = 63 + nh.rn2(8)
 local Yy = 6 + nh.rn2(6)
 des.monster({ id='Yeenoghu', coord={Yx,Yy}, waiting=1, inventory=function()
    des.object({ id='flail', spe=9, name='Butcher', material='iron', eroded=1 })
-   -- the sack is necessary to prevent players from using object detection to
-   -- figure out if he has a wand or not
-   des.object({ id='sack', contents=function()
-      if nh.is_wish_dlord('Yeenoghu') then
-         nh.pline('got a wish')
-         des.object({ class='/', id='wishing', spe=1 })
-      else
-         des.object({ class='/', id='magic missile' })
-      end
-   end })
    -- he is specially coded not to flee or retreat so compensate for this
    des.object({ class='!', id='full healing', quan=2 })
+end })
+des.object({ id='chest', locked=true, coord={Yx,Yy}, buried=true, material='iron',
+             contents=function()
+   if nh.is_wish_dlord('Yeenoghu') then
+      des.object({ class='/', id='wishing', spe=1 })
+   else
+      des.object({ class='/', id='magic missile' })
+      des.object({ class='?', id='enchant weapon' })
+      des.object({ class='?', id='enchant weapon' })
+   end
 end })
 
 -- Corpses... a lot of corpses

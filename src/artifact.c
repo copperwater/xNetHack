@@ -1867,7 +1867,7 @@ arti_invoke(struct obj *obj)
                 make_sick(0L, (char *) 0, FALSE, SICK_ALL);
             if (Slimed)
                 make_slimed(0L, (char *) 0);
-            if (BlindedTimeout > creamed) {
+            if (BlindedTimeout > creamed || (HBlinded & FROMOUTSIDE)) {
                 /* remove blindness bestowed by external means; keep 1 turn of
                  * timeout so that if creamed == 0, make_blinded will produce
                  * messages and recalc vision */

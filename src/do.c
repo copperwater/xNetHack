@@ -2622,8 +2622,7 @@ restore_valk_locate(xint8 phases)
         docrt();
     }
     if (phases & PHASE_DIALOGUE) {
-        /* TODO: when replacing Valk quest dialogue, insert a special qt_pager
-         * for this. */
+        qt_pager("restorelevel");
     }
 }
 
