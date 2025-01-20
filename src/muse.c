@@ -1,4 +1,4 @@
-/* NetHack 3.7	muse.c	$NHDT-Date: 1715109270 2024/05/07 19:14:30 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.218 $ */
+/* NetHack 3.7	muse.c	$NHDT-Date: 1737392015 2025/01/20 08:53:35 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.234 $ */
 /*      Copyright (C) 1990 by Ken Arromdee                         */
 /* NetHack may be freely redistributed.  See license for details.  */
 
@@ -15,10 +15,10 @@
  */
 
 staticfn int precheck(struct monst *, struct obj *);
-staticfn void mzapwand(struct monst *, struct obj *, boolean);
-staticfn void mplayhorn(struct monst *, struct obj *, boolean);
-staticfn void mreadmsg(struct monst *, struct obj *);
-staticfn void mquaffmsg(struct monst *, struct obj *);
+staticfn void mzapwand(struct monst *, struct obj *, boolean) NONNULLPTRS;
+staticfn void mplayhorn(struct monst *, struct obj *, boolean) NONNULLPTRS;
+staticfn void mreadmsg(struct monst *, struct obj *) NONNULLPTRS;
+staticfn void mquaffmsg(struct monst *, struct obj *) NONNULLPTRS;
 staticfn boolean m_use_healing(struct monst *);
 staticfn boolean m_sees_sleepy_soldier(struct monst *);
 staticfn void m_tele(struct monst *, boolean, boolean, int);
@@ -793,6 +793,7 @@ mon_escape(struct monst *mtmp, boolean vismon)
 int
 use_defensive(struct monst *mtmp)
 {
+    static const char MissingDefensiveItem[] = "use_defensive: no %s";
     int i, fleetim;
     struct obj *otmp = gm.m.defensive;
     boolean vis, vismon, oseen;
@@ -815,6 +816,8 @@ use_defensive(struct monst *mtmp)
 
     switch (gm.m.has_defense) {
     case MUSE_UNICORN_HORN:
+        if (!otmp)
+            panic(MissingDefensiveItem, "unicorn horn");
         if (vismon) {
             if (otmp)
                 pline_mon(mtmp, "%s uses a unicorn horn!", Monnam(mtmp));
@@ -831,6 +834,8 @@ use_defensive(struct monst *mtmp)
             impossible("No need for unicorn horn?");
         return 2;
     case MUSE_BUGLE:
+        if (!otmp)
+            panic(MissingDefensiveItem, "bugle");
         if (vismon) {
             pline_mon(mtmp, "%s plays %s!", Monnam(mtmp), doname(otmp));
         } else if (!Deaf) {
@@ -840,6 +845,8 @@ use_defensive(struct monst *mtmp)
         awaken_soldiers(mtmp);
         return 2;
     case MUSE_WAN_TELEPORTATION_SELF:
+        if (!otmp)
+            panic(MissingDefensiveItem, "wand of teleportation");
         if ((mtmp->isshk && inhishop(mtmp)) || mtmp->isgd || mtmp->ispriest)
             return 2;
         m_flee(mtmp);
@@ -847,6 +854,8 @@ use_defensive(struct monst *mtmp)
         m_tele(mtmp, vismon, oseen, WAN_TELEPORTATION);
         return 2;
     case MUSE_WAN_TELEPORTATION:
+        if (!otmp)
+            panic(MissingDefensiveItem, "wand of teleportation");
         gz.zap_oseen = oseen;
         mzapwand(mtmp, otmp, FALSE);
         gm.m_using = TRUE;
@@ -857,8 +866,11 @@ use_defensive(struct monst *mtmp)
         gm.m_using = FALSE;
         return 2;
     case MUSE_SCR_TELEPORTATION: {
-        int obj_is_cursed = otmp->cursed;
+        int obj_is_cursed;
 
+        if (!otmp)
+            panic(MissingDefensiveItem, "scroll of teleportation");
+        obj_is_cursed = otmp->cursed;
         if (mtmp->isshk || mtmp->isgd || mtmp->ispriest)
             return 2;
         m_flee(mtmp);
@@ -901,6 +913,8 @@ use_defensive(struct monst *mtmp)
         return 2;
     }
     case MUSE_WAN_DIGGING:
+        if (!otmp)
+            panic(MissingDefensiveItem, "wand of digging");
         m_flee(mtmp);
         mzapwand(mtmp, otmp, FALSE);
         if (oseen)
@@ -954,6 +968,8 @@ use_defensive(struct monst *mtmp)
                          (coord *) 0);
         return 2;
     case MUSE_WAN_UNDEAD_TURNING:
+        if (!otmp)
+            panic(MissingDefensiveItem, "wand of undead turning");
         gz.zap_oseen = oseen;
         mzapwand(mtmp, otmp, FALSE);
         gm.m_using = TRUE;
@@ -967,6 +983,8 @@ use_defensive(struct monst *mtmp)
         struct permonst *pm = !is_pool(mtmp->mx, mtmp->my) ? 0
                             : &mons[u.uinwater ? PM_GIANT_EEL : PM_CROCODILE];
 
+        if (!otmp)
+            panic(MissingDefensiveItem, "wand of create monster");
         if (!enexto(&cc, mtmp->mx, mtmp->my, pm))
             return 0;
         mzapwand(mtmp, otmp, FALSE);
@@ -982,6 +1000,8 @@ use_defensive(struct monst *mtmp)
         struct monst *mon;
         boolean known = FALSE;
 
+        if (!otmp)
+            panic(MissingDefensiveItem, "scroll of create monster");
         if (!rn2(73))
             cnt += rnd(4);
         if (mtmp->mconf || otmp->cursed)
@@ -1051,8 +1071,8 @@ use_defensive(struct monst *mtmp)
         if (Inhell && mon_has_amulet(mtmp) && !rn2(4)
             && (dunlev(&u.uz) < dunlevs_in_dungeon(&u.uz) - 3)) {
             if (vismon)
-                pline(
-    "As %s climbs the stairs, a mysterious force momentarily surrounds %s...",
+                pline("As %s climbs the stairs, a mysterious force"
+                      " momentarily surrounds %s...",
                       mon_nam(mtmp), mhim(mtmp));
             /* simpler than for the player; this will usually be
                the Wizard and he'll immediately go right to the
@@ -1137,6 +1157,8 @@ use_defensive(struct monst *mtmp)
         m_tele(mtmp, vismon, FALSE, 0);
         return 2;
     case MUSE_POT_HEALING:
+        if (!otmp)
+            panic(MissingDefensiveItem, "potioh of healing");
         mquaffmsg(mtmp, otmp);
         i = d(6 + 2 * bcsign(otmp), 4);
         healmon(mtmp, i, 1);
@@ -1149,6 +1171,8 @@ use_defensive(struct monst *mtmp)
         m_useup(mtmp, otmp);
         return 2;
     case MUSE_POT_EXTRA_HEALING:
+        if (!otmp)
+            panic(MissingDefensiveItem, "potioh of extra healing");
         mquaffmsg(mtmp, otmp);
         i = d(6 + 2 * bcsign(otmp), 8);
         healmon(mtmp, i, otmp->blessed ? 5 : 2);
@@ -1161,6 +1185,8 @@ use_defensive(struct monst *mtmp)
         m_useup(mtmp, otmp);
         return 2;
     case MUSE_POT_FULL_HEALING:
+        if (!otmp)
+            panic(MissingDefensiveItem, "potioh of full healing");
         mquaffmsg(mtmp, otmp);
         if (otmp->otyp == POT_SICKNESS)
             unbless(otmp); /* Pestilence */
@@ -1174,6 +1200,8 @@ use_defensive(struct monst *mtmp)
         m_useup(mtmp, otmp);
         return 2;
     case MUSE_LIZARD_CORPSE:
+        if (!otmp)
+            panic(MissingDefensiveItem, "lizard corpse");
         /* not actually called for its unstoning effect */
         mon_consume_unstone(mtmp, otmp, FALSE, FALSE);
         return 2;
@@ -2242,8 +2270,10 @@ mloot_container(
         if (!rn2(nitems + 1))
             break;
         nitems = rn2(nitems);
-        for (xobj = container->cobj; nitems > 0; xobj = xobj->nobj)
-            --nitems;
+        for (xobj = container->cobj; xobj != 0; xobj = xobj->nobj)
+            if (--nitems < 0)
+                break;
+        assert(xobj != NULL);
 
         container->cknown = 0; /* hero no longer knows container's contents
                                 * even if [attempted] removal is observed */
@@ -2304,6 +2334,7 @@ DISABLE_WARNING_UNREACHABLE_CODE
 int
 use_misc(struct monst *mtmp)
 {
+    static const char MissingMiscellaneousItem[] = "use_misc: no %s";
     char nambuf[BUFSZ];
     boolean vis, vismon, vistrapspot, oseen;
     int i;
@@ -2318,6 +2349,8 @@ use_misc(struct monst *mtmp)
 
     switch (gm.m.has_misc) {
     case MUSE_POT_GAIN_LEVEL:
+        if (!otmp)
+            panic(MissingMiscellaneousItem, "potion of gain level");
         mquaffmsg(mtmp, otmp);
         if (otmp->cursed) {
             if (Can_rise_up(mtmp->mx, mtmp->my, &u.uz)) {
@@ -2359,6 +2392,8 @@ use_misc(struct monst *mtmp)
         return 2;
     case MUSE_WAN_MAKE_INVISIBLE:
     case MUSE_POT_INVISIBILITY:
+        if (!otmp)
+            panic(MissingMiscellaneousItem, "potion of invisibility");
         if (otmp->otyp == WAN_MAKE_INVISIBLE) {
             mzapwand(mtmp, otmp, TRUE);
         } else
@@ -2386,10 +2421,14 @@ use_misc(struct monst *mtmp)
         }
         return 2;
     case MUSE_WAN_SPEED_MONSTER:
+        if (!otmp)
+            panic(MissingMiscellaneousItem, "wand of speed monster");
         mzapwand(mtmp, otmp, TRUE);
         mon_adjust_speed(mtmp, 1, otmp);
         return 2;
     case MUSE_POT_SPEED:
+        if (!otmp)
+            panic(MissingMiscellaneousItem, "potion of speed");
         mquaffmsg(mtmp, otmp);
         /* note difference in potion effect due to substantially
            different methods of maintaining speed ratings:
@@ -2399,6 +2438,8 @@ use_misc(struct monst *mtmp)
         m_useup(mtmp, otmp);
         return 2;
     case MUSE_WAN_POLYMORPH:
+        if (!otmp)
+            panic(MissingMiscellaneousItem, "wand of polymorph");
         mzapwand(mtmp, otmp, TRUE);
         (void) newcham(mtmp, muse_newcham_mon(mtmp),
                        NC_VIA_WAND_OR_SPELL | NC_SHOW_MSG);
@@ -2406,6 +2447,8 @@ use_misc(struct monst *mtmp)
             makeknown(WAN_POLYMORPH);
         return 2;
     case MUSE_POT_POLYMORPH:
+        if (!otmp)
+            panic(MissingMiscellaneousItem, "potion of polymorph");
         mquaffmsg(mtmp, otmp);
         m_useup(mtmp, otmp);
         if (vismon)
@@ -2441,6 +2484,8 @@ use_misc(struct monst *mtmp)
         (void) newcham(mtmp, (struct permonst *) 0, NC_SHOW_MSG);
         return 2;
     case MUSE_BAG:
+        if (!otmp)
+            panic(MissingMiscellaneousItem, "container");
         return mloot_container(mtmp, otmp, vismon);
     case MUSE_BULLWHIP:
         /* attempt to disarm hero */

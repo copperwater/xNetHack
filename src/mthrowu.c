@@ -1,4 +1,4 @@
-/* NetHack 3.7	mthrowu.c	$NHDT-Date: 1629497158 2021/08/20 22:05:58 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.117 $ */
+/* NetHack 3.7	mthrowu.c	$NHDT-Date: 1737392015 2025/01/20 08:53:35 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.173 $ */
 /* Copyright (c) Stichting Mathematisch Centrum, Amsterdam, 1985. */
 /*-Copyright (c) Pasi Kallinen, 2016. */
 /* NetHack may be freely redistributed.  See license for details. */
@@ -196,7 +196,9 @@ drop_throw(
 /* calculate multishot volley count for mtmp throwing otmp (if not ammo) or
    shooting otmp with mwep (if otmp is ammo and mwep appropriate launcher) */
 staticfn int
-monmulti(struct monst *mtmp, struct obj *otmp, struct obj *mwep)
+monmulti(
+    struct monst *mtmp,
+    struct obj *otmp, struct obj *mwep)
 {
     int multishot = 1;
 
@@ -238,11 +240,11 @@ monmulti(struct monst *mtmp, struct obj *otmp, struct obj *mwep)
 
         /* racial bonus */
         if ((is_elf(mtmp->data) && otmp->otyp == ELVEN_ARROW
-            && mwep->otyp == ELVEN_BOW)
+             && mwep && mwep->otyp == ELVEN_BOW)
             || (is_orc(mtmp->data) && otmp->otyp == ORCISH_ARROW
-                && mwep->otyp == ORCISH_BOW)
+                && mwep && mwep->otyp == ORCISH_BOW)
             || (is_gnome(mtmp->data) && otmp->otyp == CROSSBOW_BOLT
-                && mwep->otyp == CROSSBOW))
+                && mwep && mwep->otyp == CROSSBOW))
             multishot++;
     }
 
