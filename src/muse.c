@@ -816,8 +816,7 @@ use_defensive(struct monst *mtmp)
 
     switch (gm.m.has_defense) {
     case MUSE_UNICORN_HORN:
-        if (!otmp)
-            panic(MissingDefensiveItem, "unicorn horn");
+        /* unlike most defensive cases, unicorn horn object is optional */
         if (vismon) {
             if (otmp)
                 pline_mon(mtmp, "%s uses a unicorn horn!", Monnam(mtmp));
@@ -830,8 +829,9 @@ use_defensive(struct monst *mtmp)
             mtmp->mconf = mtmp->mstun = 0;
             if (vismon)
                 pline_mon(mtmp, "%s seems steadier now.", Monnam(mtmp));
-        } else
+        } else {
             impossible("No need for unicorn horn?");
+        }
         return 2;
     case MUSE_BUGLE:
         if (!otmp)
