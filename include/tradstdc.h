@@ -338,7 +338,6 @@ typedef genericptr genericptr_t; /* (void *) or (char *) */
  *     commas at the end of enumerator lists
  *     variable declarations in for loop initializers
  *     mixing declarations and code
- *     variable declaration in for loop
  *     variadic macros
  *     'long long'
  *
@@ -354,9 +353,9 @@ typedef genericptr genericptr_t; /* (void *) or (char *) */
  * in the NetHack header files by always setting NH_C to one
  * of three possible values (as of January 2025):
  *
- * NH_C > 202300L     Being compiled under C23 or greater
- * NH_C > 199900L     Being compiled under C99 or greater
- * NH_C > 198900L     Being compiled under C89 or greater,
+ * NH_C >= 202300L     Being compiled under C23 or greater
+ * NH_C >= 199900L     Being compiled under C99 or greater
+ * NH_C >= 198900L     Being compiled under C89 or greater,
  *                     or C std could not be determined.
  */
 #if defined(__STDC_VERSION__) || defined(__cplusplus)
