@@ -3532,7 +3532,7 @@ static boolean
 select_transfer_container(void)
 {
     char n;
-    winid win;
+    winid win = WIN_ERR;
     anything any = cg.zeroany;
     menu_item *pick_list;
     struct obj *otmp, *chosen = (struct obj *) 0;

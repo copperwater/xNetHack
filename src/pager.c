@@ -1720,8 +1720,8 @@ checkfile(char *inp, struct permonst *pm, boolean user_typed_name,
             }
 
             /* database entry should exist, now find where it is */
-            long entry_offset, fseekoffset;
-            int entry_count;
+            long entry_offset = 0, fseekoffset;
+            int entry_count = 0;
             int i;
             if (found_in_file) {
                 /* skip over other possible matches for the info */

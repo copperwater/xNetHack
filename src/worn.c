@@ -362,7 +362,7 @@ update_mon_extrinsics(
     boolean silently)
 {
     int unseen;
-    unsigned short mask;
+    unsigned short mask = 0;
     struct obj *otmp;
     int which = (int) armor_provides_extrinsic(obj),
         altwhich = altprop(obj);

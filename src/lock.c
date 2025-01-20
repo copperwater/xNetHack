@@ -67,7 +67,8 @@ lock_action(void)
 static int
 picklock(void)
 {
-    coordxy doorx = u.ux + u.dx, doory = u.uy + u.dy, behind_x, behind_y;
+    coordxy doorx = u.ux + u.dx, doory = u.uy + u.dy;
+    coordxy behind_x = u.ux, behind_y = u.uy;
     boolean credit_card_slipped;
 
     if (gx.xlock.box) {
