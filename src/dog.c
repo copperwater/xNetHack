@@ -217,7 +217,12 @@ makedog(void)
             petname = "Sirius"; /* Orion's dog */
     }
 
-    mtmp = makemon(&mons[pettype], u.ux, u.uy, MM_EDOG);
+    /* specifying NO_MINVENT prevents makemon() from having a 1% chance
+       of creating a pony with an already worn saddle; dogs and cats
+       aren't affected because they don't have any initial inventory
+       [if anybody adds stranger pets that are expected to have such,
+       they'll need to modify this] */
+    mtmp = makemon(&mons[pettype], u.ux, u.uy, MM_EDOG | NO_MINVENT);
 
     if (!mtmp)
         return ((struct monst *) 0); /* pets were genocided [how?] */
@@ -225,7 +230,7 @@ makedog(void)
     if (!svc.context.startingpet_mid) {
         svc.context.startingpet_mid = mtmp->m_id;
         if (!u.uroleplay.pauper) {
-            /* initial horses already wear saddle (unless hero is a pauper) */
+            /* initial horses start wearing a saddle (pauper hero excluded) */
             if (pettype == PM_PONY
                 && (otmp = mksobj(SADDLE, TRUE, FALSE)) != 0) {
                 /* pseudo initial inventory; saddle is not actually in hero's

@@ -2088,6 +2088,9 @@ shop bug: buying a container with unpaid items in it could produce impossible
 	"unpaid_cost: object not on any bill" warnings
 when walking into/against a locked closed door, 'autounlock'==kick didn't
 	execute kick when player answered yes to "Door is locked.  Kick it?"
+having a 1% chance of creating rideable monsters with worn saddle gave knights
+	a 1% chance of creating an extra saddle for starting pony; it wasn't
+	tracked with other objects so produced a trivial memory leak
 
 
 Fixes to 3.7.0-x Platform and/or Interface Problems Exposed Via git Repository
