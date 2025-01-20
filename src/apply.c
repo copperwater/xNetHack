@@ -42,7 +42,6 @@ staticfn void display_grapple_positions(boolean);
 staticfn int use_grapple(struct obj *);
 staticfn void discard_broken_wand(void);
 staticfn void broken_wand_explode(struct obj *, int, int);
-staticfn void maybe_dunk_boulders(coordxy, coordxy);
 staticfn int do_break_wand(struct obj *);
 staticfn int apply_ok(struct obj *);
 staticfn int flip_through_book(struct obj *);
@@ -3856,7 +3855,7 @@ broken_wand_explode(struct obj *obj, int dmg, int expltype)
 }
 
 /* if x,y has lava or water, dunk any boulders at that location into it */
-staticfn void
+void
 maybe_dunk_boulders(coordxy x, coordxy y)
 {
     struct obj *otmp;

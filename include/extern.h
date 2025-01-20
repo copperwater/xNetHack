@@ -128,6 +128,7 @@ extern void reset_trapset(void);
 extern int use_whip(struct obj *) NONNULLPTRS;
 extern boolean could_pole_mon(void);
 extern int use_pole(struct obj *, boolean) NONNULLPTRS;
+extern void maybe_dunk_boulders(coordxy, coordxy);
 extern void fig_transform(union any *, long) NONNULLARG1;
 extern int unfixable_trouble_count(boolean);
 
