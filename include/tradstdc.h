@@ -358,8 +358,8 @@ typedef genericptr genericptr_t; /* (void *) or (char *) */
  * NH_C >= 198900L     Being compiled under C89 or greater,
  *                     or C std could not be determined.
  */
-#if defined(__STDC_VERSION__) || defined(__cplusplus)
-#if (__STDC_VERSION__ >= 202000L) || defined(__cplusplus)
+#if defined(__STDC_VERSION__)
+#if (__STDC_VERSION__ >= 202000L)
 #define NH_C 202300L
 #else
 #define NH_C 199900L
