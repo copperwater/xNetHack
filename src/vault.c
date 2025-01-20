@@ -99,8 +99,7 @@ clear_fcorr(struct monst *grd, boolean forceshow)
         }
         del_engr_at(fcx, fcy);
         map_location(fcx, fcy, 1); /* bypass vision */
-        if (!ACCESSIBLE(lev->typ))
-            block_point(fcx, fcy);
+        recalc_block_point(fcx, fcy);
         gv.vision_full_recalc = 1;
         egrd->fcbeg++;
     }
