@@ -2254,6 +2254,7 @@ domove_fight_empty(coordxy x, coordxy y)
             map_object(boulder, TRUE);
         newsym(x, y);
         glyph = glyph_at(x, y); /* might have just changed */
+        nhUse(glyph);
 
         if (boulder) {
             Strcpy(buf, ansimpleoname(boulder));
