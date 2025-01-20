@@ -1,4 +1,4 @@
-/* NetHack 3.7	mkmaze.c	$NHDT-Date: 1712454188 2024/04/07 01:43:08 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.163 $ */
+/* NetHack 3.7	mkmaze.c	$NHDT-Date: 1737387068 2025/01/20 07:31:08 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.176 $ */
 /* Copyright (c) Stichting Mathematisch Centrum, Amsterdam, 1985. */
 /*-Copyright (c) Pasi Kallinen, 2018. */
 /* NetHack may be freely redistributed.  See license for details. */
@@ -1009,7 +1009,6 @@ create_maze(int corrwid, int wallthick, boolean rmdeadends)
             mx = (x % 2) ? corrwid : (x == 2 || x == rdx * 2) ? 1 : wallthick;
             ry = y = 2;
             while (ry < gy.y_maze_max) {
-                dx = dy = 0;
                 my = (y % 2) ? corrwid
                      : (y == 2 || y == rdy * 2) ? 1
                        : wallthick;

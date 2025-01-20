@@ -1,4 +1,4 @@
-/* NetHack 3.7	mklev.c	$NHDT-Date: 1728168518 2024/10/05 22:48:38 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.191 $ */
+/* NetHack 3.7	mklev.c	$NHDT-Date: 1737387068 2025/01/20 07:31:08 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.194 $ */
 /* Copyright (c) Stichting Mathematisch Centrum, Amsterdam, 1985. */
 /*-Copyright (c) Alex Smith, 2017. */
 /* NetHack may be freely redistributed.  See license for details. */
@@ -90,7 +90,10 @@ door_into_nonjoined(coordxy x, coordxy y)
 }
 
 staticfn boolean
-finddpos(coord *cc, coordxy xl, coordxy yl, coordxy xh, coordxy yh)
+finddpos(
+    coord *cc,
+    coordxy xl, coordxy yl,
+    coordxy xh, coordxy yh)
 {
     coordxy x, y;
 
@@ -109,8 +112,8 @@ finddpos(coord *cc, coordxy xl, coordxy yl, coordxy xh, coordxy yh)
             if (IS_DOOR(levl[x][y].typ) || levl[x][y].typ == SDOOR)
                 goto gotit;
     /* cannot find something reasonable -- strange */
-    x = xl;
-    y = yh;
+    cc->x = xl;
+    cc->y = yh;
     return FALSE;
  gotit:
     cc->x = x;
@@ -1535,7 +1538,6 @@ place_branch(
     coord m = {0};
     d_level *dest;
     boolean make_stairs;
-    struct mkroom *br_room;
 
     /*
      * Return immediately if there is no branch to make or we have
@@ -1546,14 +1548,13 @@ place_branch(
     if (!br || gm.made_branch)
         return;
 
-    nhUse(br_room);
     if (!x) { /* find random coordinates for branch */
         /* br_room = find_branch_room(&m); */
         (void) find_branch_room(&m);  /* sets m via mazexy() or somexy() */
         x = m.x;
         y = m.y;
     } else {
-        br_room = pos_to_room(x, y);
+        (void) pos_to_room(x, y);
     }
 
     if (on_level(&br->end1, &u.uz)) {
