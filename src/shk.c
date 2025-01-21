@@ -1131,6 +1131,8 @@ obfree(struct obj *obj, struct obj *merge)
         delete_contents(obj);
     if (Is_container(obj))
         maybe_reset_pick(obj);
+    if (obj->otyp == BOULDER)
+        obj->next_boulder = 0;
 
     shkp = 0;
     if (obj->unpaid) {

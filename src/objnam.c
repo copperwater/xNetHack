@@ -1,4 +1,4 @@
-/* NetHack 3.7	objnam.c	$NHDT-Date: 1732979463 2024/11/30 07:11:03 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.439 $ */
+/* NetHack 3.7	objnam.c	$NHDT-Date: 1737528848 2025/01/21 22:54:08 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.444 $ */
 /* Copyright (c) Stichting Mathematisch Centrum, Amsterdam, 1985. */
 /*-Copyright (c) Robert Patrick Rankin, 2011. */
 /* NetHack may be freely redistributed.  See license for details. */
@@ -810,6 +810,9 @@ xname_flags(
                more robust because the default value for that overloaded
                field (obj->corpsenm) is NON_PM (-1) rather than 0 */
             Strcat(strcpy(buf, "next "), actualn); /* "next boulder" */
+            /* once "next boulder" occurs, subsequent messages should just
+               use ordinary "boulder" */
+            obj->next_boulder = 0;
         } else {
             Strcpy(buf, actualn); /* "boulder" or "statue" */
         }
