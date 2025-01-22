@@ -411,8 +411,8 @@ shkveg(void)
     char oclass = FOOD_CLASS;
     int ok[NUM_OBJECTS];
 
+    (void) memset((genericptr_t) ok, 0, sizeof ok); /* lint suppression */
     j = maxprob = 0;
-    ok[0] = 0; /* lint suppression */
     for (i = svb.bases[(int) oclass]; i < NUM_OBJECTS; ++i) {
         if (objects[i].oc_class != oclass)
             break;
@@ -511,7 +511,7 @@ nameshk(struct monst *shk, const char *const *nlp)
 
         for (names_avail = 0; nlp[names_avail]; names_avail++)
             continue;
-
+        assert(names_avail > 0);
         name_wanted = name_wanted % names_avail;
 
         for (trycnt = 0; trycnt < 50; trycnt++) {
