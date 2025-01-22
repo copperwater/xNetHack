@@ -1,4 +1,4 @@
-/* NetHack 3.7	nhlua.c	$NHDT-Date: 1704225560 2024/01/02 19:59:20 $  $NHDT-Branch: keni-luabits2 $:$NHDT-Revision: 1.61 $ */
+/* NetHack 3.7	nhlua.c	$NHDT-Date: 1737545957 2025/01/22 03:39:17 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.64 $ */
 /*      Copyright (c) 2018 by Pasi Kallinen */
 /* NetHack may be freely redistributed.  See license for details. */
 
@@ -266,7 +266,7 @@ l_selection_not(lua_State *L)
         sel = l_selection_check(L, 1);
         selection_clear(sel, 1);
     } else {
-        sel = l_selection_check(L, 1);
+        (void) l_selection_check(L, 1);
         (void) l_selection_clone(L);
         sel2 = l_selection_check(L, 2);
         selection_not(sel2);
@@ -629,15 +629,17 @@ l_selection_randline(lua_State *L)
 staticfn int
 l_selection_grow(lua_State *L)
 {
-    const char *const growdirs[] = {
+    static const char *const growdirs[] = {
         "all", "random", "north", "west", "east", "south", NULL
     };
-    const int growdirs2i[] = {
+    static const int growdirs2i[] = {
         W_ANY, W_RANDOM, W_NORTH, W_WEST, W_EAST, W_SOUTH, 0
     };
-    int argc = lua_gettop(L);
-    struct selectionvar *sel = l_selection_check(L, 1);
-    int dir = growdirs2i[luaL_checkoption(L, 2, "all", growdirs)];
+    struct selectionvar *sel;
+    int dir, argc = lua_gettop(L);
+
+    (void) l_selection_check(L, 1);
+    dir = growdirs2i[luaL_checkoption(L, 2, "all", growdirs)];
 
     if (argc == 2)
         lua_pop(L, 1); /* get rid of growdir */
