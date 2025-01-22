@@ -1493,11 +1493,11 @@ do_screen_description(
         x_str = def_warnsyms[i].explanation;
         if (sym == (looked ? gw.warnsyms[i] : def_warnsyms[i].sym)) {
             if (!found) {
-                Sprintf(out_str, "%s%s", prefix, def_warnsyms[i].explanation);
-                *firstmatch = def_warnsyms[i].explanation;
+                Sprintf(out_str, "%s%s", prefix, x_str);
+                *firstmatch = x_str;;
                 found++;
             } else {
-                found += append_str(out_str, def_warnsyms[i].explanation);
+                found += append_str(out_str, x_str);
             }
             /* Kludge: warning trumps boulders on the display.
                Reveal the boulder too or player can get confused */
@@ -1678,7 +1678,6 @@ do_look(int mode, coord *click_cc)
 
     if (!clicklook) {
         if (quick) {
-            from_screen = TRUE; /* yes, we want to use the cursor */
             i = 'y';
         } else {
             menu_item *pick_list = (menu_item *) 0;
@@ -1843,7 +1842,6 @@ do_look(int mode, coord *click_cc)
     do {
         /* Reset some variables. */
         pm = (struct permonst *) 0;
-        found = 0;
         out_str[0] = '\0';
 
         if (from_screen || clicklook) {
