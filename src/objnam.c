@@ -32,9 +32,9 @@ struct _readobjnam_data {
     char fruitbuf[BUFSZ];
 };
 
-staticfn char *strprepend(char *, const char *);
-staticfn char *nextobuf(void);
-staticfn void releaseobuf(char *);
+staticfn char *strprepend(char *, const char *) NONNULL NONNULLARG1;
+staticfn char *nextobuf(void) NONNULL;
+staticfn void releaseobuf(char *) NONNULLARG1;
 staticfn void xcalled(char *, int, const char *, const char *);
 staticfn char *xname_flags(struct obj *, unsigned);
 staticfn char *minimal_xname(struct obj *);
@@ -122,15 +122,16 @@ static const struct Jitem Japanese_items[] = {
 staticfn char *
 strprepend(char *s, const char *pref)
 {
+    char star_s = *s;
     int i = (int) strlen(pref);
 
     if (i > PREFIX) {
         impossible("PREFIX too short (for %d).", i);
         return s;
     }
-    s -= i;
-    (void) strncpy(s, pref, i); /* do not copy trailing 0 */
-    return s;
+    copynchars(s - i, pref, i + 1);
+    *s = star_s;
+    return s - i;
 }
 
 /* manage a pool of BUFSZ buffers, so callers don't have to */
@@ -2406,6 +2407,8 @@ ansimpleoname(struct obj *obj)
     char *obufp, *simpleoname = simpleonames(obj);
     int otyp = obj->otyp;
 
+    if (strlen(simpleoname) > BUFSZ - sizeof "the ")
+        simpleoname[sizeof "the "] = '\0';
     /* prefix with "the" if a unique item, or a fake one imitating same,
        has been formatted with its actual name (we let minimal_xname() handle
        any `known' and `dknown' checking necessary) */
@@ -2414,12 +2417,14 @@ ansimpleoname(struct obj *obj)
     if (objects[otyp].oc_unique && OBJ_NAME(objects[otyp])
         && !strcmp(simpleoname, OBJ_NAME(objects[otyp]))) {
         /* the() will allocate another obuf[]; we want to avoid using two */
-        Strcpy(simpleoname, obufp = the(simpleoname));
+        obufp = the(simpleoname);
+        Strcpy(simpleoname, obufp);
         releaseobuf(obufp);
     } else if (obj->quan == 1L) {
         /* simpleoname[] is singular if quan==1, plural otherwise;
            an() will allocate another obuf[]; we want to avoid using two */
-        Strcpy(simpleoname, obufp = an(simpleoname));
+        obufp = an(simpleoname);
+        Strcpy(simpleoname, obufp);
         releaseobuf(obufp);
     }
     return simpleoname;
@@ -2432,7 +2437,8 @@ thesimpleoname(struct obj *obj)
     char *obufp, *simpleoname = simpleonames(obj);
 
     /* the() will allocate another obuf[]; we want to avoid using two */
-    Strcpy(simpleoname, obufp = the(simpleoname));
+    obufp = the(simpleoname);
+    Strcpy(simpleoname, obufp);
     releaseobuf(obufp);
     return simpleoname;
 }
@@ -3513,7 +3519,7 @@ wizterrainwish(struct _readobjnam_data *d)
     int trap;
     unsigned oldtyp, ltyp;
     coordxy x = u.ux, y = u.uy;
-    char *bp = d->bp, *p = d->p;
+    char *bp = d->bp, *p;
 
     for (trap = NO_TRAP + 1; trap < TRAPNUM; trap++) {
         struct trap *t;
@@ -5586,6 +5592,7 @@ safe_qbuf(
 
     lenlimit = QBUFSZ - 1;
     endp = qbuf + lenlimit;
+    assert(endp != NULL); /* workaround for static analyzer issue */
     /* sanity check, aimed mainly at paniclog (it's conceivable for
        the result of short_oname() to be shorter than the length of
        the last resort string, but we ignore that possibility here) */
