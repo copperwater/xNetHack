@@ -449,7 +449,6 @@ curses_ext_cmd(void)
         letter = pgetchar(); /* pgetchar(cmd.c) implements do-again */
         curs_set(0);
         prompt_width = (int) strlen(cur_choice);
-        matches = 0;
 
         if (letter == '\033' || letter == ERR) {
             ret = -1;
@@ -667,7 +666,7 @@ curs_pad_menu(
     boolean do_pad UNUSED)
 {
     nhmenu_item *menu_item_ptr;
-    int numpages = current_menu->num_pages;
+    int numpages;
 
     /* caller has already called menu_win_size() */
     menu_determine_pages(current_menu); /* sets 'menu->num_pages' */
@@ -942,7 +941,7 @@ menu_is_multipage(nhmenu *menu, int width, int height)
     int curline = 0, accel_per_page = 0;
     nhmenu_item *menu_item_ptr = menu->entries;
 
-    if (*menu->prompt) {
+    if (menu->prompt && *menu->prompt) {
         curline += curses_num_lines(menu->prompt, width) + 1;
     }
 
@@ -978,13 +977,12 @@ menu_determine_pages(nhmenu *menu)
     int tmpline, num_lines, accel_per_page;
     int curline = 0;
     int page_num = 1;
-    nhmenu_item *menu_item_ptr = menu->entries;
+    nhmenu_item *menu_item_ptr;
     int width = menu->width;
     int height = menu->height;
     int page_end = height;
 
-
-    if (*menu->prompt) {
+    if (menu->prompt && *menu->prompt) {
         curline += curses_num_lines(menu->prompt, width) + 1;
     }
     tmpline = curline;
@@ -1032,6 +1030,7 @@ menu_win_size(nhmenu *menu)
     int maxheaderwidth = menu->prompt ? (int) strlen(menu->prompt) : 0;
     nhmenu_item *menu_item_ptr, *last_item_ptr = NULL;
 
+#if 0   /* maxwidth is set below, so the value calculated here isn't used */
     if (program_state.gameover) {
         /* for final inventory disclosure, use full width */
         maxwidth = term_cols - 2; /* +2: borders assumed */
@@ -1046,6 +1045,7 @@ menu_win_size(nhmenu *menu)
         if ((term_cols / 2) > maxwidth)
             maxwidth = (term_cols / 2); /* Half the screen */
     }
+#endif
     maxheight = menu_max_height();
 
     /* First, determine the width of the longest menu entry */
@@ -1475,8 +1475,6 @@ curs_nonselect_menu_action(
             }
             menu_item_ptr = menu_item_ptr->next_item;
         }
-
-        menu_item_ptr = menu->entries;
         break;
     } /* case MENU_SEARCH */
     default:
@@ -1500,7 +1498,7 @@ menu_get_selections(WINDOW *win, nhmenu *menu, int how)
     int num_selected = 0;
     boolean dismiss = FALSE;
     char selectors[256], groupaccels[256];
-    nhmenu_item *menu_item_ptr = menu->entries;
+    nhmenu_item *menu_item_ptr;
 
     activemenu = win;
     menu_display_page(win, menu, curpage, selectors, groupaccels);

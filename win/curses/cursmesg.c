@@ -932,6 +932,8 @@ mesg_add_line(const char *mline)
     } else {
         /* instead of discarding list element being forced out, reuse it */
         current_mesg = first_mesg;
+        assert(current_mesg != NULL);
+        assert(current_mesg->str != NULL);
         /* whenever new 'mline' is shorter, extra allocation size of the
            original element will be frittered away, until eventually we'll
            discard this 'str' and dupstr() a replacement; we could easily

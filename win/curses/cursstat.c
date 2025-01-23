@@ -173,6 +173,7 @@ curses_status_update(
                 /* decode once instead of every time it's displayed */
                 status_vals[BL_GOLD][0] = ' ';
                 text = decode_mixed(&status_vals[BL_GOLD][1], text);
+                nhUse(text);
             } else if ((fldidx == BL_HUNGER || fldidx == BL_CAP)
                        && (!*text || !strcmp(text, " "))) {
                 /* fieldfmt[] is " %s"; avoid lone space when empty */
