@@ -1813,8 +1813,10 @@ hmon_hitmon(
 
     hmon_hitmon_msg_hit(&hmd, mon, obj);
 
-    if (hmd.dryit) /* dryit implies wet towel, so 'obj' is still intact */
+    if (hmd.dryit) { /* dryit implies wet towel, so 'obj' is still intact */
+        assert(obj != NULL);
         dry_a_towel(obj, -1, TRUE);
+    }
 
     if (hmd.silvermsg)
         hmon_hitmon_msg_silver(&hmd, mon, obj);
@@ -1826,8 +1828,10 @@ hmon_hitmon(
        obj->opoisoned was cleared above and any message referring to
        "poisoned <obj>" has now been given; we want just "<obj>" for
        last message, so reformat while obj is still accessible */
-    if (hmd.unpoisonmsg)
+    if (hmd.unpoisonmsg) {
+        assert(obj != NULL);
         Strcpy(hmd.saved_oname, cxname(obj));
+    }
 
     /* [note: thrown obj might go away during killed()/xkilled() call
        (via 'thrownobj'; if swallowed, it gets added to engulfer's
@@ -3508,6 +3512,7 @@ mhitm_ad_slim(
             mhm->damage = 0;
         }
     }
+    nhUse(pd);
 }
 
 void
@@ -3549,7 +3554,7 @@ mhitm_ad_ench(
                     break;
                 }
             }
-            if (drain_item(obj, FALSE)) {
+            if (obj && drain_item(obj, FALSE)) {
                 pline("%s less effective.", Yobjnam2(obj, "seem"));
             }
         }
