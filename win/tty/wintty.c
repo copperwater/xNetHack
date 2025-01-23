@@ -1,4 +1,4 @@
-/* NetHack 3.7	wintty.c	$NHDT-Date: 1717967340 2024/06/09 21:09:00 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.410 $ */
+/* NetHack 3.7	wintty.c	$NHDT-Date: 1737691300 2025/01/23 20:01:40 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.420 $ */
 /* Copyright (c) David Cohrs, 1991                                */
 /* NetHack may be freely redistributed.  See license for details. */
 
@@ -5107,7 +5107,7 @@ render_status(void)
                     if (hpbar_crit_hp)
                         repad_with_dashes(bar);
                     bar_len = (int) strlen(bar); /* always 30 */
-                    tlth = bar_len + 2;
+                    /*tlth = bar_len + 2; // not needed within this 'if'*/
                     attrmask = 0; /* for the second part only case: dead */
                     /* when at full HP, the whole title will be highlighted;
                        when injured or dead, there will be a second portion
