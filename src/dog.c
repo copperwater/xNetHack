@@ -51,7 +51,7 @@ initedog(struct monst *mtmp)
     mtmp->meating = 0;
     EDOG(mtmp)->droptime = 0;
     EDOG(mtmp)->dropdist = 10000;
-    EDOG(mtmp)->apport = max(1, ACURR(A_CHA));
+    EDOG(mtmp)->apport = ACURR(A_CHA);
     EDOG(mtmp)->whistletime = 0;
     EDOG(mtmp)->hungrytime = 1000 + svm.moves;
     EDOG(mtmp)->ogoal.x = -1; /* force error if used before set */
