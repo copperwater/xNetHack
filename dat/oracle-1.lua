@@ -5,7 +5,7 @@
 -- Oracle level
 des.level_flags("noflip");
 
-des.room({ type = "ordinary", lit=1, x=39,y=10, xalign="center",yalign="center", w=11,h=9, contents = function()
+des.room({ type = "delphi", lit=1, x=39,y=10, xalign="center",yalign="center", w=11,h=9, contents = function()
               des.object({ id = "statue", x = 0, y = 0, montype = "C", historic = true });
               des.object({ id = "statue", x = 0, y = 8, montype = "C", historic = true });
               des.object({ id = "statue", x =10, y = 0, montype = "C", historic = true });
