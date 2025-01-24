@@ -1,4 +1,4 @@
-/* NetHack 3.7	tilemap.c	$NHDT-Date: 1736530790 2025/01/10 09:39:50 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.86 $ */
+/* NetHack 3.7	tilemap.c	$NHDT-Date: 1737720923 2025/01/24 04:15:23 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.87 $ */
 /*      Copyright (c) 2016 by Michael Allison                     */
 /* NetHack may be freely redistributed.  See license for details. */
 
@@ -193,14 +193,14 @@ struct conditionals_t {
 const char *
 tilename(int set, const int file_entry, int gend UNUSED)
 {
-    int i, k, cmap, condnum, tilenum, gendnum;
+    int i, k, cmap, condnum, tilenum;
     static char buf[BUFSZ];
 #if 0
-    int offset;
+    int offset, gendnum;
 #endif
     (void) def_char_to_objclass(']');
 
-    condnum = tilenum = gendnum = 0;
+    tilenum = 0;
 
     buf[0] = '\0';
     if (set == MON_GLYPH) {
@@ -316,7 +316,7 @@ tilename(int set, const int file_entry, int gend UNUSED)
 
         /* cmap A */
         for (cmap = S_ndoor; cmap <= S_brdnladder; cmap++) {
-            i = cmap - S_ndoor;
+            i = cmap - S_ndoor;  nhUse(i);
             if (tilenum == file_entry) {
                 if (*defsyms[cmap].explanation) {
                     return defsyms[cmap].explanation;
@@ -364,7 +364,7 @@ tilename(int set, const int file_entry, int gend UNUSED)
 
         /* cmap B */
         for (cmap = S_grave; cmap < S_arrow_trap + MAXTCHARS; cmap++) {
-            i = cmap - S_grave;
+            i = cmap - S_grave;  nhUse(i);
             if (tilenum == file_entry) {
                 if (*defsyms[cmap].explanation) {
                     return defsyms[cmap].explanation;
@@ -421,7 +421,7 @@ tilename(int set, const int file_entry, int gend UNUSED)
 
         /* cmap C */
         for (cmap = S_digbeam; cmap <= S_goodpos; cmap++) {
-            i = cmap - S_digbeam;
+            i = cmap - S_digbeam;  nhUse(i);
             if (tilenum == file_entry) {
                 if (*defsyms[cmap].explanation) {
                     return defsyms[cmap].explanation;
@@ -467,7 +467,7 @@ tilename(int set, const int file_entry, int gend UNUSED)
         /* explosions */
         for (k = expl_dark; k <= expl_frosty; k++) {
             for (cmap = S_expl_tl; cmap <= S_expl_br; cmap++) {
-                i = cmap - S_expl_tl;
+                i = cmap - S_expl_tl;  nhUse(i);
                 if (tilenum == file_entry) {
                     /* substitute "explosion " in the tilelabel
                        with "explosion dark " etc */
