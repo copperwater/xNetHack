@@ -213,8 +213,9 @@ curses_message_win_puts(const char *message, boolean recursed)
             mvwadd_wch(win, my, mx, mixed_leadin_cchar);
             ++mx;
             message_length--;
-            have_mixed_leadin = FALSE;
             mesg_mixed = 0;
+            have_mixed_leadin = FALSE;
+            nhUse(have_mixed_leadin);
         }
 #endif
         mvwprintw(win, my, mx, "%s", tmpstr), mx += (int) strlen(tmpstr);
@@ -234,8 +235,9 @@ curses_message_win_puts(const char *message, boolean recursed)
             mvwadd_wch(win, my, mx, mixed_leadin_cchar);
             ++mx;
             message_length--;
-            have_mixed_leadin = FALSE;
             mesg_mixed = 0;
+            have_mixed_leadin = FALSE;
+            nhUse(have_mixed_leadin);
         }
 #endif
         mvwprintw(win, my, mx, "%s", message), mx += message_length;
