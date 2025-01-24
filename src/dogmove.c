@@ -311,9 +311,16 @@ dog_eat(struct monst *mtmp,
     } else {
         /* It's a reward if it's DOGFOOD and the player dropped/threw it.
            We know the player had it if invlet is set. -dlc */
-        if (dogfood(mtmp, obj) == DOGFOOD && obj->invlet)
+        if (dogfood(mtmp, obj) == DOGFOOD && obj->invlet) {
             edog->apport += (int) (200L / ((long) edog->dropdist + svm.moves
                                            - edog->droptime));
+            if (edog->apport <= 0) {
+                impossible("dog_eat: pet apport <= 0 (%d, %d, %ld, %ld)",
+                            edog->apport, edog->dropdist, edog->droptime,
+                            svm.moves);
+                edog->apport = 1;
+            }
+        }
         if (obj->unpaid) {
             /* edible item owned by shop has been thrown or kicked
                by hero and caught by tame or food-tameable monst */
@@ -399,7 +406,7 @@ dog_invent(struct monst *mtmp, struct edog *edog, int udist)
      * Use udist+1 so steed won't cause divide by zero.
      */
     if (droppables(mtmp)) {
-        if (!rn2(udist + 1) || !rn2(edog->apport))
+        if (!rn2(udist + 1) || (edog->apport && !rn2(edog->apport)))
             if (rn2(10) < edog->apport) {
                 relobj(mtmp, (int) mtmp->minvis, TRUE);
                 if (edog->apport > 1)

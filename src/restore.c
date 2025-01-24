@@ -365,6 +365,10 @@ restmon(NHFILE *nhfp, struct monst *mtmp)
             newedog(mtmp);
             if (nhfp->structlevel)
                 Mread(nhfp->fd, EDOG(mtmp), sizeof (struct edog));
+            /* sanity check to prevent rn2(0) */
+           if (EDOG(mtmp)->apport <= 0) {
+               EDOG(mtmp)->apport = 1;
+           }
         }
         /* mcorpsenm - obj->corpsenm for mimic posing as corpse or
            statue (inline int rather than pointer to something) */
