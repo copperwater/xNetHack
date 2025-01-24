@@ -512,7 +512,7 @@ curs_destroy_all_wins(void)
          * which reports "warning: Use of memory after it is freed") */
     while (nhwids)
         curses_del_wid(nhwids->nhwid);
-#lse
+#else
     while (nhwids) {
         nethack_wid *tmpptr = nhwids;
 
