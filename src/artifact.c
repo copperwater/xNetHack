@@ -273,7 +273,7 @@ mk_artifact(
     return otmp;
 }
 
-void
+staticfn void
 dispose_of_orig_obj(struct obj *obj)
 {
     if (!obj)
