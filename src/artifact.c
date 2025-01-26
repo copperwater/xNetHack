@@ -35,6 +35,7 @@ staticfn uchar abil_to_adtyp(long *) NONNULLARG1;
 staticfn int glow_strength(int);
 staticfn boolean untouchable(struct obj *, boolean);
 staticfn int count_surround_traps(coordxy, coordxy);
+staticfn void dispose_of_orig_obj(struct obj *);
 
 /* The amount added to the victim's total hit points to insure that the
    victim will be killed even after damage bonus/penalty adjustments.
@@ -154,6 +155,7 @@ mk_artifact(
     uchar max_giftvalue, /* cap on generated giftvalue */
     boolean adjust_spe)  /* whether to add spe to situational artifacts */
 {
+    struct obj *artiobj;
     const struct artifact *a;
     int m, n, altn;
     boolean by_align = (alignment != A_NONE);
@@ -237,35 +239,48 @@ mk_artifact(
         m = eligible[rn2(n)]; /* [0..n-1] */
         a = &artilist[m];
 
-        /* make an appropriate object if necessary, then christen it */
-        otmp = mksobj((int) a->otyp, TRUE, FALSE);
+        /* make an appropriate object, then christen it */
+        artiobj = mksobj((int) a->otyp, TRUE, FALSE);
 
         if (adjust_spe) {
             int new_spe;
 
-            /* Adjust otmp->spe by a->gen_spe. (This is a no-op for
+            /* Adjust artiobj->spe by a->gen_spe. (This is a no-op for
                non-weapons, which always have a gen_spe of 0, and for many
                weapons, too.) The result is clamped into the "normal" range to
                prevent an outside chance of +12 artifacts generating. */
-            new_spe = (int)otmp->spe + a->gen_spe;
+            new_spe = (int)artiobj->spe + a->gen_spe;
             if (new_spe >= -10 && new_spe < 10)
-                otmp->spe = new_spe;
+                artiobj->spe = new_spe;
         }
-
-        if (otmp) {
-            /* prevent erosion from generating */
-            otmp->oeroded = otmp->oeroded2 = 0;
-            otmp = oname(otmp, a->name, ONAME_NO_FLAGS);
-            otmp->oartifact = m;
-            /* set existence and reason for creation bits */
-            artifact_origin(otmp, ONAME_RANDOM); /* 'random' is default */
-        }
+        /* prevent erosion from generating */
+        artiobj->oeroded = artiobj->oeroded2 = 0;
+        artiobj = oname(artiobj, a->name, ONAME_NO_FLAGS);
+        artiobj->oartifact = m;
+        /* set existence and reason for creation bits */
+        artifact_origin(artiobj, ONAME_RANDOM); /* 'random' is default */
+        if (otmp)
+            dispose_of_orig_obj(otmp);
+        otmp = artiobj;
     } else {
         /* nothing appropriate could be found; return original object */
-        if (by_align)
-            otmp = 0; /* (there was no original object) */
+        if (by_align && otmp) {
+            /* (there shouldn't have been an original object) */
+            dispose_of_orig_obj(otmp);
+            otmp = 0;
+        }
     }
     return otmp;
+}
+
+void
+dispose_of_orig_obj(struct obj *obj)
+{
+    if (!obj)
+        return;
+
+    obj_extract_self(obj);
+    obfree(obj, (struct obj *) 0);
 }
 
 /*

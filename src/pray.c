@@ -1793,6 +1793,7 @@ bestow_artifact(uchar max_giftvalue)
 
     if (do_bestow) {
         struct obj *otmp;
+        /* mk_artifact() with NULL obj and a_align() arg can return NULL */
         otmp = mk_artifact((struct obj *) 0, a_align(u.ux, u.uy),
                            max_giftvalue, TRUE);
         if (otmp) {
