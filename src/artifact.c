@@ -246,12 +246,10 @@ mk_artifact(
              * relevant */
             struct obj *artiobj = mksobj((int) a->otyp, TRUE, FALSE);
 
-            if (artiobj) {
-                /* nonnull value of 'otmp' is unexpected. Cope. */
-                if (otmp) /* just in case; avoid orphaning */
-                    dispose_of_orig_obj(otmp);
-                otmp = artiobj;
-            }
+            /* nonnull value of 'otmp' is unexpected. Cope. */
+            if (otmp) /* just in case; avoid orphaning */
+                dispose_of_orig_obj(otmp);
+            otmp = artiobj;
         }
         /*
          * otmp should be nonnull at this point:
