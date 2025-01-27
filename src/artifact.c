@@ -150,12 +150,12 @@ artiname(int artinum)
  */
 struct obj *
 mk_artifact(
-    struct obj *otmp,    /* existing object; ignored if alignment specified */
+    struct obj *otmp,    /* existing object; ignored and disposed of
+                          * if alignment specified */
     aligntyp alignment,  /* target alignment, or A_NONE */
     uchar max_giftvalue, /* cap on generated giftvalue */
     boolean adjust_spe)  /* whether to add spe to situational artifacts */
 {
-    struct obj *artiobj;
     const struct artifact *a;
     int m, n, altn;
     boolean by_align = (alignment != A_NONE);
@@ -239,9 +239,31 @@ mk_artifact(
         m = eligible[rn2(n)]; /* [0..n-1] */
         a = &artilist[m];
 
-        /* make an appropriate object, then christen it */
-        artiobj = mksobj((int) a->otyp, TRUE, FALSE);
+        /* make an appropriate object if necessary, then christen it */
+        if (by_align) {
+            /* 'by_align' indicates that an alignment was passed as
+             * an argument, but also that the 'otmp' argument is not
+             * relevant */
+            struct obj *artiobj = mksobj((int) a->otyp, TRUE, FALSE);
 
+            if (artiobj) {
+                /* nonnull value of 'otmp' is unexpected. Cope. */
+                if (otmp) /* just in case; avoid orphaning */
+                    dispose_of_orig_obj(otmp);
+                otmp = artiobj;
+            }
+        }
+        /*
+         * otmp should be nonnull at this point:
+         * either the passed argument (if !by_align == A_NONE), or
+         * the result of mksobj() just above if by_align is an alignment. */
+        assert(otmp != 0);
+        /* prevent erosion from generating */
+        otmp->oeroded = otmp->oeroded2 = 0;
+        otmp = oname(otmp, a->name, ONAME_NO_FLAGS);
+        otmp->oartifact = m;  /* probably already set by this point, but */
+        /* set existence and reason for creation bits */
+        artifact_origin(otmp, ONAME_RANDOM); /* 'random' is default */
         if (adjust_spe) {
             int new_spe;
 
@@ -249,26 +271,19 @@ mk_artifact(
                non-weapons, which always have a gen_spe of 0, and for many
                weapons, too.) The result is clamped into the "normal" range to
                prevent an outside chance of +12 artifacts generating. */
-            new_spe = (int)artiobj->spe + a->gen_spe;
+            new_spe = (int)otmp->spe + a->gen_spe;
             if (new_spe >= -10 && new_spe < 10)
-                artiobj->spe = new_spe;
+                otmp->spe = new_spe;
         }
-        /* prevent erosion from generating */
-        artiobj->oeroded = artiobj->oeroded2 = 0;
-        artiobj = oname(artiobj, a->name, ONAME_NO_FLAGS);
-        artiobj->oartifact = m;
-        /* set existence and reason for creation bits */
-        artifact_origin(artiobj, ONAME_RANDOM); /* 'random' is default */
-        if (otmp)
-            dispose_of_orig_obj(otmp);
-        otmp = artiobj;
     } else {
         /* nothing appropriate could be found; return original object */
         if (by_align && otmp) {
-            /* (there shouldn't have been an original object) */
+            /* (there shouldn't have been an original object). Deal with it.
+             * The callers that passed an alignment and a NULL otmp are
+             * prepared to get a potential NULL return value, so this is okay */
             dispose_of_orig_obj(otmp);
             otmp = 0;
-        }
+        } /* otherwise, otmp has not changed; just fallthrough to return it */
     }
     return otmp;
 }
