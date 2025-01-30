@@ -1,14 +1,15 @@
-/* NetHack 3.7	dog.c	$NHDT-Date: 1652689621 2022/05/16 08:27:01 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.121 $ */
+/* NetHack 3.7	dog.c	$NHDT-Date: 1737287993 2025/01/19 03:59:53 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.178 $ */
 /* Copyright (c) Stichting Mathematisch Centrum, Amsterdam, 1985. */
 /*-Copyright (c) Robert Patrick Rankin, 2011. */
 /* NetHack may be freely redistributed.  See license for details. */
 
 #include "hack.h"
 
-static int pet_type(void);
-static void set_mon_lastmove(struct monst *);
-static int mon_leave(struct monst *);
-static boolean keep_mon_accessible(struct monst *);
+staticfn int pet_type(void);
+staticfn struct permonst * pick_familiar_pm(struct obj *, boolean);
+staticfn void set_mon_lastmove(struct monst *);
+staticfn int mon_leave(struct monst *) NONNULLARG1;
+staticfn boolean keep_mon_accessible(struct monst *);
 
 enum arrival {
     Before_you =  0, /* monsters kept on migrating_mons for accessibility;
@@ -52,7 +53,7 @@ initedog(struct monst *mtmp)
     EDOG(mtmp)->dropdist = 10000;
     EDOG(mtmp)->apport = ACURR(A_CHA);
     EDOG(mtmp)->whistletime = 0;
-    EDOG(mtmp)->hungrytime = 1000 + gm.moves;
+    EDOG(mtmp)->hungrytime = 1000 + svm.moves;
     EDOG(mtmp)->ogoal.x = -1; /* force error if used before set */
     EDOG(mtmp)->ogoal.y = -1;
     EDOG(mtmp)->abuse = 0;
@@ -62,7 +63,7 @@ initedog(struct monst *mtmp)
     u.uconduct.pets++;
 }
 
-static int
+staticfn int
 pet_type(void)
 {
     if (gu.urole.petnum != NON_PM)
@@ -75,6 +76,37 @@ pet_type(void)
         return  rn2(2) ? PM_KITTEN : PM_LITTLE_DOG;
 }
 
+staticfn struct permonst *
+pick_familiar_pm(struct obj *otmp, boolean quietly)
+{
+    struct permonst *pm = (struct permonst *) 0;
+
+    if (otmp) { /* figurine; otherwise spell */
+        int mndx = otmp->corpsenm;
+
+        assert(ismnum(mndx));
+        pm = &mons[mndx];
+        /* activating a figurine provides one way to exceed the
+           maximum number of the target critter created--unless
+           it has a special limit (erinys, Nazgul) */
+        if ((svm.mvitals[mndx].mvflags & G_EXTINCT)
+            && mbirth_limit(mndx) != MAXMONNO) {
+            if (!quietly)
+                /* have just been given "You <do something with>
+                   the figurine and it transforms." message */
+                pline("... into a pile of dust.");
+            return (struct permonst *) 0;
+        }
+    } else if (!rn2(3)) {
+        pm = &mons[pet_type()];
+    } else {
+        pm = rndmonst();
+        if (!pm && !quietly)
+            There("seems to be nothing available for a familiar.");
+    }
+    return pm;
+}
+
 struct monst *
 make_familiar(struct obj *otmp, coordxy x, coordxy y, boolean quietly)
 {
@@ -84,32 +116,10 @@ make_familiar(struct obj *otmp, coordxy x, coordxy y, boolean quietly)
 
     do {
         mmflags_nht mmflags;
-        int cgend, mndx;
+        int cgend;
 
-        if (otmp) { /* figurine; otherwise spell */
-            mndx = otmp->corpsenm;
-            pm = &mons[mndx];
-            /* activating a figurine provides one way to exceed the
-               maximum number of the target critter created--unless
-               it has a special limit (erinys, Nazgul) */
-            if ((gm.mvitals[mndx].mvflags & G_EXTINCT)
-                && mbirth_limit(mndx) != MAXMONNO) {
-                if (!quietly)
-                    /* have just been given "You <do something with>
-                       the figurine and it transforms." message */
-                    pline("... into a pile of dust.");
-                break; /* mtmp is null */
-            }
-        } else if (!rn2(3)) {
-            pm = &mons[pet_type()];
-        } else {
-            pm = rndmonst();
-            if (!pm) {
-                if (!quietly)
-                    There("seems to be nothing available for a familiar.");
-                break;
-            }
-        }
+        if (!(pm = pick_familiar_pm(otmp, quietly)))
+            break;
 
         mmflags = MM_EDOG | MM_IGNOREWATER | NO_MINVENT | MM_NOMSG;
         cgend = otmp ? (otmp->spe & CORPSTAT_GENDER) : 0;
@@ -145,7 +155,6 @@ make_familiar(struct obj *otmp, coordxy x, coordxy y, boolean quietly)
         return (struct monst *) 0;
 
     initedog(mtmp);
-    u.uconduct.pets++;
     mtmp->msleeping = 0;
     if (otmp) { /* figurine; resulting monster might not become a pet */
         chance = rn2(10); /* 0==tame, 1==peaceful, 2==hostile */
@@ -177,26 +186,23 @@ make_familiar(struct obj *otmp, coordxy x, coordxy y, boolean quietly)
     return mtmp;
 }
 
+/* used exclusively for hero's starting pet */
 struct monst *
 makedog(void)
 {
-    register struct monst *mtmp;
-    register struct obj *otmp;
+    struct monst *mtmp;
+    struct obj *otmp;
     const char *petname;
     int pettype;
 
     if (gp.preferred_pet == 'n')
         return ((struct monst *) 0);
 
-    u.uconduct.pets++;
-
     pettype = pet_type();
-    if (pettype == PM_LITTLE_DOG)
-        petname = gd.dogname;
-    else if (pettype == PM_PONY)
-        petname = gh.horsename;
-    else
-        petname = gc.catname;
+    petname = (pettype == PM_LITTLE_DOG) ? gd.dogname
+              : (pettype == PM_KITTEN) ? gc.catname
+                : (pettype == PM_PONY) ? gh.horsename
+                  : "";
 
     /* default pet names */
     if (!*petname && pettype == PM_LITTLE_DOG) {
@@ -214,13 +220,22 @@ makedog(void)
     mtmp = makemon(&mons[pettype], u.ux, u.uy, MM_EDOG);
 
     if (!mtmp)
-        return ((struct monst *) 0); /* pets were genocided */
+        return ((struct monst *) 0); /* pets were genocided [how?] */
 
-    gc.context.startingpet_mid = mtmp->m_id;
-    /* Horses already wear a saddle */
-    if (pettype == PM_PONY && !!(otmp = mksobj(SADDLE, TRUE, FALSE))) {
-        otmp->dknown = otmp->bknown = otmp->rknown = 1;
-        put_saddle_on_mon(otmp, mtmp);
+    if (!svc.context.startingpet_mid) {
+        svc.context.startingpet_mid = mtmp->m_id;
+        if (!u.uroleplay.pauper) {
+            /* initial horses already wear saddle (unless hero is a pauper) */
+            if (pettype == PM_PONY
+                && (otmp = mksobj(SADDLE, TRUE, FALSE)) != 0) {
+                /* pseudo initial inventory; saddle is not actually in hero's
+                 * invent so assume that update_inventory() isn't needed */
+                fully_identify_obj(otmp);
+                put_saddle_on_mon(otmp, mtmp);
+            }
+        }
+    } else {
+        impossible("makedog() when startingpet_mid is already non-zero?");
     }
 
     if (!gp.petname_used++ && *petname)
@@ -230,10 +245,10 @@ makedog(void)
     return  mtmp;
 }
 
-static void
+staticfn void
 set_mon_lastmove(struct monst *mtmp)
 {
-    mtmp->mlstmv = gm.moves;
+    mtmp->mlstmv = svm.moves;
 }
 
 /* record `last move time' for all monsters prior to level save so that
@@ -250,7 +265,7 @@ static struct monst *failed_arrivals = 0;
 void
 losedogs(void)
 {
-    register struct monst *mtmp, **mprev;
+    struct monst *mtmp, **mprev;
     int dismissKops = 0, xyloc;
 
 #ifdef FUZZER_LOG
@@ -408,6 +423,12 @@ mon_arrive(struct monst *mtmp, int when)
     fromdlev.dnum = mtmp->mtrack[2].x;
     fromdlev.dlevel = mtmp->mtrack[2].y;
     mon_track_clear(mtmp);
+    /* in case Protection_from_shape_changers is different now from when
+       'mtmp' went onto the migrating monsters list; that's handled in
+       getlev() when returning to a previously visited level and by the
+       special level code for monsters specified in the level, but needed
+       here for monsters migrating to a newly created level */
+    restore_cham(mtmp);
 
     if (mtmp == u.usteed)
         return; /* don't place steed on the map */
@@ -433,9 +454,9 @@ mon_arrive(struct monst *mtmp, int when)
      * specify its final destination.
      */
 
-    if (mtmp->mlstmv < gm.moves - 1L) {
+    if (mtmp->mlstmv < svm.moves - 1L) {
         /* heal monster for time spent in limbo */
-        long nmv = gm.moves - 1L - mtmp->mlstmv;
+        long nmv = svm.moves - 1L - mtmp->mlstmv;
 
         mon_catchup_elapsed_time(mtmp, nmv);
 
@@ -490,8 +511,8 @@ mon_arrive(struct monst *mtmp, int when)
                that we know that the current endgame levels always
                build upwards and never have any exclusion subregion
                inside their TELEPORT_REGION settings. */
-            xlocale = rn1(gu.updest.hx - gu.updest.lx + 1, gu.updest.lx);
-            ylocale = rn1(gu.updest.hy - gu.updest.ly + 1, gu.updest.ly);
+            xlocale = rn1(svu.updest.hx - svu.updest.lx + 1, svu.updest.lx);
+            ylocale = rn1(svu.updest.hy - svu.updest.ly + 1, svu.updest.ly);
             break;
         }
         /* find the arrival portal */
@@ -505,10 +526,13 @@ mon_arrive(struct monst *mtmp, int when)
                    && (stway = stairway_find_dir(!builds_up(&u.uz))) != 0) {
             /* debugfuzzer returns from or enters another branch */
             xlocale = stway->sx, ylocale = stway->sy;
+            break;
         } else if (!(u.uevent.qexpelled
                      && (Is_qstart(&u.uz0) || Is_qstart(&u.uz)))) {
             impossible("mon_arrive: no corresponding portal?");
-        } /*FALLTHRU*/
+        }
+        FALLTHROUGH;
+        /*FALLTHRU*/
     default:
     case MIGR_RANDOM:
         xlocale = ylocale = 0;
@@ -530,7 +554,7 @@ mon_arrive(struct monst *mtmp, int when)
             coord c;
 
             /* somexy() handles irregular rooms */
-            if (somexy(&gr.rooms[*r - ROOMOFFSET], &c))
+            if (somexy(&svr.rooms[*r - ROOMOFFSET], &c))
                 xlocale = c.x, ylocale = c.y;
             else
                 xlocale = ylocale = 0;
@@ -623,10 +647,12 @@ mon_catchup_elapsed_time(
         mtmp->mstun = 0;
 
     /* might finish eating or be able to use special ability again */
-    if (imv > mtmp->meating)
-        finish_meating(mtmp);
-    else
-        mtmp->meating -= imv;
+    if (mtmp->meating) {
+        if (imv > mtmp->meating)
+            finish_meating(mtmp);
+        else
+            mtmp->meating -= imv;
+    }
     if (imv > mtmp->mspec_used)
         mtmp->mspec_used = 0;
     else
@@ -649,8 +675,8 @@ mon_catchup_elapsed_time(
         && (carnivorous(mtmp->data) || herbivorous(mtmp->data))) {
         struct edog *edog = EDOG(mtmp);
 
-        if ((gm.moves > edog->hungrytime + 500 && mtmp->mhp < 3)
-            || (gm.moves > edog->hungrytime + 750))
+        if ((svm.moves > edog->hungrytime + 500 && mtmp->mhp < 3)
+            || (svm.moves > edog->hungrytime + 750))
             mtmp->mtame = mtmp->mpeaceful = 0;
     }
 
@@ -665,17 +691,14 @@ mon_catchup_elapsed_time(
     if (!mtmp->mwither) {
         if (!regenerates(mtmp->data))
             imv /= 20;
-        if (mtmp->mhp + imv >= mtmp->mhpmax)
-            mtmp->mhp = mtmp->mhpmax;
-        else
-            mtmp->mhp += imv;
+        healmon(mtmp, imv, 0);
     }
     set_mon_lastmove(mtmp);
 }
 
 /* bookkeeping when mtmp is about to leave the current level;
    common to keepdogs() and migrate_to_level() */
-static int
+staticfn int
 mon_leave(struct monst *mtmp)
 {
     struct obj *obj;
@@ -714,7 +737,7 @@ mon_leave(struct monst *mtmp)
 
 /* when hero leaves a level, some monsters should be placed on the
    migrating_mons list instead of being stashed inside the level's file */
-static boolean
+staticfn boolean
 keep_mon_accessible(struct monst *mon)
 {
     /* the Wizard is kept accessible so that his harassment can fetch
@@ -739,7 +762,7 @@ void
 keepdogs(boolean pets_only, /* true for ascension or final escape */
          boolean stairs)
 {
-    register struct monst *mtmp, *mtmp2;
+    struct monst *mtmp, *mtmp2;
 
     for (mtmp = fmon; mtmp; mtmp = mtmp2) {
         mtmp2 = mtmp->nmon;
@@ -753,7 +776,7 @@ keepdogs(boolean pets_only, /* true for ascension or final escape */
                unlike level change for steed, don't bother trying
                to achieve a normal trap escape first */
             mtmp->mtrapped = 0;
-            mtmp->meating = 0;
+            finish_meating(mtmp);
             mtmp->msleeping = 0;
             mtmp->mfrozen = 0;
             mtmp->mcanmove = 1;
@@ -781,8 +804,8 @@ keepdogs(boolean pets_only, /* true for ascension or final escape */
                 mdrop_special_objs(mtmp); /* drop Amulet */
             } else if (mtmp->meating || mtmp->mtrapped) {
                 if (canseemon(mtmp))
-                    pline("%s is still %s.", Monnam(mtmp),
-                          mtmp->meating ? "eating" : "trapped");
+                    pline_mon(mtmp, "%s is still %s.", Monnam(mtmp),
+                             mtmp->meating ? "eating" : "trapped");
                 stay_behind = TRUE;
             } else if (mon_has_amulet(mtmp)) {
                 if (canseemon(mtmp))
@@ -826,7 +849,7 @@ keepdogs(boolean pets_only, /* true for ascension or final escape */
             relmon(mtmp, &gm.mydogs); /* mtmp->mx,my retain current value */
             mtmp->mx = mtmp->my = 0; /* mx==0 implies migrating */
             mtmp->wormno = num_segs;
-            mtmp->mlstmv = gm.moves;
+            mtmp->mlstmv = svm.moves;
         } else if (keep_mon_accessible(mtmp)) {
             /* we want to be able to find the Wizard when his next
                resurrection chance comes up, but have him resume his
@@ -878,7 +901,7 @@ migrate_to_level(
        destination codes */
     xyflags = (depth(&new_lev) < depth(&u.uz)); /* 1 => up */
     mtmp->wormno = num_segs;
-    mtmp->mlstmv = gm.moves;
+    mtmp->mlstmv = svm.moves;
     mtmp->mtrack[2].x = u.uz.dnum; /* migrating from this dungeon */
     mtmp->mtrack[2].y = u.uz.dlevel; /* migrating from this dungeon level */
     mtmp->mtrack[1].x = cc ? cc->x : mx;
@@ -918,6 +941,8 @@ discard_migrations(void)
             mtmp->nmon = 0;
             discard_minvent(mtmp, FALSE);
             /* bypass mongone() and its call to m_detach() plus dmonsfree() */
+            if (emits_light(mtmp->data))
+                del_light_source(LS_MONSTER, monst_to_any(mtmp));
             dealloc_monst(mtmp);
         }
     }
@@ -940,6 +965,12 @@ discard_migrations(void)
             otmp->where = OBJ_FREE;
             otmp->owornmask = 0L; /* overloaded for destination usage;
                                    * obfree() will complain if nonzero */
+            /*
+             * obfree(otmp,)
+             *  -> dealloc_obj(otmp)
+             *      -> obj_stop_timers(otmp)
+             *      -> del_light_source(LS_OBJECT, obj_to_any(otmp))
+             */
             obfree(otmp, (struct obj *) 0); /* releases any contents too */
         }
     }
@@ -955,20 +986,26 @@ dogfood(struct monst *mon, struct obj *obj)
             starving, mblind;
     int fx;
 
+    if (obj->opoisoned && !resists_poison(mon))
+        return POISON;
     if (is_quest_artifact(obj) || obj_resists(obj, 0, 95))
         return obj->cursed ? TABU : APPORT;
 
     switch (obj->oclass) {
     case FOOD_CLASS:
         fx = (obj->otyp == CORPSE || obj->otyp == TIN || obj->otyp == EGG)
+                /* corpsenm might be NON_PM (special tin, unhatchable egg) */
                 ? obj->corpsenm
-                : NUMMONS; /* valid mons[mndx] to pacify static analyzer */
-        fptr = &mons[fx];
+                : NON_PM;
+        /* mons[NUMMONS] is a valid array entry, though not a valid monster;
+         * predicate tests against it will fail */
+        fptr = &mons[(ismnum(fx)) ? fx : NUMMONS];
 
         if (obj->otyp == CORPSE && is_rider(fptr))
             return TABU;
         if ((obj->otyp == CORPSE || obj->otyp == EGG)
-            && touch_petrifies(fptr) && !resists_ston(mon))
+            && flesh_petrifies(fptr) /* c*ckatrice or Medusa */
+            && !resists_ston(mon))
             return POISON;
         if (obj->otyp == LUMP_OF_ROYAL_JELLY
             && mon->data == &mons[PM_KILLER_BEE]) {
@@ -992,7 +1029,7 @@ dogfood(struct monst *mon, struct obj *obj)
            when starving; they never eat stone-to-flesh'd meat */
         if (mptr == &mons[PM_GHOUL]) {
             if (obj->otyp == CORPSE)
-                return (peek_at_iced_corpse_age(obj) + 50L <= gm.moves
+                return (peek_at_iced_corpse_age(obj) + 50L <= svm.moves
                         && !(fx == PM_LIZARD || fx == PM_LICHEN)) ? DOGFOOD
                        : (starving && !vegan(fptr)) ? ACCFOOD
                          : POISON;
@@ -1009,9 +1046,11 @@ dogfood(struct monst *mon, struct obj *obj)
         case ENORMOUS_MEATBALL:
             return carni ? DOGFOOD : MANFOOD;
         case EGG:
+            if (obj->corpsenm == PM_PYROLISK && !likes_fire(mptr))
+                return POISON;
             return carni ? CADAVER : MANFOOD;
         case CORPSE:
-            if ((peek_at_iced_corpse_age(obj) + 50L <= gm.moves
+            if ((peek_at_iced_corpse_age(obj) + 50L <= svm.moves
                  && !(fx == PM_LIZARD || fx == PM_LICHEN)
                  && mptr->mlet != S_FUNGUS)
                 || (acidic(fptr) && !resists_acid(mon))
@@ -1019,7 +1058,7 @@ dogfood(struct monst *mon, struct obj *obj)
                 return POISON;
             /* avoid polymorph unless starving or abused (in which case the
                pet will consider it for a chance to become more powerful) */
-            else if (is_shapeshifter(fptr) && mon->mtame > 1 && !starving)
+            else if (polyfood(obj) && mon->mtame > 1 && !starving)
                 return MANFOOD;
             else if (vegan(fptr))
                 return herbi ? (mon_wants_prop(fptr, mon) ? DOGFOOD : CADAVER)
@@ -1083,24 +1122,52 @@ dogfood(struct monst *mon, struct obj *obj)
             && obj->oclass != BALL_CLASS
             && obj->oclass != CHAIN_CLASS)
             return APPORT;
+        FALLTHROUGH;
+        /*FALLTHRU*/
+    case ROCK_CLASS:
         return UNDEF;
     }
 }
 
 /*
- * With the separate mextra structure added in 3.6.x this always
- * operates on the original mtmp. It now returns TRUE if the taming
- * succeeded.
+ * tamedog() used to return the monster, which might have changed address
+ * if a new one was created in order to allocate the edog extension.
+ * With the separate mextra structure added in 3.6.x it always operates
+ * on the original mtmp.  It now returns TRUE if the taming succeeded.
  */
 boolean
-tamedog(struct monst *mtmp, struct obj *obj, boolean pacify_only)
+tamedog(
+    struct monst *mtmp,
+    struct obj *obj, /* food or scroll/spell */
+    boolean pacify_only,
+    boolean givemsg)
 {
+    boolean blessed_scroll = FALSE;
+
+    if (obj && (obj->oclass == SCROLL_CLASS || obj->oclass == SPBOOK_CLASS)) {
+        blessed_scroll = obj->blessed ? TRUE : FALSE;
+        /* the rest of this routine assumes 'obj' represents food */
+        obj = (struct obj *) NULL;
+    }
+    /* reduce timed sleep or paralysis, leaving mtmp->mcanmove as-is
+       (note: if mtmp is donning armor, this will reduce its busy time) */
+    if (mtmp->mfrozen)
+        mtmp->mfrozen = (mtmp->mfrozen + 1) / 2;
+    /* end indefinite sleep; using distance==1 limits the waking to mtmp */
+    if (mtmp->msleeping)
+        wake_nearto(mtmp->mx, mtmp->my, 1); /* [different from wakeup()] */
+
     /* The Wiz, Medusa and the quest nemeses aren't even made peaceful. */
     if (mtmp->iswiz || mtmp->data == &mons[PM_MEDUSA]
         || (mtmp->data->mflags3 & M3_WANTSARTI))
         return FALSE;
 
     /* worst case, at least it'll be peaceful. */
+    if (givemsg && !mtmp->mpeaceful && canspotmon(mtmp)) {
+        pline_mon(mtmp, "%s seems %s.", Monnam(mtmp),
+              Hallucination ? "really chill" : "more amiable");
+        givemsg = FALSE; /* don't give another message below */
+    }
     mtmp->mpeaceful = 1;
     set_malign(mtmp);
     if (flags.moonphase == FULL_MOON && night() && rn2(6) && obj
@@ -1126,14 +1193,15 @@ tamedog(struct monst *mtmp, struct obj *obj, boolean pacify_only)
         if (mtmp->mcanmove && !mtmp->mconf && !mtmp->meating
             && ((tasty = dogfood(mtmp, obj)) == DOGFOOD
                 || (tasty <= ACCFOOD
-                    && EDOG(mtmp)->hungrytime <= gm.moves))) {
+                    && EDOG(mtmp)->hungrytime <= svm.moves))) {
             /* pet will "catch" and eat this thrown food */
             if (canseemon(mtmp)) {
                 boolean big_corpse =
-                    (obj->otyp == CORPSE && obj->corpsenm >= LOW_PM
+                    (obj->otyp == CORPSE && ismnum(obj->corpsenm)
                      && mons[obj->corpsenm].msize > mtmp->data->msize);
-                pline("%s catches %s%s", Monnam(mtmp), the(xname(obj)),
-                      !big_corpse ? "." : ", or vice versa!");
+                pline_mon(mtmp, "%s catches %s%s",
+                          Monnam(mtmp), the(xname(obj)),
+                         !big_corpse ? "." : ", or vice versa!");
             } else if (cansee(mtmp->mx, mtmp->my))
                 pline("%s.", Tobjnam(obj, "stop"));
             /* dog_eat expects a floor object */
@@ -1147,11 +1215,17 @@ tamedog(struct monst *mtmp, struct obj *obj, boolean pacify_only)
             return FALSE;
     }
 
-    /* if already tame, taming magic might make it become tamer */
-    if (mtmp->mtame) {
-        /* maximum tameness is 20, only reachable via eating */
-        if (rnd(10) > mtmp->mtame)
+    /* maximum tameness is 20, only reachable via eating; if already tame but
+       less than 10, taming magic might make it become tamer; blessed scroll
+       or skilled spell raises low tameness by 2 or 3, uncursed by 0 or 1 */
+    if (mtmp->mtame && mtmp->mtame < 10) {
+        if (mtmp->mtame < rnd(10))
             mtmp->mtame++;
+        if (blessed_scroll) {
+            mtmp->mtame += 2;
+            if (mtmp->mtame > 10)
+                mtmp->mtame = 10;
+        }
         return FALSE; /* didn't just get tamed */
     }
     /* pacify angry shopkeeper but don't tame him/her/it/them */
@@ -1170,9 +1244,9 @@ tamedog(struct monst *mtmp, struct obj *obj, boolean pacify_only)
         || (obj && dogfood(mtmp, obj) >= MANFOOD))
         return FALSE;
 
-    if (mtmp->m_id == gq.quest_status.leader_m_id)
+    if (mtmp->m_id == svq.quest_status.leader_m_id)
         return FALSE;
-    if (mtmp->m_id == gq.quest_status.nemesis_m_id)
+    if (mtmp->m_id == svq.quest_status.nemesis_m_id)
         return FALSE;
 
     if (pacify_only) {
@@ -1180,9 +1254,10 @@ tamedog(struct monst *mtmp, struct obj *obj, boolean pacify_only)
     }
 
     /* add the pet extension */
-    newedog(mtmp);
-    initedog(mtmp);
-    u.uconduct.pets++;
+    if (!has_edog(mtmp)) {
+        newedog(mtmp);
+        initedog(mtmp);
+    }
 
     if (obj) { /* thrown food */
         /* defer eating until the edog extension has been set up */
@@ -1193,7 +1268,13 @@ tamedog(struct monst *mtmp, struct obj *obj, boolean pacify_only)
         /* `obj' is now obsolete */
     }
 
+    if (givemsg && canspotmon(mtmp))
+        pline_mon(mtmp, "%s seems quite %s.", Monnam(mtmp),
+              Hallucination ? "approachable" : "friendly");
+
     newsym(mtmp->mx, mtmp->my);
+    if (mtmp->wormno)
+        redraw_worm(mtmp);
     if (attacktype(mtmp->data, AT_WEAP)) {
         mtmp->weapon_check = NEED_HTH_WEAPON;
         (void) mon_wield_item(mtmp);
@@ -1235,11 +1316,12 @@ wary_dog(struct monst *mtmp, boolean was_dead)
         if (!quietly && cansee(mtmp->mx, mtmp->my)) {
             if (haseyes(gy.youmonst.data)) {
                 if (haseyes(mtmp->data))
-                    pline("%s %s to look you in the %s.", Monnam(mtmp),
-                          mtmp->mpeaceful ? "seems unable" : "refuses",
-                          body_part(EYE));
+                    pline_mon(mtmp,
+                             "%s %s to look you in the %s.", Monnam(mtmp),
+                             mtmp->mpeaceful ? "seems unable" : "refuses",
+                             body_part(EYE));
                 else
-                    pline("%s avoids your gaze.", Monnam(mtmp));
+                    pline_mon(mtmp, "%s avoids your gaze.", Monnam(mtmp));
             }
         }
     } else {
@@ -1251,7 +1333,7 @@ wary_dog(struct monst *mtmp, boolean was_dead)
 
     if (!mtmp->mtame) {
         if (!quietly && canspotmon(mtmp))
-            pline("%s %s.", Monnam(mtmp),
+            pline_mon(mtmp, "%s %s.", Monnam(mtmp),
                   mtmp->mpeaceful ? "is no longer tame" : "has become feral");
         newsym(mtmp->mx, mtmp->my);
         /* a life-saved monster might be leashed;
@@ -1266,8 +1348,8 @@ wary_dog(struct monst *mtmp, boolean was_dead)
         edog->killed_by_u = 0;
         edog->abuse = 0;
         edog->ogoal.x = edog->ogoal.y = -1;
-        if (was_dead || edog->hungrytime < gm.moves + 500L)
-            edog->hungrytime = gm.moves + 500L;
+        if (was_dead || edog->hungrytime < svm.moves + 500L)
+            edog->hungrytime = svm.moves + 500L;
         if (was_dead) {
             edog->droptime = 0L;
             edog->dropdist = 10000;
@@ -1302,8 +1384,12 @@ abuse_dog(struct monst *mtmp)
         else
             growl(mtmp); /* give them a moment's worry */
 
-        if (!mtmp->mtame)
+        if (!mtmp->mtame) {
             newsym(mtmp->mx, mtmp->my);
+            if (mtmp->wormno) {
+                redraw_worm(mtmp);
+            }
+        }
     }
 }
 

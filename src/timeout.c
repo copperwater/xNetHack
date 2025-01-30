@@ -1,24 +1,26 @@
-/* NetHack 3.7	timeout.c	$NHDT-Date: 1658390077 2022/07/21 07:54:37 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.142 $ */
+/* NetHack 3.7	timeout.c	$NHDT-Date: 1727251273 2024/09/25 08:01:13 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.193 $ */
 /* Copyright (c) Stichting Mathematisch Centrum, Amsterdam, 1985. */
 /*-Copyright (c) Robert Patrick Rankin, 2018. */
 /* NetHack may be freely redistributed.  See license for details. */
 
 #include "hack.h"
 
-static void stoned_dialogue(void);
-static void vomiting_dialogue(void);
-static void choke_dialogue(void);
-static void levitation_dialogue(void);
-static void reappear_dialogue(void);
-static void slime_dialogue(void);
-static void slimed_to_death(struct kinfo *);
-static void sickness_dialogue(void);
-static void phaze_dialogue(void);
-static void done_timeout(int, int);
-static void slip_or_trip(void);
-static void see_lamp_flicker(struct obj *, const char *);
-static void lantern_message(struct obj *);
-static void cleanup_burn(ANY_P *, long);
+staticfn void stoned_dialogue(void);
+staticfn void vomiting_dialogue(void);
+staticfn void sleep_dialogue(void);
+staticfn void choke_dialogue(void);
+staticfn void levitation_dialogue(void);
+staticfn void reappear_dialogue(void);
+staticfn void slime_dialogue(void);
+staticfn void slimed_to_death(struct kinfo *) NO_NNARGS;
+staticfn void sickness_dialogue(void);
+staticfn void phaze_dialogue(void);
+staticfn void region_dialogue(void);
+staticfn void done_timeout(int, int);
+staticfn void slip_or_trip(void);
+staticfn void see_lamp_flicker(struct obj *, const char *) NONNULLPTRS;
+staticfn void lantern_message(struct obj *) NONNULLARG1;
+staticfn void cleanup_burn(ANY_P *, long) NONNULLARG1;
 
 /* used by wizard mode #timeout and #wizintrinsic; order by 'interest'
    for timeout countdown, where most won't occur in normal play;
@@ -57,6 +59,8 @@ const struct propname {
     /* timed pass-walls is a potential prayer result if surrounded by stone
        with nowhere to be safely teleported to */
     { PASSES_WALLS, "pass thru walls" },
+    /* likewise for magical breathing vs poison gas regions */
+    { MAGICAL_BREATHING, "magical breathing" },
     /* timed fire resistance and water walking are possible in explore mode
        (as well as in wizard mode) after life-saving in lava if it fails to
        teleport the hero to safety and player declines to die */
@@ -77,6 +81,7 @@ const struct propname {
     { SICK_RES, "sickness resistance" },
     { ANTIMAGIC, "magic resistance" },
     { HALLUC_RES, "hallucination resistance" },
+    { BLND_RES, "light-induced blindness resistance" },
     { FUMBLING, "fumbling" },
     { HUNGER, "voracious hunger" },
     { TELEPAT, "telepathic" },
@@ -93,7 +98,6 @@ const struct propname {
     { TELEPORT_CONTROL, "teleport control" },
     { FLYING, "flying" },
     { SWIMMING, "swimming" },
-    { MAGICAL_BREATHING, "magical breathing" },
     { SLOW_DIGESTION, "slow digestion" },
     { HALF_SPDAM, "half spell damage" },
     { HALF_PHDAM, "half physical damage" },
@@ -140,7 +144,7 @@ can_slime_with_unchanging(void)
 const char *
 property_by_index(int idx, int *propertynum)
 {
-    if (!(idx >= 0 && idx < SIZE(propertynames) - 1))
+    if (!IndexOkT(idx, propertynames))
         idx = SIZE(propertynames) - 1;
 
     if (propertynum)
@@ -157,7 +161,7 @@ static NEARDATA const char *const stoned_texts[] = {
     "You are a statue."                 /* 1 */
 };
 
-static void
+staticfn void
 stoned_dialogue(void)
 {
     long i = (Stoned & TIMEOUT);
@@ -217,7 +221,7 @@ static NEARDATA const char *const vomiting_texts[] = {
     "are about to vomit."            /* 2 */
 };
 
-static void
+staticfn void
 vomiting_dialogue(void)
 {
     const char *txt = 0;
@@ -239,6 +243,7 @@ vomiting_dialogue(void)
         make_stunned((HStun & TIMEOUT) + (long) d(2, 4), FALSE);
         if (!Popeye(VOMITING))
             stop_occupation();
+        FALLTHROUGH;
     /*FALLTHRU*/
     case 9:
         make_confused((HConfusion & TIMEOUT) + (long) d(2, 4), FALSE);
@@ -287,6 +292,15 @@ vomiting_dialogue(void)
     exercise(A_CON, FALSE);
 }
 
+staticfn void
+sleep_dialogue(void)
+{
+    long i = (HSleepy & TIMEOUT);
+
+    if (i == 4)
+        You("yawn.");
+}
+
 DISABLE_WARNING_FORMAT_NONLITERAL   /* RESTORE is after slime_dialogue */
 
 static NEARDATA const char *const choke_texts[] = {
@@ -305,7 +319,7 @@ static NEARDATA const char *const choke_texts2[] = {
     "You suffocate."
 };
 
-static void
+staticfn void
 choke_dialogue(void)
 {
     long i = (Strangled & TIMEOUT);
@@ -321,6 +335,7 @@ choke_dialogue(void)
                 urgent_pline(str, hcolor(NH_BLUE));
             else
                 urgent_pline("%s", str);
+            stop_occupation();
         }
     }
     exercise(A_STR, FALSE);
@@ -332,7 +347,7 @@ static NEARDATA const char *const sickness_texts[] = {
     "You are at Death's door.",
 };
 
-static void
+staticfn void
 sickness_dialogue(void)
 {
     long j = (Sick & TIMEOUT), i = j / 2L;
@@ -362,7 +377,7 @@ static NEARDATA const char *const levi_texts[] = {
     "You wobble unsteadily %s the %s."
 };
 
-static void
+staticfn void
 levitation_dialogue(void)
 {
     /* -1 because the last message comes via float_down() */
@@ -386,10 +401,11 @@ levitation_dialogue(void)
                          danger ? surface(u.ux, u.uy) : "air");
         } else
             pline1(s);
+        stop_occupation();
     }
 }
 
-static void
+staticfn void
 reappear_dialogue(void)
 {
     if (EInvis)
@@ -414,7 +430,7 @@ static NEARDATA const char *const slime_texts[] = {
     "You have become %s."             /* 1 */
 };
 
-static void
+staticfn void
 slime_dialogue(void)
 {
     long t = (Slimed & TIMEOUT), i = t / 2L;
@@ -488,8 +504,8 @@ burn_away_slime(void)
 }
 
 /* countdown timer for turning into green slime has run out; kill our hero */
-static void
-slimed_to_death(struct kinfo* kptr)
+staticfn void
+slimed_to_death(struct kinfo *kptr)
 {
     uchar save_mvflags;
 
@@ -500,11 +516,11 @@ slimed_to_death(struct kinfo* kptr)
     }
     /* more sure killer reason is set up */
     if (kptr && kptr->name[0]) {
-        gk.killer.format = kptr->format;
-        Strcpy(gk.killer.name, kptr->name);
+        svk.killer.format = kptr->format;
+        Strcpy(svk.killer.name, kptr->name);
     } else {
-        gk.killer.format = NO_KILLER_PREFIX;
-        Strcpy(gk.killer.name, "turned into green slime");
+        svk.killer.format = NO_KILLER_PREFIX;
+        Strcpy(svk.killer.name, "turned into green slime");
     }
     dealloc_killer(kptr);
 
@@ -522,13 +538,13 @@ slimed_to_death(struct kinfo* kptr)
      */
     if (emits_light(gy.youmonst.data))
         del_light_source(LS_MONSTER, monst_to_any(&gy.youmonst));
-    save_mvflags = gm.mvitals[PM_GREEN_SLIME].mvflags;
-    gm.mvitals[PM_GREEN_SLIME].mvflags = save_mvflags & ~G_GENOD;
+    save_mvflags = svm.mvitals[PM_GREEN_SLIME].mvflags;
+    svm.mvitals[PM_GREEN_SLIME].mvflags = save_mvflags & ~G_GENOD;
     /* become a green slime; also resets youmonst.m_ap_type+.mappearance */
     /* suppress the transformation message to avoid "You have become a green
      * slime.  You turn into a green slime!" */
     (void) polymon(PM_GREEN_SLIME, (POLYMON_ALL_MSGS & ~POLYMON_TRANSFORM_MSG));
-    gm.mvitals[PM_GREEN_SLIME].mvflags = save_mvflags;
+    svm.mvitals[PM_GREEN_SLIME].mvflags = save_mvflags;
     done_timeout(TURNED_SLIME, SLIMED);
     return;
 }
@@ -545,7 +561,7 @@ static NEARDATA const char *const phaze_texts[] = {
     "You are feeling rather flabby.",
 };
 
-static void
+staticfn void
 phaze_dialogue(void)
 {
     long i = ((HPasses_walls & TIMEOUT) / 2L);
@@ -554,13 +570,39 @@ phaze_dialogue(void)
         return;
 
     if (((HPasses_walls & TIMEOUT) % 2L) && i > 0L && i <= SIZE(phaze_texts))
-        pline1(phaze_texts[SIZE(phaze_texts) - i]);
+        pline("%s", phaze_texts[SIZE(phaze_texts) - i]);
+}
+
+/* Similar to Passes_walls, if prayer tries to save hero from a poison
+   gas region but can't, (HMagical_breathing & TIMEOUT) will be set to
+   a small value.  Unlike Passes_walls, there's no joke message. */
+static NEARDATA const char *const region_texts[] = {
+    "You seem to have some trouble breathing.",
+    "The air here seems foul.",
+};
+
+staticfn void
+region_dialogue(void)
+{
+    boolean no_need_to_breathe, in_poison_gas_cloud;
+    long r = (HMagical_breathing & TIMEOUT), i = r / 2L;
+
+    /* might have poly'd into non-breather or moved out of gas cloud */
+    HMagical_breathing &= ~TIMEOUT;
+    no_need_to_breathe = Breathless;
+    in_poison_gas_cloud = region_danger();
+    HMagical_breathing |= r;
+    if (no_need_to_breathe || !in_poison_gas_cloud)
+        return;
+
+    if ((r % 2L) && i > 0L && i <= SIZE(region_texts))
+        pline("%s", region_texts[SIZE(region_texts) - i]);
 }
 
 /* when a status timeout is fatal, keep the status line indicator shown
    during end of game rundown (and potential dumplog);
    timeout has already counted down to 0 by the time we get here */
-static void
+staticfn void
 done_timeout(int how, int which)
 {
     long *intrinsic_p = &u.uprops[which].intrinsic;
@@ -570,13 +612,13 @@ done_timeout(int how, int which)
 
     /* life-saved */
     *intrinsic_p &= ~I_SPECIAL;
-    gc.context.botl = TRUE;
+    disp.botl = TRUE;
 }
 
 void
 nh_timeout(void)
 {
-    register struct prop *upp;
+    struct prop *upp;
     struct kinfo *kptr;
     boolean was_flying;
     int sleeptime;
@@ -587,17 +629,20 @@ nh_timeout(void)
         baseluck -= 1;
 
     /* letting your quest leader die brings bad luck */
-    if (gq.quest_status.killed_leader)
-        baseluck = -4;
+    if (svq.quest_status.killed_leader)
+        baseluck -= 4;
+
+    if (Role_if(PM_ARCHEOLOGIST) && uarmh && uarmh->otyp == FEDORA)
+        baseluck += 1;
 
     if (u.uluck != baseluck
-        && gm.moves % ((u.uhave.amulet || u.ugangr) ? 300 : 600) == 0) {
+        && svm.moves % ((u.uhave.amulet || u.ugangr) ? 300 : 600) == 0) {
         /* Cursed luckstones stop bad luck from timing out; blessed luckstones
          * stop good luck from timing out; normal luckstones stop both;
          * neither is stopped if you don't have a luckstone.
          * Luck is based at 0 usually, +1 if a full moon and -1 on Friday 13th
          */
-        register int time_luck = stone_luck(FALSE);
+        int time_luck = stone_luck(FALSE);
         boolean nostone = !carrying(LUCKSTONE) && !stone_luck(TRUE);
 
         if (u.uluck > baseluck && (nostone || time_luck < 0))
@@ -623,6 +668,10 @@ nh_timeout(void)
         levitation_dialogue();
     if (HPasses_walls & TIMEOUT)
         phaze_dialogue();
+    if (HMagical_breathing & TIMEOUT)
+        region_dialogue();
+    if (HSleepy & TIMEOUT)
+        sleep_dialogue();
     if (u.mtimedone && !--u.mtimedone) {
         if (Unchanging)
             u.mtimedone = rnd(100 * gy.youmonst.data->mlevel + 1);
@@ -674,11 +723,11 @@ nh_timeout(void)
             switch (upp - u.uprops) {
             case STONED:
                 if (kptr && kptr->name[0]) {
-                    gk.killer.format = kptr->format;
-                    Strcpy(gk.killer.name, kptr->name);
+                    svk.killer.format = kptr->format;
+                    Strcpy(svk.killer.name, kptr->name);
                 } else {
-                    gk.killer.format = NO_KILLER_PREFIX;
-                    Strcpy(gk.killer.name, "killed by petrification");
+                    svk.killer.format = NO_KILLER_PREFIX;
+                    Strcpy(svk.killer.name, "killed by petrification");
                 }
                 dealloc_killer(kptr);
                 /* (unlike sliming, you aren't changing form here) */
@@ -703,21 +752,21 @@ nh_timeout(void)
                 }
                 urgent_pline("You die from your illness.");
                 if (kptr && kptr->name[0]) {
-                    gk.killer.format = kptr->format;
-                    Strcpy(gk.killer.name, kptr->name);
+                    svk.killer.format = kptr->format;
+                    Strcpy(svk.killer.name, kptr->name);
                 } else {
-                    gk.killer.format = KILLED_BY_AN;
-                    gk.killer.name[0] = 0; /* take the default */
+                    svk.killer.format = KILLED_BY_AN;
+                    svk.killer.name[0] = 0; /* take the default */
                 }
                 dealloc_killer(kptr);
 
-                if ((m_idx = name_to_mon(gk.killer.name,
+                if ((m_idx = name_to_mon(svk.killer.name,
                                          (int *) 0)) >= LOW_PM) {
                     if (type_is_pname(&mons[m_idx])) {
-                        gk.killer.format = KILLED_BY;
+                        svk.killer.format = KILLED_BY;
                     } else if (mons[m_idx].geno & G_UNIQ) {
-                        Strcpy(gk.killer.name, the(gk.killer.name));
-                        gk.killer.format = KILLED_BY;
+                        Strcpy(svk.killer.name, the(svk.killer.name));
+                        svk.killer.format = KILLED_BY;
                     }
                 }
                 done_timeout(POISONING, SICK);
@@ -725,7 +774,7 @@ nh_timeout(void)
                 break;
             case WITHERING:
                 You("are no longer withering away.");
-                gc.context.botl = TRUE;
+                disp.botl = TRUE;
                 break;
             case DOOMED:
                 pline("The pall of doom around you lifts.");
@@ -760,7 +809,7 @@ nh_timeout(void)
             case DEAF:
                 set_itimeout(&HDeaf, 1L);
                 make_deaf(0L, TRUE);
-                gc.context.botl = TRUE;
+                disp.botl = TRUE;
                 if (!Deaf)
                     stop_occupation();
                 break;
@@ -813,7 +862,7 @@ nh_timeout(void)
             case FLYING:
                 /* timed Flying is via #wizintrinsic only */
                 if (was_flying && !Flying) {
-                    gc.context.botl = 1;
+                    disp.botl = TRUE;
                     if (!is_open_air(u.ux, u.uy)) {
                         You("land.");
                     }
@@ -821,15 +870,33 @@ nh_timeout(void)
                 }
                 break;
             case ACID_RES:
-                if (!Acid_resistance && !Unaware)
-                    You("no longer feel safe from acid.");
+                if (!Acid_resistance) {
+                    if (eating_dangerous_corpse(ACID_RES)) {
+                        /* extend temporary acid resistance if in midst
+                           of eating an acidic corpse; this will repeat
+                           until eating is finished or interrupted */
+                        set_itimeout(&u.uprops[ACID_RES].intrinsic, 1L);
+                        break;
+                    }
+                    if (!Unaware)
+                        You("no longer feel safe from acid.");
+                }
                 break;
             case STONE_RES:
                 if (!Stone_resistance) {
+                    if (eating_dangerous_corpse(STONE_RES)) {
+                        /* extend temporary stoning resistance if in midst
+                           of eating a stoning corpse; this will repeat
+                           until eating is finished or interrupted */
+                        set_itimeout(&u.uprops[STONE_RES].intrinsic, 1L);
+                        break;
+                    }
                     if (!Unaware)
                         You("no longer feel secure from petrification.");
                     /* no-op if not wielding a cockatrice corpse;
-                       uswapwep case is always a no-op (see Gloves_off()) */
+                       uswapwep case is always a no-op because two-weapon
+                       combat is only possible with two one-handed weapons
+                       or weapon tools, not corpses */
                     wielding_corpse(uwep, (struct obj *) 0, FALSE);
                     wielding_corpse(uswapwep, (struct obj *) 0, FALSE);
                 }
@@ -843,7 +910,7 @@ nh_timeout(void)
                     Your("temporary ability to survive burning has ended.");
                 break;
             case WWALKING:
-                /* [see fire reeistance] */
+                /* [see fire resistance] */
                 if (!Wwalking)
                     Your("temporary ability to walk on liquid has ended.");
                 break;
@@ -854,10 +921,10 @@ nh_timeout(void)
             case WARN_OF_MON:
                 /* timed Warn_of_mon is via #wizintrinsic only */
                 if (!Warn_of_mon) {
-                    struct permonst *wptr = gc.context.warntype.species;
+                    struct permonst *wptr = svc.context.warntype.species;
 
-                    gc.context.warntype.species = (struct permonst *) 0;
-                    gc.context.warntype.speciesidx = NON_PM;
+                    svc.context.warntype.species = (struct permonst *) 0;
+                    svc.context.warntype.speciesidx = NON_PM;
                     if (wptr)
                         You("are no longer warned about %s.",
                             makeplural(wptr->pmnames[NEUTRAL]));
@@ -872,9 +939,16 @@ nh_timeout(void)
                               !Upolyd ? "normal" : "unusual");
                 }
                 break;
+            case MAGICAL_BREATHING:
+                if (!Breathless) {
+                    if (region_danger())
+                        You("cough%s",
+                            Poison_resistance ? "." : " and spit blood!");
+                }
+                break;
             case STRANGLED:
-                gk.killer.format = KILLED_BY;
-                Strcpy(gk.killer.name,
+                svk.killer.format = KILLED_BY;
+                Strcpy(svk.killer.name,
                        (u.uburied) ? "suffocation" : "strangulation");
                 done_timeout(DIED, STRANGLED);
                 /* must be declining to die in explore|wizard mode;
@@ -901,7 +975,7 @@ nh_timeout(void)
                             You("forget the rules to Charades!");
                         else if (!Deaf)
                             You("make a lot of noise!");
-                        wake_nearby();
+                        wake_nearby(FALSE);
                     }
                 }
                 /* from outside means slippery ice; don't reset
@@ -925,6 +999,12 @@ nh_timeout(void)
             case REGENERATION:
                 if (!Regeneration)
                     You_feel("enervated.");
+                break;
+            case PROT_FROM_SHAPE_CHANGERS:
+                /* timed Protection_from_shape_changers is via
+                   #wizintrinsic only */
+                if (!Protection_from_shape_changers)
+                    restartcham();
                 break;
             }
         }
@@ -950,12 +1030,12 @@ fall_asleep(int how_long, boolean wakeup_msg)
         /* 3.7: how_long is negative so wasn't actually incrementing the
            deafness timeout when it used to be passed as-is */
         incr_itimeout(&HDeaf, abs(how_long));
-        gc.context.botl = TRUE;
+        disp.botl = TRUE;
         ga.afternmv = Hear_again; /* this won't give any messages */
     }
 #endif
     /* early wakeup from combat won't be possible until next monster turn */
-    u.usleep = gm.moves;
+    u.usleep = svm.moves;
     gn.nomovemsg = wakeup_msg ? "You wake up." : You_can_move_again;
 }
 
@@ -964,7 +1044,7 @@ fall_asleep(int how_long, boolean wakeup_msg)
  *             existing hatch timer. Pass 0L for random hatch time.
  */
 void
-attach_egg_hatch_timeout(struct obj* egg, long when)
+attach_egg_hatch_timeout(struct obj *egg, long when)
 {
     int i;
 
@@ -992,7 +1072,7 @@ attach_egg_hatch_timeout(struct obj* egg, long when)
 
 /* prevent an egg from ever hatching */
 void
-kill_egg(struct obj* egg)
+kill_egg(struct obj *egg)
 {
     /* stop previous timer, if any */
     (void) stop_timer(HATCH_EGG, obj_to_any(egg));
@@ -1019,32 +1099,32 @@ hatch_egg(anything *arg, long timeout)
     mnum = big_to_little(egg->corpsenm);
     /* The identity of one's father is learned, not innate */
     yours = (egg->spe || (!flags.female && carried(egg) && !rn2(2)));
-    silent = (timeout != gm.moves); /* hatched while away */
+    silent = (timeout != svm.moves); /* hatched while away */
 
-    /* only can hatch when in INVENT, FLOOR, MINVENT */
+    /* only can hatch when in INVENT, FLOOR, MINVENT;
+       get_obj_location() will fail for MIGRATING, also for CONTAINED
+       and BURIED when the flags for those aren't included in the call */
     if (get_obj_location(egg, &x, &y, 0)) {
         hatchcount = rnd((int) egg->quan);
         cansee_hatchspot = cansee(x, y) && !silent;
         if (!(mons[mnum].geno & G_UNIQ)
-            && !(gm.mvitals[mnum].mvflags & (G_GENOD | G_EXTINCT))) {
+            && !(svm.mvitals[mnum].mvflags & (G_GENOD | G_EXTINCT))) {
             for (i = hatchcount; i > 0; i--) {
                 if (!enexto(&cc, x, y, &mons[mnum])
                     || !(mon = makemon(&mons[mnum], cc.x, cc.y,
-                                       NO_MINVENT|MM_NOMSG)))
+                                       NO_MINVENT | MM_NOMSG)))
                     break;
                 /* tame if your own egg hatches while you're on the
                    same dungeon level, or any dragon egg which hatches
                    while it's in your inventory */
                 if ((yours && !silent)
                     || (carried(egg) && mon->data->mlet == S_DRAGON)) {
-                    if (tamedog(mon, (struct obj *) 0, FALSE)) {
-                        if (carried(egg) && mon->data->mlet != S_DRAGON) {
+                    if (tamedog(mon, (struct obj *) 0, FALSE, FALSE)) {
+                        if (carried(egg) && mon->data->mlet != S_DRAGON)
                             mon->mtame = 20;
-                            u.uconduct.pets++;
-                        }
                     }
                 }
-                if (gm.mvitals[mnum].mvflags & G_EXTINCT)
+                if (svm.mvitals[mnum].mvflags & G_EXTINCT)
                     break;  /* just made last one */
                 mon2 = mon; /* in case makemon() fails on 2nd egg */
             }
@@ -1152,9 +1232,14 @@ hatch_egg(anything *arg, long timeout)
             learn_egg_type(mnum);
 
         if (egg->quan > 0) {
-            /* still some eggs left */
-            /* Instead of ordinary egg timeout use a short one */
+            /* still some eggs left; we didn't split the stack, just
+               subtracted from quantity so weight needs to be updated;
+               for remainder of stack, add a new, short hatch timer */
             attach_egg_hatch_timeout(egg, (long) rnd(12));
+            /* container_weight(arg) updates arg->owt, and if contained,
+               its enclosing container arg->ocontainer (recursively)
+               [egg won't be contained due to conditions imposed above] */
+            container_weight(egg);
         } else if (carried(egg)) {
             useup(egg);
         } else {
@@ -1175,7 +1260,7 @@ learn_egg_type(int mnum)
 {
     /* baby monsters hatch from grown-up eggs */
     mnum = little_to_big(mnum);
-    gm.mvitals[mnum].mvflags |= MV_KNOWS_EGG;
+    svm.mvitals[mnum].mvflags |= MV_KNOWS_EGG;
     /* we might have just learned about other eggs being carried */
     update_inventory();
 }
@@ -1199,15 +1284,13 @@ attach_fig_transform_timeout(struct obj *figurine)
 }
 
 /* give a fumble message */
-static void
+staticfn void
 slip_or_trip(void)
 {
-    struct obj *otmp = vobj_at(u.ux, u.uy), *otmp2;
+    struct obj *otmp = vobj_at(u.ux, u.uy), *otmp2, *saddle;
     const char *what;
     char buf[BUFSZ];
-    boolean on_foot = TRUE;
-    if (u.usteed)
-        on_foot = FALSE;
+    boolean on_foot = !u.usteed;
 
     if (otmp && on_foot && !u.uinwater && is_pool(u.ux, u.uy))
         otmp = 0;
@@ -1238,18 +1321,48 @@ slip_or_trip(void)
         }
         if (!uarmf && otmp->otyp == CORPSE
             && touch_petrifies(&mons[otmp->corpsenm]) && !Stone_resistance) {
-            Sprintf(gk.killer.name, "tripping over %s corpse",
+            Sprintf(svk.killer.name, "tripping over %s corpse",
                     an(mons[otmp->corpsenm].pmnames[NEUTRAL]));
-            instapetrify(gk.killer.name);
+            instapetrify(svk.killer.name);
         }
-    } else if (rn2(3) && is_ice(u.ux, u.uy)) {
-        pline("%s %s%s on the ice.",
-              u.usteed ? upstart(x_monnam(u.usteed,
-                                      (has_mgivenname(u.usteed)) ? ARTICLE_NONE
-                                                                : ARTICLE_THE,
-                                          (char *) 0, SUPPRESS_SADDLE, FALSE))
+    } else if ((HFumbling & FROMOUTSIDE) || (is_ice(u.ux, u.uy) && !rn2(3))) {
+        /* is fumbling from ice alone? */
+        boolean ice_only = !(EFumbling || (HFumbling & ~FROMOUTSIDE));
+
+        pline("%s %s %s the ice.",
+              u.usteed ? upstart(x_monnam(u.usteed, ARTICLE_THE, (char *) 0,
+                                          SUPPRESS_SADDLE, FALSE))
                        : "You",
-              rn2(2) ? "slip" : "slide", on_foot ? "" : "s");
+              /* "steed": arbitrary value that will use third person verb
+                 regardless of what u.usteed might be named, as opposed to
+                 "you" (second person, which won't have final 's' added) */
+              vtense(u.usteed ? "steed" : "you", rn2(2) ? "slip" : "slide"),
+              /* sometimes slipping due to ice occurs during turn that hero
+                 has just moved off the ice; phrase things differently then */
+              is_ice(u.ux, u.uy) ? "on" : "off");
+        /* fumbling outside of ice while mounted always causes the hero to
+           fall from the saddle (unless it is cursed), so to avoid a
+           counterintuitive effect where ice makes riding _less_ hazardous,
+           unconditionally dismount if fumbling is from a non-ice source */
+        if (!on_foot
+            && ((saddle = which_armor(u.usteed, W_SADDLE)) == 0
+                || !saddle->cursed)
+            && (!ice_only || !rn2(3))) {
+            You("lose your balance.");
+            dismount_steed(DISMOUNT_FELL);
+        } else if (!rn2(10 + ACURR(A_DEX))) {
+            /* Maybe slip in a random direction.  This takes place after
+               the hero has already changed location.  If the hero is
+               in grid bug form, only allow forward hurtle, otherwise a
+               90 degree orthogonal one after the step would make the
+               combined move appear to be a single diagonal step. */
+            if (!NODIAG(u.umonnum))
+                confdir(TRUE); /* sets u.dx and u.dy */
+            /* Only hurtle if the random direction won't move hero back
+               to same spot where this move started. */
+            if (u.ux + u.dx != u.ux0 || u.uy + u.dy != u.uy0)
+                hurtle(u.dx, u.dy, 1, FALSE);
+        }
     } else {
         if (on_foot) {
             switch (rn2(4)) {
@@ -1268,7 +1381,11 @@ slip_or_trip(void)
                 You("stumble.");
                 break;
             }
-        } else {
+
+        /* mounted; saddle should never end up being Null here;
+           don't fall off when it happens to be cursed */
+        } else if ((saddle = which_armor(u.usteed, W_SADDLE)) == 0
+                   || !saddle->cursed) {
             switch (rn2(4)) {
             case 1:
                 Your("%s slip out of the stirrups.",
@@ -1290,7 +1407,7 @@ slip_or_trip(void)
 }
 
 /* Print a lamp flicker message with tailer.  Only called if seen. */
-static void
+staticfn void
 see_lamp_flicker(struct obj *obj, const char *tailer)
 {
     switch (obj->where) {
@@ -1305,7 +1422,7 @@ see_lamp_flicker(struct obj *obj, const char *tailer)
 }
 
 /* Print a dimming message for brass lanterns.  Only called if seen. */
-static void
+staticfn void
 lantern_message(struct obj *obj)
 {
     /* from adventure */
@@ -1328,7 +1445,7 @@ lantern_message(struct obj *obj)
 }
 
 /*
- * Timeout callback for for objects that are burning. E.g. lamps, candles.
+ * Timeout callback for objects that are burning. E.g. lamps, candles.
  * See begin_burn() for meanings of obj->age and obj->spe.
  */
 void
@@ -1343,8 +1460,8 @@ burn_object(anything *arg, long timeout)
     many = menorah ? obj->spe > 1 : obj->quan > 1L;
 
     /* timeout while away */
-    if (timeout != gm.moves) {
-        long how_long = gm.moves - timeout;
+    if (timeout != svm.moves) {
+        long how_long = svm.moves - timeout;
 
         if (how_long >= obj->age) {
             obj->age = 0;
@@ -1398,6 +1515,7 @@ burn_object(anything *arg, long timeout)
             switch (obj->where) {
             case OBJ_INVENT:
                 need_invupdate = TRUE;
+                FALLTHROUGH;
                 /*FALLTHRU*/
             case OBJ_MINVENT:
                 pline("%spotion of oil has burnt away.", whose);
@@ -1461,6 +1579,7 @@ burn_object(anything *arg, long timeout)
                 switch (obj->where) {
                 case OBJ_INVENT:
                     need_invupdate = TRUE;
+                    FALLTHROUGH;
                     /*FALLTHRU*/
                 case OBJ_MINVENT:
                     if (obj->otyp == LANTERN)
@@ -1540,6 +1659,7 @@ burn_object(anything *arg, long timeout)
                     switch (obj->where) {
                     case OBJ_INVENT:
                         need_invupdate = TRUE;
+                        FALLTHROUGH;
                         /*FALLTHRU*/
                     case OBJ_MINVENT:
                         pline("%scandelabrum's flame%s.", whose,
@@ -1555,6 +1675,7 @@ burn_object(anything *arg, long timeout)
                     case OBJ_INVENT:
                         /* no need_invupdate for update_inventory() necessary;
                            useupall() -> freeinv() handles it */
+                           FALLTHROUGH;
                         /*FALLTHRU*/
                     case OBJ_MINVENT:
                         pline("%s %s consumed!", Yname2(obj),
@@ -1772,7 +1893,7 @@ end_burn(struct obj *obj, boolean timer_attached)
 /*
  * Cleanup a burning object if timer stopped.
  */
-static void
+staticfn void
 cleanup_burn(anything *arg, long expire_time)
 {
     struct obj *obj = arg->a_obj;
@@ -1784,7 +1905,7 @@ cleanup_burn(anything *arg, long expire_time)
 
     del_light_source(LS_OBJECT, obj_to_any(obj));
     /* restore unused time */
-    obj->age += expire_time - gm.moves;
+    obj->age += expire_time - svm.moves;
     obj->lamplit = 0;
 
     if (obj->where == OBJ_INVENT)
@@ -1795,12 +1916,12 @@ void
 do_storms(void)
 {
     int nstrike;
-    register int x, y;
+    int x, y;
     int dirx, diry;
     int count;
 
     /* no lightning if not stormy level or too often, even then */
-    if (!gl.level.flags.stormy || rn2(8))
+    if (!svl.level.flags.stormy || rn2(8))
         return;
 
     /* the number of strikes is 8-log2(nstrike) */
@@ -1828,7 +1949,7 @@ do_storms(void)
         Soundeffect(se_kaboom_boom_boom, 80);
         pline("Kaboom!!!  Boom!!  Boom!!");
         incr_itimeout(&HDeaf, rn1(20, 30));
-        gc.context.botl = TRUE;
+        disp.botl = TRUE;
         if (!u.uinvulnerable
             || !(uamul && uamul->oartifact == ART_AMULET_OF_STORMS)) {
             stop_occupation();
@@ -1851,7 +1972,7 @@ do_storms(void)
  *  boolean start_timer(long timeout,short kind,short func_index,
  *                      anything *arg)
  *      Start a timer of kind 'kind' that will expire at time
- *      gm.moves+'timeout'.  Call the function at 'func_index'
+ *      svm.moves+'timeout'.  Call the function at 'func_index'
  *      in the timeout table using argument 'arg'.  Return TRUE if
  *      a timer was started.  This places the timer on a list ordered
  *      "sooner" to "later".  If an object, increment the object's
@@ -1899,14 +2020,14 @@ do_storms(void)
  *      Check whether object has a timer of type timer_type.
  */
 
-static const char *kind_name(short);
-static void print_queue(winid, timer_element *);
-static void insert_timer(timer_element *);
-static timer_element *remove_timer(timer_element **, short, ANY_P *);
-static void write_timer(NHFILE *, timer_element *);
-static boolean mon_is_local(struct monst *);
-static boolean timer_is_local(timer_element *);
-static int maybe_write_timer(NHFILE *, int, boolean);
+staticfn const char *kind_name(short);
+staticfn void print_queue(winid, timer_element *);
+staticfn void insert_timer(timer_element *);
+staticfn timer_element *remove_timer(timer_element **, short, ANY_P *);
+staticfn void write_timer(NHFILE *, timer_element *);
+staticfn boolean mon_is_local(struct monst *);
+staticfn boolean timer_is_local(timer_element *);
+staticfn int maybe_write_timer(NHFILE *, int, boolean);
 
 /* If defined, then include names when printing out the timer queue */
 #define VERBOSE_TIMER
@@ -1921,8 +2042,11 @@ typedef struct {
 #endif
 } ttable;
 
-/* table of timeout functions */
+/*
+ * Table of timeout functions, listed in order of enum timeout_types:
+ */
 static const ttable timeout_funcs[NUM_TIME_FUNCS] = {
+    /* object timers */
     TTAB(rot_organic, (timeout_proc) 0, "rot_organic"),
     TTAB(rot_corpse, (timeout_proc) 0, "rot_corpse"),
     TTAB(revive_mon, (timeout_proc) 0, "revive_mon"),
@@ -1930,17 +2054,22 @@ static const ttable timeout_funcs[NUM_TIME_FUNCS] = {
     TTAB(burn_object, cleanup_burn, "burn_object"),
     TTAB(hatch_egg, (timeout_proc) 0, "hatch_egg"),
     TTAB(fig_transform, (timeout_proc) 0, "fig_transform"),
-    TTAB(melt_ice_away, (timeout_proc) 0, "melt_ice_away"),
     TTAB(shrink_glob, (timeout_proc) 0, "shrink_glob"),
     TTAB(moldy_corpse, (timeout_proc) 0, "moldy_corpse"),
-    TTAB(ferment, (timeout_proc) 0, "ferment")
+    TTAB(ferment, (timeout_proc) 0, "ferment"),
+    /* level timers */
+    TTAB(melt_ice_away, (timeout_proc) 0, "melt_ice_away"),
+    /* currently no monster or global timers */
 };
 #undef TTAB
 
-static const char *
+staticfn const char *
 kind_name(short kind)
 {
     switch (kind) {
+    case TIMER_NONE:
+        impossible("no timer type");
+        return "none";
     case TIMER_LEVEL:
         return "level";
     case TIMER_GLOBAL:
@@ -1953,8 +2082,8 @@ kind_name(short kind)
     return "unknown";
 }
 
-static void
-print_queue(winid win, timer_element* base)
+staticfn void
+print_queue(winid win, timer_element *base)
 {
     timer_element *curr;
     char buf[BUFSZ];
@@ -1993,7 +2122,7 @@ wiz_timeout_queue(void)
     if (win == WIN_ERR)
         return ECMD_OK;
 
-    Sprintf(buf, "Current time = %ld.", gm.moves);
+    Sprintf(buf, "Current time = %ld.", svm.moves);
     putstr(win, 0, buf);
     putstr(win, 0, "");
     putstr(win, 0, "Active timeout queue:");
@@ -2027,7 +2156,7 @@ wiz_timeout_queue(void)
             intrinsic = u.uprops[p].intrinsic;
             if (intrinsic & TIMEOUT) {
                 if (specindx > 0 && i >= specindx) {
-                    putstr(win, 0, " -- settable via #wizinstrinc only --");
+                    putstr(win, 0, " -- settable via #wizintrinsic only --");
                     specindx = 0;
                 }
                 /* timeout value can be up to 16777215 (0x00ffffff) but
@@ -2052,6 +2181,9 @@ wiz_timeout_queue(void)
         Sprintf(buf, "Vault counter is %d.", u.uinvault);
         putstr(win, 0, buf);
     }
+    if (any_visible_region()) {
+        visible_region_summary(win);
+    }
     display_nhwindow(win, FALSE);
     destroy_nhwindow(win);
 
@@ -2062,28 +2194,80 @@ void
 timer_sanity_check(void)
 {
     timer_element *curr;
+    unsigned long t_id;
+    coordxy x, y;
 
-    /* this should be much more complete */
     for (curr = gt.timer_base; curr; curr = curr->next) {
-        if (curr->kind == TIMER_OBJECT) {
-            struct obj *obj = curr->arg.a_obj;
+        t_id = curr->tid;
+        switch (curr->kind) {
+        case TIMER_OBJECT: {
+            /* TODO? verify that the timer type is attached to applicable
+               object (egg for hatch, glob for shrink, and so forth) */
+            struct obj *obj = curr->arg.a_obj, *top;
+            char *obj_adr = fmt_ptr((genericptr_t) obj);
+            int owhere = obj->where;
 
             if (obj->timed == 0) {
-                impossible("timer sanity: untimed obj %s, timer %ld",
-                      fmt_ptr((genericptr_t) obj), curr->tid);
+                impossible("timer sanity: untimed obj %s, timer %lu",
+                           obj_adr, t_id);
             }
-        } else if (curr->kind == TIMER_LEVEL) {
-            long where = curr->arg.a_long;
-            coordxy x = (coordxy) ((where >> 16) & 0xFFFF),
-                  y = (coordxy) (where & 0xFFFF);
+            x = y = 0;
+            /* if obj is in a container, possibly a nested one, figure out
+               where the outermost container is */
+            for (top = obj; top; top = top->ocontainer)
+                if ((owhere = top->where) != OBJ_CONTAINED)
+                    break;
+            assert(top != NULL);
+            if (owhere == OBJ_MIGRATING
+                || (owhere == OBJ_MINVENT && !mon_is_local(top->ocarry))) {
+                /* migrating directly or carried by migrating monster */
+                ; /* not able to validate location so skip checks */
+            } else if (!get_obj_location(obj, &x, &y,
+                                         CONTAINED_TOO | BURIED_TOO)) {
+                /* free? or on a shop's used-up bill? */
+                impossible(
+                    "timer sanity: can't locate obj %s [where=%d], timer %lu",
+                           obj_adr, obj->where, t_id);
+            } else if (!isok(x, y)) {
+                impossible(
+              "timer sanity: obj %s [where=%d] located at <%d,%d>, timer %lu",
+                           obj_adr, obj->where, x, y, t_id);
+            }
+            break;
+        }
+        case TIMER_MONSTER:
+            impossible("timer sanity: unexpected monster timer %lu", t_id);
+            break;
+        case TIMER_LEVEL: {
+            long lwhere = curr->arg.a_long;
 
-            if (!isok(x, y)) {
+            x = (coordxy) ((lwhere >> 16) & 0xFFFF);
+            y = (coordxy) (lwhere & 0xFFFF);
+            if (isok(x, y)) {
+                /* replicate isok() in order to convince static analysis
+                   that the decoding via '& 0xFFFF' hasn't produced a value
+                   too big for levl[][] and that the cast to a narrower type
+                   hasn't intruded on the sign bit to yield a negative value;
+                   the analyzer isn't aware that isok() filters such things */
+                assert(x > 0 && x < COLNO && y >= 0 && y < ROWNO);
+
+                if (curr->func_index == MELT_ICE_AWAY && !is_ice(x, y))
+                    impossible(
+                         "timer sanity: melt timer %lu on non-ice %d <%d,%d>",
+                               t_id, levl[x][y].typ, x, y);
+            } else {
                 impossible("timer sanity: spot timer %lu at <%d,%d>",
-                           curr->tid, x, y);
-            } else if (curr->func_index == MELT_ICE_AWAY && !is_ice(x, y)) {
-                impossible("timer sanity: melt timer %lu on non-ice %d <%d,%d>",
-                           curr->tid, levl[x][y].typ, x, y);
+                           t_id, x, y);
             }
+            break;
+        }
+        case TIMER_GLOBAL:
+            impossible("timer sanity: unexpected global timer %lu", t_id);
+            break;
+        default:
+            impossible("timer sanity: unknown timer %lu, type: %d",
+                       t_id, curr->kind);
+            break;
         }
     }
 }
@@ -2102,13 +2286,14 @@ run_timers(void)
      * any time.  The list is ordered, we are done when the first element
      * is in the future.
      */
-    while (gt.timer_base && gt.timer_base->timeout <= gm.moves) {
+    while (gt.timer_base && gt.timer_base->timeout <= svm.moves) {
         curr = gt.timer_base;
         gt.timer_base = curr->next;
 
         if (curr->kind == TIMER_OBJECT)
             (curr->arg.a_obj)->timed--;
         (*timeout_funcs[curr->func_index].f)(&curr->arg, curr->timeout);
+        (void) memset((genericptr_t) curr, 0, sizeof(timer_element));
         free((genericptr_t) curr);
     }
 }
@@ -2125,7 +2310,7 @@ start_timer(
 {
     timer_element *gnu, *dup;
 
-    if (kind < 0 || kind >= NUM_TIMER_KINDS
+    if (kind <= TIMER_NONE || kind >= NUM_TIMER_KINDS
         || func_index < 0 || func_index >= NUM_TIME_FUNCS)
         panic("start_timer (%s: %d)", kind_name(kind), (int) func_index);
 
@@ -2150,8 +2335,8 @@ start_timer(
     gnu = (timer_element *) alloc(sizeof *gnu);
     (void) memset((genericptr_t) gnu, 0, sizeof *gnu);
     gnu->next = 0;
-    gnu->tid = gt.timer_id++;
-    gnu->timeout = gm.moves + when;
+    gnu->tid = svt.timer_id++;
+    gnu->timeout = svm.moves + when;
     gnu->kind = kind;
     gnu->needs_fixup = 0;
     gnu->func_index = func_index;
@@ -2183,8 +2368,9 @@ stop_timer(short func_index, anything *arg)
             (arg->a_obj)->timed--;
         if ((cleanup_func = timeout_funcs[doomed->func_index].cleanup) != 0)
             (*cleanup_func)(arg, timeout);
+        (void) memset((genericptr_t) doomed, 0, sizeof(timer_element));
         free((genericptr_t) doomed);
-        return (timeout - gm.moves);
+        return (timeout - svm.moves);
     }
     return 0L;
 }
@@ -2208,7 +2394,7 @@ peek_timer(short type, anything *arg)
  * Move all object timers from src to dest, leaving src untimed.
  */
 void
-obj_move_timers(struct obj* src, struct obj* dest)
+obj_move_timers(struct obj *src, struct obj *dest)
 {
     int count;
     timer_element *curr;
@@ -2228,14 +2414,14 @@ obj_move_timers(struct obj* src, struct obj* dest)
  * Find all object timers and duplicate them for the new object "dest".
  */
 void
-obj_split_timers(struct obj* src, struct obj* dest)
+obj_split_timers(struct obj *src, struct obj *dest)
 {
     timer_element *curr, *next_timer = 0;
 
     for (curr = gt.timer_base; curr; curr = next_timer) {
         next_timer = curr->next; /* things may be inserted */
         if (curr->kind == TIMER_OBJECT && curr->arg.a_obj == src) {
-            (void) start_timer(curr->timeout - gm.moves, TIMER_OBJECT,
+            (void) start_timer(curr->timeout - svm.moves, TIMER_OBJECT,
                                curr->func_index, obj_to_any(dest));
         }
     }
@@ -2246,7 +2432,7 @@ obj_split_timers(struct obj* src, struct obj* dest)
  * all object pointers are unique.
  */
 void
-obj_stop_timers(struct obj* obj)
+obj_stop_timers(struct obj *obj)
 {
     timeout_proc cleanup_func;
     timer_element *curr, *prev, *next_timer = 0;
@@ -2260,6 +2446,7 @@ obj_stop_timers(struct obj* obj)
                 gt.timer_base = curr->next;
             if ((cleanup_func = timeout_funcs[curr->func_index].cleanup) != 0)
                 (*cleanup_func)(&curr->arg, curr->timeout);
+            (void) memset((genericptr_t) curr, 0, sizeof(timer_element));
             free((genericptr_t) curr);
         } else {
             prev = curr;
@@ -2272,7 +2459,7 @@ obj_stop_timers(struct obj* obj)
  * Check whether object has a timer of type timer_type.
  */
 boolean
-obj_has_timer(struct obj* object, short timer_type)
+obj_has_timer(struct obj *object, short timer_type)
 {
     long timeout = peek_timer(timer_type, obj_to_any(object));
 
@@ -2300,6 +2487,7 @@ spot_stop_timers(coordxy x, coordxy y, short func_index)
                 gt.timer_base = curr->next;
             if ((cleanup_func = timeout_funcs[curr->func_index].cleanup) != 0)
                 (*cleanup_func)(&curr->arg, curr->timeout);
+            (void) memset((genericptr_t) curr, 0, sizeof(timer_element));
             free((genericptr_t) curr);
         } else {
             prev = curr;
@@ -2329,12 +2517,12 @@ long
 spot_time_left(coordxy x, coordxy y, short func_index)
 {
     long expires = spot_time_expires(x, y, func_index);
-    return (expires > 0L) ? expires - gm.moves : 0L;
+    return (expires > 0L) ? expires - svm.moves : 0L;
 }
 
 /* Insert timer into the global queue */
-static void
-insert_timer(timer_element* gnu)
+staticfn void
+insert_timer(timer_element *gnu)
 {
     timer_element *curr, *prev;
 
@@ -2349,7 +2537,7 @@ insert_timer(timer_element* gnu)
         gt.timer_base = gnu;
 }
 
-static timer_element *
+staticfn timer_element *
 remove_timer(
     timer_element **base,
     short func_index,
@@ -2371,8 +2559,8 @@ remove_timer(
     return curr;
 }
 
-static void
-write_timer(NHFILE* nhfp, timer_element* timer)
+staticfn void
+write_timer(NHFILE *nhfp, timer_element *timer)
 {
     anything arg_save;
 
@@ -2388,7 +2576,7 @@ write_timer(NHFILE* nhfp, timer_element* timer)
     case TIMER_OBJECT:
         if (timer->needs_fixup) {
             if (nhfp->structlevel)
-                bwrite(nhfp->fd, (genericptr_t)timer, sizeof(timer_element));
+                bwrite(nhfp->fd, (genericptr_t) timer, sizeof(timer_element));
         } else {
             /* replace object pointer with id */
             arg_save.a_obj = timer->arg.a_obj;
@@ -2396,7 +2584,7 @@ write_timer(NHFILE* nhfp, timer_element* timer)
             timer->arg.a_uint = (arg_save.a_obj)->o_id;
             timer->needs_fixup = 1;
             if (nhfp->structlevel)
-                bwrite(nhfp->fd, (genericptr_t)timer, sizeof(timer_element));
+                bwrite(nhfp->fd, (genericptr_t) timer, sizeof(timer_element));
             timer->arg.a_obj = arg_save.a_obj;
             timer->needs_fixup = 0;
         }
@@ -2405,7 +2593,7 @@ write_timer(NHFILE* nhfp, timer_element* timer)
     case TIMER_MONSTER:
         if (timer->needs_fixup) {
             if (nhfp->structlevel)
-                bwrite(nhfp->fd, (genericptr_t)timer, sizeof(timer_element));
+                bwrite(nhfp->fd, (genericptr_t) timer, sizeof(timer_element));
         } else {
             /* replace monster pointer with id */
             arg_save.a_monst = timer->arg.a_monst;
@@ -2413,7 +2601,7 @@ write_timer(NHFILE* nhfp, timer_element* timer)
             timer->arg.a_uint = (arg_save.a_monst)->m_id;
             timer->needs_fixup = 1;
             if (nhfp->structlevel)
-                bwrite(nhfp->fd, (genericptr_t)timer, sizeof(timer_element));
+                bwrite(nhfp->fd, (genericptr_t) timer, sizeof(timer_element));
             timer->arg.a_monst = arg_save.a_monst;
             timer->needs_fixup = 0;
         }
@@ -2432,7 +2620,7 @@ DISABLE_WARNING_UNREACHABLE_CODE
  * saved.
  */
 boolean
-obj_is_local(struct obj* obj)
+obj_is_local(struct obj *obj)
 {
     switch (obj->where) {
     case OBJ_INVENT:
@@ -2455,8 +2643,8 @@ obj_is_local(struct obj* obj)
  * Return TRUE if the given monster will stay on the level when the
  * level is saved.
  */
-static boolean
-mon_is_local(struct monst* mon)
+staticfn boolean
+mon_is_local(struct monst *mon)
 {
     struct monst *curr;
 
@@ -2474,8 +2662,8 @@ mon_is_local(struct monst* mon)
  * Return TRUE if the timer is attached to something that will stay on the
  * level when the level is saved.
  */
-static boolean
-timer_is_local(timer_element* timer)
+staticfn boolean
+timer_is_local(timer_element *timer)
 {
     switch (timer->kind) {
     case TIMER_LEVEL:
@@ -2498,8 +2686,8 @@ RESTORE_WARNING_UNREACHABLE_CODE
  * Part of the save routine.  Count up the number of timers that would
  * be written.  If write_it is true, actually write the timer.
  */
-static int
-maybe_write_timer(NHFILE* nhfp, int range, boolean write_it)
+staticfn int
+maybe_write_timer(NHFILE *nhfp, int range, boolean write_it)
 {
     int count = 0;
     timer_element *curr;
@@ -2540,7 +2728,7 @@ maybe_write_timer(NHFILE* nhfp, int range, boolean write_it)
  *      + timeouts that stay with the level (obj & monst)
  */
 void
-save_timers(NHFILE* nhfp, int range)
+save_timers(NHFILE *nhfp, int range)
 {
     timer_element *curr, *prev, *next_timer = 0;
     int count;
@@ -2548,7 +2736,8 @@ save_timers(NHFILE* nhfp, int range)
     if (perform_bwrite(nhfp)) {
         if (range == RANGE_GLOBAL) {
             if (nhfp->structlevel)
-                bwrite(nhfp->fd, (genericptr_t) &gt.timer_id, sizeof(gt.timer_id));
+                bwrite(nhfp->fd, (genericptr_t) &svt.timer_id,
+                       sizeof svt.timer_id);
         }
         count = maybe_write_timer(nhfp, range, FALSE);
         if (nhfp->structlevel)
@@ -2565,6 +2754,7 @@ save_timers(NHFILE* nhfp, int range)
                     prev->next = curr->next;
                 else
                     gt.timer_base = curr->next;
+                (void) memset((genericptr_t) curr, 0, sizeof(timer_element));
                 free((genericptr_t) curr);
                 /* prev stays the same */
             } else {
@@ -2579,7 +2769,7 @@ save_timers(NHFILE* nhfp, int range)
  * monster pointers.
  */
 void
-restore_timers(NHFILE* nhfp, int range, long adjust)
+restore_timers(NHFILE *nhfp, int range, long adjust)
 {
     int count = 0;
     timer_element *curr;
@@ -2587,7 +2777,8 @@ restore_timers(NHFILE* nhfp, int range, long adjust)
 
     if (range == RANGE_GLOBAL) {
         if (nhfp->structlevel)
-            mread(nhfp->fd, (genericptr_t) &gt.timer_id, sizeof gt.timer_id);
+            mread(nhfp->fd, (genericptr_t) &svt.timer_id,
+                  sizeof svt.timer_id);
     }
 
     /* restore elements */
@@ -2639,7 +2830,7 @@ relink_timers(boolean ghostly)
                     nid = curr->arg.a_uint;
                 curr->arg.a_obj = find_oid(nid);
                 if (!curr->arg.a_obj)
-                    panic("cant find o_id %d", nid);
+                    panic("can't find o_id %d", nid);
                 curr->needs_fixup = 0;
             } else if (curr->kind == TIMER_MONSTER) {
                 panic("relink_timers: no monster timer implemented");

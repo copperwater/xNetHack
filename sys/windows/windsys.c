@@ -1,4 +1,4 @@
-/* NetHack 3.7	windsys.c	$NHDT-Date: 1596498321 2020/08/03 23:45:21 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.64 $ */
+/* NetHack 3.7	windsys.c	$NHDT-Date: 1710949760 2024/03/20 15:49:20 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.95 $ */
 /* Copyright (c) NetHack PC Development Team 1993, 1994 */
 /* NetHack may be freely redistributed.  See license for details. */
 
@@ -20,11 +20,13 @@
 #ifndef __BORLANDC__
 #include <direct.h>
 #endif
-#include <ctype.h>
 #ifdef TTY_GRAPHICS
 #include "wintty.h"
 #endif
+#include <inttypes.h>
+
 #ifdef WIN32
+#include <VersionHelpers.h>
 
 /*
  * The following WIN32 API routines are used in this file.
@@ -50,10 +52,11 @@ int redirect_stdout;
 
 #ifdef WIN32CON
 typedef HWND(WINAPI *GETCONSOLEWINDOW)(void);
-#ifdef WIN32CON
+#if 0
 static HWND GetConsoleHandle(void);
 static HWND GetConsoleHwnd(void);
-#endif
+#endif /* 0 */
+#endif /* WIN32CON */
 #if !defined(TTY_GRAPHICS)
 extern void backsp(void);
 #endif
@@ -75,7 +78,6 @@ static int max_filename(void);
 
 int def_kbhit(void);
 int (*nt_kbhit)(void) = def_kbhit;
-#endif /* WIN32CON */
 
 #ifndef WIN32CON
 /* this is used as a printf() replacement when the window
@@ -89,7 +91,7 @@ VA_DECL(const char *, fmt)
     VA_END();
     return;
 }
-#endif
+#endif  /* WIN32CON */
 
 char
 switchar(void)
@@ -99,7 +101,7 @@ switchar(void)
 }
 
 long
-freediskspace(char* path)
+freediskspace(char *path)
 {
     char tmppath[4];
     DWORD SectorsPerCluster = 0;
@@ -120,7 +122,7 @@ freediskspace(char* path)
  * Functions to get filenames using wildcards
  */
 int
-findfirst(char* path)
+findfirst(char *path)
 {
     if (ffhandle) {
         FindClose(ffhandle);
@@ -143,7 +145,7 @@ foundfile_buffer(void)
 }
 
 long
-filesize(char* file)
+filesize(char *file)
 {
     if (findfirst(file)) {
         return ((long) ffd.nFileSizeLow);
@@ -155,13 +157,13 @@ filesize(char* file)
  * Chdrive() changes the default drive.
  */
 void
-chdrive(char* str)
+chdrive(char *str)
 {
     char *ptr;
     char drive;
     if ((ptr = strchr(str, ':')) != (char *) 0) {
         drive = toupper((uchar) *(ptr - 1));
-        _chdrive((drive - 'A') + 1);
+        (void) _chdrive((drive - 'A') + 1);
     }
 }
 
@@ -229,8 +231,10 @@ VA_DECL(const char *, s)
     VA_START(s);
     VA_INIT(s, const char *);
     /* error() may get called before tty is initialized */
+#ifdef TTY_GRAPHICS
     if (iflags.window_inited)
-        end_screen();
+        term_end_screen();
+#endif
     if (WINDOWPORT(tty)) {
         buf[0] = '\n';
         (void) vsnprintf(&buf[1], sizeof buf - (1 + sizeof "\n"), s, VA_ARGS);
@@ -325,6 +329,7 @@ interject_assistance(int num, int interjection_type, genericptr_t ptr1, genericp
         }
     } break;
     }
+    nhUse(interjection_type);
 }
 
 void
@@ -388,34 +393,40 @@ void port_insert_pastebuf(char *buf)
     /* Housekeeping need: +GlobalUnlock(hglbCopy), GlobalFree(hglbCopy),
                             CloseClipboard(), free(w) */
 
-    memcpy(lpwstrCopy, w, abytes);
-    GlobalUnlock(hglbCopy);
-    /* Housekeeping need: GlobalFree(hglbCopy), CloseClipboard(), free(w) */
+    if (lpwstrCopy) {
+        memcpy(lpwstrCopy, w, abytes);
+        GlobalUnlock(hglbCopy);
+        /* Housekeeping need: GlobalFree(hglbCopy), CloseClipboard(), free(w)
+         */
 
-    /* put it on the clipboard */
-    hresult = SetClipboardData(CF_UNICODETEXT, hglbCopy);
-    if (!hresult) {
-        raw_printf("Error copying to clipboard.\n");
-        GlobalFree(hglbCopy); /* only needed if clipboard didn't accept data */
+        /* put it on the clipboard */
+        hresult = SetClipboardData(CF_UNICODETEXT, hglbCopy);
+        if (!hresult) {
+            raw_printf("Error copying to clipboard.\n");
+            GlobalFree(
+                hglbCopy); /* only needed if clipboard didn't accept data */
+        }
+        /* Housekeeping need: CloseClipboard(), free(w) */
     }
-    /* Housekeeping need: CloseClipboard(), free(w) */
-
     CloseClipboard();
     free(w);
     return;
 }
 
 #ifdef WIN32CON
+#if 0
 static HWND
 GetConsoleHandle(void)
 {
     HMODULE hMod = GetModuleHandle("kernel32.dll");
-    GETCONSOLEWINDOW pfnGetConsoleWindow =
-        (GETCONSOLEWINDOW) GetProcAddress(hMod, "GetConsoleWindow");
-    if (pfnGetConsoleWindow)
-        return pfnGetConsoleWindow();
-    else
-        return GetConsoleHwnd();
+
+    if (hMod) {
+        GETCONSOLEWINDOW pfnGetConsoleWindow =
+            (GETCONSOLEWINDOW) GetProcAddress(hMod, "GetConsoleWindow");
+        if (pfnGetConsoleWindow)
+            return pfnGetConsoleWindow();
+    }
+    return GetConsoleHwnd();
 }
 
 static HWND
@@ -428,7 +439,7 @@ GetConsoleHwnd(void)
     /* Get current window title */
     GetConsoleTitle(OldTitle, sizeof OldTitle);
 
-    (void) sprintf(NewTitle, "NETHACK%ld/%ld", GetTickCount(),
+    (void) sprintf(NewTitle, "NETHACK%lld/%ld", GetTickCount64(),
                    GetCurrentProcessId());
     SetConsoleTitle(NewTitle);
 
@@ -443,8 +454,9 @@ GetConsoleHwnd(void)
     /*       printf("%d iterations\n", iterations); */
     return hwndFound;
 }
+#endif /* 0 */
 #endif /* WIN32CON */
-#endif
+#endif /* RUNTIME_PASTEBUF_SUPPORT */
 
 #ifdef RUNTIME_PORT_ID
 /*
@@ -475,6 +487,10 @@ get_port_id(char *buf)
 }
 #endif /* RUNTIME_PORT_ID */
 
+#ifdef MSWIN_GRAPHICS
+extern void free_winmain_stuff(void);
+#endif
+
 void
 nethack_exit(int code)
 {
@@ -491,12 +507,18 @@ nethack_exit(int code)
         /* use our custom version which works
            a little cleaner than the stdio one */
         windowprocs.win_nhgetch = windows_console_custom_nhgetch;
-    }
+    } else
 #endif
     if (getreturn_enabled) {
         raw_print("\n");
-        wait_synch();
+        if (iflags.window_inited)
+            wait_synch();
     }
+    /* frees some status tracking data */
+    genl_status_finish();
+#ifdef MSWIN_GRAPHICS
+    free_winmain_stuff();
+#endif
     exit(code);
 }
 
@@ -525,7 +547,8 @@ getreturn(const char *str)
     raw_print(buf);
     if (WINDOWPORT(tty))
         windows_console_custom_nhgetch();
-    wait_synch();
+    else
+        wait_synch();
     in_getreturn = FALSE;
     return;
 }
@@ -617,30 +640,37 @@ BOOL winos_font_support_cp437(HFONT hFont)
     HDC hdc = GetDC(NULL);
     HFONT oldFont = SelectObject(hdc, hFont);
 
-    DWORD size = GetFontUnicodeRanges(hdc, NULL);
-    GLYPHSET *glyphSet = (GLYPHSET *) malloc(size);
 
-    if (glyphSet != NULL) {
-        GetFontUnicodeRanges(hdc, glyphSet);
+    DWORD size = (size_t) GetFontUnicodeRanges(hdc, NULL);
+    if (size) {
+        GLYPHSET *glyphSet = (GLYPHSET *) malloc((size_t) size);
+        if (glyphSet != NULL) {
+#ifdef _MSC_VER
+#pragma warning( push )
+#pragma warning( disable : 6386 )
+#endif
+            size = GetFontUnicodeRanges(hdc, glyphSet);
+#ifdef _MSC_VER
+#pragma warning( pop )
+#endif
+            allFound = TRUE;
+            for (int i = 0; i < 256 && allFound; i++) {
+                WCHAR wc = cp437[i];
+                BOOL found = FALSE;
+                for (DWORD j = 0; j < glyphSet->cRanges && !found; j++) {
+                    WCHAR first = glyphSet->ranges[j].wcLow;
+                    WCHAR last = first + glyphSet->ranges[j].cGlyphs - 1;
 
-        allFound = TRUE;
-        for (int i = 0; i < 256 && allFound; i++) {
-            WCHAR wc = cp437[i];
-            BOOL found = FALSE;
-            for (DWORD j = 0; j < glyphSet->cRanges && !found; j++) {
-                WCHAR first = glyphSet->ranges[j].wcLow;
-                WCHAR last = first + glyphSet->ranges[j].cGlyphs - 1;
-
-                if (wc >= first && wc <= last)
-                    found = TRUE;
+                    if (wc >= first && wc <= last)
+                        found = TRUE;
+                }
+                if (!found)
+                    allFound = FALSE;
             }
-            if (!found)
-                allFound = FALSE;
+
+            free(glyphSet);
         }
-
-        free(glyphSet);
     }
-
     SelectObject(hdc, oldFont);
     ReleaseDC(NULL, hdc);
 
@@ -722,7 +752,7 @@ sys_random_seed(void)
         time_t datetime = 0;
         const char *emsg;
 
-        if (status == STATUS_NOT_FOUND)
+        if (status == (NTSTATUS) STATUS_NOT_FOUND)
             emsg = "BCRYPT_RNG_ALGORITHM not avail, falling back";
         else
             emsg = "Other failure than algorithm not avail";
@@ -755,6 +785,298 @@ nt_assert_failed(const char *expression, const char *filepath, int line)
     impossible("nhassert(%s) failed in file '%s' at line %d",
                 expression, filename, line);
 }
+
+/* Windows helpers for CRASHREPORT etc */
+#ifdef CRASHREPORT
+struct CRctxt {
+    BCRYPT_ALG_HANDLE bah;
+    BCRYPT_HASH_HANDLE bhh;
+    PBYTE pbhashobj;
+    DWORD cbhashobj; /* temp */
+    DWORD cbhash;    /* hash length */
+    DWORD cbdata;    /* temp */
+    PBYTE pbhash;    /* binary hash */
+    NTSTATUS st;
+} ctxp_ = { NULL, NULL, NULL, 0, 0, 0, NULL, 0 };
+struct CRctxt *ctxp = &ctxp_;    // XXX should this now be in gc.* ?
+
+#define win32err(fn) errname = (char *) fn; goto error
+
+int
+win32_cr_helper(char cmd, struct CRctxt *contextp, void *p, int d){
+    char *errname = (char *) "unknown";
+    switch (cmd) {
+    default:
+        /* Not panic - we don't want to upgrade an impossible to a
+         * panic due to a bug in the CRASHREPORT code. */
+        impossible("win_cr_helper bad cmd %d", cmd);
+        return 1;
+    case 'D': {
+        char *bidstr = (char *) p;
+        wchar_t lbidstr[40];        // sizeof(bid), but const
+        swprintf_s(lbidstr, 40, L"%S", bidstr);
+            // XXX TODO: need something that will allow copy of just the bid
+        return MessageBoxW(NULL, lbidstr, L"bidshow", MB_SETFOREGROUND);
+    }
+        break;
+    case 'i': /* HASH_INIT(contextp) */
+        if (!IsWindowsVistaOrGreater())
+            return 1; // CNG not available.
+        contextp->bah = NULL;
+        contextp->bhh = NULL;
+        contextp->pbhashobj = NULL;
+        contextp->cbhashobj = 0;
+        contextp->cbhash = 0;
+        contextp->cbdata = 0;
+        contextp->pbhash = NULL;
+        contextp->st = 0;
+        // win32err("test");        // TESTING - FAKE AN ERROR
+        if (0 > (contextp->st = BCryptOpenAlgorithmProvider(
+                     &contextp->bah, BCRYPT_MD4_ALGORITHM, NULL, 0))) {
+            win32err("BCryptOpenAlgorithmProvider");
+        };
+        if (0 > (contextp->st =
+                     BCryptGetProperty(contextp->bah, BCRYPT_OBJECT_LENGTH,
+                                       (unsigned char *) &contextp->cbhashobj,
+                                       sizeof(DWORD), &contextp->cbdata, 0))) {
+            win32err("BCryptGetProperty1");
+        };
+        if (0
+            == (contextp->pbhashobj =
+                    HeapAlloc(GetProcessHeap(), 0, contextp->cbhashobj))) {
+            win32err("HeapAlloc1");
+        };
+        if (0 > (contextp->st = BCryptGetProperty(
+                     contextp->bah, BCRYPT_HASH_LENGTH, (PBYTE) &contextp->cbhash,
+                     sizeof(DWORD), &contextp->cbdata, 0))) {
+            win32err("BCryptGetProperty2");
+        }
+        if (0
+            == (contextp->pbhash =
+                    HeapAlloc(GetProcessHeap(), 0, contextp->cbhash))) {
+
+            win32err("HeapAlloc2\n");
+        }
+        if (0 > BCryptCreateHash(contextp->bah, &contextp->bhh, contextp->pbhashobj,
+                                 contextp->cbhashobj, NULL, 0, 0)) {
+            win32err("BCryptCreateHash");
+        }
+        break;
+    case 'u':        /* HASH_UPDATE(contextp, ptr, len) */
+        if (0 > (contextp->st = BCryptHashData(contextp->bhh, p, d, 0))) {
+            win32err("BCryptHashData");
+        }
+        break;
+    case 'f':        /* HASH_FINISH(contextp) */
+        if (0 > BCryptFinishHash(contextp->bhh, contextp->pbhash, contextp->cbhash, 0)) {
+            win32err("BCryptFinishHash");
+        }
+        break;
+    case 'c':        /* HASH_CLEANUP(contextp) */
+        if (contextp->bah) {
+            BCryptCloseAlgorithmProvider(contextp->bah, 0);
+        }
+        if (contextp->bhh) {
+            BCryptDestroyHash(contextp->bhh);
+        }
+        if (contextp->pbhashobj) {
+            HeapFree(GetProcessHeap(), 0, contextp->pbhashobj);
+        }
+        if (contextp->pbhash) {
+            HeapFree(GetProcessHeap(), 0, contextp->pbhash);
+        }
+        break;
+    case 's':        /* HASH_RESULT_SIZE(contextp) */
+        return contextp->cbhash;
+    case 'r':        /* HASH_RESULT(contextp, resp) */
+        *(unsigned char **)p = contextp->pbhash;
+        break;
+    case 'b':        /* HASH_BINFILE(NULL,&binfile,0) */
+            // XXX This buffer should be allocated, not static (and freed in
+            //   HASH_CLEANUP).
+            // NB: assumes !longPathAware in manifest (Win10+)
+        {
+            static char binfile[MAX_PATH];
+            DWORD rv = GetModuleFileNameA(NULL, binfile, sizeof(binfile));
+            if (rv == 0 || rv == sizeof(binfile))
+                return 1;
+#if (NH_DEVEL_STATUS == NH_STATUS_BETA)
+            printf("FILE '%s'\n", binfile);
+#endif
+            *(unsigned char **) p = (unsigned char *) binfile;
+            return 0;
+        }
+    }
+    return 0;        /* ok */
+error:
+    raw_printf("WIN32 function %s failed: status=%" PRIx64 "\n",
+            errname, (uint64)contextp->st);
+    return 1;        /* fail */
+}
+#undef win32err
+
+
+#include <shellapi.h>
+#define MAX_SYM_SIZE 100
+#ifdef __GNUC__
+        // gcc can't generate .pdb files.  llvm can almost do it.
+        // For these platforms, use github/ianlancetaylor/libbacktrace.
+// XXX this doesn't work yet - we get correct addresses but no symbol info
+// XXX so still needs cleanup
+// XXX no mark (overflow held to last valid segment) handling yet
+// XXX libbacktrace isn't available by default, so don't try until it works
+//#define USE_BACKTRACE
+#ifdef USE_BACKTRACE
+#include <backtrace.h>
+
+struct userstate {
+    int error_count;
+    int good_count;
+    char *out;
+    int outsize;
+    int maxframes;
+} userstate;
+
+//backtrace_full_callback
+static int
+btfcb_fn(void *us0, uintptr_t pc, const char *filename,
+                int lineno, const char *fnname){
+    struct userstate *us = us0;
+        //XXX generate a stack frame line
+printf("C: pc=%llx f=%s line=%d fn=%s\n",pc,filename,lineno,fnname);
+    us->good_count++;
+    return 0;
+}
+
+//backtrace_error_callback
+static void
+btecb_fn(void *us0, const char *msg, int errnum){
+    struct userstate *us = us0;
+    us->error_count++;
+    if(errnum < 0){
+printf("E1: M=%s e=%d\n",msg,errnum);
+        // XXX save error message
+    } else {
+printf("E2: M=%s e=%d\n",msg,errnum);
+        // errnum is an errno
+    //XXX save error message with strerror
+    }
+}
+#endif
+
+#ifdef USE_BACKTRACE
+#define USED_IF_BACKTRACE
+#else
+#define USED_IF_BACKTRACE UNUSED
+#endif
+
+int
+win32_cr_gettrace(int maxframes USED_IF_BACKTRACE,
+		  char *out USED_IF_BACKTRACE,
+		  int outsize USED_IF_BACKTRACE)
+{
+#ifdef USE_BACKTRACE
+    userstate.error_count = 0;
+    userstate.good_count = 0;
+    userstate.out = out;
+    userstate.outsize = outsize;
+    userstate.maxframes = maxframes;
+    static char binfile[MAX_PATH];// assumes !longPathAware in manifest (Win10+)
+        DWORD rv = GetModuleFileNameA(NULL, binfile, sizeof(binfile));
+    struct backtrace_state *state
+        = backtrace_create_state(binfile, 0, btecb_fn, &userstate);
+    if(!state) return userstate.error_count + userstate.good_count;
+    rv=backtrace_full(state, 0, btfcb_fn, btecb_fn, &userstate);
+printf("rv=%d\n",rv);
+    // XXX rv not checked
+    // XXX this API leaks its memory; there is no free function
+    return userstate.error_count + userstate.good_count;
+#else
+    return 0;
+#endif
+}
+#else
+// Use win32 API with Visual Studio (and probably MSVC).
+#include <dbghelp.h>
+
+int
+win32_cr_gettrace(int maxframes, char *out, int outsize){
+    char *mark = out;
+    void *frames[200];  // XXX why does VS fail var array?  wrong C std?
+    int x;
+    int tmp;
+#define BSIZE (MAX_SYM_SIZE+50)
+    char buf[BSIZE];
+    HANDLE me = GetCurrentProcess();
+    SetLastError(0);
+        // XXX may need to pass the binary's dir
+        //XXX check for different flags
+    if(!SymInitialize(me, NULL, TRUE)){
+        snprintf(buf, BSIZE, "no stack trace: SymInitialize: %d\n",
+                (int) GetLastError());
+        return 1;
+    }
+    int fcount = CaptureStackBackTrace(0, maxframes,frames,NULL);
+    if(!fcount)goto finish;
+    char symbol_info_space[sizeof(SYMBOL_INFO)+MAX_SYM_SIZE];
+    SYMBOL_INFO *si = (SYMBOL_INFO *)symbol_info_space;
+    si->MaxNameLen = MAX_SYM_SIZE;
+    si->SizeOfStruct = sizeof(SYMBOL_INFO);
+
+    for(x=0;x<fcount;x++){
+        DWORD64 disp64 =0 ;
+        DWORD64 adr = (DWORD64)(frames[x]);
+        if(!adr) break;
+        if(SymFromAddr(me, adr, &disp64, si)){
+//printf("A %x\n",GetLastError());fflush(stdout);
+            tmp = snprintf(buf, BSIZE, "%d %p %s+%lld\n",
+                        x, frames[x], &si->Name[0], (long long int)disp64);
+            if(swr_add_uricoded(buf, &out, &outsize, mark))
+                goto finish;
+
+#if 1
+// XXX does this block do anything useful?
+            DWORD disp = (DWORD) disp64;
+            IMAGEHLP_LINE ihl;
+            ihl.SizeOfStruct = sizeof(IMAGEHLP_LINE);
+            if (SymGetLineFromAddr(me, adr, &disp, &ihl)) {
+                printf("L=%d\n", (int) ihl.LineNumber);
+            } else {
+// 7e/1e7 - no info.  May need to call SymLoadModule if we need those addrs
+// BUT probably system code, so we don't care - experiment
+//                printf("SGLFA failed: $%08x\n", GetLastError());
+            }
+//XXXnow format the line
+#endif
+        } else {
+            // Error 487 (invalid address) seems to mean
+            // "I can't find any info for this address".
+            tmp = snprintf(buf, BSIZE, "%d %p (error %d)\n",
+                        x, frames[x], (int) GetLastError());
+            if(swr_add_uricoded(buf, &out, &outsize, mark))
+                goto finish;
+        }
+        if(tmp < 0 || tmp >= outsize){   // XXX is test now wrong?
+//printf("FAIL tmp=%d\n",tmp);
+                fcount = x+1;
+                goto finish;
+        }
+        mark = out;
+    }
+finish:
+    SymCleanup(me);
+    return fcount;            // XXX if output truncated, fcount could be wrong
+}
+#endif
+
+int *
+win32_cr_shellexecute(const char *url){
+//XXX Docs say to do this, but has so many caveats I'm going to try skipping it.
+//CoInitializeEx(NULL, COINIT_APARTMENTTHREADED | COINIT_DISABLE_OLE1DDE);
+    int *rv = (int*)ShellExecuteA(NULL, "open", url, NULL, NULL, SW_SHOWNORMAL);
+    return rv;
+}
+#endif /* CRASHREPORT */
 
 #endif /* WIN32 */
 

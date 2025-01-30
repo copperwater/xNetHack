@@ -28,4 +28,6 @@ objutil/*
 objlua/*
 objpdc/*
 bundle/*
-
+GNUmakefile
+GNUmakefile.depend
+.*.c

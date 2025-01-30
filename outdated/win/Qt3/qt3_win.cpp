@@ -1031,9 +1031,9 @@ NetHackQtPlayerSelector::NetHackQtPlayerSelector(NetHackQtKeyBuffer& ks) :
 
     QButtonGroup* namebox = new QButtonGroup(1,Horizontal,"Name",this);
     QLineEdit* name = new QLineEdit(namebox);
-    name->setMaxLength(sizeof(gp.plname)-1);
-    if ( strncmp(gp.plname,"player",6) && strncmp(gp.plname,"games",5) )
-	name->setText(gp.plname);
+    name->setMaxLength(sizeof(svp.plname)-1);
+    if ( strncmp(svp.plname,"player",6) && strncmp(svp.plname,"games",5) )
+	name->setText(svp.plname);
     connect(name, SIGNAL(textChanged(const QString&)),
 	    this, SLOT(selectName(const QString&)) );
     name->setFocus();
@@ -1189,7 +1189,7 @@ NetHackQtPlayerSelector::NetHackQtPlayerSelector(NetHackQtKeyBuffer& ks) :
 
 void NetHackQtPlayerSelector::selectName(const QString& n)
 {
-    strncpy(gp.plname,n.latin1(),sizeof(gp.plname)-1);
+    strncpy(svp.plname,n.latin1(),sizeof(svp.plname)-1);
 }
 
 void NetHackQtPlayerSelector::selectRole()
@@ -1623,7 +1623,6 @@ void NetHackQtMapWindow::mousePressEvent(QMouseEvent* event)
     qApp->exit_loop();
 }
 
-#ifdef TEXTCOLOR
 static
 const QPen& nhcolor_to_pen(int c)
 {
@@ -1651,7 +1650,6 @@ const QPen& nhcolor_to_pen(int c)
 
     return pen[c];
 }
-#endif
 
 void NetHackQtMapWindow::paintEvent(QPaintEvent* event)
 {
@@ -1710,9 +1708,7 @@ void NetHackQtMapWindow::paintEvent(QPaintEvent* event)
 		/* map glyph to character and color */
     		(void)mapglyph(g, &och, &color, &special, i, j, 0);
 		ch = (uchar)och;
-#ifdef TEXTCOLOR
 		painter.setPen( nhcolor_to_pen(color) );
-#endif
 		painter.drawText(
 		    i*qt_settings->glyphs().width(),
 		    j*qt_settings->glyphs().height(),
@@ -1722,10 +1718,7 @@ void NetHackQtMapWindow::paintEvent(QPaintEvent* event)
 		    (const char*)&ch, 1
 		);
 		if (glyph_is_pet(g)
-#ifdef TEXTCOLOR
-		    && ::iflags.hilite_pet
-#endif
-		) {
+		    && ::iflags.hilite_pet) {
 		    painter.drawPixmap(QPoint(i*qt_settings->glyphs().width(),
                                               j*qt_settings->glyphs().height()),
                                        pet_annotation);
@@ -1740,10 +1733,7 @@ void NetHackQtMapWindow::paintEvent(QPaintEvent* event)
 		unsigned short g=Glyph(i,j);
 		qt_settings->glyphs().drawCell(painter, g, i, j);
 		if (glyph_is_pet(g)
-#ifdef TEXTCOLOR
-		    && ::iflags.hilite_pet
-#endif
-		) {
+		    && ::iflags.hilite_pet) {
 		    painter.drawPixmap(QPoint(i*qt_settings->glyphs().width(),
                                               j*qt_settings->glyphs().height()),
                                        pet_annotation);
@@ -2540,7 +2530,7 @@ void NetHackQtStatusWindow::updateStats()
 	encumber.setLabel(enc);
 	encumber.show();
     }
-    Strcpy(buf, gp.plname);
+    Strcpy(buf, svp.plname);
     if ('a' <= buf[0] && buf[0] <= 'z') buf[0] += 'A'-'a';
     Strcat(buf, " the ");
     if (u.mtimedone) {
@@ -2603,7 +2593,7 @@ void NetHackQtStatusWindow::updateStats()
 	align.setLabel("Lawful");
     }
 
-    if (::flags.time) time.setLabel("Time:",(long)gm.moves);
+    if (::flags.time) time.setLabel("Time:",(long)svm.moves);
     else time.setLabel("");
 #ifdef SCORE_ON_BOTL
     if (::flags.showscore) {
@@ -3315,7 +3305,7 @@ static char** rip_line=0;
     long year;
 
     /* Put name on stone */
-    Sprintf(rip_line[NAME_LINE], "%s", gp.plname);
+    Sprintf(rip_line[NAME_LINE], "%s", svp.plname);
 
     /* Put $ on stone */
     Sprintf(rip_line[GOLD_LINE], "%ld Au", done_money);
@@ -4042,7 +4032,7 @@ void NetHackQtMainWindow::keyPressEvent(QKeyEvent* event)
 
 void NetHackQtMainWindow::closeEvent(QCloseEvent* e)
 {
-    if ( gp.program_state.something_worth_saving ) {
+    if ( program_state.something_worth_saving ) {
 	switch ( QMessageBox::information( this, "NetHack",
 	    "This will end your NetHack session",
 	    "&Save", "&Cancel", 0, 1 ) )
@@ -4634,7 +4624,7 @@ void NetHackQtBind::qt_askname()
 	NetHackQtSavedGameSelector sgsel((const char**)saved);
 	ch = sgsel.choose();
 	if ( ch >= 0 )
-	    strcpy(gp.plname,saved[ch]);
+	    strcpy(svp.plname,saved[ch]);
     }
     free_saved_games(saved);
 
@@ -4854,7 +4844,7 @@ void NetHackQtBind::qt_update_inventory()
     if (main)
 	main->updateInventory();
     /* doesn't work yet
-    if (gp.program_state.something_worth_saving && iflags.perm_invent)
+    if (program_state.something_worth_saving && iflags.perm_invent)
         display_inventory(NULL, FALSE);
     */
 }
@@ -4908,14 +4898,14 @@ int NetHackQtBind::qt_nhgetch()
     //
     while (keybuffer.Empty()
 #ifdef SAFERHANGUP
-	   && !gp.program_state.done_hup
+	   && !program_state.done_hup
 #endif
 	   ) {
 	qApp->enter_loop();
     }
 
 #ifdef SAFERHANGUP
-    if (gp.program_state.done_hup && keybuffer.Empty()) return '\033';
+    if (program_state.done_hup && keybuffer.Empty()) return '\033';
 #endif
     return keybuffer.GetAscii();
 }
@@ -4929,13 +4919,13 @@ int NetHackQtBind::qt_nh_poskey(int *x, int *y, int *mod)
     //
     while (keybuffer.Empty() && clickbuffer.Empty()
 #ifdef SAFERHANGUP
-	   && !gp.program_state.done_hup
+	   && !program_state.done_hup
 #endif
 	   ) {
 	qApp->enter_loop();
     }
 #ifdef SAFERHANGUP
-    if (gp.program_state.done_hup && keybuffer.Empty()) return '\033';
+    if (program_state.done_hup && keybuffer.Empty()) return '\033';
 #endif
     if (!keybuffer.Empty()) {
 	return keybuffer.GetAscii();
@@ -5157,16 +5147,6 @@ void NetHackQtBind::qt_delay_output()
     delay.wait();
 }
 
-void NetHackQtBind::qt_start_screen()
-{
-    // Ignore.
-}
-
-void NetHackQtBind::qt_end_screen()
-{
-    // Ignore.
-}
-
 void NetHackQtBind::qt_outrip(winid wid, int how, time_t when)
 {
     NetHackQtWindow* window=id_to_window[wid];
@@ -5184,7 +5164,7 @@ bool NetHackQtBind::notify(QObject *receiver, QEvent *event)
 
     bool result=QApplication::notify(receiver,event);
 #ifdef SAFERHANGUP
-    if (gp.program_state.done_hup) {
+    if (program_state.done_hup) {
 	keybuffer.Put('\033');
 	qApp->exit_loop();
 	return TRUE;
@@ -5290,9 +5270,6 @@ struct window_procs Qt_procs = {
     donull,
     donull,
 #endif
-    /* other defs that really should go away (they're tty specific) */
-    NetHackQtBind::qt_start_screen,
-    NetHackQtBind::qt_end_screen,
 #ifdef GRAPHIC_TOMBSTONE
     NetHackQtBind::qt_outrip,
 #else

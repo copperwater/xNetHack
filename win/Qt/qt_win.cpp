@@ -22,7 +22,7 @@
 // and also because this is my first major application of Qt.  
 // 
 // The problem of NetHack's getkey requirement is solved by intercepting
-// key events by overiding QApplication::notify(...), and putting them in
+// key events by overriding QApplication::notify(...), and putting them in
 // a buffer.  Mouse clicks on the map window are treated with a similar
 // buffer.  When the NetHack engine calls for a key, one is taken from
 // the buffer, or if that is empty, QApplication::exec() is called.
@@ -103,7 +103,7 @@ void NetHackQtWindow::PutStr(int attr UNUSED, const QString& text UNUSED) { puts
 void NetHackQtWindow::StartMenu(bool using_WIN_INVEN UNUSED)
                                 { puts("unexpected StartMenu"); }
 void NetHackQtWindow::AddMenu(int glyph UNUSED, const ANY_P* identifier UNUSED,
-                              char ch UNUSED, char gch UNUSED, int attr UNUSED,
+                              char ch UNUSED, char gch UNUSED, int attr UNUSED, int clr UNUSED,
                               const QString& str UNUSED, unsigned itemflags UNUSED)
                               { puts("unexpected AddMenu"); }
 void NetHackQtWindow::EndMenu(const QString& prompt UNUSED) { puts("unexpected EndMenu"); }

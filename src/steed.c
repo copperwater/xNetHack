@@ -1,4 +1,4 @@
-/* NetHack 3.7	steed.c	$NHDT-Date: 1671838909 2022/12/23 23:41:49 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.108 $ */
+/* NetHack 3.7	steed.c	$NHDT-Date: 1720128167 2024/07/04 21:22:47 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.121 $ */
 /* Copyright (c) Kevin Hugo, 1998-1999. */
 /* NetHack may be freely redistributed.  See license for details. */
 
@@ -9,8 +9,8 @@ static NEARDATA const char steeds[] = { S_QUADRUPED, S_UNICORN, S_ANGEL,
                                         S_CENTAUR,   S_DRAGON,  S_JABBERWOCK,
                                         '\0' };
 
-static boolean landing_spot(coord *, int, int);
-static void maybewakesteed(struct monst *);
+staticfn boolean landing_spot(coord *, int, int);
+staticfn void maybewakesteed(struct monst *);
 
 /* caller has decided that hero can't reach something while mounted */
 void
@@ -23,7 +23,7 @@ rider_cant_reach(void)
 
 /* Can this monster wear a saddle? */
 boolean
-can_saddle(struct monst* mtmp)
+can_saddle(struct monst *mtmp)
 {
     struct permonst *ptr = mtmp->data;
 
@@ -33,7 +33,7 @@ can_saddle(struct monst* mtmp)
 }
 
 int
-use_saddle(struct obj* otmp)
+use_saddle(struct obj *otmp)
 {
     struct monst *mtmp;
     struct permonst *ptr;
@@ -139,7 +139,7 @@ use_saddle(struct obj* otmp)
 }
 
 void
-put_saddle_on_mon(struct obj* saddle, struct monst* mtmp)
+put_saddle_on_mon(struct obj *saddle, struct monst *mtmp)
 {
     if (!can_saddle(mtmp) || which_armor(mtmp, W_SADDLE))
         return;
@@ -155,7 +155,7 @@ put_saddle_on_mon(struct obj* saddle, struct monst* mtmp)
 
 /* Can we ride this monster?  Caller should also check can_saddle() */
 boolean
-can_ride(struct monst* mtmp)
+can_ride(struct monst *mtmp)
 {
     return (mtmp->mtame && humanoid(gy.youmonst.data)
             && !verysmall(gy.youmonst.data) && !bigmonst(gy.youmonst.data)
@@ -227,8 +227,10 @@ mount_steed(
             return (FALSE);
     }
 
-    if (Upolyd && (!humanoid(gy.youmonst.data) || verysmall(gy.youmonst.data)
-                   || bigmonst(gy.youmonst.data) || slithy(gy.youmonst.data))) {
+    if (Upolyd && (!humanoid(gy.youmonst.data)
+                   || verysmall(gy.youmonst.data)
+                   || bigmonst(gy.youmonst.data)
+                   || slithy(gy.youmonst.data))) {
         You("won't fit on a saddle.");
         return (FALSE);
     }
@@ -270,6 +272,7 @@ mount_steed(
         pline("%s is not saddled.", Monnam(mtmp));
         return (FALSE);
     }
+
     ptr = mtmp->data;
     if (touch_petrifies(ptr) && !Stone_resistance) {
         char kbuf[BUFSZ];
@@ -355,9 +358,16 @@ mount_steed(
     if (uwep && is_pole(uwep))
         gu.unweapon = FALSE;
     u.usteed = mtmp;
+    {
+        boolean was_stealthy = Stealth != 0;
+
+        steed_vs_stealth();
+        if (was_stealthy && !Stealth)
+            You("aren't stealthy anymore.");
+    }
     remove_monster(mtmp->mx, mtmp->my);
     teleds(mtmp->mx, mtmp->my, TELEDS_ALLOW_DRAG);
-    gc.context.botl = TRUE;
+    disp.botl = TRUE;
     return TRUE;
 }
 
@@ -435,7 +445,7 @@ kick_steed(void)
  * room's walls, which is not what we want.
  * Adapted from mail daemon code.
  */
-static boolean
+staticfn boolean
 landing_spot(
     coord *spot, /* landing position (we fill it in) */
     int reason,
@@ -589,6 +599,7 @@ dismount_steed(
     switch (reason) {
     case DISMOUNT_THROWN:
         verb = "are thrown";
+        FALLTHROUGH;
         /*FALLTHRU*/
     case DISMOUNT_KNOCKED:
     case DISMOUNT_FELL:
@@ -641,9 +652,16 @@ dismount_steed(
     if (repair_leg_damage)
         heal_legs(1);
 
-    /* Release the steed and saddle */
-    u.usteed = 0;
+    /* Release the steed */
+    u.usteed = (struct monst *) NULL;
     u.ugallop = 0L;
+    {
+        boolean was_stealthy = Stealth != 0;
+
+        steed_vs_stealth();
+        if (Stealth && !was_stealthy)
+            You("seem less noisy now.");
+    }
 
     if (u.utraptype == TT_BEARTRAP
         || u.utraptype == TT_PIT
@@ -792,11 +810,11 @@ dismount_steed(
         gi.in_steed_dismounting = TRUE;
         (void) float_down(0L, W_SADDLE);
         gi.in_steed_dismounting = FALSE;
-        gc.context.botl = TRUE;
+        disp.botl = TRUE;
         (void) encumber_msg();
         gv.vision_full_recalc = 1;
     } else
-        gc.context.botl = TRUE;
+        disp.botl = TRUE;
     /* polearms behave differently when not mounted */
     if (uwep && is_pole(uwep))
         gu.unweapon = TRUE;
@@ -805,8 +823,8 @@ dismount_steed(
 
 /* when attempting to saddle or mount a sleeping steed, try to wake it up
    (for the saddling case, it won't be u.usteed yet) */
-static void
-maybewakesteed(struct monst* steed)
+staticfn void
+maybewakesteed(struct monst *steed)
 {
     int frozen = (int) steed->mfrozen;
     boolean wasimmobile = helpless(steed);
@@ -829,6 +847,31 @@ maybewakesteed(struct monst* steed)
     finish_meating(steed);
 }
 
+/* steed has taken on a new shape */
+void
+poly_steed(
+    struct monst *steed,
+    struct permonst *oldshape)
+{
+    if (!can_saddle(steed) || !can_ride(steed)) {
+        /* can't get here; newcham() -> mon_break_armor() -> m_lose_armor()
+           removes saddle and/or forces hero to dismount, if applicable,
+           before newcham() calls us */
+        dismount_steed(DISMOUNT_FELL);
+    } else {
+        char buf[BUFSZ];
+
+        Strcpy(buf, x_monnam(steed, ARTICLE_YOUR, (char *) 0,
+                             SUPPRESS_SADDLE, FALSE));
+        if (oldshape != steed->data)
+            (void) strsubst(buf, "your ", "your new ");
+        You("adjust yourself in the saddle on %s.", buf);
+
+        /* riding blocks stealth unless hero+steed fly */
+        steed_vs_stealth();
+    }
+}
+
 /* decide whether hero's steed is able to move;
    doesn't check for holding traps--those affect the hero directly */
 boolean
@@ -839,12 +882,12 @@ stucksteed(boolean checkfeeding)
     if (steed) {
         /* check whether steed can move */
         if (helpless(steed)) {
-            pline("%s won't move!", upstart(y_monnam(steed)));
+            pline("%s won't move!", YMonnam(steed));
             return TRUE;
         }
         /* optionally check whether steed is in the midst of a meal */
         if (checkfeeding && steed->meating) {
-            pline("%s is still eating.", upstart(y_monnam(steed)));
+            pline("%s is still eating.", YMonnam(steed));
             return TRUE;
         }
     }
@@ -852,7 +895,7 @@ stucksteed(boolean checkfeeding)
 }
 
 void
-place_monster(struct monst* mon, coordxy x, coordxy y)
+place_monster(struct monst *mon, coordxy x, coordxy y)
 {
     struct monst *othermon;
     const char *monnm, *othnm;
@@ -880,7 +923,7 @@ place_monster(struct monst* mon, coordxy x, coordxy y)
                    mon->mstate, buf);
         return;
     }
-    if ((othermon = gl.level.monsters[x][y]) != 0) {
+    if ((othermon = svl.level.monsters[x][y]) != 0) {
         describe_level(buf, 0);
         monnm = minimal_monnam(mon, FALSE);
         othnm = (mon != othermon) ? minimal_monnam(othermon, TRUE) : "itself";
@@ -888,9 +931,8 @@ place_monster(struct monst* mon, coordxy x, coordxy y)
                    monnm, othnm, x, y, othermon->mstate, mon->mstate, buf);
     }
     mon->mx = x, mon->my = y;
-    gl.level.monsters[x][y] = mon;
-    mon->mstate &= ~(MON_OFFMAP | MON_MIGRATING | MON_LIMBO | MON_BUBBLEMOVE
-                     | MON_ENDGAME_FREE | MON_ENDGAME_MIGR);
+    svl.level.monsters[x][y] = mon;
+    mon->mstate = MON_FLOOR;
 }
 
 /*steed.c*/

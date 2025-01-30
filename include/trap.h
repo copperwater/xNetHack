@@ -103,12 +103,21 @@ enum trap_types {
 };
 
 /* some trap-related function return results */
-enum { Trap_Effect_Finished = 0,
-       Trap_Is_Gone = 0,
-       Trap_Caught_Mon = 1,
-       Trap_Killed_Mon = 2,
-       Trap_Moved_Mon = 3, /* new location, or new level */
+enum trap_result {
+    Trap_Effect_Finished = 0,
+    Trap_Is_Gone = 0,
+    Trap_Caught_Mon = 1,
+    Trap_Killed_Mon = 2,
+    Trap_Moved_Mon = 3, /* new location, or new level */
 };
+
+/* return codes from immune_to_trap() */
+enum trap_immunities {
+    TRAP_NOT_IMMUNE = 0,
+    TRAP_CLEARLY_IMMUNE = 1,
+    TRAP_HIDDEN_IMMUNE = 2,
+};
+
 
 #define is_pit(ttyp) ((ttyp) == PIT || (ttyp) == SPIKED_PIT)
 #define is_hole(ttyp)  ((ttyp) == HOLE || (ttyp) == TRAPDOOR)
@@ -123,6 +132,8 @@ enum { Trap_Effect_Finished = 0,
                                || (ttyp) == POLY_TRAP)
 /* "transportation" traps */
 #define is_xport(ttyp) ((ttyp) >= TELEP_TRAP && (ttyp) <= MAGIC_PORTAL)
+#define fixed_tele_trap(t) ((t)->ttyp == TELEP_TRAP \
+                            && isok((t)->teledest.x,(t)->teledest.y))
 
 /* List of traps that can be triggered by interacting with a door. */
 enum doortrap_types {
@@ -138,13 +149,6 @@ enum doortrap_types {
     NUMDOORTRAPS
     /* other ideas: boxing glove, sticky doorknob
      * hurtle(u.ux - doorx, u.uy - doory, 1, FALSE) */
-};
-
-/* Return codes from immune_to_trap. */
-enum trap_immunities {
-    TRAP_NOT_IMMUNE = 0,
-    TRAP_CLEARLY_IMMUNE,
-    TRAP_HIDDEN_IMMUNE
 };
 
 /* Values for deltrap_with_ammo */

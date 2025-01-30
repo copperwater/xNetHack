@@ -20,7 +20,7 @@
 #endif
 
 #ifdef TEXT_TOMBSTONE
-static void center(int, char *);
+staticfn void center(int, char *);
 
 #ifndef NH320_DEDICATION
 /* A normal tombstone for end of game display. */
@@ -59,7 +59,8 @@ static const char *const rip_txt[] = {
     "         |                  |            |     Ascended     |",
     "         |       1001       |            |                  |",
     "      *  |     *  *  *      | *        * |      *  *  *     | *",
-    " _____)/\\|\\__//(\\/(/\\)/\\//\\/|_)________)/|\\\\_/_/(\\/(/\\)/\\/\\/|_)____",
+    (" _____)/\\|\\__//(\\/(/\\)/\\//\\/|_)___"
+     "_____)/|\\\\_/_/(\\/(/\\)/\\/\\/|_)____"),
     0
 };
 #define STONE_LINE_CENT 19 /* char[] element of center of stone face */
@@ -71,10 +72,10 @@ static const char *const rip_txt[] = {
 #define DEATH_LINE 8 /* *char[] line # for death description */
 #define YEAR_LINE 12 /* *char[] line # for year */
 
-static void
+staticfn void
 center(int line, char *text)
 {
-    register char *ip, *op;
+    char *ip, *op;
     ip = text;
     op = &gr.rip[line][STONE_LINE_CENT - ((strlen(text) + 1) >> 1)];
     while (*ip)
@@ -84,10 +85,10 @@ center(int line, char *text)
 void
 genl_outrip(winid tmpwin, int how, time_t when)
 {
-    register char **dp;
-    register char *dpx;
+    char **dp;
+    char *dpx;
     char buf[BUFSZ];
-    register int x;
+    int x;
     int line, year;
     long cash;
 
@@ -97,7 +98,7 @@ genl_outrip(winid tmpwin, int how, time_t when)
     dp[x] = (char *) 0;
 
     /* Put name on stone */
-    Sprintf(buf, "%.*s", (int) STONE_LINE_LEN, gp.plname);
+    Sprintf(buf, "%.*s", (int) STONE_LINE_LEN, svp.plname);
     center(NAME_LINE, buf);
 
     /* Put $ on stone */

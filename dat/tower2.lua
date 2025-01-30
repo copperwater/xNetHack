@@ -57,7 +57,17 @@ if percent(60) then
    des.object("crystal plate mail",place[8])
 end
 if percent(60) then
-   des.object("spellbook of invisibility",place[9])
+   local spbooks = {
+      "spellbook of invisibility",
+      "spellbook of cone of cold",
+      "spellbook of create familiar",
+      "spellbook of clairvoyance",
+      "spellbook of charm monster",
+      "spellbook of stone to flesh",
+      "spellbook of polymorph"
+   }
+   shuffle(spbooks);
+   des.object(spbooks[1],place[9])
 end
 -- Walls in the tower are non diggable
 des.non_diggable(selection.area(00,00,14,10))

@@ -15,7 +15,6 @@
 #include "pcvideo.h"
 
 #include <dos.h>
-#include <ctype.h>
 
 /*
  * MS-DOS functions

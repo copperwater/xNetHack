@@ -1,4 +1,4 @@
-/* NetHack 3.7	were.c	$NHDT-Date: 1596498227 2020/08/03 23:43:47 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.25 $ */
+/* NetHack 3.7	were.c	$NHDT-Date: 1717570494 2024/06/05 06:54:54 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.36 $ */
 /* Copyright (c) Stichting Mathematisch Centrum, Amsterdam, 1985. */
 /*-Copyright (c) Robert Patrick Rankin, 2011. */
 /* NetHack may be freely redistributed.  See license for details. */
@@ -106,6 +106,12 @@ new_were(struct monst *mon)
 {
     int pm;
 
+    /* neither hero nor werecreature can change from human form to
+       critter form if hero has Protection_from_shape_changers extrinsic;
+       if already in critter form, always change to human form for that */
+    if (Protection_from_shape_changers && is_human(mon->data))
+        return;
+
     pm = counter_were(monsndx(mon->data));
     if (pm < LOW_PM) {
         impossible("unknown lycanthrope %s.",
@@ -116,6 +122,7 @@ new_were(struct monst *mon)
     if (canseemon(mon) && !Hallucination)
         pline("%s changes into a %s.", Monnam(mon),
               is_human(&mons[pm]) ? "human"
+                                  /* pmname()+4: skip past "were" prefix */
                                   : pmname(&mons[pm], Mgender(mon)) + 4);
 
     set_mon_data(mon, &mons[pm]);
@@ -126,10 +133,17 @@ new_were(struct monst *mon)
         mon->mcanmove = 1;
     }
     /* regenerate by 1/4 of the lost hit points */
-    mon->mhp += (mon->mhpmax - mon->mhp) / 4;
+    healmon(mon, (mon->mhpmax - mon->mhp) / 4, 0);
     newsym(mon->mx, mon->my);
     mon_break_armor(mon, FALSE);
     possibly_unwield(mon, FALSE);
+
+    /* vision capability isn't changing so we don't call set_apparxy() to
+       update mon's idea of where hero is; peaceful check is redundant */
+    if (svc.context.mon_moving && !mon->mpeaceful
+        && onscary(mon->mux, mon->muy, mon)
+        && monnear(mon, mon->mux, mon->muy))
+        monflee(mon, rn1(9, 2), TRUE, TRUE); /* 2..10 turns */
 }
 
 /* were-creature (even you) summons a horde */
@@ -178,7 +192,7 @@ were_summon(
                 *visible += 1;
         }
         if (yours && mtmp)
-            (void) tamedog(mtmp, (struct obj *) 0, FALSE);
+            (void) tamedog(mtmp, (struct obj *) 0, FALSE, FALSE);
     }
     return total;
 }

@@ -1,4 +1,4 @@
-/* NetHack 3.7  mdlib.c  $NHDT-Date: 1655402414 2022/06/16 18:00:14 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.31 $ */
+/* NetHack 3.7  mdlib.c  $NHDT-Date: 1701499945 2023/12/02 06:52:25 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.51 $ */
 /* Copyright (c) Stichting Mathematisch Centrum, Amsterdam, 1985. */
 /*-Copyright (c) Kenneth Lorber, Kensington, Maryland, 2015. */
 /* Copyright (c) M. Stephenson, 1990, 1991.                       */
@@ -30,7 +30,8 @@
 #include "context.h"
 #include "flag.h"
 #include "dlb.h"
-#include <ctype.h>
+#include "hacklib.h"
+
 /* version information */
 #ifdef SHORT_FILENAMES
 #include "patchlev.h"
@@ -58,18 +59,11 @@
 static boolean date_via_env = FALSE;
 
 extern unsigned long md_ignored_features(void);
-char *mdlib_version_string(char *, const char *);
-char *version_id_string(char *, size_t, const char *);
-char *bannerc_string(char *, size_t, const char *);
-int case_insensitive_comp(const char *, const char *);
+char *version_id_string(char *, size_t, const char *) NONNULL NONNULLPTRS;
+char *bannerc_string(char *, size_t, const char *) NONNULL NONNULLPTRS;
+int case_insensitive_comp(const char *, const char *) NONNULLPTRS;
 
-static void make_version(void);
-static char *eos(char *);
-int mstrength(struct permonst *);
-
-#if 0
-static char *mdlib_strsubst(char *, const char *, const char *);
-#endif
+staticfn void make_version(void);
 
 #ifndef HAS_NO_MKSTEMP
 #ifdef _MSC_VER
@@ -84,25 +78,32 @@ extern int GUILaunched;
 #endif
 
 /* these are in extern.h but we don't include hack.h */
-void runtime_info_init(void);
-const char *do_runtime_info(int *);
-void release_runtime_info(void);
-void populate_nomakedefs(struct version_info *);
+/* XXX move to new file mdlib.h? */
+extern void populate_nomakedefs(struct version_info *) NONNULLARG1; /*date.c*/
 extern void free_nomakedefs(void); /* date.c */
+void runtime_info_init(void);
+const char *do_runtime_info(int *) NO_NNARGS;
+void release_runtime_info(void);
+char *mdlib_version_string(char *, const char *) NONNULL NONNULLPTRS;
 
-void build_options(void);
-static int count_and_validate_winopts(void);
-static void opt_out_words(char *, int *);
-static void build_savebones_compat_string(void);
+staticfn void build_options(void);
+staticfn int count_and_validate_winopts(void);
+staticfn void opt_out_words(char *, int *) NONNULLPTRS;
+staticfn void build_savebones_compat_string(void);
+
 static int idxopttext, done_runtime_opt_init_once = 0;
-#define MAXOPT 40
-static char *opttext[120] = { 0 };
-char optbuf[COLBUFSZ];
+#define MAXOPT 60 /* 3.7: currently 40 lines get inserted into opttext[] */
+static char *opttext[MAXOPT] = { 0 };
+#define STOREOPTTEXT(line) \
+    ((void) ((idxopttext < MAXOPT)                      \
+             ? (opttext[idxopttext++] = dupstr(line))   \
+             : 0))
+static char optbuf[COLBUFSZ];
 static struct version_info version;
 static const char opt_indent[] = "    ";
 
 struct win_information {
-    const char *id, /* DEFAULT_WINDOW_SYS string */
+    const char *id, /* windowtype value */
         *name;      /* description, often same as id */
     boolean valid;
 };
@@ -110,7 +111,7 @@ struct win_information {
 static struct win_information window_opts[] = {
 #ifdef TTY_GRAPHICS
     { "tty",
-      /* testing 'TILES_IN_GLYPHMAP' here would bring confusion because it could
+      /* testing TILES_IN_GLYPHMAP here would bring confusion because it could
          apply to another interface such as X11, so check MSDOS explicitly
          instead; even checking TTY_TILES_ESCCODES would probably be
          confusing to most users (and it will already be listed separately
@@ -162,7 +163,7 @@ static struct win_information window_opts[] = {
 };
 
 #if !defined(MAKEDEFS_C)
-static int count_and_validate_soundlibopts(void);
+staticfn int count_and_validate_soundlibopts(void);
 
 struct soundlib_information {
     enum soundlib_ids id;
@@ -254,10 +255,10 @@ md_ignored_features(void)
             );
 }
 
-static void
+staticfn void
 make_version(void)
 {
-    register int i;
+    int i;
 
     /*
      * integer version number
@@ -281,9 +282,7 @@ make_version(void)
 #endif
 /* objects (10..14) */
 /* flag bits and/or other global variables (15..26) */
-#ifdef TEXTCOLOR
-                                           | (1L << 17)
-#endif
+ /* color support always*/                 | (1L << 17)
 #ifdef INSURANCE
                                            | (1L << 18)
 #endif
@@ -307,11 +306,9 @@ make_version(void)
     for (i = 1; artifact_names[i]; i++)
         continue;
     version.entity_count = (unsigned long) (i - 1);
-    for (i = 1; objects[i].oc_class != ILLOBJ_CLASS; i++)
-        continue;
+    i = NUM_OBJECTS;
     version.entity_count = (version.entity_count << 12) | (unsigned long) i;
-    for (i = 0; mons[i].mlet; i++)
-        continue;
+    i = NUMMONS;
     version.entity_count = (version.entity_count << 12) | (unsigned long) i;
     /*
      * Value used for compiler (word size/field alignment/padding) check.
@@ -344,29 +341,6 @@ mdlib_version_string(char *outbuf, const char *delim)
 extern void nh_snprintf(const char *func, int line, char *str, size_t size,
                         const char *fmt, ...);
 
-#ifdef MAKEDEFS_C
-DISABLE_WARNING_FORMAT_NONLITERAL
-
-void
-nh_snprintf(const char *func UNUSED, int line UNUSED, char *str, size_t size,
-            const char *fmt, ...)
-{
-    va_list ap;
-    int n;
-
-    va_start(ap, fmt);
-    n = vsnprintf(str, size, fmt, ap);
-    va_end(ap);
-
-    if (n < 0 || (size_t)n >= size) { /* is there a problem? */
-        str[size-1] = 0; /* make sure it is nul terminated */
-    }
-
-}
-
-RESTORE_WARNING_FORMAT_NONLITERAL
-#endif  /* MAKEDEFS_C */
-
 char *
 version_id_string(char *outbuf, size_t bufsz, const char *build_date)
 {
@@ -392,9 +366,9 @@ version_id_string(char *outbuf, size_t bufsz, const char *build_date)
     Strcpy(&subbuf[1], PORT_SUB_ID);
 #endif
 
-    Snprintf(outbuf, bufsz, "%s xNetHack%s Version %s%s - last %s %s.", PORT_ID,
-            subbuf, mdlib_version_string(versbuf, "."), statusbuf,
-            date_via_env ? "revision" : "build", build_date);
+    Snprintf(outbuf, bufsz, "%s xNetHack%s Version %s%s - last %s %s.",
+             PORT_ID, subbuf, mdlib_version_string(versbuf, "."), statusbuf,
+             date_via_env ? "revision" : "build", build_date);
     return outbuf;
 }
 
@@ -442,36 +416,9 @@ mkstemp(char *template)
 #endif /* HAS_NO_MKSTEMP */
 #endif /* MAKEDEFS_C || FOR_RUNTIME */
 
-static char *
-eos(char *str)
-{
-    while (*str)
-        str++;
-    return str;
-}
-
-#if 0
-static char *
-mdlib_strsubst(char *bp, const char *orig, const char *replacement)
-{
-    char *found, buf[BUFSZ];
-
-    if (bp) {
-        /* [this could be replaced by strNsubst(bp, orig, replacement, 1)] */
-        found = strstr(bp, orig);
-        if (found) {
-            Strcpy(buf, found + strlen(orig));
-            Strcpy(found, replacement);
-            Strcat(bp, buf);
-        }
-    }
-    return bp;
-}
-#endif
-
 static char save_bones_compat_buf[BUFSZ];
 
-static void
+staticfn void
 build_savebones_compat_string(void)
 {
 #ifdef VERSION_COMPATIBILITY
@@ -503,9 +450,7 @@ static const char *const build_opts[] = {
 #ifdef ANSI_DEFAULT
     "ANSI default terminal",
 #endif
-#ifdef TEXTCOLOR
     "color",
-#endif
 #ifdef TTY_GRAPHICS
 #ifdef TTY_TILES_ESCCODES
     "console escape codes for tile hinting",
@@ -535,9 +480,6 @@ static const char *const build_opts[] = {
 #endif
 #ifdef HOLD_LOCKFILE_OPEN
     "exclusive lock on level 0 file",
-#endif
-#ifdef MSGHANDLER
-    "external program as a message handler",
 #endif
 #if defined(HANGUPHANDLING) && !defined(NO_SIGNAL)
 #ifdef SAFERHANGUP
@@ -681,11 +623,17 @@ static const char *const build_opts[] = {
 #ifdef SYSCF
     "system configuration at run-time",
 #endif
+#ifdef PANICTRACE
+    "show stack trace on error",
+#endif
+#ifdef CRASHREPORT
+    "launch browser to report issues",
+#endif
     save_bones_compat_buf,
     "and basic NetHack features"
 };
 
-static int
+staticfn int
 count_and_validate_winopts(void)
 {
     int i, cnt = 0;
@@ -696,6 +644,7 @@ count_and_validate_winopts(void)
 #ifdef WIN32
         window_opts[i].valid = FALSE;
         if ((GUILaunched
+             && case_insensitive_comp(window_opts[i].id, "curses") != 0
              && case_insensitive_comp(window_opts[i].id, "mswin") != 0)
             || (!GUILaunched
                 && case_insensitive_comp(window_opts[i].id, "mswin") == 0))
@@ -709,7 +658,7 @@ count_and_validate_winopts(void)
 }
 
 #if !defined(MAKEDEFS_C)
-static int
+staticfn int
 count_and_validate_soundlibopts(void)
 {
     int i, cnt = 0;
@@ -723,9 +672,10 @@ count_and_validate_soundlibopts(void)
 }
 #endif
 
-static void
-opt_out_words(char *str,     /* input, but modified during processing */
-              int *length_p) /* in/out */
+staticfn void
+opt_out_words(
+    char *str,     /* input, but modified during processing */
+    int *length_p) /* in/out */
 {
     char *word;
 
@@ -739,9 +689,7 @@ opt_out_words(char *str,     /* input, but modified during processing */
         if (word)
             *word = '\0';
         if (*length_p + (int) strlen(str) > COLNO - 5) {
-            opttext[idxopttext] = strdup(optbuf);
-            if (idxopttext < (MAXOPT - 1))
-                idxopttext++;
+            STOREOPTTEXT(optbuf);
             Sprintf(optbuf, "%s", opt_indent),
                     *length_p = (int) strlen(opt_indent);
         } else {
@@ -752,7 +700,7 @@ opt_out_words(char *str,     /* input, but modified during processing */
     }
 }
 
-void
+staticfn void
 build_options(void)
 {
     char buf[COLBUFSZ];
@@ -766,9 +714,7 @@ build_options(void)
 #endif
 #endif
     build_savebones_compat_string();
-    opttext[idxopttext] = strdup(optbuf);
-    if (idxopttext < (MAXOPT - 1))
-        idxopttext++;
+    STOREOPTTEXT(optbuf);
 #if (NH_DEVEL_STATUS != NH_STATUS_RELEASED)
 #if (NH_DEVEL_STATUS == NH_STATUS_BETA)
 #define STATUS_ARG " [beta]"
@@ -778,15 +724,11 @@ build_options(void)
 #else
 #define STATUS_ARG ""
 #endif /* NH_DEVEL_STATUS == NH_STATUS_RELEASED */
-    Sprintf(optbuf, "%sNetHack version %d.%d%s\n",
+    Sprintf(optbuf, "%sxNetHack version %d.%d%s\n",
             opt_indent, VERSION_MAJOR, VERSION_MINOR, STATUS_ARG);
-    opttext[idxopttext] = strdup(optbuf);
-    if (idxopttext < (MAXOPT - 1))
-        idxopttext++;
+    STOREOPTTEXT(optbuf);
     Sprintf(optbuf, "Options compiled into this edition:");
-    opttext[idxopttext] = strdup(optbuf);
-    if (idxopttext < (MAXOPT - 1))
-        idxopttext++;
+    STOREOPTTEXT(optbuf);
     optbuf[0] = '\0';
     length = COLNO + 1; /* force 1st item onto new line */
     for (i = 0; i < SIZE(build_opts); i++) {
@@ -802,19 +744,13 @@ build_options(void)
                (i < SIZE(build_opts) - 1) ? "," : ".");
         opt_out_words(buf, &length);
     }
-    opttext[idxopttext] = strdup(optbuf);
-    if (idxopttext < (MAXOPT - 1))
-        idxopttext++;
+    STOREOPTTEXT(optbuf);
     optbuf[0] = '\0';
     winsyscnt = count_and_validate_winopts();
-    opttext[idxopttext] = strdup(optbuf);
-    if (idxopttext < (MAXOPT - 1))
-        idxopttext++;
+    STOREOPTTEXT(optbuf);
     Sprintf(optbuf, "Supported windowing system%s:",
             (winsyscnt > 1) ? "s" : "");
-    opttext[idxopttext] = strdup(optbuf);
-    if (idxopttext < (MAXOPT - 1))
-        idxopttext++;
+    STOREOPTTEXT(optbuf);
     optbuf[0] = '\0';
     length = COLNO + 1; /* force 1st item onto new line */
 
@@ -846,19 +782,12 @@ build_options(void)
 
 #if !defined(MAKEDEFS_C)
     cnt = 0;
-    opttext[idxopttext] = dupstr(optbuf);
-    if (idxopttext < (MAXOPT - 1))
-        idxopttext++;
+    STOREOPTTEXT(optbuf);
     optbuf[0] = '\0';
     soundlibcnt = count_and_validate_soundlibopts();
-    opttext[idxopttext] = dupstr(optbuf);
-    if (idxopttext < (MAXOPT - 1))
-        idxopttext++;
-    Sprintf(optbuf, "Supported soundlib%s:",
-            (soundlibcnt > 1) ? "s" : "");
-    opttext[idxopttext] = dupstr(optbuf);
-    if (idxopttext < (MAXOPT - 1))
-        idxopttext++;
+    STOREOPTTEXT(optbuf);
+    Sprintf(optbuf, "Supported soundlib%s:", (soundlibcnt > 1) ? "s" : "");
+    STOREOPTTEXT(optbuf);
     optbuf[0] = '\0';
     length = COLNO + 1; /* force 1st item onto new line */
 
@@ -896,9 +825,7 @@ build_options(void)
 #endif
 #endif  /* !MAKEDEFS_C */
 
-    opttext[idxopttext] = dupstr(optbuf);
-    if (idxopttext < (MAXOPT - 1))
-        idxopttext++;
+    STOREOPTTEXT(optbuf);
     optbuf[0] = '\0';
 
 #if defined(MAKEDEFS_C) || defined(FOR_RUNTIME)
@@ -909,7 +836,8 @@ build_options(void)
  /*        1         2         3         4         5         6         7
   1234567890123456789012345678901234567890123456789012345678901234567890123456
   */
- "    \"Permission is hereby granted, free of charge, to any person obtaining",
+ ("    \"Permission is hereby granted, free of charge,"
+  " to any person obtaining"),
  "     a copy of this software and associated documentation files (the ",
  "     \"Software\"), to deal in the Software without restriction including",
  "     without limitation the rights to use, copy, modify, merge, publish,",
@@ -924,37 +852,17 @@ build_options(void)
         /* add lua copyright notice;
            ":TAG:" substitutions are deferred to caller */
         for (i = 0; lua_info[i]; ++i) {
-            opttext[idxopttext] = strdup(lua_info[i]);
-            if (idxopttext < (MAXOPT - 1))
-                idxopttext++;
+            STOREOPTTEXT(lua_info[i]);
         }
     }
 #endif /* MAKEDEFS_C || FOR_RUNTIME */
 
     /* end with a blank line */
-    opttext[idxopttext] = strdup("");
-    if (idxopttext < (MAXOPT - 1))
-        idxopttext++;
+    STOREOPTTEXT("");
     return;
 }
 
-int
-case_insensitive_comp(const char *s1, const char *s2)
-{
-    uchar u1, u2;
-
-    for (;; s1++, s2++) {
-        u1 = (uchar) *s1;
-        if (isupper(u1))
-            u1 = (uchar) tolower(u1);
-        u2 = (uchar) *s2;
-        if (isupper(u2))
-            u2 = (uchar) tolower(u2);
-        if (u1 == '\0' || u1 != u2)
-            break;
-    }
-    return u1 - u2;
-}
+#undef STOREOPTTEXT
 
 void
 runtime_info_init(void)
@@ -978,7 +886,7 @@ do_runtime_info(int *rtcontext)
     if (!done_runtime_opt_init_once)
         runtime_info_init();
     if (idxopttext && rtcontext)
-        if (*rtcontext >= 0 && *rtcontext < (MAXOPT - 1)) {
+        if (*rtcontext >= 0 && *rtcontext < MAXOPT) {
             retval = opttext[*rtcontext];
             *rtcontext += 1;
         }

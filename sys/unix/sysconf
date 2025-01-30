@@ -1,4 +1,4 @@
-# NetHack 3.7 sysconf $NHDT-Date: 1646322470 2022/03/03 15:47:50 $ $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.41 $
+# NetHack 3.7 sysconf $NHDT-Date: 1704043695 2023/12/31 17:28:15 $ $NHDT-Branch: keni-luabits2 $:$NHDT-Revision: 1.44 $
 # Copyright (c) 2015 by Kenneth Lorber, Kensington, Maryland
 # NetHack may be freely redistributed.  See license for details.
 #
@@ -31,6 +31,10 @@ EXPLORERS=nobody
 # '^Z' during play and not knowing how to go back.)
 # Uses the same syntax as the WIZARDS and EXPLORERS options above.
 #SHELLERS=
+
+# Execute this program whenever a new message-window message is shown.
+# The program will get the message text as the only parameter.
+#MSGHANDLER=/usr/bin/espeak
 
 # If the user name is found in this list, prompt for username instead.
 # Uses the same syntax as the WIZARDS option above.
@@ -100,7 +104,7 @@ ENTRYMAX=2000
 
 # Use "Live logging" for important events (achievements, wishes, etc)
 # Only available if NetHack was compiled with LIVELOG.
-# Only really meaningful for public servers.
+# Only really meaningful for public servers or debugging.
 # See the log in-game with #chronicle -command.
 # Bitmask for kinds of things you want to log - combine the following values
 # as desired.
@@ -120,7 +124,7 @@ ENTRYMAX=2000
 # 0x001000 - Log 'minor' achievements - can be spammy
 # 0x002000 - Spoiler event; can include in livelog but hidden from #chronicle
 # 0x004000 - Include as 'major' event in dumplog; can be hidden from livelog
-# 0x008000 - Livelog debug msgs (currently only 'enter new level')
+# 0x008000 - Livelog debug msgs
 # 0x010000 - Shouts by the player
 LIVELOG=0x11FFF
 
@@ -171,6 +175,9 @@ GREPPATH=/bin/grep
 # 2 - high priority.  Non-zero priority methods are tried in order.
 PANICTRACE_GDB=1
 PANICTRACE_LIBC=2
+
+# URL loaded for creating reports to the NetHack DevTeam
+#CRASHREPORTURL=https://nethack.org/links/cr-37BETA.html
 
 # 'portable_device_paths' is only supported for Windows.  Starting with
 # 3.6.3, nethack on Windows treats the folder containing nethack.exe and

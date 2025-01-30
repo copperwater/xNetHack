@@ -1,4 +1,4 @@
-/* NetHack 3.7	libnhmain.c	$NHDT-Date: 1596498297 2020/08/03 23:44:57 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.87 $ */
+/* NetHack 3.7  libnhmain.c $NHDT-Date: 1693359589 2023/08/30 01:39:49 $  $NHDT-Branch: keni-crashweb2 $:$NHDT-Revision: 1.106 $ */
 /* Copyright (c) Stichting Mathematisch Centrum, Amsterdam, 1985. */
 /*-Copyright (c) Robert Patrick Rankin, 2011. */
 /* NetHack may be freely redistributed.  See license for details. */
@@ -8,10 +8,10 @@
 #include "hack.h"
 #include "dlb.h"
 
-#include <ctype.h>
 #include <sys/stat.h>
 #include <signal.h>
 #include <pwd.h>
+#include <func_tab.h>
 #ifndef O_RDONLY
 #include <fcntl.h>
 #endif
@@ -50,8 +50,8 @@ extern void init_linux_cons(void);
 #endif
 
 static void wd_message(void);
-static boolean wiz_error_flag = FALSE;
 static struct passwd *get_unix_pw(void);
+ATTRNORETURN static void opt_terminate(void) NORETURN;
 
 #ifdef __EMSCRIPTEN__
 /* if WebAssembly, export this API and don't optimize it out */
@@ -68,7 +68,7 @@ nhmain(int argc, char *argv[])
 #endif /* __EMSCRIPTEN__ */
 {
 #ifdef CHDIR
-    register char *dir;
+    char *dir;
 #endif
     NHFILE *nhfp;
     boolean exact_username;
@@ -79,10 +79,10 @@ nhmain(int argc, char *argv[])
     //     printf ("argv[%d]: %s\n", i, argv[i]);
     // }
 
-    early_init();
+    early_init(argc, argv);
 
     gh.hname = argv[0];
-    gh.hackpid = getpid();
+    svh.hackpid = getpid();
     (void) umask(0777 & ~FCMASK);
 
     choose_windows(DEFAULT_WINDOW_SYS);
@@ -103,15 +103,14 @@ nhmain(int argc, char *argv[])
         if (argcheck(argc, argv, ARG_VERSION) == 2)
             exit(EXIT_SUCCESS);
 
-        if (argcheck(argc, argv, ARG_SHOWPATHS) == 2) {
-#ifdef CHDIR
-            chdirx((char *) 0, 0);
-#endif
-            iflags.initoptions_noterminate = TRUE;
-            initoptions();
-            iflags.initoptions_noterminate = FALSE;
-            reveal_paths();
+#ifdef CRASHREPORT
+        if (argcheck(argc, argv, ARG_BIDSHOW))
             exit(EXIT_SUCCESS);
+#endif
+
+        if (argcheck(argc, argv, ARG_SHOWPATHS) == 2) {
+            gd.deferred_showpaths = TRUE;
+            return;
         }
         if (argcheck(argc, argv, ARG_DEBUG) == 1) {
             argc--;
@@ -170,6 +169,12 @@ nhmain(int argc, char *argv[])
     chdirx(dir, 1);
 #endif
 
+#ifdef __EMSCRIPTEN__
+    js_helpers_init();
+    js_constants_init();
+    js_globals_init();
+#endif
+
 #ifdef _M_UNIX
     check_sco_console();
 #endif
@@ -189,7 +194,7 @@ nhmain(int argc, char *argv[])
      * It seems you really want to play.
      */
     u.uhp = 1; /* prevent RIP on early quits */
-    gp.program_state.preserve_locks = 1;
+    program_state.preserve_locks = 1;
 #ifndef NO_SIGNAL
     sethanguphandler((SIG_RET_TYPE) hangup);
 #endif
@@ -197,11 +202,6 @@ nhmain(int argc, char *argv[])
     process_options(argc, argv); /* command line options */
 #ifdef WINCHAIN
     commit_windowchain();
-#endif
-#ifdef __EMSCRIPTEN__
-    js_helpers_init();
-    js_constants_init();
-    js_globals_init();
 #endif
     init_nhwindows(&argc, argv); /* now we can set up window system */
 #ifdef _M_UNIX
@@ -223,7 +223,7 @@ nhmain(int argc, char *argv[])
     /* wizard mode access is deferred until here */
     set_playmode(); /* sets plname to "wizard" for wizard mode */
     /* hide any hyphens from plnamesuffix() */
-    gp.plnamelen = exact_username ? (int) strlen(gp.plname) : 0;
+    gp.plnamelen = exact_username ? (int) strlen(svp.plname) : 0;
     /* strip role,race,&c suffix; calls askname() if plname[] is empty
        or holds a generic user name like "player" or "games" */
     plnamesuffix();
@@ -266,12 +266,12 @@ nhmain(int argc, char *argv[])
      * clock, &c not currently in use in the playground directory
      * (for gl.locknum > 0).
      */
-    if (*gp.plname) {
+    if (*svp.plname) {
         getlock();
-        gp.program_state.preserve_locks = 0; /* after getlock() */
+        program_state.preserve_locks = 0; /* after getlock() */
     }
 
-    if (*gp.plname && (nhfp = restore_saved_game()) != 0) {
+    if (*svp.plname && (nhfp = restore_saved_game()) != 0) {
         const char *fq_save = fqname(gs.SAVEF, SAVEPREFIX, 1);
 
         (void) chmod(fq_save, 0); /* disallow parallel restores */
@@ -291,7 +291,7 @@ nhmain(int argc, char *argv[])
             wd_message();
             if (discover || wizard) {
                 /* this seems like a candidate for paranoid_confirmation... */
-                if (yn("Do you want to keep the save file?") == 'n') {
+                if (y_n("Do you want to keep the save file?") == 'n') {
                     (void) delete_savefile();
                 } else {
                     (void) chmod(fq_save, FCMASK); /* back to readable */
@@ -302,7 +302,7 @@ nhmain(int argc, char *argv[])
     }
 
     if (!resuming) {
-        boolean neednewlock = (!*gp.plname);
+        boolean neednewlock = (!*svp.plname);
         /* new game:  start by choosing role, race, etc;
            player might change the hero's name while doing that,
            in which case we try to restore under the new name
@@ -311,7 +311,7 @@ nhmain(int argc, char *argv[])
             if (!plsel_once)
                 player_selection();
             plsel_once = TRUE;
-            if (neednewlock && *gp.plname)
+            if (neednewlock && *svp.plname)
                 goto attempt_restore;
             if (iflags.renameinprogress) {
                 /* player has renamed the hero while selecting role;
@@ -377,12 +377,12 @@ process_options(int argc, char *argv[])
 #endif
         case 'u':
             if (argv[0][2]) {
-                (void) strncpy(gp.plname, argv[0] + 2, sizeof gp.plname - 1);
+                (void) strncpy(svp.plname, argv[0] + 2, sizeof svp.plname - 1);
                 gp.plnamelen = 0; /* plname[] might have -role-race attached */
             } else if (argc > 1) {
                 argc--;
                 argv++;
-                (void) strncpy(gp.plname, argv[0], sizeof gp.plname - 1);
+                (void) strncpy(svp.plname, argv[0], sizeof svp.plname - 1);
                 gp.plnamelen = 0;
             } else {
                 raw_print("Player name expected after -u");
@@ -530,8 +530,8 @@ whoami(void)
      * Note that we trust the user here; it is possible to play under
      * somebody else's name.
      */
-    if (!*gp.plname) {
-        register const char *s;
+    if (!*svp.plname) {
+        const char *s;
 
         s = nh_getenv("USER");
         if (!s || !*s)
@@ -540,8 +540,8 @@ whoami(void)
             s = getlogin();
 
         if (s && *s) {
-            (void) strncpy(gp.plname, s, sizeof gp.plname - 1);
-            if (strchr(gp.plname, '-'))
+            (void) strncpy(svp.plname, s, sizeof svp.plname - 1);
+            if (strchr(svp.plname, '-'))
                 return TRUE;
         }
     }
@@ -592,28 +592,48 @@ port_help(void)
 boolean
 authorize_wizard_mode(void)
 {
-    struct passwd *pw = get_unix_pw();
-
-    if (pw && sysopt.wizards && sysopt.wizards[0]) {
+    if (sysopt.wizards && sysopt.wizards[0]) {
         if (check_user_string(sysopt.wizards))
             return TRUE;
     }
-    wiz_error_flag = TRUE; /* not being allowed into wizard mode */
+    iflags.wiz_error_flag = TRUE; /* not being allowed into wizard mode */
     return FALSE;
+}
+
+/* similar to above, validate explore mode access */
+boolean
+authorize_explore_mode(void)
+{
+#ifdef SYSCF
+    if (sysopt.explorers && sysopt.explorers[0]) {
+        if (check_user_string(sysopt.explorers))
+            return TRUE;
+    }
+    iflags.explore_error_flag = TRUE; /* not allowed into explore mode */
+    return FALSE;
+#else
+    return TRUE; /* if sysconf disabled, no restrictions on explore mode */
+#endif
 }
 
 static void
 wd_message(void)
 {
-    if (wiz_error_flag) {
+    if (iflags.wiz_error_flag) {
         if (sysopt.wizards && sysopt.wizards[0]) {
             char *tmp = build_english_list(sysopt.wizards);
             pline("Only user%s %s may access debug (wizard) mode.",
                   strchr(sysopt.wizards, ' ') ? "s" : "", tmp);
             free(tmp);
-        } else
+        } else {
+            You("cannot access debug (wizard) mode.");
+        }
+        wizard = FALSE; /* (paranoia) */
+        if (!iflags.explore_error_flag)
             pline("Entering explore/discovery mode instead.");
-        wizard = 0, discover = 1; /* (paranoia) */
+    } else if (iflags.explore_error_flag) {
+        You("cannot access explore mode."); /* same as enter_explore_mode */
+        discover = iflags.deferred_X = FALSE; /* (more paranoia) */
     } else if (discover)
         You("are in non-scoring explore/discovery mode.");
 }
@@ -648,7 +668,7 @@ check_user_string(const char *optstr)
     if (optstr[0] == '*')
         return TRUE; /* allow any user */
     if (sysopt.check_plname)
-        pwname = gp.plname;
+        pwname = svp.plname;
     else if ((pw = get_unix_pw()) != 0)
         pwname = pw->pw_name;
     if (!pwname || !*pwname)
@@ -749,6 +769,32 @@ sys_random_seed(void)
     return seed;
 }
 
+/* for command-line options that perform some immediate action and then
+   terminate the program without starting play, like 'nethack --version'
+   or 'nethack -s Zelda'; do some cleanup before that termination */
+ATTRNORETURN static void
+opt_terminate(void)
+{
+    config_error_done(); /* free memory allocated by config_error_init() */
+
+    nh_terminate(EXIT_SUCCESS);
+    /*NOTREACHED*/
+}
+
+/* show the sysconf file name, playground directory, run-time configuration
+   file name, dumplog file name if applicable, and some other things */
+ATTRNORETURN void
+after_opt_showpaths(const char *dir)
+{
+#ifdef CHDIR
+    chdirx(dir, FALSE);
+#else
+    nhUse(dir);
+#endif
+    opt_terminate();
+    /*NOTREACHED*/
+}
+
 #ifdef __EMSCRIPTEN__
 /***
  * Helpers
@@ -757,9 +803,9 @@ EM_JS(void, js_helpers_init, (), {
     globalThis.nethackGlobal = globalThis.nethackGlobal || {};
     globalThis.nethackGlobal.helpers = globalThis.nethackGlobal.helpers || {};
 
-    installHelper(displayInventory);
-    installHelper(getPointerValue);
-    installHelper(setPointerValue);
+    installHelper(displayInventory, "displayInventory");
+    installHelper(getPointerValue, "getPointerValue");
+    installHelper(setPointerValue, "setPointerValue");
 
     // used by update_inventory
     function displayInventory() {
@@ -780,6 +826,8 @@ EM_JS(void, js_helpers_init, (), {
             return getValue(ptr, "*");
         case "c": // char
             return String.fromCharCode(getValue(ptr, "i8"));
+        case "b":
+            return getValue(ptr, "i8") == 1;
         case "0": /* 2^0 = 1 byte */
             return getValue(ptr, "i8");
         case "1": /* 2^1 = 2 bytes */
@@ -792,8 +840,8 @@ EM_JS(void, js_helpers_init, (), {
             return getValue(ptr, "float");
         case "d": // double
             return getValue(ptr, "double");
-        case "o": // overloaded: multiple types
-            return ptr;
+        case "v": // void
+            return undefined;
         default:
             throw new TypeError ("unknown type:" + type);
         }
@@ -804,7 +852,8 @@ EM_JS(void, js_helpers_init, (), {
         // console.log("setPointerValue", name, "0x" + ptr.toString(16), type, value);
         switch (type) {
         case "p":
-            throw new Error("not implemented");
+            setValue(ptr, value, "*");
+            break;
         case "s":
             if(typeof value !== "string")
                 throw new TypeError(`expected ${name} return type to be string`);
@@ -816,6 +865,11 @@ EM_JS(void, js_helpers_init, (), {
             if(typeof value !== "number" || !Number.isInteger(value))
                 throw new TypeError(`expected ${name} return type to be integer`);
             setValue(ptr, value, "i32");
+            break;
+        case "1":
+            if(typeof value !== "number" || !Number.isInteger(value))
+                throw new TypeError(`expected ${name} return type to be integer`);
+            setValue(ptr, value, "i16");
             break;
         case "c":
             if(typeof value !== "number" || value < 0 || value > 128)
@@ -833,6 +887,10 @@ EM_JS(void, js_helpers_init, (), {
                 throw new TypeError(`expected ${name} return type to be double`);
             setValue(ptr, value, "double");
             break;
+        case "b":
+            if (typeof value !== "boolean")
+                throw new TypeError(`expected ${name} return type to be boolean`);
+            setValue(ptr, value ? 1 : 0, "i8");
         case "v":
             break;
         default:
@@ -872,11 +930,19 @@ EM_JS(void, set_const_str, (char *scope_str, char *name_str, char *input_str), {
     globalThis.nethackGlobal.constants[scope] = globalThis.nethackGlobal.constants[scope] || {};
     globalThis.nethackGlobal.constants[scope][name] = str;
 });
+#define SET_POINTER(name) set_const_ptr(#name, (void *)&name);
+EM_JS(void, set_const_ptr, (char *name_str, void* ptr), {
+    let name = UTF8ToString(name_str);
+
+    globalThis.nethackGlobal.pointers = globalThis.nethackGlobal.pointers || {};
+    globalThis.nethackGlobal.pointers[name] = ptr;
+});
 
 void js_constants_init() {
     EM_ASM({
         globalThis.nethackGlobal = globalThis.nethackGlobal || {};
         globalThis.nethackGlobal.constants = globalThis.nethackGlobal.constants || {};
+        globalThis.nethackGlobal.pointers = globalThis.nethackGlobal.pointers || {};
     });
 
     // create_nhwindow
@@ -965,8 +1031,7 @@ void js_constants_init() {
     // copyright
     SET_CONSTANT_STRING("COPYRIGHT", COPYRIGHT_BANNER_A);
     SET_CONSTANT_STRING("COPYRIGHT", COPYRIGHT_BANNER_B);
-    // XXX: not set for cross-compile
-    //SET_CONSTANT_STRING("COPYRIGHT", COPYRIGHT_BANNER_C);
+    set_const_str("COPYRIGHT", "COPYRIGHT_BANNER_C", (char*) COPYRIGHT_BANNER_C);
     SET_CONSTANT_STRING("COPYRIGHT", COPYRIGHT_BANNER_D);
 
     // glyphs
@@ -1011,12 +1076,126 @@ void js_constants_init() {
     SET_CONSTANT("COLORS", CLR_MAX);
 
     // color attributes (?)
-    SET_CONSTANT("COLOR_ATTR", HL_ATTCLR_DIM);
-    SET_CONSTANT("COLOR_ATTR", HL_ATTCLR_BLINK);
-    SET_CONSTANT("COLOR_ATTR", HL_ATTCLR_ULINE);
-    SET_CONSTANT("COLOR_ATTR", HL_ATTCLR_INVERSE);
     SET_CONSTANT("COLOR_ATTR", HL_ATTCLR_BOLD);
+    SET_CONSTANT("COLOR_ATTR", HL_ATTCLR_DIM);
+    SET_CONSTANT("COLOR_ATTR", HL_ATTCLR_ITALIC);
+    SET_CONSTANT("COLOR_ATTR", HL_ATTCLR_ULINE);
+    SET_CONSTANT("COLOR_ATTR", HL_ATTCLR_BLINK);
+    SET_CONSTANT("COLOR_ATTR", HL_ATTCLR_INVERSE);
     SET_CONSTANT("COLOR_ATTR", BL_ATTCLR_MAX);
+
+    SET_CONSTANT("BL_MASK", BL_MASK_BAREH);
+    SET_CONSTANT("BL_MASK", BL_MASK_BLIND);
+    SET_CONSTANT("BL_MASK", BL_MASK_BUSY);
+    SET_CONSTANT("BL_MASK", BL_MASK_CONF);
+    SET_CONSTANT("BL_MASK", BL_MASK_DEAF);
+    SET_CONSTANT("BL_MASK", BL_MASK_ELF_IRON);
+    SET_CONSTANT("BL_MASK", BL_MASK_FLY);
+    SET_CONSTANT("BL_MASK", BL_MASK_FOODPOIS);
+    SET_CONSTANT("BL_MASK", BL_MASK_GLOWHANDS);
+    SET_CONSTANT("BL_MASK", BL_MASK_GRAB);
+    SET_CONSTANT("BL_MASK", BL_MASK_HALLU);
+    SET_CONSTANT("BL_MASK", BL_MASK_HELD);
+    SET_CONSTANT("BL_MASK", BL_MASK_ICY);
+    SET_CONSTANT("BL_MASK", BL_MASK_INLAVA);
+    SET_CONSTANT("BL_MASK", BL_MASK_LEV);
+    SET_CONSTANT("BL_MASK", BL_MASK_PARLYZ);
+    SET_CONSTANT("BL_MASK", BL_MASK_RIDE);
+    SET_CONSTANT("BL_MASK", BL_MASK_SLEEPING);
+    SET_CONSTANT("BL_MASK", BL_MASK_SLIME);
+    SET_CONSTANT("BL_MASK", BL_MASK_SLIPPERY);
+    SET_CONSTANT("BL_MASK", BL_MASK_STONE);
+    SET_CONSTANT("BL_MASK", BL_MASK_STRNGL);
+    SET_CONSTANT("BL_MASK", BL_MASK_STUN);
+    SET_CONSTANT("BL_MASK", BL_MASK_SUBMERGED);
+    SET_CONSTANT("BL_MASK", BL_MASK_TERMILL);
+    SET_CONSTANT("BL_MASK", BL_MASK_TETHERED);
+    SET_CONSTANT("BL_MASK", BL_MASK_TRAPPED);
+    SET_CONSTANT("BL_MASK", BL_MASK_UNCONSC);
+    SET_CONSTANT("BL_MASK", BL_MASK_WOUNDEDL);
+    SET_CONSTANT("BL_MASK", BL_MASK_HOLDING);
+
+    SET_CONSTANT("ROLE_RACEMASK", MH_HUMAN);
+    SET_CONSTANT("ROLE_RACEMASK", MH_ELF);
+    SET_CONSTANT("ROLE_RACEMASK", MH_DWARF);
+    SET_CONSTANT("ROLE_RACEMASK", MH_GNOME);
+    SET_CONSTANT("ROLE_RACEMASK", MH_ORC);
+
+    SET_CONSTANT("ROLE_GENDMASK", ROLE_MALE);
+    SET_CONSTANT("ROLE_GENDMASK", ROLE_FEMALE);
+    SET_CONSTANT("ROLE_GENDMASK", ROLE_NEUTER);
+
+    SET_CONSTANT("ROLE_ALIGNMASK", ROLE_LAWFUL);
+    SET_CONSTANT("ROLE_ALIGNMASK", ROLE_NEUTRAL);
+    SET_CONSTANT("ROLE_ALIGNMASK", ROLE_CHAOTIC);
+
+    SET_CONSTANT("blconditions", bl_bareh);
+    SET_CONSTANT("blconditions", bl_blind);
+    SET_CONSTANT("blconditions", bl_busy);
+    SET_CONSTANT("blconditions", bl_conf);
+    SET_CONSTANT("blconditions", bl_deaf);
+    SET_CONSTANT("blconditions", bl_elf_iron);
+    SET_CONSTANT("blconditions", bl_fly);
+    SET_CONSTANT("blconditions", bl_foodpois);
+    SET_CONSTANT("blconditions", bl_glowhands);
+    SET_CONSTANT("blconditions", bl_grab);
+    SET_CONSTANT("blconditions", bl_hallu);
+    SET_CONSTANT("blconditions", bl_held);
+    SET_CONSTANT("blconditions", bl_icy);
+    SET_CONSTANT("blconditions", bl_inlava);
+    SET_CONSTANT("blconditions", bl_lev);
+    SET_CONSTANT("blconditions", bl_parlyz);
+    SET_CONSTANT("blconditions", bl_ride);
+    SET_CONSTANT("blconditions", bl_sleeping);
+    SET_CONSTANT("blconditions", bl_slime);
+    SET_CONSTANT("blconditions", bl_slippery);
+    SET_CONSTANT("blconditions", bl_stone);
+    SET_CONSTANT("blconditions", bl_strngl);
+    SET_CONSTANT("blconditions", bl_stun);
+    SET_CONSTANT("blconditions", bl_submerged);
+    SET_CONSTANT("blconditions", bl_termill);
+    SET_CONSTANT("blconditions", bl_tethered);
+    SET_CONSTANT("blconditions", bl_trapped);
+    SET_CONSTANT("blconditions", bl_unconsc);
+    SET_CONSTANT("blconditions", bl_woundedl);
+    SET_CONSTANT("blconditions", bl_holding);
+    SET_CONSTANT("blconditions", CONDITION_COUNT);
+
+    SET_CONSTANT("HL", HL_UNDEF);
+    SET_CONSTANT("HL", HL_NONE);
+    SET_CONSTANT("HL", HL_BOLD);
+    SET_CONSTANT("HL", HL_DIM);
+    SET_CONSTANT("HL", HL_ITALIC);
+    SET_CONSTANT("HL", HL_ULINE);
+    SET_CONSTANT("HL", HL_BLINK);
+    SET_CONSTANT("HL", HL_INVERSE);
+
+    SET_CONSTANT("MG", MG_HERO);
+    SET_CONSTANT("MG", MG_CORPSE);
+    SET_CONSTANT("MG", MG_INVIS);
+    SET_CONSTANT("MG", MG_DETECT);
+    SET_CONSTANT("MG", MG_PET);
+    SET_CONSTANT("MG", MG_RIDDEN);
+    SET_CONSTANT("MG", MG_STATUE);
+    SET_CONSTANT("MG", MG_OBJPILE);
+    SET_CONSTANT("MG", MG_BW_LAVA);
+    SET_CONSTANT("MG", MG_BW_ICE);
+    SET_CONSTANT("MG", MG_BW_SINK);
+    SET_CONSTANT("MG", MG_BW_ENGR);
+    SET_CONSTANT("MG", MG_NOTHING);
+    SET_CONSTANT("MG", MG_UNEXPL);
+    SET_CONSTANT("MG", MG_MALE);
+    SET_CONSTANT("MG", MG_FEMALE);
+
+    SET_POINTER(extcmdlist);
+    SET_POINTER(conditions);
+    SET_POINTER(condtests);
+
+    /* roles/races/genders/alignments */
+    SET_POINTER(roles);
+    SET_POINTER(races);
+    SET_POINTER(genders);
+    SET_POINTER(aligns);
 }
 
 /***
@@ -1041,13 +1220,27 @@ void js_globals_init() {
     });
 
     /* globals */
-    CREATE_GLOBAL(gp.plname, "s");
+    CREATE_GLOBAL(svp.plname, "s");
 
     /* window globals */
     CREATE_GLOBAL(WIN_MAP, "i");
     CREATE_GLOBAL(WIN_MESSAGE, "i");
     CREATE_GLOBAL(WIN_INVEN, "i");
     CREATE_GLOBAL(WIN_STATUS, "i");
+
+    /* instance flags */
+    CREATE_GLOBAL(iflags.window_inited, "b");
+    CREATE_GLOBAL(iflags.wc2_hitpointbar, "b");
+    CREATE_GLOBAL(iflags.wc_hilite_pet, "b");
+    CREATE_GLOBAL(iflags.hilite_pile, "b");
+
+    /* flags */
+    CREATE_GLOBAL(flags.initrole, "i");
+    CREATE_GLOBAL(flags.initrace, "i");
+    CREATE_GLOBAL(flags.initgend, "i");
+    CREATE_GLOBAL(flags.initalign, "i");
+    CREATE_GLOBAL(flags.showexp, "b");
+    CREATE_GLOBAL(flags.time, "b");
 }
 
 EM_JS(void, create_global, (char *name_str, void *ptr, char *type_str), {

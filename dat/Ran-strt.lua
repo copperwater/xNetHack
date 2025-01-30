@@ -75,7 +75,7 @@ des.replace_terrain({ selection=grass, fromterrain='.', toterrain='g' })
 des.monster({ id = "Orion", coord = {20, 10}, inventory = function()
    des.object({ id = "light armor", spe = 4 });
    des.object({ id = "yumi", spe = 4 });
-   des.object({ id = "arrow", spe = 4, quantity = 50 });
+   des.object({ id = "ya", spe = 4, quantity = 50 });
 end })
 des.monster({ id = "large dog", x=20, y=11, name="Sirius", peaceful=1 })
 -- The treasure of Orion

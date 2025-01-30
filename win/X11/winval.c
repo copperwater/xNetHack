@@ -6,7 +6,7 @@
  * Routines that define a name-value label widget pair that fit inside a
  * form widget.
  */
-#include <stdio.h>
+/* #include <stdio.h> */
 
 #ifndef SYSV
 #define PRESERVE_NO_SYSV /* X11 include files may define SYSV */

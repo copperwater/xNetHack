@@ -44,8 +44,7 @@ struct window_procs Gnome_procs = {
 #ifdef CHANGE_COLOR /* only a Mac option currently */
     donull, donull,
 #endif
-    /* other defs that really should go away (they're tty specific) */
-    gnome_start_screen, gnome_end_screen, gnome_outrip,
+    gnome_outrip,
     genl_preference_update, genl_getmsghistory, genl_putmsghistory,
     genl_status_init, genl_status_finish, genl_status_enablefield,
     genl_status_update,
@@ -354,7 +353,7 @@ gnome_askname()
 
     /* Ask for a name and stuff the response into plname, a nethack global */
     ret = ghack_ask_string_dialog("What is your name?", "gandalf",
-                                  "GnomeHack", gp.plname);
+                                  "GnomeHack", svp.plname);
 
     /* Quit if they want to quit... */
     if (ret == -1) {
@@ -907,7 +906,7 @@ gnome_nhgetch()
     g_askingQuestion = 1;
     /* Process events until a key press event arrives. */
     while (g_numKeys == 0) {
-        if (gp.program_state.done_hup)
+        if (program_state.done_hup)
             return '\033';
         gtk_main_iteration();
     }
@@ -945,7 +944,7 @@ gnome_nh_poskey(int *x, int *y, int *mod)
     g_askingQuestion = 0;
     /* Process events until a key or map-click arrives. */
     while (g_numKeys == 0 && g_numClicks == 0) {
-        if (gp.program_state.done_hup)
+        if (program_state.done_hup)
             return '\033';
         gtk_main_iteration();
     }
@@ -1133,29 +1132,6 @@ gnome_delay_output()
 }
 
 /*
-start_screen()  -- Only used on Unix tty ports, but must be declared for
-               completeness.  Sets up the tty to work in full-screen
-               graphics mode.  Look at win/tty/termcap.c for an
-               example.  If your window-port does not need this function
-               just declare an empty function.
-*/
-void
-gnome_start_screen()
-{
-    /* Do Nothing */
-}
-
-/*
-end_screen()    -- Only used on Unix tty ports, but must be declared for
-               completeness.  The complement of start_screen().
-*/
-void
-gnome_end_screen()
-{
-    /* Do Nothing */
-}
-
-/*
 outrip(winid, int, when)
             -- The tombstone code.  If you want the traditional code use
                genl_outrip for the value and check the #if in rip.c.
@@ -1169,7 +1145,7 @@ gnome_outrip(winid wid, int how, time_t when)
     long year;
 
     /* Put name on stone */
-    Sprintf(buf, "%s\n", gp.plname);
+    Sprintf(buf, "%s\n", svp.plname);
     Strcat(ripString, buf);
 
     /* Put $ on stone */

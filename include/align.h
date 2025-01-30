@@ -10,10 +10,11 @@ typedef schar aligntyp; /* basic alignment type */
 typedef struct align { /* alignment & record */
     aligntyp type;
     int record;
+    unsigned abuse;
 } align;
 
 /* bounds for "record" -- respect initial alignments of 10 */
-#define ALIGNLIM (10L + (gm.moves / 200L))
+#define ALIGNLIM (10L + (svm.moves / 200L))
 
 #define A_NONE (-128) /* the value range of type */
 
@@ -58,6 +59,13 @@ typedef struct align { /* alignment & record */
 #define Amask2msa(x) ((((x) & AM_MASK) == 4) ? 3 : (x) & AM_MASK)
 #define Msa2amask(x) (((x) == 3) ? 4 : (x))
 #define MSA_NONE    0  /* unaligned or multiple alignments */
+
+/* alignment change reasons for uchangealign(attrib.c) */
+enum uchangealign_reasons {
+    A_CG_CONVERT  = 0, /* permanently converted */
+    A_CG_HELM_ON  = 1, /* donned helm of opposite alignment */
+    A_CG_HELM_OFF = 2, /* doffed helm of opposite alignment */
+};
 
 /* for altars */
 #define a_align(x, y) ((aligntyp) Amask2align(levl[x][y].altarmask & AM_MASK))

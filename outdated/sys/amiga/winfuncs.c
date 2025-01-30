@@ -68,11 +68,7 @@ int dir;
         return;
 
     if (!WINVERS_AMIV) {
-#ifdef TEXTCOLOR
         amii_numcolors = 8;
-#else
-        amii_numcolors = 4;
-#endif
         amii_defpens[0] = C_BLACK; /* DETAILPEN        */
         amii_defpens[1] = C_BLUE;  /* BLOCKPEN         */
         amii_defpens[2] = C_BROWN; /* TEXTPEN          */
@@ -1225,11 +1221,7 @@ char **argv;
     /* While openscreen fails try fewer colors to see if that is the problem.
      */
     while ((HackScreen = OpenScreen((void *) &NewHackScreen)) == NULL) {
-#ifdef TEXTCOLOR
         if (--NewHackScreen.Depth < 3)
-#else
-        if (--NewHackScreen.Depth < 2)
-#endif
             Abort(AN_OpenScreen & ~AT_DeadEnd);
     }
     amii_numcolors = 1L << NewHackScreen.Depth;
@@ -1523,8 +1515,7 @@ boolean blocking;
 void
 amii_curs(window, x, y)
 winid window;
-register int x, y; /* not xchar: perhaps xchar is unsigned and
-              curx-x would be unsigned as well */
+register int x, y;
 {
     register struct amii_WinDesc *cw;
     register struct Window *w;
@@ -1939,7 +1930,7 @@ port_help()
 void
 amii_print_glyph(win, x, y, glyph, bkglyph)
 winid win;
-xchar x, y;
+coordxy x, y;
 int glyph, bkglyph;
 {
     struct amii_WinDesc *cw;
@@ -1994,11 +1985,7 @@ if(u.uz.dlevel != x){
             /* Move the cursor. */
             amii_curs(win, x, y + 2);
 
-#ifdef TEXTCOLOR
             amiga_print_glyph(win, color, ch);
-#else
-            g_putch(ch); /* print the character */
-#endif
             cw->curx++; /* one character over */
         }
     }

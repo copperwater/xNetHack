@@ -18,7 +18,6 @@
 #include "wintty.h"
 
 #include <dos.h>
-#include <ctype.h>
 
 #if defined(_MSC_VER)
 #if _MSC_VER >= 700
@@ -38,6 +37,14 @@ extern int attrib_text_normal;  /* text mode normal attribute */
 extern int attrib_gr_normal;    /* graphics mode normal attribute */
 extern int attrib_text_intense; /* text mode intense attribute */
 extern int attrib_gr_intense;   /* graphics mode intense attribute */
+
+#if defined(SCREEN_BIOS) && !defined(PC9800)
+static unsigned char cursor_info = 0,
+	             cursor_start_scanline = 6, cursor_end_scanline = 7;
+
+static void get_cursinfo(unsigned char *start, unsigned char *end,
+		         unsigned char *flg);
+#endif
 
 void
 txt_get_scr_size(void)
@@ -81,6 +88,7 @@ txt_get_scr_size(void)
 
     LI = regs.h.dl + 1;
     CO = regs.h.ah;
+
 #endif /* PC9800 */
 }
 
@@ -261,6 +269,9 @@ txt_startup(int *wid, int *hgt)
     attrib_gr_normal = attrib_text_normal;
     attrib_gr_intense = attrib_text_intense;
     g_attribute = attrib_text_normal; /* Give it a starting value */
+    get_cursinfo(&cursor_start_scanline,
+                 &cursor_end_scanline,
+                 &cursor_info);
 }
 
 /*
@@ -401,6 +412,61 @@ void txt_get_cursor(int *x, int *y)
     (void) int86(VIDEO_BIOS, &regs, &regs); /* Get Cursor Position */
     *x = regs.h.dl;
     *y = regs.h.dh;
+    if (!cursor_info) {
+        cursor_start_scanline = regs.h.ch;
+	cursor_end_scanline = regs.h.cl;
+	cursor_info = 1;
+    }
+}
+
+void txt_hide_cursor(void)
+{
+    union REGS regs;
+
+        regs.x.dx = 0;
+        regs.h.ah = SETCURTYP;  /* set cursor type */
+        regs.h.ch = 0x3F;       /* starting scanline */
+        regs.h.cl = 0;          /* ending scanline */
+        regs.x.bx = 0;
+        (void) int86(VIDEO_BIOS, &regs, &regs);
+}
+
+void txt_show_cursor(void)
+{
+    union REGS regs;
+
+    regs.x.dx = 0;
+    regs.h.ah = SETCURTYP;  /* set cursor type */
+    if (cursor_info) {
+        regs.h.ch = cursor_start_scanline;  /* starting scanline */
+        regs.h.cl = cursor_end_scanline;    /* ending scanline */
+    } else {
+        regs.h.ch = 6;  /* starting scanline */
+        regs.h.cl = 7;  /* ending scanline */
+    }
+    regs.x.bx = 0;
+    (void) int86(VIDEO_BIOS, &regs, &regs);
+}
+
+static void
+get_cursinfo(uchar *start, uchar *end, uchar *flg)
+{
+    union REGS regs;
+
+    regs.x.dx = 0;
+    regs.h.ah = GETCURPOS; /* get cursor position */
+    regs.x.cx = 0;
+    regs.x.bx = 0;
+    (void) int86(VIDEO_BIOS, &regs, &regs); /* Get Cursor Position */
+
+    if (regs.h.ch != 0x3f) {
+        *start = regs.h.ch;
+        *end = regs.h.cl;
+    } else {
+        *start = 6;
+	*end = 7;
+    }
+    *flg = 1;
 }
 #endif /* SCREEN_BIOS && !PC9800 */
 

@@ -1,11 +1,11 @@
-/* NetHack 3.7	vmsmail.c	$NHDT-Date: 1596498307 2020/08/03 23:45:07 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.11 $ */
+/* NetHack 3.7	vmsmail.c	$NHDT-Date: 1685522048 2023/05/31 08:34:08 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.18 $ */
 /* Copyright (c) Robert Patrick Rankin, 1991.                     */
 /* NetHack may be freely redistributed.  See license for details. */
 
 #include "config.h"
 #include "mail.h"
 
-/* lint supression due to lack of extern.h */
+/* lint suppression due to lack of extern.h */
 unsigned long init_broadcast_trapping(void);
 unsigned long enable_broadcast_trapping(void);
 unsigned long disable_broadcast_trapping(void);
@@ -20,7 +20,6 @@ struct mail_info *parse_next_broadcast(void);
 #ifdef MAIL
 #include "wintype.h"
 #include "winprocs.h"
-#include <ctype.h>
 #include <descrip.h>
 #include <errno.h>
 #ifndef __GNUC__
@@ -43,7 +42,7 @@ extern int strncmpi(const char *, const char *, int);
 
 extern size_t strspn(const char *, const char *);
 #ifndef __DECC
-extern int VDECL(sscanf, (const char *, const char *, ...));
+extern int sscanf(const char *, const char *, ...);
 #endif
 
 #ifdef VMSVSI
@@ -71,7 +70,7 @@ static long pasteboard_id = 0; /* SMG's magic cookie */
  * Unrecognized broadcasts result in the mail-daemon
  * arriving and announcing the display text, but no scroll being created.
  * If SHELL is undefined, then all broadcasts are treated as 'other'; since
- * no subproceses are allowed, there'd be no way to respond to the scroll.
+ * no subprocesses are allowed, there'd be no way to respond to the scroll.
  *
  *      When a scroll of mail is read by the character, readmail() extracts
  * the command string and uses it for the default when prompting the
@@ -99,7 +98,7 @@ static long pasteboard_id = 0; /* SMG's magic cookie */
  * Anything else results in just the message text being passed along, no
  * scroll of mail so consequently no command to execute when scroll read.
  * The user can set up ``$ XYZZY :== SEND'' prior to invoking NetHack if
- * vanilla JNET responses to Bitnet messages are prefered.
+ * vanilla JNET responses to Bitnet messages are preferred.
  *
  *      Static return buffers are used because only one broadcast gets
  * processed at a time, and the essential information in each one is
@@ -125,7 +124,7 @@ parse_brdcst(char *buf) /* called by parse_next_broadcast() */
     char *txt;
     const char *nam, *cmd;
 #ifdef SHELL /* only parse if spawned commands are enabled */
-    register char *p, *q;
+    char *p, *q;
     boolean is_jnet_send;
     char user[127 + 1], node[127 + 1], sentinel;
 
@@ -305,10 +304,10 @@ parse_brdcst(char *buf) /* called by parse_next_broadcast() */
 
 /* filter out non-printable characters and redundant noise
 */
-static void filter_brdcst(register char *buf) /* called by parse_next_broadcast() */
+static void filter_brdcst(char *buf) /* called by parse_next_broadcast() */
                                         /* in: original text; out: filtered text */
 {
-    register char c, *p, *buf_p;
+    char c, *p, *buf_p;
 
     /* filter the text; restrict consecutive spaces or dots to just two */
     for (p = buf_p = buf; *buf_p; buf_p++) {

@@ -152,8 +152,6 @@ void mswin_number_pad(int state);
 void mswin_delay_output(void);
 void mswin_change_color(void);
 char *mswin_get_color_string(void);
-void mswin_start_screen(void);
-void mswin_end_screen(void);
 void mswin_outrip(winid wid, int how, time_t when);
 void mswin_preference_update(const char *pref);
 

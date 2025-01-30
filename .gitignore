@@ -38,6 +38,9 @@ src/xnethack
 Debug/
 Release/
 binary/
+package/*
+vspackage/
+vsbinary/
 build/
 ipch/
 lib/*
@@ -94,3 +97,4 @@ bundle/*
 *.user
 util/*.lib
 util/*.exp
+submodules/CHKSUMS.tmp

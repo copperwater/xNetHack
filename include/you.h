@@ -1,4 +1,4 @@
-/* NetHack 3.7	you.h	$NHDT-Date: 1596498576 2020/08/03 23:49:36 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.48 $ */
+/* NetHack 3.7	you.h	$NHDT-Date: 1702349061 2023/12/12 02:44:21 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.75 $ */
 /* Copyright (c) Stichting Mathematisch Centrum, Amsterdam, 1985. */
 /*-Copyright (c) Robert Patrick Rankin, 2016. */
 /* NetHack may be freely redistributed.  See license for details. */
@@ -46,8 +46,8 @@ struct u_event {
     Bitfield(qcalled, 1);      /* called by Quest leader to do task */
     Bitfield(qexpelled, 1);    /* expelled from the Quest dungeon */
     Bitfield(qcompleted, 1);   /* successfully completed Quest task */
-    Bitfield(uheard_tune, 2);  /* 1=know about, 2=heard passtune */
-
+    Bitfield(uheard_tune, 2);  /* 1=know about, 2=heard passtune, 3=bridge has
+                                * been destroyed so tune has become useless */
     Bitfield(uopened_dbridge, 1);   /* opened the drawbridge */
     Bitfield(invoked, 1);           /* invoked Gate to the Sanctum level */
     Bitfield(gehennom_entered, 1);  /* entered Gehennom via Valley */
@@ -171,6 +171,7 @@ struct u_roleplay {
     boolean nudist; /* has not worn any armor, ever */
     boolean hallu;  /* permanently hallucinating */
     boolean deaf;   /* permanently deaf */
+    boolean pauper; /* no starting inventory */
     long numbones;  /* # of bones files loaded  */
 };
 
@@ -398,6 +399,7 @@ struct you {
     /* These ranges can never be more than MAX_RANGE (vision.h). */
     int nv_range;   /* current night vision range */
     int xray_range; /* current xray vision range */
+    int unblind_telepat_range;
 
 /*
  * These variables are valid globally only when punished and blind.
@@ -432,7 +434,12 @@ struct you {
     Bitfield(ufalldamage, 1);   /* fell into air; take damage on level below */
 
     Bitfield(usaving_grace, 1); /* prevents death once */
-    /* 7 free bits */
+    Bitfield(uhandedness, 1); /* There is no advantage for either handedness.
+                                 The distinction is only for flavor variation
+                                 and for use in messages. */
+#define RIGHT_HANDED 0x00
+#define LEFT_HANDED  0x01
+    /* 6 free bits */
 
     unsigned udg_cnt;           /* how long you have been demigod */
     struct u_event uevent;      /* certain events have happened */
@@ -484,6 +491,8 @@ struct you {
     int uinvault;
     struct monst *ustuck;    /* engulfer or grabber, maybe grabbee if Upolyd */
     struct monst *usteed;    /* mount when riding */
+    unsigned ustuck_mid;     /* u.ustuck->m_id, used during save/restore */
+    unsigned usteed_mid;     /* u.usteed->m_id, used during save/restore */
     long ugallop;            /* turns steed will run after being kicked */
     int urideturns;          /* time spent riding, for skill advancement */
     int umortality;          /* how many times you died */
@@ -514,6 +523,7 @@ struct you {
 struct _hitmon_data {
     int dmg;  /* damage */
     int thrown;
+    int twohits; /* 0: 1 of 1; 1: 1 of 2; 2: 2 of 2 */
     int dieroll;
     struct permonst *mdat;
     boolean use_weapon_skill;
@@ -545,7 +555,14 @@ struct _hitmon_data {
 
 /* point px,py is adjacent to (or same location as) hero */
 #define next2u(px,py) (distu((px),(py)) <= 2)
+/* is monster on top of or next to hero? */
+#define m_next2u(m) (distu((m)->mx,(m)->my) <= 2)
 /* hero at (x,y)? */
 #define u_at(x,y) ((x) == u.ux && (y) == u.uy)
+
+#define URIGHTY (u.uhandedness == RIGHT_HANDED)
+#define ULEFTY (u.uhandedness == LEFT_HANDED)
+#define RING_ON_PRIMARY (ULEFTY ? uleft : uright)
+#define RING_ON_SECONDARY (ULEFTY ? uright : uleft)
 
 #endif /* YOU_H */

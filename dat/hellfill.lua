@@ -98,6 +98,7 @@ xxxxxx.xxxxxx
 ]], contents = function()
    des.non_diggable(selection.area(2,2, 10,8));
    des.region(selection.area(4,4, 8,6), "lit");
+   des.exclusion({ type = "teleport", region = { 2,2, 10,8 } });
    local dblocs = {
       { x = 1, y = 5, dir="east", state="closed" },
       { x = 11, y = 5, dir="west", state="closed" },
@@ -161,6 +162,7 @@ x........x
 x........x
 xx......xx
 xxxx..xxxx]], contents = function()
+         des.exclusion({ type = "teleport", region = { 4,4, 5,5 } });
          local mons = { "Angel", "D", "H", "L" };
          des.monster(mons[math.random(1, #mons)], 4,4);
       end });
@@ -178,6 +180,7 @@ x.......x
 ..}}}}}..
 x.......x
 ]], contents = function(rm)
+         des.exclusion({ type = "teleport", region = { 3,3, 5,5 } });
          des.monster("L",04,04)
          des.object('"',04,04)
       end })

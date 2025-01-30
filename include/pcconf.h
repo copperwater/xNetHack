@@ -111,32 +111,20 @@
 
 #if defined(_MSC_VER) && (_MSC_VER >= 7)
 #include <sys/types.h>
-#include <stdlib.h>
 #ifdef strcmpi
 #undef strcmpi
 #endif
-#include <string.h> /* Provides prototypes of strncmpi(), etc.     */
 #include <conio.h>
 #include <io.h>
 #include <direct.h>
 #define SIG_RET_TYPE void(__cdecl *)(int)
-#define M(c) ((char) (0x80 | (c)))
 #define vprintf printf
 #define vfprintf fprintf
 #define vsprintf sprintf
 #endif
 
-#if defined(__BORLANDC__) && defined(STRNCMPI)
-#include <string.h> /* Provides prototypes of strncmpi(), etc.     */
-#endif
-
-#if defined(__DJGPP__)
-#define _NAIVE_DOS_REGS
-#include <stdlib.h>
-#include <string.h> /* Provides prototypes of strncmpi(), etc.     */
 #ifndef M
 #define M(c) ((char) (0x80 | (c)))
-#endif
 #endif
 
 /*
@@ -226,10 +214,6 @@
 #define HLOCK "NHPERM"
 #endif
 
-#ifndef AMIGA
-#include <time.h>
-#endif
-
 /* the high quality random number routines */
 #ifndef USE_ISAAC64
 # ifdef RANDOM
@@ -246,7 +230,6 @@
 #include <fcntl.h>
 
 #ifdef MSDOS
-#define TEXTCOLOR                /* */
 #define PORT_HELP "msdoshlp.txt" /* msdos port specific help file */
 #endif
 
@@ -288,9 +271,7 @@
 #endif
 #endif
 #define ASCIIGRAPH
-#ifdef TEXTCOLOR
 #define VIDEOSHADES
-#endif
 /* SCREEN_8514, SCREEN_VESA are only placeholders presently - sub VGA instead
  */
 #if defined(SCREEN_8514)

@@ -1,4 +1,4 @@
-/* NetHack 3.7	extralev.c	$NHDT-Date: 1596498169 2020/08/03 23:42:49 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.19 $ */
+/* NetHack 3.7	extralev.c	$NHDT-Date: 1737345573 2025/01/19 19:59:33 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.28 $ */
 /*      Copyright 1988, 1989 by Ken Arromdee                      */
 /* NetHack may be freely redistributed.  See license for details. */
 
@@ -11,3 +11,6 @@
  * which is frequently hardcoded along with all the other source files. So
  * I've brought back extralev.c even though it contains no code.
  */
+/* -Werror=pedantic will complain that this file is empty, so provide a dummy
+ * typedef to make the compiler happy */
+typedef int satisfy_iso_c_compilers;

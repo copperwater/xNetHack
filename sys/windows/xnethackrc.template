@@ -74,7 +74,7 @@ MENUCOLOR=" cursed " = red
 #  Show all unholy water in red
 MENUCOLOR=" unholy " = red
 #  Show all cursed worn items in orange and underlined
-MENUCOLOR=" cursed .* (being worn)" = orange&underline
+MENUCOLOR=" cursed .* \(being worn\)" = orange&underline
 
 
 
@@ -134,10 +134,6 @@ OPTIONS=hilite_pet,!toptenwin
 # highlighttext, inactiveborder, inactivecaption, menu, menutext, scrollbar,
 # window, windowframe, windowtext.
 #OPTIONS=windowcolors:status windowtext/window message windowtext/window
-
-# "Nethack mode" colors
-OPTIONS=windowcolors:status white/#000000 message white/#000000 text white/#000000 menu white/#000000 menutext white/#000000
-OPTIONS=vary_msgcount:4
 
 # *** LOCATIONS ***
 # IMPORTANT: If you change any of these locations, the directories they
@@ -233,3 +229,7 @@ OPTIONS=hilite_status:gold/up/yellow/down/brown
 # St, Dx, Co, In, Wi, Ch
 OPTIONS=hilite_status:characteristics/up/green/down/red
 
+# CRASHREPORTURL must be set in syscf to enable these options.
+# These identify you in crash reports
+#OPTIONS=crash_name:Your Name
+#OPTIONS=crash_email:user@example.com

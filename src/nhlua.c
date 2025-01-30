@@ -1,4 +1,4 @@
-/* NetHack 3.7	nhlua.c	$NHDT-Date: 1673740532 2023/01/14 23:55:32 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.95 $ */
+/* NetHack 3.7	nhlua.c	$NHDT-Date: 1711034373 2024/03/21 15:19:33 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.141 $ */
 /*      Copyright (c) 2018 by Pasi Kallinen */
 /* NetHack may be freely redistributed.  See license for details. */
 
@@ -23,61 +23,73 @@
 
 /*  */
 
+struct e;
+
 /* lua_CFunction prototypes */
 #ifdef DUMPLOG
-static int nhl_dump_fmtstr(lua_State *);
+staticfn int nhl_dump_fmtstr(lua_State *);
 #endif /* DUMPLOG */
-static int nhl_dnum_name(lua_State *);
-static int nhl_stairways(lua_State *);
-static int nhl_pushkey(lua_State *);
-static int nhl_doturn(lua_State *);
-static int nhl_debug_flags(lua_State *);
-static int nhl_timer_has_at(lua_State *);
-static int nhl_timer_peek_at(lua_State *);
-static int nhl_timer_stop_at(lua_State *);
-static int nhl_timer_start_at(lua_State *);
-static int nhl_get_cmd_key(lua_State *);
-static int nhl_callback(lua_State *);
-static int nhl_gamestate(lua_State *);
-static int nhl_test(lua_State *);
-static int nhl_getmap(lua_State *);
-static char splev_typ2chr(schar);
-static int nhl_gettrap(lua_State *);
-static int nhl_deltrap(lua_State *);
+staticfn int nhl_dnum_name(lua_State *);
+staticfn int nhl_stairways(lua_State *);
+staticfn int nhl_pushkey(lua_State *);
+staticfn int nhl_doturn(lua_State *);
+staticfn int nhl_debug_flags(lua_State *);
+staticfn int nhl_timer_has_at(lua_State *);
+staticfn int nhl_timer_peek_at(lua_State *);
+staticfn int nhl_timer_stop_at(lua_State *);
+staticfn int nhl_timer_start_at(lua_State *);
+staticfn int nhl_get_cmd_key(lua_State *);
+staticfn int nhl_callback(lua_State *);
+staticfn int nhl_gamestate(lua_State *);
+staticfn int nhl_test(lua_State *);
+staticfn int nhl_getmap(lua_State *);
+staticfn char splev_typ2chr(schar);
+staticfn int nhl_gettrap(lua_State *);
+staticfn int nhl_deltrap(lua_State *);
 #if 0
-static int nhl_setmap(lua_State *);
+staticfn int nhl_setmap(lua_State *);
 #endif
-static int nhl_impossible(lua_State *);
-static int nhl_pline(lua_State *);
-static int nhl_verbalize(lua_State *);
-static int nhl_parse_config(lua_State *);
-static int nhl_menu(lua_State *);
-static int nhl_text(lua_State *);
-static int nhl_getlin(lua_State *);
-static int nhl_makeplural(lua_State *);
-static int nhl_makesingular(lua_State *);
-static int nhl_s_suffix(lua_State *);
-static int nhl_ing_suffix(lua_State *);
-static int nhl_an(lua_State *);
-static int nhl_rn2(lua_State *);
-static int nhl_random(lua_State *);
-static int nhl_level_difficulty(lua_State *);
-static void init_nhc_data(lua_State *);
-static int nhl_push_anything(lua_State *, int, void *);
-static int nhl_meta_u_index(lua_State *);
-static int nhl_meta_u_newindex(lua_State *);
-static int nhl_u_clear_inventory(lua_State *);
-static int nhl_u_giveobj(lua_State *);
-static void init_u_data(lua_State *);
+staticfn int nhl_impossible(lua_State *);
+staticfn int nhl_pline(lua_State *);
+staticfn int nhl_verbalize(lua_State *);
+staticfn int nhl_parse_config(lua_State *);
+staticfn int nhl_menu(lua_State *);
+staticfn int nhl_text(lua_State *);
+staticfn int nhl_getlin(lua_State *);
+staticfn int nhl_makeplural(lua_State *);
+staticfn int nhl_makesingular(lua_State *);
+staticfn int nhl_s_suffix(lua_State *);
+staticfn int nhl_ing_suffix(lua_State *);
+staticfn int nhl_an(lua_State *);
+staticfn int nhl_rn2(lua_State *);
+staticfn int nhl_random(lua_State *);
+staticfn int nhl_level_difficulty(lua_State *);
+staticfn int nhl_is_genocided(lua_State *);
+staticfn void init_nhc_data(lua_State *);
+staticfn int nhl_push_anything(lua_State *, int, void *);
+staticfn int nhl_meta_u_index(lua_State *);
+staticfn int nhl_meta_u_newindex(lua_State *);
+staticfn int nhl_u_clear_inventory(lua_State *);
+staticfn int nhl_u_giveobj(lua_State *);
+staticfn void init_u_data(lua_State *);
 #ifdef notyet
-static int nhl_set_package_path(lua_State *, const char *);
+staticfn int nhl_set_package_path(lua_State *, const char *);
 #endif
-static int traceback_handler(lua_State *);
+staticfn int traceback_handler(lua_State *);
+staticfn uint32_t nhl_getmeminuse(lua_State *);
 #ifdef NHL_SANDBOX
-static void nhlL_openlibs(lua_State *, uint32_t);
+staticfn void nhlL_openlibs(lua_State *, uint32_t);
 #endif
-static lua_State *nhlL_newstate (nhl_sandbox_info *);
-static void end_luapat(void);
+staticfn void *nhl_alloc(void *, void *, size_t, size_t);
+staticfn lua_State *nhlL_newstate (nhl_sandbox_info *, const char *);
+staticfn void end_luapat(void);
+staticfn int nhl_get_config(lua_State *);
+staticfn int nhl_variable(lua_State *);
+staticfn void nhl_clearfromtable(lua_State *, int, int, struct e *);
+staticfn void nhl_warn(void *, const char *, int);
+staticfn void nhl_clearfromtable(lua_State *, int, int, struct e *);
+staticfn int nhl_panic(lua_State *);
+staticfn void nhl_hookfn(lua_State *, lua_Debug *);
 
 static const char *const nhcore_call_names[NUM_NHCORE_CALLS] = {
     "start_new_game",
@@ -85,6 +97,8 @@ static const char *const nhcore_call_names[NUM_NHCORE_CALLS] = {
     "moveloop_turn",
     "game_exit",
     "getpos_tip",
+    "enter_tutorial",
+    "leave_tutorial",
 };
 static boolean nhcore_call_available[NUM_NHCORE_CALLS];
 
@@ -92,16 +106,22 @@ static boolean nhcore_call_available[NUM_NHCORE_CALLS];
  * Note that we use it for both memory use tracking and instruction counting.
  */
 typedef struct nhl_user_data {
-    uint32_t  flags;       /* from nhl_sandbox_info */
+    lua_State *L;       /* because the allocator needs it */
+    uint32_t flags;     /* from nhl_sandbox_info */
 
-    uint32_t  inuse;
-    uint32_t  memlimit;
+    uint32_t memlimit;
 
-    uint32_t  steps;       /* current counter */
-    uint32_t  osteps;      /* original steps value */
-    uint32_t  perpcall;    /* per pcall steps value */
+    uint32_t steps;     /* current counter */
+    uint32_t osteps;    /* original steps value */
+    uint32_t perpcall;  /* per pcall steps value */
+
+    /* stats */
+    uint32_t statctr;   /* stats step reload count */
+    int sid;            /* id number (per state) */
+    const char *name;   /* for stats logging (per pcall) */
+
 #ifdef NHL_SANDBOX
-    jmp_buf  jb;
+    jmp_buf jb;
 #endif
 } nhl_user_data;
 
@@ -110,12 +130,9 @@ static lua_State *luapat;   /* instance for file pattern matching */
 void
 l_nhcore_init(void)
 {
-#if 1
-    nhl_sandbox_info sbi = {NHL_SB_SAFE, 0, 0, 0};
-#else
-    /* Sample sbi for getting resource usage information. */
-    nhl_sandbox_info sbi = {NHL_SB_SAFE|NHL_SB_REPORT2, 10000000, 10000000, 0};
-#endif
+    nhl_sandbox_info sbi = { NHL_SB_SAFE, 1 * 1024 * 1024, 0,
+                             1 * 1024 * 1024 };
+
     if ((gl.luacore = nhl_init(&sbi)) != 0) {
         if (!nhl_loadlua(gl.luacore, "nhcore.lua")) {
             gl.luacore = (lua_State *) 0;
@@ -144,8 +161,8 @@ l_nhcore_call(int callidx)
 {
     int ltyp;
 
-    if (callidx < 0 || callidx >= NUM_NHCORE_CALLS
-        || !gl.luacore || !nhcore_call_available[callidx])
+    if (callidx < 0 || callidx >= NUM_NHCORE_CALLS || !gl.luacore
+        || !nhcore_call_available[callidx])
         return;
 
     lua_getglobal(gl.luacore, "nhcore");
@@ -159,11 +176,7 @@ l_nhcore_call(int callidx)
     lua_getfield(gl.luacore, -1, nhcore_call_names[callidx]);
     ltyp = lua_type(gl.luacore, -1);
     if (ltyp == LUA_TFUNCTION) {
-        lua_remove(gl.luacore, -2); /* nhcore_call_names[callidx] */
-        lua_remove(gl.luacore, -2); /* nhcore */
-        if (nhl_pcall(gl.luacore, 0, 1)) {
-            impossible("Lua error: %s", lua_tostring(gl.luacore, -1));
-        }
+        nhl_pcall_handle(gl.luacore, 0, 1, "l_nhcore_call", NHLpa_panic);
     } else {
         /*impossible("nhcore.%s is not a lua function",
           nhcore_call_names[callidx]);*/
@@ -177,7 +190,7 @@ ATTRNORETURN void
 nhl_error(lua_State *L, const char *msg)
 {
     lua_Debug ar;
-    char buf[BUFSZ*2];
+    char buf[BUFSZ * 2];
 
     lua_getstack(L, 1, &ar);
     lua_getinfo(L, "lS", &ar);
@@ -237,7 +250,7 @@ get_table_mapchr_opt(lua_State *L, const char *name, schar defval)
     xint8 typ;
 
     ter = get_table_str_opt(L, name, emptystr);
-    if (name && ter && *ter) {
+    if (ter && *ter) {
         typ = (xint8) check_mapchr(ter);
         if (typ == INVALID_TYPE)
             nhl_error(L, "Erroneous map char");
@@ -251,10 +264,12 @@ get_table_mapchr_opt(lua_State *L, const char *name, schar defval)
 short
 nhl_get_timertype(lua_State *L, int idx)
 {
-    static const char *const timerstr[NUM_TIME_FUNCS+1] = {
-        "rot-organic", "rot-corpse", "revive-mon", "zombify-mon",
-        "burn-obj", "hatch-egg", "fig-transform", "melt-ice", "shrink-glob",
-        NULL
+    /* these are in the same order as enum timeout_types in timeout.h and
+       ttable timeout_funcs[] in timeout.c, although not spelled the same */
+    static const char *const timerstr[NUM_TIME_FUNCS + 1] = {
+        "rot-organic", "rot-corpse", "revive-mon",    "zombify-mon",
+        "burn-obj",    "hatch-egg",  "fig-transform", "shrink-glob",
+        "melt-ice",    NULL
     };
     short ret = luaL_checkoption(L, idx, NULL, timerstr);
 
@@ -299,8 +314,8 @@ nhl_add_table_entry_bool(lua_State *L, const char *name, boolean value)
 }
 
 void
-nhl_add_table_entry_region(lua_State *L, const char *name,
-                           coordxy x1, coordxy y1, coordxy x2, coordxy y2)
+nhl_add_table_entry_region(lua_State *L, const char *name, coordxy x1,
+                           coordxy y1, coordxy x2, coordxy y2)
 {
     lua_pushstring(L, name);
     lua_newtable(L);
@@ -313,7 +328,7 @@ nhl_add_table_entry_region(lua_State *L, const char *name,
 
 /* converting from special level "map character" to levl location type
    and back. order here is important. */
-const struct {
+static const struct {
     char ch;
     schar typ;
 } char2typ[] = {
@@ -376,7 +391,7 @@ check_mapchr(const char *s)
     return INVALID_TYPE;
 }
 
-static char
+staticfn char
 splev_typ2chr(schar typ)
 {
     int i;
@@ -391,7 +406,7 @@ DISABLE_WARNING_UNREACHABLE_CODE
 
 /* local t = nh.gettrap(x,y); */
 /* local t = nh.gettrap({ x = 10, y = 10 }); */
-static int
+staticfn int
 nhl_gettrap(lua_State *L)
 {
     lua_Integer lx, ly;
@@ -407,43 +422,45 @@ nhl_gettrap(lua_State *L)
     cvt_to_abscoord(&x, &y);
 
     if (isok(x, y)) {
-            struct trap *ttmp = t_at(x,y);
+        struct trap *ttmp = t_at(x, y);
 
-            if (ttmp) {
-                lua_newtable(L);
+        if (ttmp) {
+            lua_newtable(L);
 
-                nhl_add_table_entry_int(L, "tx", ttmp->tx);
-                nhl_add_table_entry_int(L, "ty", ttmp->ty);
-                nhl_add_table_entry_int(L, "ttyp", ttmp->ttyp);
-                nhl_add_table_entry_str(L, "ttyp_name",
-                                        get_trapname_bytype(ttmp->ttyp));
-                nhl_add_table_entry_bool(L, "tseen", ttmp->tseen);
-                nhl_add_table_entry_bool(L, "madeby_u", ttmp->madeby_u);
-                switch (ttmp->ttyp) {
-                case SQKY_BOARD:
-                    nhl_add_table_entry_int(L, "tnote", ttmp->tnote);
-                    break;
-                case ROLLING_BOULDER_TRAP:
-                    nhl_add_table_entry_int(L, "launchx", ttmp->launch.x);
-                    nhl_add_table_entry_int(L, "launchy", ttmp->launch.y);
-                    nhl_add_table_entry_int(L, "launch2x", ttmp->launch2.x);
-                    nhl_add_table_entry_int(L, "launch2y", ttmp->launch2.y);
-                    break;
-                case PIT:
-                case SPIKED_PIT:
-                    nhl_add_table_entry_int(L, "conjoined", ttmp->conjoined);
-                    break;
-                }
-                return 1;
-            } else
-                nhl_error(L, "No trap at location");
-        } else
-            nhl_error(L, "Coordinates out of range");
+            nhl_add_table_entry_int(L, "tx", ttmp->tx);
+            nhl_add_table_entry_int(L, "ty", ttmp->ty);
+            nhl_add_table_entry_int(L, "ttyp", ttmp->ttyp);
+            nhl_add_table_entry_str(L, "ttyp_name",
+                                    get_trapname_bytype(ttmp->ttyp));
+            nhl_add_table_entry_bool(L, "tseen", ttmp->tseen);
+            nhl_add_table_entry_bool(L, "madeby_u", ttmp->madeby_u);
+            switch (ttmp->ttyp) {
+            case SQKY_BOARD:
+                nhl_add_table_entry_int(L, "tnote", ttmp->tnote);
+                break;
+            case ROLLING_BOULDER_TRAP:
+                nhl_add_table_entry_int(L, "launchx", ttmp->launch.x);
+                nhl_add_table_entry_int(L, "launchy", ttmp->launch.y);
+                nhl_add_table_entry_int(L, "launch2x", ttmp->launch2.x);
+                nhl_add_table_entry_int(L, "launch2y", ttmp->launch2.y);
+                break;
+            case PIT:
+            case SPIKED_PIT:
+                nhl_add_table_entry_int(L, "conjoined", ttmp->conjoined);
+                break;
+            }
+            return 1;
+        } else {
+            nhl_error(L, "No trap at location");
+        }
+    } else {
+        nhl_error(L, "Coordinates out of range");
+    }
     return 0;
 }
 
 /* nh.deltrap(x,y); nh.deltrap({ x = 10, y = 15 }); */
-static int
+staticfn int
 nhl_deltrap(lua_State *L)
 {
     lua_Integer lx, ly;
@@ -459,7 +476,7 @@ nhl_deltrap(lua_State *L)
     cvt_to_abscoord(&x, &y);
 
     if (isok(x, y)) {
-        struct trap *ttmp = t_at(x,y);
+        struct trap *ttmp = t_at(x, y);
 
         if (ttmp)
             deltrap(ttmp);
@@ -473,10 +490,10 @@ RESTORE_WARNING_UNREACHABLE_CODE
    and set the x and y values.
    return TRUE if there are such params in the stack.
    Note that this does not adjust the values of x and y at all from what is
-   specified in the level file; so, it returns absolute coordinates rather than
-   map-relative coordinates. Callers of this function must decide if they want
-   to interpret the values as absolute or as map-relative, and adjust
-   accordingly.
+   specified in the level file; so, it returns absolute coordinates rather
+   than map-relative coordinates. Callers of this function must decide if
+   they want to interpret the values as absolute or as map-relative, and
+   adjust accordingly.
  */
 boolean
 nhl_get_xy_params(lua_State *L, lua_Integer *x, lua_Integer *y)
@@ -502,7 +519,7 @@ DISABLE_WARNING_UNREACHABLE_CODE
 
 /* local loc = nh.getmap(x,y); */
 /* local loc = nh.getmap({ x = 10, y = 35 }); */
-static int
+staticfn int
 nhl_getmap(lua_State *L)
 {
     lua_Integer lx, ly;
@@ -517,79 +534,79 @@ nhl_getmap(lua_State *L)
     cvt_to_abscoord(&x, &y);
 
     if (isok(x, y)) {
-            char buf[BUFSZ];
-            lua_newtable(L);
+        char buf[BUFSZ];
+        lua_newtable(L);
 
-            /* FIXME: some should be boolean values */
-            nhl_add_table_entry_int(L, "glyph", levl[x][y].glyph);
-            nhl_add_table_entry_int(L, "typ", levl[x][y].typ);
-            nhl_add_table_entry_str(L, "typ_name",
-                                    levltyp_to_name(levl[x][y].typ));
-            Sprintf(buf, "%c", splev_typ2chr(levl[x][y].typ));
-            nhl_add_table_entry_str(L, "mapchr", buf);
-            nhl_add_table_entry_int(L, "seenv", levl[x][y].seenv);
-            nhl_add_table_entry_bool(L, "horizontal", levl[x][y].horizontal);
-            nhl_add_table_entry_bool(L, "lit", levl[x][y].lit);
-            nhl_add_table_entry_bool(L, "waslit", levl[x][y].waslit);
-            nhl_add_table_entry_int(L, "roomno", levl[x][y].roomno);
-            nhl_add_table_entry_bool(L, "edge", levl[x][y].edge);
-            nhl_add_table_entry_bool(L, "candig", levl[x][y].candig);
+        /* FIXME: some should be boolean values */
+        nhl_add_table_entry_int(L, "glyph", levl[x][y].glyph);
+        nhl_add_table_entry_int(L, "typ", levl[x][y].typ);
+        nhl_add_table_entry_str(L, "typ_name",
+                                levltyp_to_name(levl[x][y].typ));
+        Sprintf(buf, "%c", splev_typ2chr(levl[x][y].typ));
+        nhl_add_table_entry_str(L, "mapchr", buf);
+        nhl_add_table_entry_int(L, "seenv", levl[x][y].seenv);
+        nhl_add_table_entry_bool(L, "horizontal", levl[x][y].horizontal);
+        nhl_add_table_entry_bool(L, "lit", levl[x][y].lit);
+        nhl_add_table_entry_bool(L, "waslit", levl[x][y].waslit);
+        nhl_add_table_entry_int(L, "roomno", levl[x][y].roomno);
+        nhl_add_table_entry_bool(L, "edge", levl[x][y].edge);
+        nhl_add_table_entry_bool(L, "candig", levl[x][y].candig);
 
-            nhl_add_table_entry_bool(L, "has_trap", t_at(x,y) ? 1 : 0);
+        nhl_add_table_entry_bool(L, "has_trap", t_at(x, y) ? 1 : 0);
 
-            /* TODO: FIXME: levl[x][y].flags */
+        /* TODO: FIXME: levl[x][y].flags */
 
-            lua_pushliteral(L, "flags");
-            lua_newtable(L);
+        lua_pushliteral(L, "flags");
+        lua_newtable(L);
 
-            if (IS_DOOR(levl[x][y].typ) || levl[x][y].typ == SDOOR) {
-                nhl_add_table_entry_bool(L, "nodoor",
-                                         doorstate(&levl[x][y]) == D_NODOOR);
-                nhl_add_table_entry_bool(L, "broken",
-                                         doorstate(&levl[x][y]) == D_BROKEN);
-                nhl_add_table_entry_bool(L, "isopen",
-                                         doorstate(&levl[x][y]) == D_ISOPEN);
-                nhl_add_table_entry_bool(L, "closed",
-                                         doorstate(&levl[x][y]) == D_CLOSED);
-                nhl_add_table_entry_bool(L, "locked",
-                                         door_is_locked(&levl[x][y]));
-                nhl_add_table_entry_bool(L, "trapped",
-                                         door_is_trapped(&levl[x][y]));
-                nhl_add_table_entry_bool(L, "iron",
-                                         door_is_iron(&levl[x][y]));
-            } else if (IS_ALTAR(levl[x][y].typ)) {
-                /* TODO: bits 0, 1, 2 */
-                nhl_add_table_entry_bool(L, "shrine",
-                                         (levl[x][y].flags & AM_SHRINE));
-            } else if (IS_THRONE(levl[x][y].typ)) {
-                nhl_add_table_entry_bool(L, "looted",
-                                         (levl[x][y].flags & T_LOOTED));
-            } else if (levl[x][y].typ == TREE) {
-                nhl_add_table_entry_bool(L, "looted",
-                                         (levl[x][y].flags & TREE_LOOTED));
-                nhl_add_table_entry_bool(L, "swarm",
-                                         (levl[x][y].flags & TREE_SWARM));
-            } else if (IS_FOUNTAIN(levl[x][y].typ)) {
-                nhl_add_table_entry_bool(L, "looted",
-                                         (levl[x][y].flags & F_LOOTED));
-                nhl_add_table_entry_bool(L, "warned",
-                                         (levl[x][y].flags & F_WARNED));
-            } else if (IS_SINK(levl[x][y].typ)) {
-                nhl_add_table_entry_bool(L, "pudding",
-                                         (levl[x][y].flags & S_LPUDDING));
-                nhl_add_table_entry_bool(L, "dishwasher",
-                                         (levl[x][y].flags & S_LDWASHER));
-                /* vanilla NetHack allows "ring" to be read from this location;
-                 * xNetHack just has the ring buried under the sink, and
-                 * possibly multiple rings. For now, we don't bother searching
-                 * through buriedobjlist to see if there's a ring at (x, y), and
-                 * the lua table won't contain a 'ring' entry. */
-            }
-            /* TODO: drawbridges, walls, ladders, room=>ICED_xxx */
+        if (IS_DOOR(levl[x][y].typ) || levl[x][y].typ == SDOOR) {
+            nhl_add_table_entry_bool(L, "nodoor",
+                                     doorstate(&levl[x][y]) == D_NODOOR);
+            nhl_add_table_entry_bool(L, "broken",
+                                     doorstate(&levl[x][y]) == D_BROKEN);
+            nhl_add_table_entry_bool(L, "isopen",
+                                     doorstate(&levl[x][y]) == D_ISOPEN);
+            nhl_add_table_entry_bool(L, "closed",
+                                     doorstate(&levl[x][y]) == D_CLOSED);
+            nhl_add_table_entry_bool(L, "locked",
+                                     door_is_locked(&levl[x][y]));
+            nhl_add_table_entry_bool(L, "trapped",
+                                     door_is_trapped(&levl[x][y]));
+            nhl_add_table_entry_bool(L, "iron",
+                                     door_is_iron(&levl[x][y]));
+        } else if (IS_ALTAR(levl[x][y].typ)) {
+            /* TODO: bits 0, 1, 2 */
+            nhl_add_table_entry_bool(L, "shrine",
+                                     (levl[x][y].flags & AM_SHRINE));
+        } else if (IS_THRONE(levl[x][y].typ)) {
+            nhl_add_table_entry_bool(L, "looted",
+                                     (levl[x][y].flags & T_LOOTED));
+        } else if (levl[x][y].typ == TREE) {
+            nhl_add_table_entry_bool(L, "looted",
+                                     (levl[x][y].flags & TREE_LOOTED));
+            nhl_add_table_entry_bool(L, "swarm",
+                                     (levl[x][y].flags & TREE_SWARM));
+        } else if (IS_FOUNTAIN(levl[x][y].typ)) {
+            nhl_add_table_entry_bool(L, "looted",
+                                     (levl[x][y].flags & F_LOOTED));
+            nhl_add_table_entry_bool(L, "warned",
+                                     (levl[x][y].flags & F_WARNED));
+        } else if (IS_SINK(levl[x][y].typ)) {
+            nhl_add_table_entry_bool(L, "pudding",
+                                     (levl[x][y].flags & S_LPUDDING));
+            nhl_add_table_entry_bool(L, "dishwasher",
+                                     (levl[x][y].flags & S_LDWASHER));
+            /* vanilla NetHack allows "ring" to be read from this location;
+             * xNetHack just has the ring buried under the sink, and
+             * possibly multiple rings. For now, we don't bother searching
+             * through buriedobjlist to see if there's a ring at (x, y), and
+             * the lua table won't contain a 'ring' entry. */
+        }
+        /* TODO: drawbridges, walls, ladders, room=>ICED_xxx */
 
-            lua_settable(L, -3);
+        lua_settable(L, -3);
 
-            return 1;
+        return 1;
     } else {
         /* TODO: return zerorm instead? */
         nhl_error(L, "Coordinates out of range");
@@ -598,7 +615,7 @@ nhl_getmap(lua_State *L)
 }
 
 /* impossible("Error!") */
-static int
+staticfn int
 nhl_impossible(lua_State *L)
 {
     int argc = lua_gettop(L);
@@ -612,7 +629,7 @@ nhl_impossible(lua_State *L)
 
 /* pline("It hits!") */
 /* pline("It hits!", true) */
-static int
+staticfn int
 nhl_pline(lua_State *L)
 {
     int argc = lua_gettop(L);
@@ -628,7 +645,7 @@ nhl_pline(lua_State *L)
 }
 
 /* verbalize("Fool!") */
-static int
+staticfn int
 nhl_verbalize(lua_State *L)
 {
     int argc = lua_gettop(L);
@@ -642,7 +659,7 @@ nhl_verbalize(lua_State *L)
 }
 
 /* parse_config("OPTIONS=!color") */
-static int
+staticfn int
 nhl_parse_config(lua_State *L)
 {
     int argc = lua_gettop(L);
@@ -656,7 +673,7 @@ nhl_parse_config(lua_State *L)
 }
 
 /* local windowtype = get_config("windowtype"); */
-static int
+staticfn int
 nhl_get_config(lua_State *L)
 {
     int argc = lua_gettop(L);
@@ -673,7 +690,7 @@ nhl_get_config(lua_State *L)
 /*
   str = getlin("What do you want to call this dungeon level?");
  */
-static int
+staticfn int
 nhl_getlin(lua_State *L)
 {
     int argc = lua_gettop(L);
@@ -693,15 +710,16 @@ nhl_getlin(lua_State *L)
 }
 
 /*
- selected = menu("prompt", default, pickX, { "a" = "option a", "b" = "option b", ...})
+ selected = menu("prompt",default,pickX,{"a"="option a", "b"="option b",...})
  pickX = 0,1,2, or "none", "one", "any" (PICK_X in code)
 
  selected = menu("prompt", default, pickX,
-                { {key:"a", text:"option a"}, {key:"b", text:"option b"}, ... } ) */
-static int
+                 {{key:"a", text:"option a"},{key:"b", text:"option b"},... })
+ */
+staticfn int
 nhl_menu(lua_State *L)
 {
-    static const char *const pickX[] = {"none", "one", "any"}; /* PICK_x */
+    static const char *const pickX[] = { "none", "one", "any" }; /* PICK_x */
     int argc = lua_gettop(L);
     const char *prompt;
     const char *defval = "";
@@ -709,7 +727,7 @@ nhl_menu(lua_State *L)
     winid tmpwin;
     anything any;
     menu_item *picks = (menu_item *) 0;
-    int clr = 0;
+    int clr = NO_COLOR;
 
     if (argc < 2 || argc > 4) {
         nhl_error(L, "Wrong args");
@@ -755,7 +773,8 @@ nhl_menu(lua_State *L)
             any.a_char = key[0];
         add_menu(tmpwin, &nul_glyphinfo, &any, 0, 0, ATR_NONE, clr, str,
                  (*defval && *key && defval[0] == key[0])
-                    ? MENU_ITEMFLAGS_SELECTED : MENU_ITEMFLAGS_NONE);
+                     ? MENU_ITEMFLAGS_SELECTED
+                     : MENU_ITEMFLAGS_NONE);
 
         lua_pop(L, 1); /* removes 'value'; keeps 'key' for next iteration */
     }
@@ -768,8 +787,8 @@ nhl_menu(lua_State *L)
         char buf[2];
         buf[0] = picks[0].item.a_char;
 
-        if (pick == PICK_ONE && pick_cnt > 1
-            && *defval && defval[0] == picks[0].item.a_char)
+        if (pick == PICK_ONE && pick_cnt > 1 && *defval
+            && defval[0] == picks[0].item.a_char)
             buf[0] = picks[1].item.a_char;
 
         buf[1] = '\0';
@@ -786,7 +805,7 @@ nhl_menu(lua_State *L)
 }
 
 /* text("foo\nbar\nbaz") */
-static int
+staticfn int
 nhl_text(lua_State *L)
 {
     int argc = lua_gettop(L);
@@ -794,7 +813,6 @@ nhl_text(lua_State *L)
     if (argc > 0) {
         menu_item *picks = (menu_item *) 0;
         winid tmpwin;
-        anything any = cg.zeroany;
 
         tmpwin = create_nhwindow(NHW_MENU);
         start_menu(tmpwin, MENU_BEHAVE_STANDARD);
@@ -817,8 +835,7 @@ nhl_text(lua_State *L)
                 while ((ptr > str) && !(*ptr == ' ' || *ptr == '\n'))
                     ptr--;
                 *ptr = '\0';
-                add_menu(tmpwin, &nul_glyphinfo, &any, 0, 0, ATR_NONE, 0,
-                         str, MENU_ITEMFLAGS_NONE);
+                add_menu_str(tmpwin, str);
                 str = ptr + 1;
             } while (*str && str <= lstr);
             lua_pop(L, 1);
@@ -833,7 +850,7 @@ nhl_text(lua_State *L)
 }
 
 /* makeplural("zorkmid") */
-static int
+staticfn int
 nhl_makeplural(lua_State *L)
 {
     int argc = lua_gettop(L);
@@ -847,7 +864,7 @@ nhl_makeplural(lua_State *L)
 }
 
 /* makesingular("zorkmids") */
-static int
+staticfn int
 nhl_makesingular(lua_State *L)
 {
     int argc = lua_gettop(L);
@@ -861,7 +878,7 @@ nhl_makesingular(lua_State *L)
 }
 
 /* s_suffix("foo") */
-static int
+staticfn int
 nhl_s_suffix(lua_State *L)
 {
     int argc = lua_gettop(L);
@@ -875,7 +892,7 @@ nhl_s_suffix(lua_State *L)
 }
 
 /* ing_suffix("foo") */
-static int
+staticfn int
 nhl_ing_suffix(lua_State *L)
 {
     int argc = lua_gettop(L);
@@ -889,7 +906,7 @@ nhl_ing_suffix(lua_State *L)
 }
 
 /* an("foo") */
-static int
+staticfn int
 nhl_an(lua_State *L)
 {
     int argc = lua_gettop(L);
@@ -903,7 +920,7 @@ nhl_an(lua_State *L)
 }
 
 /* rn2(10) */
-static int
+staticfn int
 nhl_rn2(lua_State *L)
 {
     int argc = lua_gettop(L);
@@ -918,7 +935,7 @@ nhl_rn2(lua_State *L)
 
 /* random(10);  -- is the same as rn2(10); */
 /* random(5,8); -- same as 5 + rn2(8); */
-static int
+staticfn int
 nhl_random(lua_State *L)
 {
     int argc = lua_gettop(L);
@@ -926,7 +943,8 @@ nhl_random(lua_State *L)
     if (argc == 1)
         lua_pushinteger(L, rn2((int) luaL_checkinteger(L, 1)));
     else if (argc == 2)
-        lua_pushinteger(L, luaL_checkinteger(L, 1) + rn2((int) luaL_checkinteger(L, 2)));
+        lua_pushinteger(L, luaL_checkinteger(L, 1)
+                               + rn2((int) luaL_checkinteger(L, 2)));
     else
         nhl_error(L, "Wrong args");
 
@@ -934,18 +952,38 @@ nhl_random(lua_State *L)
 }
 
 /* level_difficulty() */
-static int
+staticfn int
 nhl_level_difficulty(lua_State *L)
 {
     int argc = lua_gettop(L);
     if (argc == 0) {
         lua_pushinteger(L, level_difficulty());
-    }
-    else {
+    } else {
         nhl_error(L, "level_difficulty should not have any args");
     }
     return 1;
 }
+
+/* local x = nh.is_genocided("vampire") */
+staticfn int
+nhl_is_genocided(lua_State *L)
+{
+    int argc = lua_gettop(L);
+
+    if (argc == 1) {
+        const char *paramstr = luaL_checkstring(L, 1);
+        int mgend;
+        int i = name_to_mon(paramstr, &mgend);
+
+        lua_pushboolean(L, (i != NON_PM)
+                        && (svm.mvitals[i].mvflags & G_GENOD)
+                        ? TRUE : FALSE);
+    } else {
+        nhl_error(L, "Wrong args");
+    }
+    return 1;
+}
+
 
 RESTORE_WARNING_UNREACHABLE_CODE
 
@@ -1043,7 +1081,7 @@ get_table_boolean(lua_State *L, const char *name)
         ret = lua_toboolean(L, -1);
     } else if (ltyp == LUA_TNUMBER) {
         ret = (int) luaL_checkinteger(L, -1);
-        if ( ret < 0 || ret > 1)
+        if (ret < 0 || ret > 1)
             ret = -1;
     }
     lua_pop(L, 1);
@@ -1083,7 +1121,7 @@ get_table_option(lua_State *L,
 
 #ifdef DUMPLOG
 /* local fname = dump_fmtstr("/tmp/nethack.%n.%d.log"); */
-static int
+staticfn int
 nhl_dump_fmtstr(lua_State *L)
 {
     int argc = lua_gettop(L);
@@ -1098,7 +1136,7 @@ nhl_dump_fmtstr(lua_State *L)
 #endif /* DUMPLOG */
 
 /* local dungeon_name = dnum_name(u.dnum); */
-static int
+staticfn int
 nhl_dnum_name(lua_State *L)
 {
     int argc = lua_gettop(L);
@@ -1106,8 +1144,8 @@ nhl_dnum_name(lua_State *L)
     if (argc == 1) {
         lua_Integer dnum = luaL_checkinteger(L, 1);
 
-        if (dnum >= 0 && dnum < gn.n_dgns)
-            lua_pushstring(L, gd.dungeons[dnum].dname);
+        if (dnum >= 0 && dnum < svn.n_dgns)
+            lua_pushstring(L, svd.dungeons[dnum].dname);
         else
             lua_pushstring(L, "");
     } else
@@ -1121,7 +1159,7 @@ DISABLE_WARNING_UNREACHABLE_CODE
 /* set or get variables which are saved and restored along with the game.
    nh.variable("test", 10);
    local ten = nh.variable("test"); */
-static int
+staticfn int
 nhl_variable(lua_State *L)
 {
     int argc = lua_gettop(L);
@@ -1129,7 +1167,7 @@ nhl_variable(lua_State *L)
     const char *key;
 
     if (!gl.luacore) {
-        nhl_error(L, "nh luacore not inited");
+        panic("nh luacore not inited");
         /*NOTREACHED*/
         return 0;
     }
@@ -1156,9 +1194,9 @@ nhl_variable(lua_State *L)
         else if (typ == LUA_TTABLE) {
             lua_getglobal(gl.luacore, "nh_get_variables_string");
             lua_pushvalue(gl.luacore, -2);
-            nhl_pcall(gl.luacore, 1, 1);
+            nhl_pcall_handle(gl.luacore, 1, 1, "nhl_variable", NHLpa_panic);
             luaL_loadstring(L, lua_tostring(gl.luacore, -1));
-            nhl_pcall(L, 0, 1);
+            nhl_pcall_handle(L, 0, 1, "nhl_variable-1", NHLpa_panic);
         } else
             nhl_error(L, "Cannot get variable of that type");
         return 1;
@@ -1185,9 +1223,9 @@ nhl_variable(lua_State *L)
             lua_getglobal(L, "nh_set_variables_string");
             lua_pushstring(L, key);
             lua_pushvalue(L, -3); /* copy value to top */
-            nhl_pcall(L, 2, 1);
+            nhl_pcall_handle(L, 2, 1, "nhl_variable-2", NHLpa_panic);
             luaL_loadstring(gl.luacore, lua_tostring(L, -1));
-            nhl_pcall(gl.luacore, 0, 0);
+            nhl_pcall_handle(gl.luacore, 0, 0, "nhl_variable-3", NHLpa_panic);
         } else
             nhl_error(L, "Cannot set variable of that type");
         return 0;
@@ -1203,25 +1241,19 @@ get_nh_lua_variables(void)
     char *key = NULL;
 
     if (!gl.luacore) {
-        nhl_error(gl.luacore, "nh luacore not inited");
+        panic("nh luacore not inited");
         /*NOTREACHED*/
         return key;
     }
-
-    lua_getglobal(gl.luacore, "nh_lua_variables");
-    if (!lua_istable(gl.luacore, -1)) {
-        impossible("nh_lua_variables is not a lua table");
-        return key;
-    }
-
     lua_getglobal(gl.luacore, "get_variables_string");
     if (lua_type(gl.luacore, -1) == LUA_TFUNCTION) {
-        if (nhl_pcall(gl.luacore, 0, 1)) {
-            impossible("Lua error: %s", lua_tostring(gl.luacore, -1));
+        if (nhl_pcall_handle(gl.luacore, 0, 1, "get_nh_lua_variables",
+                             NHLpa_impossible)) {
             return key;
         }
         key = dupstr(lua_tostring(gl.luacore, -1));
     }
+    lua_pop(gl.luacore, 1);
     return key;
 }
 
@@ -1257,11 +1289,12 @@ restore_luadata(NHFILE *nhfp)
     if (!gl.luacore)
         l_nhcore_init();
     luaL_loadstring(gl.luacore, lua_data);
-    nhl_pcall(gl.luacore, 0, 0);
+    free(lua_data);
+    nhl_pcall_handle(gl.luacore, 0, 0, "restore_luadata", NHLpa_panic);
 }
 
 /* local stairs = stairways(); */
-static int
+staticfn int
 nhl_stairways(lua_State *L)
 {
     stairway *tmp = gs.stairs;
@@ -1270,7 +1303,6 @@ nhl_stairways(lua_State *L)
     lua_newtable(L);
 
     while (tmp) {
-
         lua_pushinteger(L, i);
         lua_newtable(L);
 
@@ -1293,7 +1325,7 @@ nhl_stairways(lua_State *L)
 /*
   test( { x = 123, y = 456 } );
 */
-static int
+staticfn int
 nhl_test(lua_State *L)
 {
     coordxy x, y;
@@ -1317,7 +1349,7 @@ nhl_test(lua_State *L)
 
 /* push a key into command queue */
 /* nh.pushkey("i"); */
-static int
+staticfn int
 nhl_pushkey(lua_State *L)
 {
     int argc = lua_gettop(L);
@@ -1333,7 +1365,7 @@ nhl_pushkey(lua_State *L)
 
 /* do a turn of moveloop, or until gm.multi is done if param is true. */
 /* nh.doturn(); nh.doturn(true); */
-static int
+staticfn int
 nhl_doturn(lua_State *L)
 {
     int argc = lua_gettop(L);
@@ -1353,7 +1385,7 @@ nhl_doturn(lua_State *L)
 /* nh.debug_flags({ mongen = false,
                     hunger = false,
                     overwrite_stairs = true }); */
-static int
+staticfn int
 nhl_debug_flags(lua_State *L)
 {
     int val;
@@ -1363,9 +1395,9 @@ nhl_debug_flags(lua_State *L)
     /* disable monster generation */
     val = get_table_boolean_opt(L, "mongen", -1);
     if (val != -1) {
-        iflags.debug_mongen = !(boolean)val; /* value in lua is negated */
+        iflags.debug_mongen = !(boolean) val; /* value in lua is negated */
         if (iflags.debug_mongen) {
-            register struct monst *mtmp, *mtmp2;
+            struct monst *mtmp, *mtmp2;
 
             for (mtmp = fmon; mtmp; mtmp = mtmp2) {
                 mtmp2 = mtmp->nmon;
@@ -1379,13 +1411,13 @@ nhl_debug_flags(lua_State *L)
     /* prevent hunger */
     val = get_table_boolean_opt(L, "hunger", -1);
     if (val != -1) {
-        iflags.debug_hunger = !(boolean)val; /* value in lua is negated */
+        iflags.debug_hunger = !(boolean) val; /* value in lua is negated */
     }
 
     /* allow overwriting stairs */
     val = get_table_boolean_opt(L, "overwrite_stairs", -1);
     if (val != -1) {
-        iflags.debug_overwrite_stairs = (boolean)val;
+        iflags.debug_overwrite_stairs = (boolean) val;
     }
 
     return 0;
@@ -1396,7 +1428,7 @@ DISABLE_WARNING_UNREACHABLE_CODE
 /* does location at x,y have timer? */
 /* local has_melttimer = nh.has_timer_at(x,y, "melt-ice"); */
 /* local has_melttimer = nh.has_timer_at({x=4,y=7}, "melt-ice"); */
-static int
+staticfn int
 nhl_timer_has_at(lua_State *L)
 {
     boolean ret = FALSE;
@@ -1427,7 +1459,7 @@ nhl_timer_has_at(lua_State *L)
 /* when does location at x,y timer trigger? */
 /* local melttime = nh.peek_timer_at(x,y, "melt-ice"); */
 /* local melttime = nh.peek_timer_at({x=5,y=6}, "melt-ice"); */
-static int
+staticfn int
 nhl_timer_peek_at(lua_State *L)
 {
     long when = 0L;
@@ -1455,7 +1487,7 @@ nhl_timer_peek_at(lua_State *L)
 /* stop timer at location x,y */
 /* nh.stop_timer_at(x,y, "melt-ice"); */
 /* nh.stop_timer_at({x=6,y=8}, "melt-ice"); */
-static int
+staticfn int
 nhl_timer_stop_at(lua_State *L)
 {
     short timertype = nhl_get_timertype(L, -1);
@@ -1480,7 +1512,7 @@ nhl_timer_stop_at(lua_State *L)
 
 /* start timer at location x,y */
 /* nh.start_timer_at(x,y, "melt-ice", 10); */
-static int
+staticfn int
 nhl_timer_start_at(lua_State *L)
 {
     short timertype = nhl_get_timertype(L, -2);
@@ -1538,7 +1570,7 @@ nhl_is_wish_dlord(lua_State *L)
 /* returns the visual interpretation of the key bound to an extended command,
    or the ext cmd name if not bound to any key */
 /* local helpkey = eckey("help"); */
-static int
+staticfn int
 nhl_get_cmd_key(lua_State *L)
 {
     int argc = lua_gettop(L);
@@ -1558,50 +1590,32 @@ nhl_get_cmd_key(lua_State *L)
 /* callback("level_enter", "function_name"); */
 /* callback("level_enter", "function_name", true); */
 /* level_enter, level_leave, cmd_before */
-static int
+staticfn int
 nhl_callback(lua_State *L)
 {
     int argc = lua_gettop(L);
     int i;
+    boolean rm;
+    const char *fn, *cb;
 
-    if (argc == 2) {
-        const char *fn = luaL_checkstring(L, -1);
-        const char *cb = luaL_checkstring(L, -2);
-
-        if (!gl.luacore) {
-            nhl_error(L, "nh luacore not inited");
-            /*NOTREACHED*/
-            return 0;
+    if (!gl.luacore) {
+        panic("nh luacore not inited");
+        /*NOTREACHED*/
+        return 0;
+    }
+    if (argc == 2 || argc == 3) {
+        if (argc == 2) {
+            rm = FALSE;
+            fn = luaL_checkstring(L, -1);
+            cb = luaL_checkstring(L, -2);
+        } else {
+            rm = lua_toboolean(L, -1);
+            fn = luaL_checkstring(L, -2);
+            cb = luaL_checkstring(L, -3);
         }
-
         for (i = 0; i < NUM_NHCB; i++)
             if (!strcmp(cb, nhcb_name[i]))
                 break;
-
-        if (i >= NUM_NHCB)
-            return 0;
-
-        nhcb_counts[i]++;
-
-        lua_getglobal(gl.luacore, "nh_callback_set");
-        lua_pushstring(gl.luacore, cb);
-        lua_pushstring(gl.luacore, fn);
-        nhl_pcall(gl.luacore, 2, 0);
-    } else if (argc == 3) {
-        boolean rm = lua_toboolean(L, -1);
-        const char *fn = luaL_checkstring(L, -2);
-        const char *cb = luaL_checkstring(L, -3);
-
-        if (!gl.luacore) {
-            nhl_error(L, "nh luacore not inited");
-            /*NOTREACHED*/
-            return 0;
-        }
-
-        for (i = 0; i < NUM_NHCB; i++)
-            if (!strcmp(cb, nhcb_name[i]))
-                break;
-
         if (i >= NUM_NHCB)
             return 0;
 
@@ -1616,60 +1630,92 @@ nhl_callback(lua_State *L)
         lua_getglobal(gl.luacore, rm ? "nh_callback_rm" : "nh_callback_set");
         lua_pushstring(gl.luacore, cb);
         lua_pushstring(gl.luacore, fn);
-        nhl_pcall(gl.luacore, 2, 0);
+        nhl_pcall_handle(gl.luacore, 2, 0, "nhl_callback", NHLpa_panic);
     }
-
     return 0;
 }
 
 /* store or restore game state */
-/* NOTE: doesn't work when saving/restoring the game */
-/* currently handles inventory and turns. */
+/*
+ * Currently handles
+ *   turn counter,
+ *   hero inventory and hunger,
+ *   hero attributes and skills and conducts (all via 'struct u'),
+ *   object discoveries,
+ *   monster generation and vanquished statistics.
+ * NOTE: wouldn't work after restore if game has been saved, so the
+ * #save command ('S') is disabled during the tutorial.
+ */
 /* gamestate(); -- save state */
 /* gamestate(true); -- restore state */
-static int
+staticfn int
 nhl_gamestate(lua_State *L)
 {
+    long wornmask;
+    struct obj *otmp;
     int argc = lua_gettop(L);
-    boolean reststate = argc > 0 ? lua_toboolean(L, -1) : FALSE;
-    static struct obj *invent = NULL;
-    static long moves = 0;
-    static boolean stored = FALSE;
-    static struct you ubak;
+    boolean reststate = (argc > 0) ? lua_toboolean(L, -1) : FALSE;
 
-    if (reststate && stored) {
+    debugpline4("gamestate: %d:%d (%c vs %c)", u.uz.dnum, u.uz.dlevel,
+                reststate ? 'T' : 'F', gg.gmst_stored ? 't' : 'f');
+
+    if (reststate && gg.gmst_stored) {
+        d_level cur_uz = u.uz, cur_uz0 = u.uz0;
+
         /* restore game state */
-        gm.moves = moves;
+        svm.moves = gg.gmst_moves;
+        pline("Resetting time to move #%ld.", svm.moves);
+        gg.gmst_moves = 0L;
+
         gl.lastinvnr = 51;
         while (gi.invent)
             useupall(gi.invent);
-        while (invent) {
-            struct obj *otmp = invent;
-            long wornmask = otmp->owornmask;
+        while ((otmp = gg.gmst_invent) != NULL) {
+            wornmask = otmp->owornmask;
             otmp->owornmask = 0L;
-            extract_nobj(otmp, &invent);
-            addinv(otmp);
+            extract_nobj(otmp, &gg.gmst_invent);
+            addinv_nomerge(otmp);
             if (wornmask)
                 setworn(otmp, wornmask);
         }
-        u = ubak;
+        assert(gg.gmst_ubak != NULL);
+        (void) memcpy((genericptr_t) &u, gg.gmst_ubak, sizeof u);
+        assert(gg.gmst_disco != NULL);
+        (void) memcpy((genericptr_t) &svd.disco, gg.gmst_disco,
+                      sizeof svd.disco);
+        assert(gg.gmst_mvitals != NULL);
+        (void) memcpy((genericptr_t) &svm.mvitals, gg.gmst_mvitals,
+                      sizeof svm.mvitals);
+        /* some restored state would confuse the level change in progress */
+        u.uz = cur_uz, u.uz0 = cur_uz0;
         init_uhunger();
-        stored = FALSE;
-    } else {
+        free_tutorial(); /* release gg.gmst_XYZ */
+        gg.gmst_stored = FALSE;
+    } else if (!reststate && !gg.gmst_stored) {
         /* store game state */
-        while (gi.invent) {
-            struct obj *otmp = gi.invent;
-            long wornmask = otmp->owornmask;
+        gg.gmst_moves = svm.moves;
+        while ((otmp = gi.invent) != NULL) {
+            wornmask = otmp->owornmask;
             setnotworn(otmp);
             freeinv(otmp);
-            otmp->nobj = invent;
-            otmp->owornmask = wornmask;
-            invent = otmp;
+            otmp->owornmask = wornmask; /* flag for later restore */
+            otmp->nobj = gg.gmst_invent;
+            gg.gmst_invent = otmp;
         }
-        gl.lastinvnr = 51;
-        moves = gm.moves;
-        ubak = u;
-        stored = TRUE;
+        gl.lastinvnr = 51; /* next inv letter to try to use will be 'a' */
+        gg.gmst_ubak = (genericptr_t) alloc(sizeof u);
+        (void) memcpy(gg.gmst_ubak, (genericptr_t) &u, sizeof u);
+        gg.gmst_disco = (genericptr_t) alloc(sizeof svd.disco);
+        (void) memcpy(gg.gmst_disco, (genericptr_t) &svd.disco,
+                      sizeof svd.disco);
+        gg.gmst_mvitals = (genericptr_t) alloc(sizeof svm.mvitals);
+        (void) memcpy(gg.gmst_mvitals, (genericptr_t) &svm.mvitals,
+                      sizeof svm.mvitals);
+        gg.gmst_stored = TRUE;
+    } else {
+        impossible("nhl_gamestate: inconsistent state (%s vs %s)",
+                   reststate ? "restore" : "save",
+                   gg.gmst_stored ? "already stored" : "not stored");
     }
     update_inventory();
     return 0;
@@ -1677,56 +1723,99 @@ nhl_gamestate(lua_State *L)
 
 RESTORE_WARNING_UNREACHABLE_CODE
 
+/* free dynamic date allocated when entering tutorial;
+   called when exiting tutorial normally or if player quits while in it */
+void
+free_tutorial(void)
+{
+    struct obj *otmp;
+
+    /* for normal tutorial exit, gmst_invent will already be Null */
+    while ((otmp = gg.gmst_invent) != 0) {
+        /* set otmp->where = OBJ_FREE, otmp->nobj = NULL */
+        extract_nobj(otmp, &gg.gmst_invent);
+        /* gmst_invent is a list of invent items sequestered when entering
+           the tutorial; for them, owornmask is used as a flag to re-wear
+           them when exiting tutorial, not that they are currently worn;
+           clear it to avoid a "deleting worn obj" complaint from obfree() */
+        otmp->owornmask = 0L;
+        /* dealloc_obj() isn't enough (for containers, it assumes that
+           caller has already freed their contents) */
+        obfree(otmp, (struct obj *) 0);
+    }
+
+    if (gg.gmst_ubak)
+        free(gg.gmst_ubak), gg.gmst_ubak = NULL;
+    if (gg.gmst_disco)
+        free(gg.gmst_disco), gg.gmst_disco = NULL;
+    if (gg.gmst_mvitals)
+        free(gg.gmst_mvitals), gg.gmst_mvitals = NULL;
+}
+
+/* called from gotolevel(do.c) */
+void
+tutorial(boolean entering)
+{
+    l_nhcore_call(entering ? NHCORE_ENTER_TUTORIAL : NHCORE_LEAVE_TUTORIAL);
+
+    if (!entering) { /* after leaving, can't go back */
+        nhcore_call_available[NHCORE_ENTER_TUTORIAL]
+            = nhcore_call_available[NHCORE_LEAVE_TUTORIAL]
+                = FALSE;
+    }
+}
+
 static const struct luaL_Reg nhl_functions[] = {
-    {"test", nhl_test},
+    { "test", nhl_test },
 
-    {"getmap", nhl_getmap},
+    { "getmap", nhl_getmap },
 #if 0
-    {"setmap", nhl_setmap},
+    { "setmap", nhl_setmap },
 #endif
-    {"gettrap", nhl_gettrap},
-    {"deltrap", nhl_deltrap},
+    { "gettrap", nhl_gettrap },
+    { "deltrap", nhl_deltrap },
 
-    {"has_timer_at", nhl_timer_has_at},
-    {"peek_timer_at", nhl_timer_peek_at},
-    {"stop_timer_at", nhl_timer_stop_at},
-    {"start_timer_at", nhl_timer_start_at},
+    { "has_timer_at", nhl_timer_has_at },
+    { "peek_timer_at", nhl_timer_peek_at },
+    { "stop_timer_at", nhl_timer_stop_at },
+    { "start_timer_at", nhl_timer_start_at },
 
-    {"abscoord", nhl_abs_coord},
+    { "abscoord", nhl_abs_coord },
 
-    {"impossible", nhl_impossible},
-    {"pline", nhl_pline},
-    {"verbalize", nhl_verbalize},
-    {"menu", nhl_menu},
-    {"text", nhl_text},
-    {"getlin", nhl_getlin},
-    {"eckey", nhl_get_cmd_key},
-    {"callback", nhl_callback},
-    {"gamestate", nhl_gamestate},
+    { "impossible", nhl_impossible },
+    { "pline", nhl_pline },
+    { "verbalize", nhl_verbalize },
+    { "menu", nhl_menu },
+    { "text", nhl_text },
+    { "getlin", nhl_getlin },
+    { "eckey", nhl_get_cmd_key },
+    { "callback", nhl_callback },
+    { "gamestate", nhl_gamestate },
 
-    {"makeplural", nhl_makeplural},
-    {"makesingular", nhl_makesingular},
-    {"s_suffix", nhl_s_suffix},
-    {"ing_suffix", nhl_ing_suffix},
-    {"an", nhl_an},
-    {"rn2", nhl_rn2},
-    {"random", nhl_random},
-    {"level_difficulty", nhl_level_difficulty},
-    {"mon_difficulty", nhl_mon_difficulty},
-    {"parse_config", nhl_parse_config},
-    {"get_config", nhl_get_config},
-    {"get_config_errors", l_get_config_errors},
+    { "makeplural", nhl_makeplural },
+    { "makesingular", nhl_makesingular },
+    { "s_suffix", nhl_s_suffix },
+    { "ing_suffix", nhl_ing_suffix },
+    { "an", nhl_an },
+    { "rn2", nhl_rn2 },
+    { "random", nhl_random },
+    { "level_difficulty", nhl_level_difficulty },
+    { "mon_difficulty", nhl_mon_difficulty },
+    { "is_genocided", nhl_is_genocided },
+    { "parse_config", nhl_parse_config },
+    { "get_config", nhl_get_config },
+    { "get_config_errors", l_get_config_errors },
 #ifdef DUMPLOG
-    {"dump_fmtstr", nhl_dump_fmtstr},
+    { "dump_fmtstr", nhl_dump_fmtstr },
 #endif /* DUMPLOG */
-    {"dnum_name", nhl_dnum_name},
-    {"variable", nhl_variable},
-    {"stairways", nhl_stairways},
-    {"pushkey", nhl_pushkey},
-    {"doturn", nhl_doturn},
-    {"debug_flags", nhl_debug_flags},
-    {"is_wish_dlord", nhl_is_wish_dlord},
-    {NULL, NULL}
+    { "dnum_name", nhl_dnum_name },
+    { "variable", nhl_variable },
+    { "stairways", nhl_stairways },
+    { "pushkey", nhl_pushkey },
+    { "doturn", nhl_doturn },
+    { "debug_flags", nhl_debug_flags },
+    { "is_wish_dlord", nhl_is_wish_dlord },
+    { NULL, NULL }
 };
 
 static const struct {
@@ -1736,15 +1825,15 @@ static const struct {
     { "COLNO",  COLNO },
     { "ROWNO",  ROWNO },
 #ifdef DLB
-    { "DLB", 1},
+    { "DLB", 1 },
 #else
-    { "DLB", 0},
+    { "DLB", 0 },
 #endif /* DLB */
     { NULL, 0 },
 };
 
 /* register and init the constants table */
-static void
+staticfn void
 init_nhc_data(lua_State *L)
 {
     int i;
@@ -1760,19 +1849,22 @@ init_nhc_data(lua_State *L)
     lua_setglobal(L, "nhc");
 }
 
-static int
+staticfn int
 nhl_push_anything(lua_State *L, int anytype, void *src)
 {
     anything any = cg.zeroany;
 
     switch (anytype) {
-    case ANY_INT: any.a_int = *(int *) src;
+    case ANY_INT:
+        any.a_int = *(int *) src;
         lua_pushinteger(L, any.a_int);
         break;
-    case ANY_UCHAR: any.a_uchar = *(uchar *) src;
+    case ANY_UCHAR:
+        any.a_uchar = *(uchar *) src;
         lua_pushinteger(L, any.a_uchar);
         break;
-    case ANY_SCHAR: any.a_schar = *(schar *) src;
+    case ANY_SCHAR:
+        any.a_schar = *(schar *) src;
         lua_pushinteger(L, any.a_schar);
         break;
     }
@@ -1781,7 +1873,7 @@ nhl_push_anything(lua_State *L, int anytype, void *src)
 
 DISABLE_WARNING_UNREACHABLE_CODE
 
-static int
+staticfn int
 nhl_meta_u_index(lua_State *L)
 {
     static const struct {
@@ -1807,7 +1899,7 @@ nhl_meta_u_index(lua_State *L)
         { "mhmax", &(u.mhmax), ANY_INT },
         { "mtimedone", &(u.mtimedone), ANY_INT },
         { "dlevel", &(u.uz.dlevel), ANY_SCHAR }, /* actually coordxy */
-        { "dnum", &(u.uz.dnum), ANY_SCHAR }, /* actually coordxy */
+        { "dnum", &(u.uz.dnum), ANY_SCHAR },     /* actually coordxy */
         { "uluck", &(u.uluck), ANY_SCHAR },
         { "uhp", &(u.uhp), ANY_INT },
         { "uhpmax", &(u.uhpmax), ANY_INT },
@@ -1830,7 +1922,7 @@ nhl_meta_u_index(lua_State *L)
         lua_pushstring(L, gu.urole.name.m);
         return 1;
     } else if (!strcmp(tkey, "moves")) {
-        lua_pushinteger(L, gm.moves);
+        lua_pushinteger(L, svm.moves);
         return 1;
     } else if (!strcmp(tkey, "uhave_amulet")) {
         lua_pushinteger(L, u.uhave.amulet);
@@ -1848,7 +1940,7 @@ nhl_meta_u_index(lua_State *L)
     return 0;
 }
 
-static int
+staticfn int
 nhl_meta_u_newindex(lua_State *L)
 {
     nhl_error(L, "Cannot set u table values");
@@ -1858,7 +1950,7 @@ nhl_meta_u_newindex(lua_State *L)
 
 RESTORE_WARNING_UNREACHABLE_CODE
 
-static int
+staticfn int
 nhl_u_clear_inventory(lua_State *L UNUSED)
 {
     while (gi.invent)
@@ -1868,7 +1960,7 @@ nhl_u_clear_inventory(lua_State *L UNUSED)
 
 /* Put object into player's inventory */
 /* u.giveobj(obj.new("rock")); */
-static int
+staticfn int
 nhl_u_giveobj(lua_State *L)
 {
     return nhl_obj_u_giveobj(L);
@@ -1880,7 +1972,7 @@ static const struct luaL_Reg nhl_u_functions[] = {
     { NULL, NULL }
 };
 
-static void
+staticfn void
 init_u_data(lua_State *L)
 {
     lua_newtable(L);
@@ -1895,7 +1987,7 @@ init_u_data(lua_State *L)
 }
 
 #ifdef notyet
-static int
+staticfn int
 nhl_set_package_path(lua_State *L, const char *path)
 {
     if (LUA_TTABLE != lua_getglobal(L, "package")) {
@@ -1909,7 +2001,7 @@ nhl_set_package_path(lua_State *L, const char *path)
 }
 #endif
 
-static int
+staticfn int
 traceback_handler(lua_State *L)
 {
     luaL_traceback(L, L, lua_tostring(L, 1), 0);
@@ -1917,48 +2009,88 @@ traceback_handler(lua_State *L)
     return 1;
 }
 
-/* lua_pcall with our traceback handler and instruction step limiting.
+staticfn uint32_t
+nhl_getmeminuse(lua_State *L)
+{
+    return lua_gc(L, LUA_GCCOUNT) * 1024 + lua_gc(L, LUA_GCCOUNTB);
+}
+
+/* lua_pcall with our traceback handler and memory and instruction step
+ * limiting.
  *  On error, traceback will be on top of stack */
 int
-nhl_pcall(lua_State *L, int nargs, int nresults)
+nhl_pcall(lua_State *L, int nargs, int nresults, const char *name)
 {
     struct nhl_user_data *nud;
     int rv;
 
     lua_pushcfunction(L, traceback_handler);
     lua_insert(L, 1);
-    (void)lua_getallocf(L, (void **)&nud);
+    (void) lua_getallocf(L, (void **) &nud);
 #ifdef NHL_SANDBOX
+    if (nud && name) {
+        nud->name = name;
+    }
+    /* NB: We don't need to deal with nud->memlimit - Lua handles that. */
     if (nud && (nud->steps || nud->perpcall)) {
-        if (nud->perpcall)
+        if (nud->perpcall) {
             nud->steps = nud->perpcall;
+            nud->statctr = 0;
+        }
         if (setjmp(nud->jb)) {
             /* panic, because we don't know if the game state is corrupt */
-            panic("time exceeded");
+            /* XXX can we get a lua stack trace as well? */
+            panic("Lua time exceeded %d:%s", nud->sid,
+                  nud->name ? nud->name : "(unknown)");
         }
     }
 #endif
 
     rv = lua_pcall(L, nargs, nresults, 1);
+
     lua_remove(L, 1); /* remove handler */
 
 #ifdef NHL_SANDBOX
-    if (nud && (nud->flags & (NHL_SB_REPORT | NHL_SB_REPORT2)) != 0
-        && (nud->memlimit || nud->osteps || nud->perpcall)) {
-        if (nud->flags & NHL_SB_REPORT2)
-            lua_gc(L, LUA_GCCOLLECT);
-        pline("Lua context=%p RAM: %lu STEPS:%lu", (void *) L,
-              (unsigned long) nud->inuse,
-              (unsigned long) (nud->perpcall
-                               ? (nud->perpcall - nud->steps)
-                               : (nud->osteps - nud->steps)));
+    if (nud && nud->perpcall && gl.loglua) {
+        long ic = nud->statctr * NHL_SB_STEPSIZE; // an approximation
+        livelog_printf(LL_DEBUG, "LUASTATS PCAL %d:%s %ld", nud->sid,
+                       nud->name, ic);
+    }
+    if (nud && nud->memlimit && gl.loglua) {
+        livelog_printf(LL_DEBUG, "LUASTATS PMEM %d:%s %lu", nud->sid,
+                       nud->name, (long unsigned) nhl_getmeminuse(L));
     }
 #endif
-
     return rv;
 }
 
-/* XXX impossible() should be swappable with pline or nothing via flag */
+int
+nhl_pcall_handle(lua_State *L, int nargs, int nresults, const char *name,
+                 NHL_pcall_action npa)
+{
+    int rv = nhl_pcall(L, nargs, nresults, name);
+    if (rv) {
+        nhl_user_data *nud;
+        (void) lua_getallocf(L, (void **) &nud);
+        /* XXX can we get a lua stack trace as well? */
+        switch (npa) {
+        case NHLpa_panic:
+            panic("Lua error %d:%s %s", nud->sid,
+                  nud->name ? nud->name : "(unknown)", lua_tostring(L, -1));
+            /*NOTREACHED*/
+            break;
+        case NHLpa_impossible:
+            impossible("Lua error: %d:%s %s", nud->sid,
+                       nud->name ? nud->name : "(unknown)",
+                       lua_tostring(L, -1));
+                /* Drop the error.  If the caller cares, use nhl_pcall(). */
+            lua_pop(L, 1);
+        }
+    }
+    return rv;
+}
+
+/* XXX impossible() should be swappable with pline/nothing/panic via flag */
 /* read lua code/data from a dlb module or an external file
    into a string buffer and feed that to lua */
 boolean
@@ -2005,7 +2137,8 @@ nhl_loadlua(lua_State *L, const char *fname)
          * in use, and fseek(SEEK_END) only yields an upper bound on
          * the actual amount of data in that situation.]
          */
-        if ((cnt = dlb_fread(bufin, 1, min((int)buflen, LOADCHUNKSIZE), fh)) < 0L)
+        if ((cnt = dlb_fread(bufin, 1, min((int) buflen, LOADCHUNKSIZE), fh))
+            < 0L)
             break;
         buflen -= cnt; /* set up for next iteration, if any */
         if (cnt == 0L) {
@@ -2049,13 +2182,12 @@ nhl_loadlua(lua_State *L, const char *fname)
 
     llret = luaL_loadbuffer(L, buf, strlen(buf), altfname);
     if (llret != LUA_OK) {
-        impossible("luaL_loadbuffer: Error loading %s: %s",
-                   altfname, lua_tostring(L, -1));
+        impossible("luaL_loadbuffer: Error loading %s: %s", altfname,
+                   lua_tostring(L, -1));
         ret = FALSE;
         goto give_up;
     } else {
-        if (nhl_pcall(L, 0, LUA_MULTRET)) {
-            impossible("Lua error: %s", lua_tostring(L, -1));
+        if (nhl_pcall_handle(L, 0, LUA_MULTRET, fname, NHLpa_impossible)) {
             ret = FALSE;
             goto give_up;
         }
@@ -2067,6 +2199,7 @@ nhl_loadlua(lua_State *L, const char *fname)
     if (buf)
         free((genericptr_t) buf);
     return ret;
+#undef LOADCHUNKSIZE
 }
 
 DISABLE_WARNING_CONDEXPR_IS_CONSTANT
@@ -2077,18 +2210,19 @@ nhl_init(nhl_sandbox_info *sbi)
     /* It would be nice to import EXPECTED from each build system. XXX */
     /* And it would be nice to do it only once, but it's cheap. */
 #ifndef NHL_VERSION_EXPECTED
-#define NHL_VERSION_EXPECTED 50404
+#define NHL_VERSION_EXPECTED 50406
 #endif
 
 #ifdef NHL_SANDBOX
     if (NHL_VERSION_EXPECTED != LUA_VERSION_RELEASE_NUM) {
         panic(
-             "sandbox doesn't know this Lua version: this=%d != expected=%d ",
-              LUA_VERSION_RELEASE_NUM, NHL_VERSION_EXPECTED);
+            "sandbox doesn't know this Lua version: this=%d != expected=%d ",
+            LUA_VERSION_RELEASE_NUM, NHL_VERSION_EXPECTED);
     }
 #endif
 
-    lua_State *L = nhlL_newstate(sbi);
+    lua_State *L = nhlL_newstate(sbi, "nhl_init");
+    if(!L) return 0;
 
     iflags.in_lua = TRUE;
     /* Temporary for development XXX */
@@ -2142,8 +2276,24 @@ RESTORE_WARNING_CONDEXPR_IS_CONSTANT
 void
 nhl_done(lua_State *L)
 {
-    if (L)
+    if (L) {
+        nhl_user_data *nud = 0;
+        (void) lua_getallocf(L, (void **) &nud);
+        if (gl.loglua) {
+            if (nud && nud->osteps) {
+                long ic = nud->statctr * NHL_SB_STEPSIZE; // an approximation
+                livelog_printf(LL_DEBUG, "LUASTATS DONE %d:%s %ld", nud->sid,
+                               nud->name, ic);
+            }
+            if (nud && nud->memlimit && !nud->perpcall) {
+                livelog_printf(LL_DEBUG, "LUASTATS DMEM %d:%s %lu", nud->sid,
+                               nud->name, (long unsigned) nhl_getmeminuse(L));
+            }
+        }
         lua_close(L);
+        if (nud)
+            nhl_alloc(NULL, nud, 0, 0); // free nud
+    }
     iflags.in_lua = FALSE;
 }
 
@@ -2174,7 +2324,8 @@ DISABLE_WARNING_CONDEXPR_IS_CONSTANT
 const char *
 get_lua_version(void)
 {
-    nhl_sandbox_info sbi = {NHL_SB_VERSION, 0, 0, 0};
+    nhl_sandbox_info sbi = { NHL_SB_VERSION, 1 * 1024 * 1024, 0,
+                             1 * 1024 * 1024 };
 
     if (gl.lua_ver[0] == 0) {
         lua_State *L = nhl_init(&sbi);
@@ -2189,7 +2340,7 @@ get_lua_version(void)
                get set up as a lua global */
             lua_getglobal(L, "_RELEASE");
             if (lua_isstring(L, -1))
-                vs = lua_tolstring (L, -1, &len);
+                vs = lua_tolstring(L, -1, &len);
 #ifdef LUA_RELEASE
             else
                 vs = LUA_RELEASE, len = strlen(vs);
@@ -2197,7 +2348,7 @@ get_lua_version(void)
             if (!vs) {
                 lua_getglobal(L, "_VERSION");
                 if (lua_isstring(L, -1))
-                    vs = lua_tolstring (L, -1, &len);
+                    vs = lua_tolstring(L, -1, &len);
 #ifdef LUA_VERSION
                 else
                     vs = LUA_VERSION, len = strlen(vs);
@@ -2226,6 +2377,26 @@ RESTORE_WARNING_CONDEXPR_IS_CONSTANT
 /***
  *** SANDBOX / HARDENING CODE
  ***/
+/*
+ * Tracing the sandbox:
+ * 1. Make sure CHRONICLE and LIVELOG are defined in config.h.
+ * 2. Rebuild the game.
+ * 3. Run the game and do whatever you want to check with lua.
+ * 4. Find the logged information in livelog.
+ *
+ * Logging format in livelog:
+ * <livelog leader>message=LUASTATS <TYPE> <SID>:<TAG> <DATA>
+ * where:
+ *  TYPE
+ *     DONE rough number of step taken during the life of the VM
+ *     DMEM memory in use at destruction of VM
+ *     PCAL rough number of steps during lua_pcall
+ *     PMEM memory in use after lua_pcall returns
+ *  SID     a small integer identifying the Lua VM instance
+ *  TAG     a string from the nhl_luapcall call
+ *  DATA    memory: rough number of bytes in use by the VM
+ *          steps: rough number of steps by the VM(see NHL_SB_STEPSIZE)
+ */
 #ifdef NHL_SANDBOX
 
 enum ewhen {NEVER, IFFLAG, EOT};
@@ -2236,52 +2407,54 @@ struct e {
 
 /* NHL_BASE_BASE - safe things */
 static struct e ct_base_base[] = {
-    {IFFLAG, "ipairs"},
-    {IFFLAG, "next"},
-    {IFFLAG, "pairs"},
-    {IFFLAG, "pcall"},
-    {IFFLAG, "select"},
-    {IFFLAG, "tonumber"},
-    {IFFLAG, "tostring"},
-    {IFFLAG, "type"},
-    {IFFLAG, "xpcall"},
-    {EOT, NULL}
+    { IFFLAG, "ipairs" },
+    { IFFLAG, "next" },
+    { IFFLAG, "pairs" },
+    { IFFLAG, "pcall" },
+    { IFFLAG, "select" },
+    { IFFLAG, "tonumber" },
+    { IFFLAG, "tostring" },
+    { IFFLAG, "type" },
+    { IFFLAG, "xpcall" },
+    { EOT, NULL }
 };
 
-/* NHL_BASE_ERROR - not really safe - might not want Lua to kill the process */
+/* NHL_BASE_ERROR - not really safe--might not want Lua to kill the process */
 static struct e ct_base_error[] = {
-    {IFFLAG, "assert"},   /* ok, calls error */
-    {IFFLAG, "error"},    /* ok, calls G->panic */
-    {NEVER, "print"}, /*not ok - calls lua_writestring/lua_writeline -> stdout*/
-    {NEVER, "warn"}, /*not ok - calls lua_writestringerror -> stderr*/
-    {EOT, NULL}
+    { IFFLAG, "assert" }, /* ok, calls error */
+    { IFFLAG, "error" },  /* ok, calls G->panic */
+    { NEVER, "print" },   /* not ok - calls lua_writestring/lua_writeline
+                           * which write to stdout */
+    { NEVER, "warn" },    /* not ok - calls lua_writestringerror which writes
+                           * to stderr */
+    { EOT, NULL }
 };
 
 /* NHL_BASE_META - metatable access */
 static struct e ct_base_meta[] = {
-    {IFFLAG, "getmetatable"},
-    {IFFLAG, "rawequal"},
-    {IFFLAG, "rawget"},
-    {IFFLAG, "rawlen"},
-    {IFFLAG, "rawset"},
-    {IFFLAG, "setmetatable"},
-    {EOT, NULL}
+    { IFFLAG, "getmetatable" },
+    { IFFLAG, "rawequal" },
+    { IFFLAG, "rawget" },
+    { IFFLAG, "rawlen" },
+    { IFFLAG, "rawset" },
+    { IFFLAG, "setmetatable" },
+    { EOT, NULL }
 };
 
 /* NHL_BASE_GC - questionable safety */
 static struct e ct_base_iffy[] = {
-    {IFFLAG, "collectgarbage"},
-    {EOT, NULL}
+    { IFFLAG, "collectgarbage" },
+    { EOT, NULL }
 };
 
 /* NHL_BASE_UNSAFE - include only if required */
 /* TODO: if NHL_BASE_UNSAFE is ever used, we need to wrap lua_load with
  * something to forbid mode=="b" */
 static struct e ct_base_unsafe[] = {
-    {IFFLAG, "dofile"},
-    {IFFLAG, "loadfile"},
-    {IFFLAG, "load"},
-    {EOT, NULL}
+    { IFFLAG, "dofile" },
+    { IFFLAG, "loadfile" },
+    { IFFLAG, "load" },
+    { EOT, NULL }
 };
 
 /* no ct_co_ tables; all fns at same level of concern */
@@ -2293,54 +2466,54 @@ static struct e ct_base_unsafe[] = {
 
 /* possible ct_debug tables - likely to need changes */
 static struct e ct_debug_debug[] = {
-    {NEVER,  "debug"},          /* uses normal I/O so needs re-write */
-    {IFFLAG, "getuservalue"},
-    {NEVER,  "gethook"},        /* see sethook */
-    {IFFLAG, "getinfo"},
-    {IFFLAG, "getlocal"},
-    {IFFLAG, "getregistry"},
-    {IFFLAG, "getmetatable"},
-    {IFFLAG, "getupvalue"},
-    {IFFLAG, "upvaluejoin"},
-    {IFFLAG, "upvalueid"},
-    {IFFLAG, "setuservalue"},
-    {NEVER,  "sethook"},        /* used for memory and step limits */
-    {IFFLAG, "setlocal"},
-    {IFFLAG, "setmetatable"},
-    {IFFLAG, "setupvalue"},
-    {IFFLAG, "setcstacklimit"},
-    {EOT, NULL}
+    { NEVER,  "debug" },          /* uses normal I/O so needs re-write */
+    { IFFLAG, "getuservalue" },
+    { NEVER,  "gethook" },        /* see sethook */
+    { IFFLAG, "getinfo" },
+    { IFFLAG, "getlocal" },
+    { IFFLAG, "getregistry" },
+    { IFFLAG, "getmetatable" },
+    { IFFLAG, "getupvalue" },
+    { IFFLAG, "upvaluejoin" },
+    { IFFLAG, "upvalueid" },
+    { IFFLAG, "setuservalue" },
+    { NEVER,  "sethook" },        /* used for memory and step limits */
+    { IFFLAG, "setlocal" },
+    { IFFLAG, "setmetatable" },
+    { IFFLAG, "setupvalue" },
+    { IFFLAG, "setcstacklimit" },
+    { EOT, NULL }
 };
 static struct e ct_debug_safe[] = {
-    {IFFLAG, "traceback"},
-    {EOT, NULL}
+    { IFFLAG, "traceback" },
+    { EOT, NULL }
 };
 
 /* possible ct_os_ tables */
 static struct e ct_os_time[] = {
-    {IFFLAG, "clock"},          /* is this portable? XXX */
-    {IFFLAG, "date"},
-    {IFFLAG, "difftime"},
-    {IFFLAG, "time"},
-    {EOT, NULL}
+    { IFFLAG, "clock" },          /* is this portable? XXX */
+    { IFFLAG, "date" },
+    { IFFLAG, "difftime" },
+    { IFFLAG, "time" },
+    { EOT, NULL }
 };
 
 static struct e ct_os_files[] = {
-    {NEVER, "execute"},         /* not portable */
-    {NEVER, "exit"},
-    {NEVER, "getenv"},
-    {IFFLAG, "remove"},
-    {IFFLAG, "rename"},
-    {NEVER, "setlocale"},
-    {NEVER, "tmpname"},
-    {EOT, NULL}
+    { NEVER, "execute" },         /* not portable */
+    { NEVER, "exit" },
+    { NEVER, "getenv" },
+    { IFFLAG, "remove" },
+    { IFFLAG, "rename" },
+    { NEVER, "setlocale" },
+    { NEVER, "tmpname" },
+    { EOT, NULL }
 };
 
 
 #define DROPIF(flag, lib, ct) \
     nhl_clearfromtable(L, !!(lflags & flag), lib, ct)
 
-static void
+staticfn void
 nhl_clearfromtable(lua_State *L, int flag, int tndx, struct e *todo)
 {
     while (todo->when != EOT) {
@@ -2391,27 +2564,28 @@ return values from "call it":
  * We're going to do #3.
  */
 #ifdef notyet
-static boolean
+staticfn boolean
 start_luapat(void)
 {
     int rv;
-/* XXX set memory and step limits */
-    nhl_sandbox_info sbi = {NHL_SB_STRING, 0, 0, 0};
+    /* XXX set memory and step limits */
+    nhl_sandbox_info sbi = { NHL_SB_STRING, 0, 0, 0 };
 
     if ((luapat = nhl_init(&sbi)) == NULL)
         return FALSE;
 
     /* load a pattern matching function */
-    rv = luaL_loadstring(luapat,
-                "function matches(s,p) return not not stringm.match(s,p) end");
+    rv = luaL_loadstring(
+                         luapat,
+              "function matches(s,p) return not not stringm.match(s,p) end");
     if (rv != LUA_OK) {
-        panic("start_luapat: %d",rv);
+        panic("start_luapat: %d", rv);
     }
     return TRUE;
 }
 #endif
 
-static void
+staticfn void
 end_luapat(void)
 {
     if (luapat) {
@@ -2421,7 +2595,7 @@ end_luapat(void)
 }
 
 #ifdef notyet
-static int
+staticfn int
 opencheckpat(lua_State *L, const char *ename, int param)
 {
     /* careful - we're using 2 different and unrelated Lua states */
@@ -2434,7 +2608,7 @@ opencheckpat(lua_State *L, const char *ename, int param)
     lua_pushstring(luapat, string);                              /* -0,+1 */
 
 
-    (void)lua_getfield(L, -1, ename);       /* pattern              -0,+1 */
+    (void) lua_getfield(L, -1, ename);       /* pattern              -0,+1 */
     lua_pop(L, 1);                                               /* -1,+0 */
     string = lua_tolstring(L, -1, NULL);                         /* -0,+0 */
     lua_pushstring(luapat, string);                              /* -0,+1 */
@@ -2460,13 +2634,15 @@ is pop sufficient? XXX or wrong - look at the balance
  */
 #define HOOKTBLNAME "org.nethack.nethack.sb.fs"
 #ifdef notyet
-static int (*io_open)(lua_State *) = NULL; /* XXX this may have to be in g TBD */
+static int (*io_open)(lua_State *) = NULL; /* XXX this may have to be in
+                                            * struct g (gi now) TBD */
 #endif
 
 void
 nhl_pushhooked_open_table(lua_State *L)
 {
     int hot = lua_getfield(L, LUA_REGISTRYINDEX, HOOKTBLNAME);
+
     if (hot == LUA_TNONE) {
         lua_newtable(L);
         lua_pushvalue(L, -1);
@@ -2475,7 +2651,7 @@ nhl_pushhooked_open_table(lua_State *L)
 }
 
 #ifdef notyet
-static int
+staticfn int
 hooked_open(lua_State *L)
 {
     const char *mode;
@@ -2539,11 +2715,11 @@ hooked_open(lua_State *L)
         return NHL_SBRV_DENY; /* default to "no" */
 
  doopen:
-    lua_settop(L, params+1);
+    lua_settop(L, params + 1);
     return (*io_open)(L);
 }
 
-static boolean
+staticfn boolean
 hook_open(lua_State *L)
 {
     boolean rv = FALSE;
@@ -2561,7 +2737,7 @@ hook_open(lua_State *L)
          * doesn't have to work, but POSIX says it does.  So it
          * _should_ work everywhere but all we can do without messing
          * around inside Lua is to try to keep the compiler quiet. */
-        io_open = (int (*)(lua_State *))lua_topointer(L, -1);
+        io_open = (int (*)(lua_State *)) lua_topointer(L, -1);
         lua_pushcfunction(L, hooked_open);
         lua_setfield(L, -1, "open");
         rv = TRUE;
@@ -2575,7 +2751,7 @@ hook_open(lua_State *L)
 DISABLE_WARNING_CONDEXPR_IS_CONSTANT
 
 #ifdef NHL_SANDBOX
-static void
+staticfn void
 nhlL_openlibs(lua_State *L, uint32_t lflags)
 {
     /* translate lflags from user-friendly to internal */
@@ -2698,33 +2874,22 @@ UNSAFEIO:
 
 RESTORE_WARNING_CONDEXPR_IS_CONSTANT
 
-/*
- * All we can do is approximate the amount of storage used.  Every allocator
- * has different overhead and uses that overhead differently.  Since we're
- * really just trying to prevent egregious use, we default to a minimum
- * allocation size of 16 and if you know better about your allocator (and
- * it's worth the processing time), it can be overridden.
- */
-#ifndef NHL_ALLOC_ADJUST
-#define NHL_ALLOC_ADJUST(d) d = (((d) + 15) & ~15)
-#endif
-static void *
-nhl_alloc(void *ud, void *ptr, size_t osize, size_t nsize)
+staticfn void *
+nhl_alloc(void *ud, void *ptr, size_t osize UNUSED, size_t nsize)
 {
     nhl_user_data *nud = ud;
 
-    if (nud && nud->memlimit) { /* this state is size limited */
-        uint32_t delta = !ptr ? nsize : nsize - osize;
-
-        NHL_ALLOC_ADJUST(delta);
-        nud->inuse += delta;
-        if (nud->inuse > nud->memlimit)
-            return 0;
+    if (nsize == 0) {
+        if (ptr != NULL) {
+            free(ptr);
+        }
+        return NULL;
     }
 
-    if (nsize == 0) {
-        free(ptr);
-        return NULL;
+    /* Check nud->L because it will be NULL during state init. */
+    if (nud && nud->L && nud->memlimit) { /* this state is size limited */
+        if (nhl_getmeminuse(nud->L) > nud->memlimit)
+            return NULL;
     }
 
     return re_alloc(ptr, nsize);
@@ -2732,7 +2897,7 @@ nhl_alloc(void *ud, void *ptr, size_t osize, size_t nsize)
 
 DISABLE_WARNING_UNREACHABLE_CODE
 
-static int
+staticfn int
 nhl_panic(lua_State *L)
 {
     const char *msg = lua_tostring(L, -1);
@@ -2748,7 +2913,7 @@ RESTORE_WARNING_UNREACHABLE_CODE
 
 /* called when lua issues a warning message; the text of the message
    is passed to us in pieces across multiple function calls */
-static void
+staticfn void
 nhl_warn(
     void *userdata UNUSED,
     const char *msg_fragment,
@@ -2769,7 +2934,7 @@ nhl_warn(
 }
 
 #ifdef NHL_SANDBOX
-static void
+staticfn void
 nhl_hookfn(lua_State *L, lua_Debug *ar UNUSED)
 {
     nhl_user_data *nud;
@@ -2780,30 +2945,38 @@ nhl_hookfn(lua_State *L, lua_Debug *ar UNUSED)
         longjmp(nud->jb, 1);
 
     nud->steps -= NHL_SB_STEPSIZE;
+    nud->statctr++;
 }
 #endif
 
-static lua_State *
-nhlL_newstate(nhl_sandbox_info *sbi)
+staticfn lua_State *
+nhlL_newstate(nhl_sandbox_info *sbi, const char *name)
 {
     nhl_user_data *nud = 0;
 
-    if (sbi->memlimit || sbi->steps) {
+    if (sbi->memlimit || sbi->steps || sbi->perpcall) {
         nud = nhl_alloc(NULL, NULL, 0, sizeof (struct nhl_user_data));
         if (!nud)
             return 0;
+        nud->L = NULL;
         nud->memlimit = sbi->memlimit;
         nud->perpcall = 0; /* set up below, if needed */
         nud->steps = 0;
         nud->osteps = 0;
         nud->flags = sbi->flags; /* save reporting flags */
-        uint32_t sz = sizeof (struct nhl_user_data);
-        NHL_ALLOC_ADJUST(sz);
-        nud->inuse = sz;
+        nud->statctr = 0;
+
+        if (name) {
+            nud->name = name;
+        }
+        nud->sid = ++gl.lua_sid;
     }
 
     lua_State *L = lua_newstate(nhl_alloc, nud);
+    if (!L)
+        panic("NULL lua_newstate");
 
+    if(nud) nud->L = L;
     lua_atpanic(L, nhl_panic);
 #if LUA_VERSION_NUM == 504
     lua_setwarnf(L, nhl_warn, L);

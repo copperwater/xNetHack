@@ -55,6 +55,7 @@
 #endif
 
 #define GETCURPOS 0x03  /* Get Cursor Position */
+#define SETCURTYP 0x01  /* Set Cursor Type */
 #define GETMODE 0x0f    /* Get Video Mode */
 #define SETMODE 0x00    /* Set Video Mode */
 #define SETPAGE 0x05    /* Set Video Page */
@@ -248,6 +249,8 @@ extern void txt_nhbell(void);
 extern void txt_startup(int *, int *);
 extern void txt_xputs(const char *, int, int);
 extern void txt_xputc(char, int);
+extern void txt_hide_cursor(void);
+extern void txt_show_cursor(void);
 
 /* ### vidvga.c ### */
 
@@ -258,6 +261,8 @@ extern void vga_clear_screen(int);
 extern void vga_cl_end(int, int);
 extern void vga_cl_eos(int);
 extern int vga_detect(void);
+extern void vga_hide_cursor(void);
+extern void vga_show_cursor(void);
 #ifdef SIMULATE_CURSOR
 extern void vga_DrawCursor(void);
 #endif
@@ -272,8 +277,8 @@ extern void vga_update_positionbar(char *);
 extern void vga_HideCursor(void);
 #endif
 extern void vga_Init(void);
-extern void vga_tty_end_screen(void);
-extern void vga_tty_startup(int *, int *);
+extern void vga_term_end_screen(void);
+extern void vga_term_startup(int *, int *);
 extern void vga_xputs(const char *, int, int);
 extern void vga_xputc(char, int);
 extern void vga_xputg(const glyph_info *, const glyph_info *);
@@ -288,6 +293,8 @@ extern void vesa_clear_screen(int);
 extern void vesa_cl_end(int, int);
 extern void vesa_cl_eos(int);
 extern int vesa_detect(void);
+extern void vesa_hide_cursor(void);
+extern void vesa_show_cursor(void);
 #ifdef SIMULATE_CURSOR
 extern void vesa_DrawCursor(void);
 #endif
@@ -301,8 +308,8 @@ extern void vesa_update_positionbar(char *);
 extern void vesa_HideCursor(void);
 #endif
 extern void vesa_Init(void);
-extern void vesa_tty_end_screen(void);
-extern void vesa_tty_startup(int *, int *);
+extern void vesa_term_end_screen(void);
+extern void vesa_term_startup(int *, int *);
 extern void vesa_xputs(const char *, int, int);
 extern void vesa_xputc(char, int);
 extern void vesa_xputg(const glyph_info *, const glyph_info *);

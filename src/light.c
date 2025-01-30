@@ -1,4 +1,4 @@
-/* NetHack 3.7	light.c	$NHDT-Date: 1657918094 2022/07/15 20:48:14 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.57 $ */
+/* NetHack 3.7	light.c	$NHDT-Date: 1726609514 2024/09/17 21:45:14 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.75 $ */
 /* Copyright (c) Dean Luick, 1994                                       */
 /* NetHack may be freely redistributed.  See license for details.       */
 
@@ -13,8 +13,8 @@
  * Light sources are "things" that have a physical position and range.
  * They have a type, which gives us information about them.  Currently
  * they are only attached to objects and monsters.  Note well:  the
- * polymorphed-player handling assumes that both gy.youmonst.m_id and
- * gy.youmonst.mx will always remain 0.
+ * polymorphed-player handling assumes that gy.youmonst.m_id will
+ * always remain 1 and gy.youmonst.mx will always remain 0.
  *
  * Light sources, like timers, either follow game play (RANGE_GLOBAL) or
  * stay on a level (RANGE_LEVEL).  Light sources are unique by their
@@ -38,13 +38,17 @@
  */
 
 /* flags */
-#define LSF_SHOW 0x1        /* display the light source */
-#define LSF_NEEDS_FIXUP 0x2 /* need oid fixup */
+#define LSF_SHOW 0x1            /* display the light source */
+#define LSF_NEEDS_FIXUP 0x2     /* need oid fixup */
+#define LSF_IS_PROBLEMATIC 0x4  /* impossible situation encountered */
 
-static light_source *new_light_core(coordxy, coordxy, int, int, anything *);
-static void discard_flashes(void);
-static void write_ls(NHFILE *, light_source *);
-static int maybe_write_ls(NHFILE *, int, boolean);
+staticfn light_source *new_light_core(coordxy, coordxy,
+                                    int, int, anything *) NONNULLPTRS;
+staticfn void delete_ls(light_source *);
+staticfn void discard_flashes(void);
+staticfn void write_ls(NHFILE *, light_source *);
+staticfn int maybe_write_ls(NHFILE *, int, boolean);
+staticfn unsigned whereis_mon(struct monst *, unsigned);
 
 /* imported from vision.c, for small circles */
 extern const coordxy circle_data[];
@@ -60,7 +64,7 @@ new_light_source(coordxy x, coordxy y, int range, int type, anything *id)
 }
 
 /* Create a new light source and return it.  Only used within this file. */
-static light_source *
+staticfn light_source *
 new_light_core(coordxy x, coordxy y, int range, int type, anything *id)
 {
     light_source *ls;
@@ -88,14 +92,12 @@ new_light_core(coordxy x, coordxy y, int range, int type, anything *id)
     return ls;
 }
 
-/*
- * Delete a light source. This assumes only one light source is attached
- * to an object at a time.
- */
+/* Find and delete a light source.
+   Assumes at most one light source is attached to an object at a time. */
 void
 del_light_source(int type, anything *id)
 {
-    light_source *curr, *prev;
+    light_source *curr;
     anything tmp_id;
 
     tmp_id = cg.zeroany;
@@ -103,6 +105,10 @@ del_light_source(int type, anything *id)
        has only been partially restored during a level change
        (in particular: chameleon vs prot. from shape changers) */
     switch (type) {
+    case LS_NONE:
+        impossible("del_light_source:type=none");
+        tmp_id.a_uint = 0;
+        break;
     case LS_OBJECT:
         tmp_id.a_uint = id->a_obj ? id->a_obj->o_id : 0;
         break;
@@ -114,23 +120,47 @@ del_light_source(int type, anything *id)
         break;
     }
 
-    for (prev = 0, curr = gl.light_base; curr; prev = curr, curr = curr->next) {
+    /* find the light source from its id */
+    for (curr = gl.light_base; curr; curr = curr->next) {
         if (curr->type != type)
             continue;
         if (curr->id.a_obj
-            == ((curr->flags & LSF_NEEDS_FIXUP) ? tmp_id.a_obj : id->a_obj)) {
+            == ((curr->flags & LSF_NEEDS_FIXUP) ? tmp_id.a_obj : id->a_obj))
+            break;
+    }
+    if (curr) {
+        delete_ls(curr);
+    } else {
+        impossible("del_light_source: not found type=%d, id=%s", type,
+                   fmt_ptr((genericptr_t) id->a_obj));
+    }
+}
+
+/* remove a light source from the light_base list and free it */
+staticfn void
+delete_ls(light_source *ls)
+{
+    light_source *curr, *prev;
+
+    for (prev = 0, curr = gl.light_base; curr;
+         prev = curr, curr = curr->next) {
+        if (curr == ls) {
             if (prev)
                 prev->next = curr->next;
             else
                 gl.light_base = curr->next;
-
-            free((genericptr_t) curr);
-            gv.vision_full_recalc = 1;
-            return;
+            break;
         }
     }
-    impossible("del_light_source: not found type=%d, id=%s", type,
-               fmt_ptr((genericptr_t) id->a_obj));
+    if (curr) {
+        assert(curr == ls);
+        (void) memset((genericptr_t) ls, 0, sizeof(light_source));
+        free((genericptr_t) ls);
+        gv.vision_full_recalc = 1;
+    } else {
+        impossible("delete_ls not found, ls=%s", fmt_ptr((genericptr_t) ls));
+    }
+    return;
 }
 
 /* Mark locations that are temporarily lit via mobile light sources. */
@@ -239,6 +269,9 @@ show_transient_light(struct obj *obj, coordxy x, coordxy y)
         cameraflash = cg.zeroany;
         /* radius 0 will just light <x,y>; cameraflash.a_obj is Null */
         ls = new_light_core(x, y, 0, LS_OBJECT, &cameraflash);
+        /* pacify static analysis; 'ls' is never Null for
+           new_light_core(,,0,LS_OBJECT,&zeroany) */
+        assert(ls != NULL);
     } else {
         /* thrown or kicked object which is emitting light; validate its
            light source to obtain its radius (for monster sightings) */
@@ -248,12 +281,14 @@ show_transient_light(struct obj *obj, coordxy x, coordxy y)
             if (ls->id.a_obj == obj)
                 break;
         }
-    }
-    if (!ls || (obj && obj->where != OBJ_FREE)) {
-        impossible("transient light %s %s is not %s?",
-                   obj->lamplit ? "lit" : "unlit", xname(obj),
-                   !ls ? "a light source" : "free");
-        return;
+        assert(obj != NULL); /* necessary condition to get into this 'else' */
+        if (!ls || obj->where != OBJ_FREE) {
+            impossible("transient light %s %s %s not %s?",
+                       obj->lamplit ? "lit" : "unlit",
+                       simpleonames(obj), otense(obj, "are"),
+                       !ls ? "a light source" : "free");
+            return;
+        }
     }
 
     if (obj) /* put lit candle or lamp temporarily on the map */
@@ -270,7 +305,7 @@ show_transient_light(struct obj *obj, coordxy x, coordxy y)
         if (DEADMONSTER(mon) || (mon->isgd && !mon->mx))
             continue;
         /* light range is the radius of a circle and we're limiting
-           canseemon() to a square exclosing that circle, but setting
+           canseemon() to a square enclosing that circle, but setting
            mtemplit 'erroneously' for a seen monster is not a problem;
            it just flags monsters for another canseemon() check when
            'obj' has reached its destination after missile traversal */
@@ -321,17 +356,15 @@ transient_light_cleanup(void)
 }
 
 /* camera flashes have Null object; caller wants to get rid of them now */
-static void
+staticfn void
 discard_flashes(void)
 {
     light_source *ls, *nxt_ls;
 
     for (ls = gl.light_base; ls; ls = nxt_ls) {
         nxt_ls = ls->next;
-        if (ls->type != LS_OBJECT)
-            continue;
-        if (!ls->id.a_obj)
-            del_light_source(LS_OBJECT, &ls->id);
+        if (ls->type == LS_OBJECT && !ls->id.a_obj)
+            delete_ls(ls);
     }
 }
 
@@ -343,7 +376,7 @@ find_mid(unsigned nid, unsigned fmflags)
 {
     struct monst *mtmp;
 
-    if (!nid)
+    if ((fmflags & FM_YOU) && nid == 1)
         return &gy.youmonst;
     if (fmflags & FM_FMON)
         for (mtmp = fmon; mtmp; mtmp = mtmp->nmon)
@@ -358,6 +391,28 @@ find_mid(unsigned nid, unsigned fmflags)
             if (mtmp->m_id == nid)
                 return mtmp;
     return (struct monst *) 0;
+}
+
+staticfn unsigned
+whereis_mon(struct monst *mon, unsigned fmflags)
+{
+    struct monst *mtmp;
+
+    if ((fmflags & FM_YOU) && mon == &gy.youmonst)
+        return FM_YOU;
+    if (fmflags & FM_FMON)
+        for (mtmp = fmon; mtmp; mtmp = mtmp->nmon)
+            if (mtmp == mon)
+                return FM_FMON;
+    if (fmflags & FM_MIGRATE)
+        for (mtmp = gm.migrating_mons; mtmp; mtmp = mtmp->nmon)
+            if (mtmp == mon)
+                return FM_MIGRATE;
+    if (fmflags & FM_MYDOGS)
+        for (mtmp = gm.mydogs; mtmp; mtmp = mtmp->nmon)
+            if (mtmp == mon)
+                return FM_MYDOGS;
+    return 0;
 }
 
 /* Save all light sources of the given range. */
@@ -407,6 +462,7 @@ save_light_sources(NHFILE *nhfp, int range)
             /* if global and not doing local, or vice versa, remove it */
             if (is_global ^ (range == RANGE_LEVEL)) {
                 *prev = curr->next;
+                (void) memset((genericptr_t) curr, 0, sizeof(light_source));
                 free((genericptr_t) curr);
             } else {
                 prev = &(*prev)->next;
@@ -464,27 +520,43 @@ relink_light_sources(boolean ghostly)
     unsigned nid;
     light_source *ls;
 
+    /*
+     * Caveat:
+     *  There has been at least one instance during to-be-3.7 development
+     *  where the light_base linked list ended up with a circular link.
+     *  If that happens, then once all the traversed elements have their
+     *  LSF_NEEDS_FIXUP flag cleared, the traversal attempt will run wild.
+     *
+     *  The circular list instance was blamed on attempting to restore
+     *  a save file which should have been invalidated by version/patch/
+     *  editlevel verification, but wasn't rejected because EDITLEVEL
+     *  didn't get incremented when it should have been.  Valid data should
+     *  never produce the problem and it isn't possible in general to guard
+     *  against code updates that neglect to set the verification info up
+     *  to date.
+     */
+
     for (ls = gl.light_base; ls; ls = ls->next) {
         if (ls->flags & LSF_NEEDS_FIXUP) {
             if (ls->type == LS_OBJECT || ls->type == LS_MONSTER) {
-                if (ghostly) {
-                    if (!lookup_id_mapping(ls->id.a_uint, &nid))
-                        impossible("relink_light_sources: no id mapping");
-                } else
-                    nid = ls->id.a_uint;
-                if (ls->type == LS_OBJECT) {
-                    which = 'o';
-                    ls->id.a_obj = find_oid(nid);
-                } else {
-                    which = 'm';
-                    ls->id.a_monst = find_mid(nid, FM_EVERYWHERE);
-                }
-                if (!ls->id.a_monst)
-                    impossible("relink_light_sources: cant find %c_id %d",
-                               which, nid);
-            } else
-                impossible("relink_light_sources: bad type (%d)", ls->type);
+                nid = ls->id.a_uint;
+                if (ghostly && !lookup_id_mapping(nid, &nid))
+                    panic("relink_light_sources: no id mapping");
 
+                which = '\0';
+                if (ls->type == LS_OBJECT) {
+                    if ((ls->id.a_obj = find_oid(nid)) == 0)
+                        which = 'o';
+                } else {
+                    if ((ls->id.a_monst = find_mid(nid, FM_EVERYWHERE)) == 0)
+                        which = 'm';
+                }
+                if (which != '\0')
+                    panic("relink_light_sources: can't find %c_id %u",
+                          which, nid);
+            } else {
+                panic("relink_light_sources: bad type (%d)", ls->type);
+            }
             ls->flags &= ~LSF_NEEDS_FIXUP;
         }
     }
@@ -495,7 +567,7 @@ relink_light_sources(boolean ghostly)
  * sources that would be written.  If write_it is true, actually write
  * the light source out.
  */
-static int
+staticfn int
 maybe_write_ls(NHFILE *nhfp, int range, boolean write_it)
 {
     int count = 0, is_global;
@@ -542,7 +614,7 @@ light_sources_sanity_check(void)
         if (!ls->id.a_monst)
             panic("insane light source: no id!");
         if (ls->type == LS_OBJECT) {
-            otmp = (struct obj *) ls->id.a_obj;
+            otmp = ls->id.a_obj;
             auint = otmp->o_id;
             if (find_oid(auint) != otmp)
                 panic("insane light source: can't find obj #%u!", auint);
@@ -558,7 +630,7 @@ light_sources_sanity_check(void)
 }
 
 /* Write a light source structure to disk. */
-static void
+staticfn void
 write_ls(NHFILE *nhfp, light_source *ls)
 {
     anything arg_save;
@@ -576,22 +648,55 @@ write_ls(NHFILE *nhfp, light_source *ls)
                 otmp = ls->id.a_obj;
                 ls->id = cg.zeroany;
                 ls->id.a_uint = otmp->o_id;
-                if (find_oid((unsigned) ls->id.a_uint) != otmp)
+                if (find_oid((unsigned) ls->id.a_uint) != otmp) {
                     impossible("write_ls: can't find obj #%u!",
                                ls->id.a_uint);
+                    ls->flags |= LSF_IS_PROBLEMATIC;
+                }
             } else { /* ls->type == LS_MONSTER */
+                unsigned monloc = 0;
+
                 mtmp = (struct monst *) ls->id.a_monst;
-                ls->id = cg.zeroany;
-                ls->id.a_uint = mtmp->m_id;
-                if (find_mid((unsigned) ls->id.a_uint, FM_EVERYWHERE) != mtmp)
-                    impossible("write_ls: can't find mon #%u!",
-                               ls->id.a_uint);
+
+                /* The monster pointer has been stashed in the light source
+                 * for a while and while there is code meant to clean-up the
+                 * light source aspects if a monster goes away, there have
+                 * been some reports of light source issues, such as when
+                 * going to the planes.
+                 *
+                 * Verify that the stashed monst pointer is still present
+                 * in one of the monster chains before pulling subfield
+                 * values such as m_id from it, to avoid any attempt to
+                 * pull random m_id value from (now) freed memory.
+                 *
+                 * find_mid() disregards a DEADMONSTER, but whereis_mon()
+                 * does not. */
+
+                if ((monloc = whereis_mon(mtmp, FM_EVERYWHERE)) != 0) {
+                    ls->id = cg.zeroany;
+                    ls->id.a_uint = mtmp->m_id;
+                    if (find_mid((unsigned) ls->id.a_uint, monloc) != mtmp) {
+                        impossible("write_ls: can't find mon%s #%u!",
+                                   DEADMONSTER(mtmp) ? " because it's dead"
+                                                     : "",
+                                   ls->id.a_uint);
+                        ls->flags |= LSF_IS_PROBLEMATIC;
+                    }
+                } else {
+                    impossible(
+                        "write_ls: stashed monst ptr not in any chain");
+                    ls->flags |= LSF_IS_PROBLEMATIC;
+                }
+            }
+            if (ls->flags & LSF_IS_PROBLEMATIC) {
+                /* TODO: cleanup this ls, or skip writing it */
             }
             ls->flags |= LSF_NEEDS_FIXUP;
             if (nhfp->structlevel)
                 bwrite(nhfp->fd, (genericptr_t) ls, sizeof(light_source));
             ls->id = arg_save;
             ls->flags &= ~LSF_NEEDS_FIXUP;
+            ls->flags &= ~LSF_IS_PROBLEMATIC;
         }
     } else {
         impossible("write_ls: bad type (%d)", ls->type);

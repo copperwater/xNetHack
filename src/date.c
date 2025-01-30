@@ -3,20 +3,21 @@
 /* NetHack may be freely redistributed.  See license for details. */
 
 #include "config.h"
-
-/* these are in extern.h but we don't include hack.h */
-void populate_nomakedefs(struct version_info *);
-void free_nomakedefs(void);
-
+#include "hacklib.h"
+#ifdef Snprintf
+#undef Snprintf
+#endif
 #define Snprintf(str, size, ...) \
     nh_snprintf(__func__, __LINE__, str, size, __VA_ARGS__)
-extern void nh_snprintf(const char *func, int line, char *str, size_t size,
-                        const char *fmt, ...);
+
+/* these are in extern.h but we don't include hack.h */
+void populate_nomakedefs(struct version_info *) NONNULLARG1;
+void free_nomakedefs(void);
+
 extern unsigned long md_ignored_features(void);
 extern char *mdlib_version_string(char *, const char *);
 extern char *version_id_string(char *, size_t, const char *);
 extern char *bannerc_string(char *, size_t, const char *);
-extern int case_insensitive_comp(const char *, const char *);
 
 /* nomakedefs_populated: flag for whether 'nomakedefs' should be freed */
 static int nomakedefs_populated = 0;
@@ -28,6 +29,7 @@ struct nomakedefs_s nomakedefs = {
     "Version 1.0, built Jul 28 13:18:57 1987.",
     (const char *) 0,   /* git_sha */
     (const char *) 0,   /* git_branch */
+    (const char *) 0,   /* git_prefix */
     "1.0.0-0",
     "xNetHack Version 1.0.0-0 - last build Tue Jul 28 13:18:57 1987.",
     0x01010000UL,
@@ -124,6 +126,9 @@ populate_nomakedefs(struct version_info *version)
 #ifdef NETHACK_GIT_BRANCH
     nomakedefs.git_branch = dupstr(NETHACK_GIT_BRANCH);
 #endif
+#ifdef NETHACK_GIT_PREFIX
+    nomakedefs.git_prefix = dupstr(NETHACK_GIT_PREFIX);
+#endif
 
     nomakedefs_populated = 1;
     return;
@@ -159,6 +164,11 @@ free_nomakedefs(void)
     if (nomakedefs.git_branch)
         free((genericptr_t) nomakedefs.git_branch),
             nomakedefs.git_branch = 0;
+#endif
+#ifdef NETHACK_GIT_PREFIX
+    if (nomakedefs.git_prefix)
+        free((genericptr_t) nomakedefs.git_prefix),
+            nomakedefs.git_prefix = 0;
 #endif
 
     /* values are Null now; dynamic vs static doesn't really matter anymore */

@@ -59,9 +59,6 @@ short chainin_set_font_name(winid, char *);
 char *chainin_get_color_string(void);
 #endif
 
-    /* other defs that really should go away (they're tty specific) */
-void chainin_start_screen(void);
-void chainin_end_screen(void);
 void chainin_outrip(winid, int, time_t);
 void chainin_preference_update(const char *);
 char *chainin_getmsghistory(boolean);
@@ -108,7 +105,7 @@ chainin_procs_chain(
         tdp->nprocs = 0;
         tdp->ndata = 0;
         tdp->linknum = n;
-        cibase = 0;
+        cibase = tdp;
         break;
     case WINCHAIN_INIT:
         tdp = me;
@@ -489,19 +486,6 @@ trace_get_color_string(void)
 
 #endif
 
-/* other defs that really should go away (they're tty specific) */
-void
-chainin_start_screen(void)
-{
-    (*cibase->nprocs->win_start_screen)(cibase->ndata);
-}
-
-void
-chainin_end_screen(void)
-{
-    (*cibase->nprocs->win_end_screen)(cibase->ndata);
-}
-
 void
 chainin_outrip(
     winid tmpwin,
@@ -584,7 +568,7 @@ chainin_ctrl_nhwindow(
     int request,
     win_request_info *wri)
 {
-    boolean rv;
+    win_request_info *rv;
 
     rv = (*cibase->nprocs->win_ctrl_nhwindow)(cibase->ndata, window,
                                                    request, wri);
@@ -609,7 +593,7 @@ struct window_procs chainin_procs = {
     chainin_display_nhwindow, chainin_destroy_nhwindow, chainin_curs,
     chainin_putstr, chainin_putmixed, chainin_display_file,
     chainin_start_menu, chainin_add_menu, chainin_end_menu,
-    chainin_select_menu, chainin_message_menu, chainin_update_inventory,
+    chainin_select_menu, chainin_message_menu,
     chainin_mark_synch, chainin_wait_synch,
 #ifdef CLIPPING
     chainin_cliparound,
@@ -628,8 +612,6 @@ struct window_procs chainin_procs = {
 #endif
     chainin_get_color_string,
 #endif
-
-    chainin_start_screen, chainin_end_screen,
 
     chainin_outrip, chainin_preference_update, chainin_getmsghistory,
     chainin_putmsghistory,

@@ -1,4 +1,4 @@
-/* NetHack 3.7	hack.h	$NHDT-Date: 1684374685 2023/05/18 01:51:25 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.218 $ */
+/* NetHack 3.7	hack.h	$NHDT-Date: 1736530208 2025/01/10 09:30:08 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.266 $ */
 /* Copyright (c) Stichting Mathematisch Centrum, Amsterdam, 1985. */
 /*-Copyright (c) Pasi Kallinen, 2017. */
 /* NetHack may be freely redistributed.  See license for details. */
@@ -11,9 +11,9 @@
 #endif
 #include "lint.h"
 
-#include "color.h"
 #include "align.h"
 #include "dungeon.h"
+#include "stairs.h"
 #include "objclass.h"
 #include "wintype.h"
 #include "flag.h"
@@ -25,7 +25,6 @@
 
 #include "botl.h"
 #include "context.h"
-#include "dungeon.h"
 #include "engrave.h"
 #include "mkroom.h"
 #include "obj.h"
@@ -33,6 +32,7 @@
 #include "rect.h"
 #include "region.h"
 #include "rm.h"
+#include "selvar.h"
 #include "sndprocs.h"
 #include "spell.h"
 #include "sym.h"
@@ -61,7 +61,7 @@
 /* bitmask flags for corpse_xname();
    PFX_THE takes precedence over ARTICLE, NO_PFX takes precedence over both */
 #define CXN_NORMAL 0    /* no special handling */
-#define CXN_SINGULAR 1  /* override quantity if greather than 1 */
+#define CXN_SINGULAR 1  /* override quantity if greater than 1 */
 #define CXN_NO_PFX 2    /* suppress "the" from "the Unique Monst */
 #define CXN_PFX_THE 4   /* prefix with "the " (unless pname) */
 #define CXN_ARTICLE 8   /* include a/an/the prefix */
@@ -132,27 +132,27 @@ enum bhit_call_types {
 
 /* Macros for messages referring to hands, eyes, feet, etc... */
 enum bodypart_types {
-    NO_PART   =  0,
-    ARM       =  1,
-    EYE       =  2,
-    FACE      =  3,
-    FINGER    =  4,
-    FINGERTIP =  5,
-    FOOT      =  6,
-    HAND      =  7,
-    HANDED    =  8,
-    HEAD      =  9,
-    LEG       = 10,
-    LIGHT_HEADED = 11,
-    NECK      = 12,
-    SPINE     = 13,
-    TOE       = 14,
-    HAIR      = 15,
-    BLOOD     = 16,
-    LUNG      = 17,
-    NOSE      = 18,
-    STOMACH   = 19,
-    TORSO     = 20
+    NO_PART   = -1,
+    ARM       =  0,
+    EYE       =  1,
+    FACE      =  2,
+    FINGER    =  3,
+    FINGERTIP =  4,
+    FOOT      =  5,
+    HAND      =  6,
+    HANDED    =  7,
+    HEAD      =  8,
+    LEG       =  9,
+    LIGHT_HEADED = 10,
+    NECK      = 11,
+    SPINE     = 12,
+    TOE       = 13,
+    HAIR      = 14,
+    BLOOD     = 15,
+    LUNG      = 16,
+    NOSE      = 17,
+    STOMACH   = 18,
+    TORSO     = 19
 };
 
 #define MAX_BMASK 4
@@ -271,11 +271,11 @@ struct c_color_names {
 };
 
 struct c_common_strings {
-    const char *const c_nothing_happens, *const c_thats_enough_tries,
-        *const c_silly_thing_to, *const c_shudder_for_moment,
-        *const c_something, *const c_Something, *const c_You_can_move_again,
-        *const c_Never_mind, *c_vision_clears, *const c_the_your[2],
-        *const c_fakename[2];
+    const char *const c_nothing_happens, *const c_nothing_seems_to_happen,
+        *const c_thats_enough_tries, *const c_silly_thing_to,
+        *const c_shudder_for_moment, *const c_something, *const c_Something,
+        *const c_You_can_move_again, *const c_Never_mind,
+        *const c_vision_clears, *const c_the_your[2], *const c_fakename[2];
 };
 
 struct container {
@@ -306,7 +306,15 @@ enum cost_alteration_types {
     COST_RUST    = 16, /* rust damage */
     COST_ROT     = 17, /* rotting attack */
     COST_CORRODE = 18, /* acid damage */
-    COST_FERMENT = 19  /* fermentation of potion into new potion */
+    COST_CRACK   = 19, /* damage to crystal armor */
+    COST_FERMENT = 20  /* fermentation of potion into new potion */
+};
+
+/* used by unpaid_cost(shk.h) */
+enum unpaid_cost_flags {
+    COST_NOCONTENTS = 0,
+    COST_CONTENTS   = 1,
+    COST_SINGLEOBJ  = 2,
 };
 
 /* read.c, create_particular() & create_particular_parse() */
@@ -320,6 +328,27 @@ struct _create_particular_data {
     boolean maketame, makepeaceful, makehostile;
     boolean sleeping, saddled, invisible, hidden;
 };
+
+/* dig_check() results */
+
+enum digcheck_result {
+    DIGCHECK_PASSED                 = 1,
+    DIGCHECK_PASSED_DESTROY_TRAP    = 2,
+    DIGCHECK_PASSED_PITONLY         = 3,
+    DIGCHECK_FAILED                 = 4,
+    DIGCHECK_FAIL_ONSTAIRS          = DIGCHECK_FAILED,
+    DIGCHECK_FAIL_ONLADDER,
+    DIGCHECK_FAIL_THRONE,
+    DIGCHECK_FAIL_ALTAR,
+    DIGCHECK_FAIL_AIRLEVEL,
+    DIGCHECK_FAIL_WATERLEVEL,
+    DIGCHECK_FAIL_TOOHARD,
+    DIGCHECK_FAIL_UNDESTROYABLETRAP,
+    DIGCHECK_FAIL_CANTDIG,
+    DIGCHECK_FAIL_BOULDER,
+    DIGCHECK_FAIL_OBJ_POOL_OR_TRAP
+};
+
 
 /* Dismount: causes for why you are no longer riding */
 enum dismount_types {
@@ -363,6 +392,7 @@ struct dgn_topology { /* special dungeon levels for speed */
     xint16 d_gehennom_dnum;
     xint16 d_sokoban_dnum;
     xint16 d_mines_dnum, d_quest_dnum;
+    xint16 d_tutorial_dnum;
     xint16 d_abyss_dnum;
     d_level d_qstart_level, d_qlocate_level, d_nemesis_level;
     d_level d_knox_level;
@@ -372,59 +402,66 @@ struct dgn_topology { /* special dungeon levels for speed */
 
 /* macros for accessing the dungeon levels by their old names */
 /* clang-format off */
-#define oracle_level            (gd.dungeon_topology.d_oracle_level)
-#define bigroom_level           (gd.dungeon_topology.d_bigroom_level)
-#define medusa_level            (gd.dungeon_topology.d_medusa_level)
-#define stronghold_level        (gd.dungeon_topology.d_stronghold_level)
-#define valley_level            (gd.dungeon_topology.d_valley_level)
-#define hellgate_level          (gd.dungeon_topology.d_hellgate_level)
-#define styxmarsh_level         (gd.dungeon_topology.d_styxmarsh_level)
-#define wiz1_level              (gd.dungeon_topology.d_wiz1_level)
-#define wiz2_level              (gd.dungeon_topology.d_wiz2_level)
-#define wiz3_level              (gd.dungeon_topology.d_wiz3_level)
-#define yeenoghu_level          (gd.dungeon_topology.d_yeenoghu_level)
-#define juiblex_level           (gd.dungeon_topology.d_juiblex_level)
-#define orcus_level             (gd.dungeon_topology.d_orcus_level)
-#define geryon_level            (gd.dungeon_topology.d_geryon_level)
-#define demogorgon_level        (gd.dungeon_topology.d_demogorgon_level)
-#define dis_level               (gd.dungeon_topology.d_dis_level)
-#define dispater_level          (gd.dungeon_topology.d_dispater_level)
-#define baalzebub_level         (gd.dungeon_topology.d_baalzebub_level)
-#define asmodeus_level          (gd.dungeon_topology.d_asmodeus_level)
-#define sanctum_level           (gd.dungeon_topology.d_sanctum_level)
-#define earth_level             (gd.dungeon_topology.d_earth_level)
-#define water_level             (gd.dungeon_topology.d_water_level)
-#define fire_level              (gd.dungeon_topology.d_fire_level)
-#define air_level               (gd.dungeon_topology.d_air_level)
-#define astral_level            (gd.dungeon_topology.d_astral_level)
-#define tower_dnum              (gd.dungeon_topology.d_tower_dnum)
-#define gehennom_dnum           (gd.dungeon_topology.d_gehennom_dnum)
-#define abyss_dnum              (gd.dungeon_topology.d_abyss_dnum)
-#define sokoban_dnum            (gd.dungeon_topology.d_sokoban_dnum)
-#define mines_dnum              (gd.dungeon_topology.d_mines_dnum)
-#define quest_dnum              (gd.dungeon_topology.d_quest_dnum)
-#define qstart_level            (gd.dungeon_topology.d_qstart_level)
-#define qlocate_level           (gd.dungeon_topology.d_qlocate_level)
-#define nemesis_level           (gd.dungeon_topology.d_nemesis_level)
-#define knox_level              (gd.dungeon_topology.d_knox_level)
-#define mineend_level           (gd.dungeon_topology.d_mineend_level)
-#define sokoend_level           (gd.dungeon_topology.d_sokoend_level)
+#define oracle_level            (svd.dungeon_topology.d_oracle_level)
+#define bigroom_level           (svd.dungeon_topology.d_bigroom_level)
+#define medusa_level            (svd.dungeon_topology.d_medusa_level)
+#define stronghold_level        (svd.dungeon_topology.d_stronghold_level)
+#define valley_level            (svd.dungeon_topology.d_valley_level)
+#define hellgate_level          (svd.dungeon_topology.d_hellgate_level)
+#define styxmarsh_level         (svd.dungeon_topology.d_styxmarsh_level)
+#define wiz1_level              (svd.dungeon_topology.d_wiz1_level)
+#define wiz2_level              (svd.dungeon_topology.d_wiz2_level)
+#define wiz3_level              (svd.dungeon_topology.d_wiz3_level)
+#define yeenoghu_level          (svd.dungeon_topology.d_yeenoghu_level)
+#define juiblex_level           (svd.dungeon_topology.d_juiblex_level)
+#define orcus_level             (svd.dungeon_topology.d_orcus_level)
+#define geryon_level            (svd.dungeon_topology.d_geryon_level)
+#define demogorgon_level        (svd.dungeon_topology.d_demogorgon_level)
+#define dis_level               (svd.dungeon_topology.d_dis_level)
+#define dispater_level          (svd.dungeon_topology.d_dispater_level)
+#define baalzebub_level         (svd.dungeon_topology.d_baalzebub_level)
+#define asmodeus_level          (svd.dungeon_topology.d_asmodeus_level)
+#define sanctum_level           (svd.dungeon_topology.d_sanctum_level)
+#define earth_level             (svd.dungeon_topology.d_earth_level)
+#define water_level             (svd.dungeon_topology.d_water_level)
+#define fire_level              (svd.dungeon_topology.d_fire_level)
+#define air_level               (svd.dungeon_topology.d_air_level)
+#define astral_level            (svd.dungeon_topology.d_astral_level)
+#define tower_dnum              (svd.dungeon_topology.d_tower_dnum)
+#define gehennom_dnum           (svd.dungeon_topology.d_gehennom_dnum)
+#define abyss_dnum              (svd.dungeon_topology.d_abyss_dnum)
+#define sokoban_dnum            (svd.dungeon_topology.d_sokoban_dnum)
+#define mines_dnum              (svd.dungeon_topology.d_mines_dnum)
+#define quest_dnum              (svd.dungeon_topology.d_quest_dnum)
+#define tutorial_dnum           (svd.dungeon_topology.d_tutorial_dnum)
+#define qstart_level            (svd.dungeon_topology.d_qstart_level)
+#define qlocate_level           (svd.dungeon_topology.d_qlocate_level)
+#define nemesis_level           (svd.dungeon_topology.d_nemesis_level)
+#define knox_level              (svd.dungeon_topology.d_knox_level)
+#define mineend_level           (svd.dungeon_topology.d_mineend_level)
+#define sokoend_level           (svd.dungeon_topology.d_sokoend_level)
 /* clang-format on */
 
-#define dunlev_reached(x) (gd.dungeons[(x)->dnum].dunlev_ureached)
+#define dunlev_reached(x) (svd.dungeons[(x)->dnum].dunlev_ureached)
 #define MAXLINFO (MAXDUNGEON * MAXLEVEL)
 
+enum lua_theme_group {
+    all_themes = 1,  /* for end of game */
+    most_themes = 2, /* for entering endgame */
+    tut_themes = 3,  /* for leaving tutorial */
+};
 
 enum earlyarg {
     ARG_DEBUG, ARG_VERSION, ARG_SHOWPATHS
 #ifndef NODUMPENUMS
     , ARG_DUMPENUMS
 #endif
-#ifdef ENHANCED_SYMBOLS
     , ARG_DUMPGLYPHIDS
-#endif
 #ifdef WIN32
     , ARG_WINDOWS
+#endif
+#if defined(CRASHREPORT)
+    , ARG_BIDSHOW
 #endif
 };
 
@@ -459,7 +496,7 @@ struct enum_dump {
 /*
  * This is the way the game ends.  If these are rearranged, the arrays
  * in end.c and topten.c will need to be changed.  Some parts of the
- * code assume that PANIC separates the deaths from the non-deaths.
+ * code assume that PANICKED separates the deaths from the non-deaths.
  */
 enum game_end_types {
     DIED         =  0,
@@ -553,6 +590,18 @@ enum hunger_state_types {
     STARVED    = 6
 };
 
+/* inventory counts (slots in tty parlance)
+ * a...zA..Z    invlet_basic (52)
+ * $a...zA..Z#  2 special additions
+ */
+enum inventory_counts {
+    invlet_basic = 52,
+    invlet_gold = 1,
+    invlet_overflow = 1,
+    invlet_max = invlet_basic + invlet_gold + invlet_overflow,
+    /* 2023/11/30 invlet_max is not yet used anywhere */
+};
+
 struct kinfo {
     struct kinfo *next; /* chain of delayed killers */
     int id;             /* uprop keys to ID a delayed killer */
@@ -639,6 +688,7 @@ struct mvitals {
     uchar born;
     uchar died;
     uchar mvflags;
+    Bitfield(seen_close, 1);
 };
 
 
@@ -649,6 +699,8 @@ enum nhcore_calls {
     NHCORE_MOVELOOP_TURN,
     NHCORE_GAME_EXIT,
     NHCORE_GETPOS_TIP,
+    NHCORE_ENTER_TUTORIAL,
+    NHCORE_LEAVE_TUTORIAL,
 
     NUM_NHCORE_CALLS
 };
@@ -673,7 +725,7 @@ enum optset_restrictions {
     set_viaprog    = 2, /* may be set via extern program, not seen in game */
     set_gameview   = 3, /* may be set via extern program, displayed in game */
     set_in_game    = 4, /* may be set via extern program or set in the game */
-    set_wizonly    = 5, /* may be set set in the game if wizmode */
+    set_wizonly    = 5, /* may be set in the game if wizmode */
     set_wiznofuz   = 6, /* wizard-mode only, but not by fuzzer */
     set_hidden     = 7  /* placeholder for prefixed entries, never show it  */
 };
@@ -745,8 +797,9 @@ struct restore_info {
 };
 
 enum restore_stages {
-    REST_GSTATE = 1,    /* restoring current level and game state */
-    REST_LEVELS = 2,    /* restoring remainder of dungeon */
+    REST_GSTATE = 1, /* restoring game state + first pass of current level */
+    REST_LEVELS = 2, /* restoring remainder of dungeon */
+    REST_CURRENT_LEVEL = 3, /* final pass of restoring current level */
 };
 
 struct rogueroom {
@@ -792,13 +845,16 @@ struct sinfo {
     int exiting;                /* an exit handler is executing */
     int saving;                 /* creating a save file */
     int restoring;              /* reloading a save file */
+    int in_getlev;              /* in getlev() */
     int in_moveloop;            /* normal gameplay in progress */
-    int in_impossible;          /* reportig a warning */
+    int in_impossible;          /* reporting a warning */
     int in_docrt;               /* in docrt(): redrawing the whole screen */
-    int in_self_recover;        /* processsing orphaned level files */
+    int in_self_recover;        /* processing orphaned level files */
     int in_checkpoint;          /* saving insurance checkpoint */
     int in_parseoptions;        /* in parseoptions */
     int in_role_selection;      /* role/race/&c selection menus in progress */
+    int in_getlin;              /* inside interface getlin routine */
+    int in_sanity_check;        /* for impossible() during sanity checking */
     int config_error_ready;     /* config_error_add is ready, available */
     int beyond_savefile_load;   /* set when past savefile loading */
 #ifdef PANICLOG
@@ -809,8 +865,15 @@ struct sinfo {
        used in the curses interface to avoid arrow keys when user is doing
        something other than entering a command or direction and in the Qt
        interface to suppress menu commands in similar conditions;
-       readchar() alrways resets it to 'otherInp' prior to returning */
+       readchar() always resets it to 'otherInp' prior to returning */
     int input_state; /* whether next key pressed will be entering a command */
+#ifdef TTY_GRAPHICS
+    /* resize_pending only matters when handling a SIGWINCH signal for tty;
+       getting_char is used along with that and also separately for UNIX;
+       we minimize #if conditionals for them to avoid unnecessary clutter */
+    volatile int resize_pending; /* set by signal handler */
+    volatile int getting_char;  /* referenced during signal handling */
+#endif
 };
 
 /* value of program_state.input_state, significant during readchar();
@@ -826,19 +889,32 @@ enum InputState {
 struct sortloot_item {
     struct obj *obj;
     char *str; /* result of loot_xname(obj) in some cases, otherwise null */
-    int indx; /* signed int, because sortloot()'s qsort comparison routine
-                 assumes (a->indx - b->indx) might yield a negative result */
-    xint16 orderclass; /* order rather than object class; 0 => not yet init'd */
-    xint16 subclass; /* subclass for some classes */
-    xint16 disco; /* discovery status */
+    /* these need to be signed; 'indx' should be big enough to hold a count
+       of the largest pile of items, the others fit within char */
+    int indx;        /* index into original list (used as tie-breaker) */
+    int8 orderclass; /* order rather than object class; 0 => not yet init'd */
+    int8 subclass;   /* subclass for some classes */
+    int8 disco;      /* discovery status */
+    int8 inuse;      /* 0: not in-use or not sorting by inuse_only;
+                      * 1: lit candle/lamp or attached leash; 2: worn armor;
+                      * 3: wielded weapon (including uswapwep and uquiver);
+                      * 4: worn accessory (amulet, rings, blindfold). */
 };
 typedef struct sortloot_item Loot;
 
 typedef struct strbuf {
     int    len;
-    char * str;
+    char  *str;
     char   buf[256];
 } strbuf_t;
+
+enum stoning_checks {
+    st_gloves    = 0x1,  /* wearing gloves? */
+    st_corpse    = 0x2,  /* is it a corpse obj? */
+    st_petrifies = 0x4,  /* does the corpse petrify on touch? */
+    st_resists   = 0x8,  /* do you have stoning resistance? */
+    st_all = (st_gloves | st_corpse | st_petrifies | st_resists)
+};
 
 struct trapinfo {
     struct obj *tobj;
@@ -866,6 +942,7 @@ typedef struct {
 #define UTD_CHECKFIELDCOUNTS           0x02
 #define UTD_SKIP_SANITY1               0x04
 #define UTD_SKIP_SAVEFILEINFO          0x08
+#define UTD_WITHOUT_WAITSYNCH_PERFILE  0x10
 
 #define ENTITIES 2
 struct valuable_data {
@@ -897,185 +974,6 @@ struct autopickup_exception {
     boolean grab;
     struct autopickup_exception *next;
 };
-
-#if !defined(NO_VERBOSE_GRANULARITY)
-#define VB_ELEMENTS 5
-/*
- * Maintenance Notes:
- *  - if one of the function's involved has a name change,
- *    and the Verbose() macro use instance is updated to match,
- *    it will have to be reflected below. If the use instance
- *    isn't updated to reflect the function name change,
- *    it will continue to work using the old name if it matches
- *    one of the entries below.
- */
-
-enum verbosity_values {
-    vb0interrupt_multi       = 0x00000001,
-    vb0use_stethoscope       = 0x00000002,
-    vb0Mb_hit                = 0x00000004,
-    vb0adjattrib             = 0x00000008,
-    vb0ballfall              = 0x00000010,
-    vb0use_crystal_ball1     = 0x00000020,
-    vb0use_crystal_ball2     = 0x00000040,
-    vb0digactualhole1        = 0x00000080,
-    vb0digactualhole2        = 0x00000100,
-    vb0mdig_tunnel1          = 0x00000200,
-    vb0mdig_tunnel2          = 0x00000400,
-    vb0boulder_hits_pool1    = 0x00000800,
-    vb0boulder_hits_pool2    = 0x00001000,
-    vb0drop1                 = 0x00002000,
-    vb0drop2                 = 0x00004000,
-    vb0drop3                 = 0x00008000,
-    vb0go_to_level1          = 0x00010000,
-    vb0go_to_level2          = 0x00020000,
-    vb0go_to_level3          = 0x00040000,
-    vb0rot_corpse            = 0x00080000,
-    vb0getpos1               = 0x00100000,
-    vb0getpos2               = 0x00200000,
-    vb0off_msg               = 0x00400000,
-    vb0on_msg                = 0x00800000,
-    vb0Blindf_on             = 0x01000000,
-    vb0dog_eat               = 0x02000000,
-    vb0dog_invent            = 0x04000000,
-    vb0dokick                = 0x08000000,
-    vb0toss_up               = 0x10000000,
-    vb0consume_tin1          = 0x20000000,
-    vb0consume_tin2          = 0x40000000,
-
-    vb1doengrave1            = 0x00000001,
-    vb1doengrave2            = 0x00000002,
-    vb1doengrave3            = 0x00000004,
-    vb1explode               = 0x00000008,
-    vb1moverock              = 0x00000010,
-    vb1still_chewing         = 0x00000020,
-    vb1trapmove1             = 0x00000040,
-    vb1trapmove2             = 0x00000080,
-    vb1trapmove3             = 0x00000100,
-    vb1trapmove4             = 0x00000200,
-    vb1trapmove5             = 0x00000400,
-    vb1getobj1               = 0x00000800,
-    vb1getobj2               = 0x00001000,
-    vb1doprgold              = 0x00002000,
-    vb1doorlock1             = 0x00004000,
-    vb1doorlock2             = 0x00008000,
-    vb1monpoly1              = 0x00010000,
-    vb1monpoly2              = 0x00020000,
-    vb1mswingsm              = 0x00040000,
-    vb1missmu                = 0x00080000,
-    vb1mswings               = 0x00100000,
-    vb1wildmiss              = 0x00200000,
-    vb1gulpmu                = 0x00400000,
-    vb1explmu                = 0x00800000,
-    vb1meatmetal1            = 0x01000000,
-    vb1meatmetal2            = 0x02000000,
-    vb1meatmetal3            = 0x04000000,
-    vb1meatmetal4            = 0x08000000,
-    vb1relobj                = 0x10000000,
-    vb1ready_weapon          = 0x20000000,
-    vb1wield_tool            = 0x40000000,
-
-    vb2meatobj1              = 0x00000001,
-    vb2meatobj2              = 0x00000002,
-    vb2meatobj3              = 0x00000004,
-    vb2meatobj4              = 0x00000008,
-    vb2meatcorpse1           = 0x00000010,
-    vb2meatcorpse2           = 0x00000020,
-    vb2mpickgold             = 0x00000040,
-    vb2mpickstuff            = 0x00000080,
-    vb2setmangry             = 0x00000100,
-    vb2mb_trapped            = 0x00000200,
-    /* because xNetHack split mon_open_door out of m_move, the middle 3 of these
-     * are now mon_open_door flags. */
-    vb2m_move1               = 0x00000400,
-    vb2mon_open_door1        = 0x00000800,
-    vb2mon_open_door2        = 0x00001000,
-    vb2mon_open_door3        = 0x00002000,
-    vb2m_move5               = 0x00004000,
-    vb2thitu1                = 0x00008000,
-    vb2thitu2                = 0x00010000,
-    vb2m_throw               = 0x00020000,
-    vb2handler_menustyle     = 0x00040000,
-    vb2handler_autounlock    = 0x00080000,
-    vb2handler_msg_window    = 0x00100000,
-    vb2handler_whatis_coord1 = 0x00200000,
-    vb2handler_whatis_coord2 = 0x00400000,
-    vb2dolook                = 0x00800000,
-    vb2describe_decor1       = 0x01000000,
-    vb2describe_decor2       = 0x02000000,
-    vb2loot_mon              = 0x04000000,
-    vb2dotip                 = 0x08000000,
-    vb2polymon               = 0x10000000,
-    vb2teleds                = 0x20000000,
-    vb2level_tele            = 0x40000000,
-
-    vb3ghost_from_bottle     = 0x00000001,
-    vb3dodip1                = 0x00000002,
-    vb3dodip2                = 0x00000004,
-    vb3dodip3                = 0x00000008,
-    vb3intemple              = 0x00000010,
-    vb3doread1               = 0x00000020,
-    vb3doread2               = 0x00000040,
-    vb3doread3               = 0x00000080,
-    vb3doread4               = 0x00000100,
-    vb3doread5               = 0x00000200,
-    vb3doread6               = 0x00000400,
-    vb3doread7               = 0x00000800,
-    vb3drop_boulder_on_player= 0x00001000,
-    vb3do_genocide           = 0x00002000,
-    vb3call_kops1            = 0x00004000,
-    vb3call_kops2            = 0x00008000,
-    vb3call_kops3            = 0x00010000,
-    vb3erode_obj1            = 0x00020000,
-    vb3erode_obj2            = 0x00040000,
-    vb3erode_obj3            = 0x00080000,
-    vb3trapeffect_rocktrap   = 0x00100000,
-    vb3climb_pit             = 0x00200000,
-    vb3drown                 = 0x00400000,
-    vb3mon_adjust_speed      = 0x00800000,
-    vb3hit                   = 0x01000000,
-    vb3miss                  = 0x02000000,
-    vb3makewish              = 0x04000000,
-    vb3prinv                 = 0x08000000,
-    /* 3 available bits*/
-
-    vb4do_attack             = 0x00000001,
-    vb4known_hitum           = 0x00000002,
-    vb4hmon_hitmon1          = 0x00000004,
-    vb4hmon_hitmon2          = 0x00000008,
-    vb4mhitm_ad_tlpt         = 0x00000010,
-    vb4mhitm_ad_wrap1        = 0x00000020,
-    vb4mhitm_ad_wrap2        = 0x00000040,
-    vb4mhitm_ad_dgst         = 0x00000080,
-    vb4damageum              = 0x00000100,
-    vb4missum                = 0x00000200,
-    vb4hmonas1               = 0x00000400,
-    vb4hmonas2               = 0x00000800,
-    vb4hmonas3               = 0x00001000,
-    vb4hmonas4               = 0x00002000,
-    vb4passive               = 0x00004000,
-    vb4flash_hits_mon        = 0x00008000,
-    /* xNetHack ones start here */
-    vb4create_pit_under      = 0x00010000,
-    vb4dodip4                = 0x00020000,
-    vb4adjattrib2            = 0x00040000,
-    vb4hmon_hitmon_splitmon  = 0x00080000,
-    vb4newuhs                = 0x00100000,
-    /* 6 available bits */
-
-    vb_elements = VB_ELEMENTS
-};
-#undef VB_ELEMENTS
-extern long verbosity_suppressions[vb_elements];   /* in decl.c */
-
-#define Verbose(n,s) (flags.verbose && \
-    (((n) >= 0 && (n) < vb_elements) && \
-        !(verbosity_suppressions[(n)] & vb##n##s)))
-
-#else       /* NO_VERBOSE_GRANULARITY */
-#define Verbose(n,s) (flags.verbose)
-#endif      /* !NO_VERBOSE_GRANULARITY */
-
 
 /* at most one of `door' and `box' should be non-null at any given time */
 struct xlock_s {
@@ -1116,7 +1014,7 @@ typedef struct {
     long count;           /* holds current line count for default style file,
                              field count for binary style */
     boolean structlevel;  /* traditional structure binary saves */
-    boolean fieldlevel;   /* fieldlevel saves saves each field individually */
+    boolean fieldlevel;   /* fieldlevel saves each field individually */
     boolean addinfo;      /* if set, some additional context info from core */
     boolean eof;          /* place to mark eof reached */
     boolean bendian;      /* set to true if executing on big-endian machine */
@@ -1134,13 +1032,14 @@ typedef struct {
 #define ARTICLE_YOUR 3
 
 /* x_monnam() monster name suppress masks */
-#define SUPPRESS_IT 0x01
-#define SUPPRESS_INVISIBLE 0x02
+#define SUPPRESS_IT            0x01
+#define SUPPRESS_INVISIBLE     0x02
 #define SUPPRESS_HALLUCINATION 0x04
-#define SUPPRESS_SADDLE 0x08
-#define EXACT_NAME 0x0F
-#define SUPPRESS_NAME 0x10
-#define AUGMENT_IT 0x20 /* use "someone" or "something" instead of "it" */
+#define SUPPRESS_SADDLE        0x08
+#define SUPPRESS_MAPPEARANCE   0x10
+#define EXACT_NAME             0x1F
+#define SUPPRESS_NAME 0x20
+#define AUGMENT_IT    0x40 /* use "someone" or "something" instead of "it" */
 
 /* pline (et al) for a single string argument (suppress compiler warning) */
 #define pline1(cstr) pline("%s", cstr)
@@ -1213,45 +1112,95 @@ typedef struct {
 #define UNDEFINED_VALUES { 0 }
 #define UNDEFINED_PTR NULL
 
-#define MATCH_WARN_OF_MON(mon)                                               \
-    (Warn_of_mon                                                             \
-     && ((gc.context.warntype.obj & (mon)->data->mflags2) != 0               \
-         || (gc.context.warntype.obj_mlet                                    \
-             == (unsigned int) (mon)->data->mlet)                            \
-         || (gc.context.warntype.polyd & (mon)->data->mflags2) != 0          \
-         || (gc.context.warntype.species                                     \
-             && (gc.context.warntype.species == (mon)->data))))
+/* The UNDEFINED_ROLE macro is used to initialize Role variables */
+#define UNDEFINED_ROLE \
+    {                                           \
+      /* role name, set of rank names */        \
+      { NULL, NULL }, { { NULL, NULL } },       \
+      /* strings: pantheon deity names */       \
+      NULL, NULL, NULL,                         \
+      /* file code, quest home+goal names */    \
+      NULL, NULL, NULL,                         \
+      /* indices: base mon type, pet */         \
+      NON_PM, NON_PM,                           \
+      /* quest leader, guardians, nemesis */    \
+      NON_PM, NON_PM, NON_PM,                   \
+      /* quest enemy types (index, symbol) */   \
+      NON_PM, NON_PM, '\0', '\0',               \
+      /* quest artifact object index */         \
+      STRANGE_OBJECT,                           \
+      /* Bitmasks */                            \
+      0,                                        \
+      /* Attributes */                          \
+      {0}, {0}, {0}, {0}, 0,                    \
+      /* spell statistics */                    \
+      0 }
+
+/* The UNDEFINED_RACE macro is used to initialize Race variables */
+#define UNDEFINED_RACE \
+    {                                           \
+      /* strings */                             \
+      NULL, NULL, NULL, NULL, { NULL, NULL },   \
+      /* Indices: base race, mummy, zombie */   \
+      NON_PM, NON_PM, NON_PM,                   \
+      /* Bitmasks */                            \
+      0, 0, 0, 0,                               \
+      /* Characteristic limits */               \
+      {0}, {0},                                 \
+      /* Level change HP and Pw adjustments */  \
+      {0}, {0}                                  \
+    }
+
+#define MATCH_WARN_OF_MON(mon)                                                \
+    (Warn_of_mon                                                              \
+     && ((svc.context.warntype.obj & (mon)->data->mflags2) != 0               \
+         || (svc.context.warntype.obj_mlet                                    \
+             == (unsigned int) (mon)->data->mlet)                             \
+         || (svc.context.warntype.polyd & (mon)->data->mflags2) != 0          \
+         || (svc.context.warntype.species                                     \
+             && (svc.context.warntype.species == (mon)->data))))
 
 typedef uint32_t mmflags_nht;     /* makemon MM_ flags */
 
 
 /* flags to control makemon(); goodpos() uses some plus has some of its own*/
-#define NO_MM_FLAGS 0x000000L /* use this rather than plain 0 */
-#define NO_MINVENT  0x000001L /* suppress minvent when creating mon */
-#define MM_NOWAIT   0x000002L /* don't set STRAT_WAITMASK flags */
-#define MM_NOCOUNTBIRTH 0x0004L /* don't increment born count (for revival) */
-#define MM_IGNOREWATER  0x0008L /* ignore water when positioning */
-#define MM_ADJACENTOK   0x0010L /* acceptable to use adjacent coordinates */
-#define MM_ANGRY    0x000020L /* monster is created angry */
-#define MM_NONAME   0x000040L /* monster is not christened */
-#define MM_EGD      0x000100L /* add egd structure */
-#define MM_EPRI     0x000200L /* add epri structure */
-#define MM_ESHK     0x000400L /* add eshk structure */
-#define MM_EMIN     0x000800L /* add emin structure */
-#define MM_EDOG     0x001000L /* add edog structure */
-#define MM_ASLEEP   0x002000L /* monsters should be generated asleep */
-#define MM_NOGRP    0x004000L /* suppress creation of monster groups */
-#define MM_NOTAIL   0x008000L /* if a long worm, don't give it a tail */
-#define MM_MALE     0x010000L /* male variation */
-#define MM_FEMALE   0x020000L /* female variation */
-#define MM_NOMSG    0x040000L /* no appear message */
+#define NO_MM_FLAGS     0x00000000L /* use this rather than plain 0 */
+#define NO_MINVENT      0x00000001L /* suppress minvent when creating mon */
+#define MM_NOWAIT       0x00000002L /* don't set STRAT_WAITMASK flags */
+#define MM_NOCOUNTBIRTH 0x00000004L /* don't incr born count (for revival) */
+#define MM_IGNOREWATER  0x00000008L /* ignore water when positioning */
+#define MM_ADJACENTOK   0x00000010L /* ok to use adjacent coordinates */
+#define MM_ANGRY        0x00000020L /* monster is created angry */
+#define MM_NONAME       0x00000040L /* monster is not christened */
+#define MM_EGD          0x00000080L /* add egd structure */
+#define MM_EPRI         0x00000100L /* add epri structure */
+#define MM_ESHK         0x00000200L /* add eshk structure */
+#define MM_EMIN         0x00000400L /* add emin structure */
+#define MM_EDOG         0x00000800L /* add edog structure */
+#define MM_ASLEEP       0x00001000L /* monsters should be generated asleep */
+#define MM_NOGRP        0x00002000L /* suppress creation of monster groups */
+#define MM_NOTAIL       0x00004000L /* if a long worm, don't give it a tail */
+#define MM_MALE         0x00008000L /* male variation */
+#define MM_FEMALE       0x00010000L /* female variation */
+#define MM_NOMSG        0x00020000L /* no appear message */
+#define MM_NOEXCLAM     0x00040000L /* more sedate "<mon> appears."
+                                     * mesg for ^G */
+#define MM_IGNORELAVA   0x00080000L /* ignore lava when positioning */
+#define MM_MINVIS       0x00100000L /* for ^G/create_particular */
 /* if more MM_ flag masks are added, skip or renumber the GP_ one(s) */
-#define GP_ALLOW_XY   0x080000L /* [actually used by enexto() to decide
-                                 * whether to make extra call to goodpos()] */
-#define GP_ALLOW_U    0x100000L /* don't reject hero's location */
-#define GP_CHECKSCARY 0x200000L /* check monster for onscary() */
-#define MM_NOEXCLAM   0x400000L /* more sedate "<mon> appears." mesg for ^G */
-#define MM_IGNORELAVA 0x800000L /* ignore lava when positioning */
+#define GP_ALLOW_XY     0x00200000L /* [actually used by enexto() to decide
+                                     * whether to make an extra call to
+                                     * goodpos()] */
+#define GP_ALLOW_U      0x00400000L /* don't reject hero's location */
+#define GP_CHECKSCARY   0x00800000L /* check monster for onscary() */
+#define GP_AVOID_MONPOS 0x01000000L /* don't accept existing mon location */
+/* 25 bits used */
+
+/* flags for mhidden_description() (pager.c; used for mimics and hiders) */
+#define MHID_PREFIX  1 /* include ", mimicking " prefix */
+#define MHID_ARTICLE 2 /* include "a " or "an " after prefix */
+#define MHID_ALTMON  4 /* if mimicking a monster, include that */
+#define MHID_REGION  8 /* include region when mon is in one */
 
 /* flags for make_corpse() and mkcorpstat(); 0..7 are recorded in obj->spe */
 #define CORPSTAT_NONE     0x00
@@ -1356,16 +1305,17 @@ typedef uint32_t mmflags_nht;     /* makemon MM_ flags */
 #define ONAME_RANDOM     0x0080U /* something created an artifact randomly
                                   * with mk_artifact() (mksboj or mk_player)
                                   * or m_initweap() (lawful Angel) */
-/* flag congrolling potential livelog event of finding an artifact */
+/* flag controlling potential livelog event of finding an artifact */
 #define ONAME_KNOW_ARTI  0x0100U /* hero is already aware of this artifact */
 /* flag for suppressing perm_invent update when name gets assigned */
 #define ONAME_SKIP_INVUPD 0x0200U /* don't call update_inventory() */
 
-/* Flags to control find_mid() */
+/* Flags to control find_mid() and whereis_mon() */
 #define FM_FMON 0x01    /* search the fmon chain */
 #define FM_MIGRATE 0x02 /* search the migrating monster chain */
 #define FM_MYDOGS 0x04  /* search gm.mydogs */
-#define FM_EVERYWHERE (FM_FMON | FM_MIGRATE | FM_MYDOGS)
+#define FM_YOU 0x08     /* check for gy.youmonst */
+#define FM_EVERYWHERE (FM_YOU | FM_FMON | FM_MIGRATE | FM_MYDOGS)
 
 /* Flags to control pick_[race,role,gend,align] routines in role.c */
 #define PICK_RANDOM 0
@@ -1432,6 +1382,7 @@ typedef uint32_t mmflags_nht;     /* makemon MM_ flags */
 #define SORTLOOT_PACK   0x01
 #define SORTLOOT_INVLET 0x02
 #define SORTLOOT_LOOT   0x04
+#define SORTLOOT_INUSE  0x08 /* for inventory, in-use items first */
 #define SORTLOOT_PETRIFY 0x20 /* override filter func for c-trice corpses */
 
 /* flags for xkilled() [note: meaning of first bit used to be reversed,
@@ -1609,11 +1560,11 @@ enum concealed_spot_returnflags {
  *********************************************************************/
 
 /* flags for mktrap() */
-#define MKTRAP_NOFLAGS       0x0
-#define MKTRAP_MAZEFLAG      0x1 /* trap placed on coords as if in maze */
-#define MKTRAP_NOSPIDERONWEB 0x2 /* web will not generate a spider */
-#define MKTRAP_SEEN          0x4 /* trap is seen */
-#define MKTRAP_NOVICTIM      0x8 /* no victim corpse or items on it */
+#define MKTRAP_NOFLAGS       0x0U
+#define MKTRAP_SEEN          0x1U /* trap is seen */
+#define MKTRAP_MAZEFLAG      0x2U /* choose random coords instead of room */
+#define MKTRAP_NOSPIDERONWEB 0x4U /* web will not generate a spider */
+#define MKTRAP_NOVICTIM      0x8U /* no victim corpse or items on it */
 
 #define MON_POLE_DIST 5 /* How far monsters can use pole-weapons */
 #define PET_MISSILE_RANGE2 36 /* Square of distance within which pets shoot */
@@ -1621,9 +1572,9 @@ enum concealed_spot_returnflags {
 /* flags passed to getobj() to control how it responds to player input */
 #define GETOBJ_NOFLAGS  0x0
 #define GETOBJ_ALLOWCNT 0x1 /* is a count allowed with this command? */
-#define GETOBJ_PROMPT   0x2 /* should it force a prompt for input? (prevents it
-                               exiting early with "You don't have anything to
-                               foo" if nothing in inventory is valid) */
+#define GETOBJ_PROMPT   0x2 /* should it force a prompt for input? (prevents
+                             * it exiting early with "You don't have anything
+                             * to foo" if nothing in inventory is valid) */
 
 /* flags for hero_breaks() and hits_bars(); BRK_KNOWN* let callers who have
    already called breaktest() prevent it from being called again since it
@@ -1646,11 +1597,11 @@ enum concealed_spot_returnflags {
 #define NC_SHOW_MSG          0x01U
 #define NC_VIA_WAND_OR_SPELL 0x02U
 
-/* constant passed to explode() for gas spores because gas spores are weird
- * Specifically, this is an exception to the whole "explode() uses dobuzz types"
- * system (the range -1 to -9 isn't used by it, for some reason), where this is
- * effectively an extra dobuzz type, and some zap.c code needs to be aware of
- * it.  */
+/* Constant passed to explode() for gas spores because gas spores are weird.
+ * Specifically, this is an exception to whole "explode() uses dobuzz types"
+ * system (the range -1 to -9 isn't used by it, for some reason), where this
+ * is effectively an extra dobuzz type, and some zap.c code needs to be aware
+ * of it. */
 #define PHYS_EXPL_TYPE -1
 
 /* macros for dobuzz() type */
@@ -1671,6 +1622,18 @@ enum concealed_spot_returnflags {
 #define BZ_M_BREATH(bztyp) (-20 - (bztyp)) /* -29..-20 */
 /* monster shooting a wand; note: not -9 to -0 because -0 is ambiguous  */
 #define BZ_M_WAND(bztyp) (-30 - (bztyp))   /* -39..-30 */
+
+/* pick a random entry from array */
+#define ROLL_FROM(array) array[rn2(SIZE(array))]
+/* array with terminator variation */
+/* #define ROLL_FROMT(array) array[rn2(SIZE(array) - 1)] */
+
+/* validate index of array */
+#define IndexOk(idx, array) \
+    ((idx) >= 0 && (idx) < SIZE(array))
+/* array with terminator variation */
+#define IndexOkT(idx, array) \
+    ((idx) >= 0 && (idx) < (SIZE(array) - 1))
 
 #define FEATURE_NOTICE_VER(major, minor, patch)                    \
     (((unsigned long) major << 24) | ((unsigned long) minor << 16) \

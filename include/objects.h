@@ -1,4 +1,4 @@
-/* NetHack 3.7	objects.h	$NHDT-Date: 1596498192 2020/08/03 23:43:12 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.66 $ */
+/* NetHack 3.7	objects.h	$NHDT-Date: 1725653011 2024/09/06 20:03:31 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.26 $ */
 /* Copyright (c) Mike Threepoint, 1989.                           */
 /* NetHack may be freely redistributed.  See license for details. */
 
@@ -35,7 +35,6 @@
 #define MARKER(tag,sn) /*empty*/
 
 #elif defined(OBJECTS_INIT)
-#define COLOR_FIELD(X) X,
 /* notes: 'sub' was once a bitfield but got changed to separate schar when
    it was overloaded to hold negative weapon skill indices; the first zero
    is padding for oc_prediscovered which has variable init at run-time;
@@ -44,7 +43,7 @@
     nmkn,mrg,uskn,0,mgc,chrg,uniq,nwsh,big,tuf,0,dir,mtrl,sub /*cpp fodder*/
 #define OBJECT(obj,bits,prp,sym,prob,dly,wt,        \
                cost,sdam,ldam,oc1,oc2,nut,color,sn) \
-  { 0, 0, (char *) 0, bits, prp, sym, dly, COLOR_FIELD(color) prob, wt, \
+  { 0, 0, (char *) 0, bits, prp, sym, dly, color, prob, wt, \
     cost, sdam, ldam, oc1, oc2, nut }
 #define MARKER(tag,sn) /*empty*/
 
@@ -98,6 +97,14 @@ GENERIC("iron ball",  BALL_CLASS,    GENERIC_BALL),    /* [15] */
 GENERIC("iron chain", CHAIN_CLASS,   GENERIC_CHAIN),   /* [16] */
 GENERIC("venom",      VENOM_CLASS,   GENERIC_VENOM),   /* [17] */
 #undef GENERIC
+/* FIRST_OBJECT: it would be simpler just to use MARKER(FIRST_OBJECT,ARROW)
+   below but that is vulnerable to neglecting to update the marker enum
+   after inserting something in front of arrow */
+MARKER(LAST_GENERIC, GENERIC_VENOM)
+MARKER(FIRST_OBJECT, LAST_GENERIC + 1)
+/* this definition of FIRST_OBJECT advances the default value for next enum;
+   backtrack to fix that, otherwise ARROW and the rest would be off by 1 */
+MARKER(OBJCLASS_HACK, FIRST_OBJECT - 1)
 
 /* weapons ... */
 #define WEAPON(name,desc,kn,mg,bi,prob,wt,                          \
@@ -371,8 +378,8 @@ BOW("crossbow", NoDes,          1, 45, 50, 40, 0, WOOD, P_CROSSBOW, HI_WOOD,
 #define CLOAK(name,desc,kn,mgc,power,prob,delay,wt,cost,ac,can,metal,c,sn)  \
     ARMOR(name, desc, kn, mgc, 0, power, prob, delay, wt,  \
           cost, ac, can, ARM_CLOAK, metal, c,sn)
-#define SHIELD(name,desc,kn,mgc,blk,power,prob,delay,wt,cost,ac,can,metal,c,sn) \
-    ARMOR(name, desc, kn, mgc, blk, power, prob, delay, wt, \
+#define SHIELD(name,desc,kn,mgc,blk,pow,prob,delay,wt,cost,ac,can,metal,c,sn) \
+    ARMOR(name, desc, kn, mgc, blk, pow, prob, delay, wt, \
           cost, ac, can, ARM_SHIELD, metal, c,sn)
 #define GLOVES(name,desc,kn,mgc,power,prob,delay,wt,cost,ac,can,metal,c,sn)  \
     ARMOR(name, desc, kn, mgc, 0, power, prob, delay, wt,  \
@@ -467,7 +474,7 @@ ARMOR("plate mail", NoDes,
       1, 0, 1,  0, 44, 5, 450, 600,  3, 2,  ARM_SUIT, IRON, HI_METAL,
                                                         PLATE_MAIL),
 ARMOR("crystal plate mail", NoDes,
-      1, 0, 1,  0, 10, 5, 450, 820,  3, 2,  ARM_SUIT, GLASS, CLR_WHITE,
+      1, 0, 1,  0, 10, 5, 415, 820,  3, 2,  ARM_SUIT, GLASS, CLR_WHITE,
                                                         CRYSTAL_PLATE_MAIL),
 ARMOR("splint mail", NoDes,
       1, 0, 1,  0, 62, 5, 400,  80,  4, 1,  ARM_SUIT, IRON, HI_METAL,
@@ -513,34 +520,41 @@ ARMOR("T-shirt", NoDes,
 
 /* cloaks */
 CLOAK("mummy wrapping", NoDes,
-      1, 0,          0,  0, 0,  3,  2, 10, 1,  CLOTH, CLR_GRAY, MUMMY_WRAPPING),
+      1, 0,          0,  0, 0,  3,  2, 10, 1,  CLOTH, CLR_GRAY,
+                                                        MUMMY_WRAPPING),
         /* worn mummy wrapping blocks invisibility */
 CLOAK("elven cloak", "faded pall",
       0, 1,    STEALTH,  8, 0, 10, 60,  9, 1,  CLOTH, CLR_BLACK, ELVEN_CLOAK),
 CLOAK("orcish cloak", "coarse mantelet",
-      0, 0,          0,  8, 0, 10, 40, 10, 1,  CLOTH, CLR_BLACK, ORCISH_CLOAK),
+      0, 0,          0,  8, 0, 10, 40, 10, 1,  CLOTH, CLR_BLACK,
+                                                        ORCISH_CLOAK),
 CLOAK("dwarvish cloak", "hooded cloak",
-      0, 0,          0,  8, 0, 10, 50, 10, 1,  CLOTH, HI_CLOTH, DWARVISH_CLOAK),
+      0, 0,          0,  8, 0, 10, 50, 10, 1,  CLOTH, HI_CLOTH,
+                                                        DWARVISH_CLOAK),
 CLOAK("oilskin cloak", "slippery cloak",
-      0, 0,          0,  8, 0, 10, 50,  9, 2,  CLOTH, HI_CLOTH, OILSKIN_CLOAK),
+      0, 0,          0,  8, 0, 10, 50,  9, 2,  CLOTH, HI_CLOTH,
+                                                        OILSKIN_CLOAK),
 CLOAK("robe", NoDes,
       1, 1,          0,  3, 0, 15, 50,  8, 2,  CLOTH, CLR_RED, ROBE),
         /* robe was adopted from slash'em, where it's worn as a suit
            rather than as a cloak and there are several variations */
 CLOAK("alchemy smock", "apron",
-      0, 1, POISON_RES,  9, 0, 10, 50,  9, 1,  CLOTH, CLR_WHITE, ALCHEMY_SMOCK),
+      0, 1, POISON_RES,  9, 0, 10, 50,  9, 1,  CLOTH, CLR_WHITE,
+                                                        ALCHEMY_SMOCK),
 CLOAK("plain cloak", NoDes,
-      1, 0,          0,  8, 0, 15, 40,  9, 1,  LEATHER, CLR_BROWN, PLAIN_CLOAK),
+      1, 0,          0,  8, 0, 15, 40,  9, 1,  LEATHER, CLR_BROWN,
+                                                        PLAIN_CLOAK),
 /* with shuffled appearances... */
 CLOAK("cloak of protection", "tattered cape",
-      0, 1, PROTECTION,  9, 0, 10, 50,  7, 3,  CLOTH, HI_CLOTH, CLOAK_OF_PROTECTION),
+      0, 1, PROTECTION,  9, 0, 10, 50,  7, 3,  CLOTH, HI_CLOTH,
+                                                        CLOAK_OF_PROTECTION),
         /* cloak of protection is now the only item conferring MC 3 */
 CLOAK("cloak of invisibility", "opera cloak",
       0, 1,      INVIS, 10, 0, 10, 60,  9, 1,  CLOTH, CLR_BRIGHT_MAGENTA,
                                                         CLOAK_OF_INVISIBILITY),
 CLOAK("cloak of magic resistance", "ornamental cope",
       0, 1,  ANTIMAGIC,  2, 0, 10, 60,  9, 1,  CLOTH, CLR_WHITE,
-                                                        CLOAK_OF_MAGIC_RESISTANCE),
+                                                   CLOAK_OF_MAGIC_RESISTANCE),
         /*  'cope' is not a spelling mistake... leave it be */
 CLOAK("cloak of displacement", "dusty cloak",
       0, 1,  DISPLACED, 10, 0, 10, 50,  9, 1,  CLOTH, HI_CLOTH,
@@ -733,9 +747,9 @@ MARKER(FIRST_AMULET, AMULET_OF_ESP)
 AMULET("amulet of life saving",       "spherical", LIFESAVED, 75,
                                                         AMULET_OF_LIFE_SAVING),
 AMULET("amulet of strangulation",          "oval", STRANGLED, 115,
-                                                        AMULET_OF_STRANGULATION),
+                                                      AMULET_OF_STRANGULATION),
 AMULET("amulet of restful sleep",    "triangular", SLEEPY, 115,
-                                                        AMULET_OF_RESTFUL_SLEEP),
+                                                      AMULET_OF_RESTFUL_SLEEP),
 AMULET("amulet versus poison",        "pyramidal", POISON_RES, 115,
                                                         AMULET_VERSUS_POISON),
 AMULET("amulet of change",               "square", 0, 115,
@@ -896,7 +910,7 @@ TOOL("bugle",               NoDes, 1, 0, 0, 0,  4, 10, 15, COPPER, HI_COPPER,
 TOOL("leather drum",      "drum", 0, 0, 0, 0,  4, 25, 25, LEATHER, HI_LEATHER,
                                                                 LEATHER_DRUM),
 TOOL("drum of earthquake","drum", 0, 0, 1, 1,  2, 25, 100, LEATHER, HI_LEATHER,
-                                                           DRUM_OF_EARTHQUAKE),
+                                                          DRUM_OF_EARTHQUAKE),
 /* tools useful as weapons */
 WEPTOOL("pick-axe", NoDes,
         1, 0, 0, 20, 100,  50,  6,  3, WHACK,  P_PICK_AXE, IRON, HI_METAL,
@@ -915,22 +929,22 @@ WEPTOOL("unicorn horn", NoDes,
 OBJECT(OBJ("Candelabrum of Invocation", "candelabrum"),
        BITS(0, 0, 1, 0, 1, 0, 1, 1, 0, 0, 0, P_NONE, GOLD),
        0, TOOL_CLASS, 0, 0, 10, 5000, 0, 0, 0, 0, 200, HI_GOLD,
-                                                    CANDELABRUM_OF_INVOCATION),
+                                                   CANDELABRUM_OF_INVOCATION),
 OBJECT(OBJ("Bell of Opening", "engraved silver bell"),
        BITS(0, 0, 1, 0, 1, 1, 1, 1, 0, 0, 0, P_NONE, SILVER),
        0, TOOL_CLASS, 0, 0, 10, 5000, 0, 0, 0, 0, 50, HI_SILVER,
-                                                    BELL_OF_OPENING),
+                                                   BELL_OF_OPENING),
 #undef TOOL
 #undef WEPTOOL
 
 /* Comestibles ... */
-#define FOOD(name, prob, delay, wt, unk, tin, nutrition, color, sn)     \
-    OBJECT(OBJ(name, NoDes),                                       \
+#define FOOD(name, prob, delay, wt, unk, tin, nutrition, color, sn) \
+    OBJECT(OBJ(name, NoDes),                                            \
            BITS(1, 1, unk, 0, 0, 0, 0, 0, 0, 0, 0, P_NONE, tin), 0,     \
            FOOD_CLASS, prob, delay, wt, nutrition / 20 + 5, 0, 0, 0, 0, \
            nutrition, color, sn)
 /* All types of food (except tins & corpses) must have a delay of at least 1.
- * Delay on corpses is computed and is weight dependant.
+ * Delay on corpses is computed and is weight dependent.
  * Domestic pets prefer tripe rations above all others.
  * Fortune cookies can be read, using them up without ingesting them.
  * Carrots improve your vision.
@@ -952,45 +966,48 @@ FOOD("meat stick",            0,  1,  1, 0, FLESH,   5, CLR_BROWN,
 /* formerly "huge chunk of meat" */
 FOOD("enormous meatball",     0, 20,400, 0, FLESH,2000, CLR_BROWN,
                                                         ENORMOUS_MEATBALL),
-/* special case because it's not mergable */
+/* special case because it's not mergeable */
 OBJECT(OBJ("meat ring", NoDes),
        BITS(1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, FLESH),
        0, FOOD_CLASS, 0, 1, 5, 1, 0, 0, 0, 0, 5, CLR_BROWN, MEAT_RING),
 /* pudding 'corpses' will turn into these and combine;
    must be in same order as the pudding monsters */
 FOOD("glob of gray ooze",     0,  2, 20, 0, FLESH,  20, CLR_GRAY,
-                                                        GLOB_OF_GRAY_OOZE),
+                                                       GLOB_OF_GRAY_OOZE),
 FOOD("glob of brown pudding", 0,  2, 20, 0, FLESH,  20, CLR_BROWN,
-                                                        GLOB_OF_BROWN_PUDDING),
+                                                       GLOB_OF_BROWN_PUDDING),
 FOOD("glob of green slime",   0,  2, 20, 0, FLESH,  20, CLR_GREEN,
-                                                        GLOB_OF_GREEN_SLIME),
+                                                       GLOB_OF_GREEN_SLIME),
 FOOD("glob of black pudding", 0,  2, 20, 0, FLESH,  20, CLR_BLACK,
-                                                        GLOB_OF_BLACK_PUDDING),
+                                                       GLOB_OF_BLACK_PUDDING),
 
 /* fruits & veggies */
 FOOD("kelp frond",            0,  1,  1, 0, VEGGY,  30, CLR_GREEN, KELP_FROND),
 FOOD("eucalyptus leaf",       3,  1,  1, 0, VEGGY,   1, CLR_GREEN,
-                                                             EUCALYPTUS_LEAF),
+                                                          EUCALYPTUS_LEAF),
 FOOD("apple",                15,  1,  2, 0, VEGGY,  50, CLR_RED, APPLE),
 FOOD("orange",               10,  1,  2, 0, VEGGY,  80, CLR_ORANGE, ORANGE),
 FOOD("pear",                 10,  1,  2, 0, VEGGY,  50, CLR_BRIGHT_GREEN,
-                                                                    PEAR),
+                                                          PEAR),
 FOOD("melon",                10,  1,  5, 0, VEGGY, 100, CLR_BRIGHT_GREEN,
-                                                                    MELON),
+                                                          MELON),
 FOOD("banana",               10,  1,  2, 0, VEGGY,  80, CLR_YELLOW, BANANA),
 FOOD("carrot",               15,  1,  2, 0, VEGGY,  50, CLR_ORANGE, CARROT),
 FOOD("sprig of wolfsbane",    7,  1,  1, 0, VEGGY,  40, CLR_GREEN,
                                                           SPRIG_OF_WOLFSBANE),
-FOOD("clove of garlic",       7,  1,  1, 0, VEGGY,  40, CLR_WHITE, CLOVE_OF_GARLIC),
+FOOD("clove of garlic",       7,  1,  1, 0, VEGGY,  40, CLR_WHITE,
+                                                          CLOVE_OF_GARLIC),
 /* name of slime mold is changed based on player's OPTION=fruit:something
    and bones data might have differently named ones from prior games */
-FOOD("slime mold",           75,  1,  5, 0, VEGGY, 250, HI_ORGANIC, SLIME_MOLD),
+FOOD("slime mold",           75,  1,  5, 0, VEGGY, 250, HI_ORGANIC,
+                                                          SLIME_MOLD),
 
 /* people food */
 FOOD("lump of royal jelly",   0,  1,  2, 0, VEGGY, 200, CLR_MAGENTA,
                                                         LUMP_OF_ROYAL_JELLY),
 FOOD("cream pie",            25,  1, 10, 0, VEGGY, 100, CLR_WHITE, CREAM_PIE),
-FOOD("candy bar",            13,  1,  2, 0, VEGGY, 100, CLR_BRIGHT_BLUE, CANDY_BAR),
+FOOD("candy bar",            13,  1,  2, 0, VEGGY, 100, CLR_BRIGHT_BLUE,
+                                                                CANDY_BAR),
 FOOD("fortune cookie",       55,  1,  1, 0, VEGGY,  40, CLR_YELLOW,
                                                               FORTUNE_COOKIE),
 FOOD("pancake",              25,  2,  2, 0, VEGGY, 200, CLR_YELLOW, PANCAKE),
@@ -1013,29 +1030,29 @@ FOOD("tin",                  75,  0, 10, 1, METAL,   0, HI_METAL, TIN),
     OBJECT(OBJ(name, desc),                                             \
            BITS(0, 1, 0, 0, mgc, 0, 0, 0, 0, 0, 0, P_NONE, GLASS),      \
            power, POTION_CLASS, prob, 0, 20, cost, 0, 0, 0, 0, 10, color, sn)
-POTION("gain ability",           "ruby",  1, 0, 42, 300, CLR_RED,
+POTION("gain ability",           "ruby",  1, 0, 40, 300, CLR_RED,
                                                         POT_GAIN_ABILITY),
 POTION("restore ability",        "pink",  1, 0, 40, 100, CLR_BRIGHT_MAGENTA,
                                                         POT_RESTORE_ABILITY),
-POTION("confusion",            "orange",  1, CONFUSION, 42, 100, CLR_ORANGE,
+POTION("confusion",            "orange",  1, CONFUSION, 40, 100, CLR_ORANGE,
                                                         POT_CONFUSION),
-POTION("blindness",            "yellow",  1, BLINDED, 40, 150, CLR_YELLOW,
+POTION("blindness",            "yellow",  1, BLINDED, 30, 150, CLR_YELLOW,
                                                         POT_BLINDNESS),
-POTION("paralysis",           "emerald",  1, 0, 42, 300, CLR_BRIGHT_GREEN,
+POTION("paralysis",           "emerald",  1, 0, 40, 300, CLR_BRIGHT_GREEN,
                                                         POT_PARALYSIS),
-POTION("speed",            "dark green",  1, FAST, 42, 200, CLR_GREEN,
+POTION("speed",            "dark green",  1, FAST, 40, 200, CLR_GREEN,
                                                         POT_SPEED),
-POTION("levitation",             "cyan",  1, LEVITATION, 42, 200, CLR_CYAN,
+POTION("levitation",             "cyan",  1, LEVITATION, 40, 200, CLR_CYAN,
                                                         POT_LEVITATION),
-POTION("hallucination",      "sky blue",  1, HALLUC, 40, 100, CLR_CYAN,
+POTION("hallucination",      "sky blue",  1, HALLUC, 30, 100, CLR_CYAN,
                                                         POT_HALLUCINATION),
 POTION("invisibility", "brilliant blue",  1, INVIS, 40, 150, CLR_BRIGHT_BLUE,
                                                         POT_INVISIBILITY),
-POTION("see invisible",       "magenta",  1, SEE_INVIS, 42, 50, CLR_MAGENTA,
+POTION("see invisible",       "magenta",  1, SEE_INVIS, 40, 50, CLR_MAGENTA,
                                                         POT_SEE_INVISIBLE),
-POTION("healing",          "purple-red",  1, 0, 57, 100, CLR_MAGENTA,
+POTION("healing",          "purple-red",  1, 0, 115, 20, CLR_MAGENTA,
                                                         POT_HEALING),
-POTION("extra healing",          "puce",  1, 0, 47, 100, CLR_RED,
+POTION("extra healing",          "puce",  1, 0, 45, 100, CLR_RED,
                                                         POT_EXTRA_HEALING),
 POTION("gain level",            "milky",  1, 0, 20, 300, CLR_WHITE,
                                                         POT_GAIN_LEVEL),
@@ -1043,21 +1060,21 @@ POTION("enlightenment",        "swirly",  1, 0, 20, 200, CLR_BROWN,
                                                         POT_ENLIGHTENMENT),
 POTION("monster detection",    "bubbly",  1, 0, 40, 150, CLR_WHITE,
                                                         POT_MONSTER_DETECTION),
-POTION("object detection",      "smoky",  1, 0, 42, 150, CLR_GRAY,
+POTION("object detection",      "smoky",  1, 0, 40, 150, CLR_GRAY,
                                                         POT_OBJECT_DETECTION),
-POTION("gain energy",          "cloudy",  1, 0, 42, 150, CLR_WHITE,
+POTION("gain energy",          "cloudy",  1, 0, 40, 150, CLR_WHITE,
                                                         POT_GAIN_ENERGY),
-POTION("sleeping",       "effervescent",  1, 0, 42, 100, CLR_GRAY,
+POTION("sleeping",       "effervescent",  1, 0, 40, 100, CLR_GRAY,
                                                         POT_SLEEPING),
 POTION("full healing",          "black",  1, 0, 10, 200, CLR_BLACK,
                                                         POT_FULL_HEALING),
 POTION("polymorph",            "golden",  1, 0, 10, 200, CLR_YELLOW,
                                                         POT_POLYMORPH),
-POTION("booze",                 "brown",  0, 0, 42,  50, CLR_BROWN,
+POTION("booze",                 "brown",  0, 0, 40,  50, CLR_BROWN,
                                                         POT_BOOZE),
-POTION("sickness",              "fizzy",  0, 0, 42,  50, CLR_CYAN,
+POTION("sickness",              "fizzy",  0, 0, 40,  50, CLR_CYAN,
                                                         POT_SICKNESS),
-POTION("fruit juice",            "dark",  0, 0, 42,  50, CLR_BLACK,
+POTION("fruit juice",            "dark",  0, 0, 40,  50, CLR_BLACK,
                                                         POT_FRUIT_JUICE),
 POTION("acid",                  "white",  0, 0, 10, 250, CLR_WHITE,
                                                         POT_ACID),
@@ -1065,7 +1082,7 @@ POTION("oil",                   "murky",  0, 0, 30, 250, CLR_BROWN,
                                                         POT_OIL),
 /* fixed description
  */
-POTION("water",                 "clear",  0, 0, 92, 100, CLR_CYAN,
+POTION("water",                 "clear",  0, 0, 80, 100, CLR_CYAN,
                                                         POT_WATER),
 #undef POTION
 
@@ -1123,30 +1140,33 @@ SCROLL("stinking cloud",             "VELOX NEB",  1,  15, 300,
      * Code in win/share/tilemap.c depends on SCR_STINKING_CLOUD preceding
      * these and on how many of them there are.  If a real scroll gets added
      * after stinking cloud or the number of extra descriptions changes,
-     * tilemap.c must be modified to match.
+     * tilemap.c must be modified to match.  Mgc,Prob,Cost are superfluous.
+     * SC values must be distinct but are only used by 'nethack --dumpenums'.
      */
-SCROLL(NoDes,      "FOOBIE BLETCH",  1,   0, 100, SC01),
-SCROLL(NoDes,              "TEMOV",  1,   0, 100, SC02),
-SCROLL(NoDes,         "GARVEN DEH",  1,   0, 100, SC03),
-SCROLL(NoDes,            "READ ME",  1,   0, 100, SC04),
-SCROLL(NoDes,      "ETAOIN SHRDLU",  1,   0, 100, SC05),
-SCROLL(NoDes,        "LOREM IPSUM",  1,   0, 100, SC06),
-SCROLL(NoDes,              "FNORD",  1,   0, 100, SC07), /* Illuminati */
-SCROLL(NoDes,            "KO BATE",  1,   0, 100, SC08), /* Kurd Lasswitz */
-SCROLL(NoDes,      "ABRA KA DABRA",  1,   0, 100, SC09), /* traditional incantation */
-SCROLL(NoDes,       "ASHPD SODALG",  1,   0, 100, SC10), /* Portal */
-SCROLL(NoDes,            "ZLORFIK",  1,   0, 100, SC11), /* Zak McKracken */
-SCROLL(NoDes,      "GNIK SISI VLE",  1,   0, 100, SC12), /* Zak McKracken */
-SCROLL(NoDes,    "HAPAX LEGOMENON",  1,   0, 100, SC13),
-SCROLL(NoDes,  "EIRIS SAZUN IDISI",  1,   0, 100, SC14), /* Merseburg Incantations */
-SCROLL(NoDes,    "PHOL ENDE WODAN",  1,   0, 100, SC15), /* Merseburg Incantations */
-SCROLL(NoDes,              "GHOTI",  1,   0, 100, SC16), /* pronounced as 'fish',
-                                                          George Bernard Shaw */
-SCROLL(NoDes, "MAPIRO MAHAMA DIROMAT", 1, 0, 100, SC17), /* Wizardry */
-SCROLL(NoDes,  "VAS CORP BET MANI",  1,   0, 100, SC18), /* Ultima */
-SCROLL(NoDes,            "XOR OTA",  1,   0, 100, SC19), /* Aarne Haapakoski */
-SCROLL(NoDes, "STRC PRST SKRZ KRK",  1,   0, 100, SC20), /* Czech and Slovak
-                                                             tongue-twister */
+#define XTRA_SCROLL_LABEL(text, sn) SCROLL(NoDes, text, 1, 0, 100, sn)
+XTRA_SCROLL_LABEL(     "FOOBIE BLETCH", SC01),
+XTRA_SCROLL_LABEL(             "TEMOV", SC02),
+XTRA_SCROLL_LABEL(        "GARVEN DEH", SC03),
+XTRA_SCROLL_LABEL(           "READ ME", SC04),
+XTRA_SCROLL_LABEL(     "ETAOIN SHRDLU", SC05),
+XTRA_SCROLL_LABEL(       "LOREM IPSUM", SC06),
+XTRA_SCROLL_LABEL(             "FNORD", SC07), /* Illuminati */
+XTRA_SCROLL_LABEL(           "KO BATE", SC08), /* Kurd Lasswitz */
+XTRA_SCROLL_LABEL(     "ABRA KA DABRA", SC09), /* traditional incantation */
+XTRA_SCROLL_LABEL(      "ASHPD SODALG", SC10), /* Portal */
+XTRA_SCROLL_LABEL(           "ZLORFIK", SC11), /* Zak McKracken */
+XTRA_SCROLL_LABEL(     "GNIK SISI VLE", SC12), /* Zak McKracken */
+XTRA_SCROLL_LABEL(   "HAPAX LEGOMENON", SC13),
+XTRA_SCROLL_LABEL( "EIRIS SAZUN IDISI", SC14), /* Merseburg Incantations */
+XTRA_SCROLL_LABEL(   "PHOL ENDE WODAN", SC15), /* Merseburg Incantations */
+XTRA_SCROLL_LABEL(             "GHOTI", SC16), /* pronounced as 'fish',
+                                                * George Bernard Shaw */
+XTRA_SCROLL_LABEL("MAPIRO MAHAMA DIROMAT", SC17), /* Wizardry */
+XTRA_SCROLL_LABEL( "VAS CORP BET MANI", SC18), /* Ultima */
+XTRA_SCROLL_LABEL(           "XOR OTA", SC19), /* Aarne Haapakoski */
+XTRA_SCROLL_LABEL("STRC PRST SKRZ KRK", SC20), /* Czech and Slovak
+                                                * tongue-twister */
+#undef XTRA_SCROLL_LABEL
     /* These must come last because they have special fixed descriptions.
      */
 #ifdef MAIL_STRUCTURES
@@ -1204,10 +1224,10 @@ SPELL("healing",         "white",
       P_HEALING_SPELL,     40,  1, 1, IMMEDIATE, CLR_WHITE,
                                                         SPE_HEALING),
 SPELL("knock",           "pink",
-      P_MATTER_SPELL,      35,  1, 1, IMMEDIATE, CLR_BRIGHT_MAGENTA,
+      P_MATTER_SPELL,      25,  1, 1, IMMEDIATE, CLR_BRIGHT_MAGENTA,
                                                         SPE_KNOCK),
 SPELL("force bolt",      "red",
-      P_ATTACK_SPELL,      35,  1, 1, IMMEDIATE, CLR_RED,
+      P_ATTACK_SPELL,      30,  1, 1, IMMEDIATE, CLR_RED,
                                                         SPE_FORCE_BOLT),
 SPELL("confuse monster", "orange",
       P_ENCHANTMENT_SPELL, 30,  2, 1, IMMEDIATE, CLR_ORANGE,
@@ -1222,7 +1242,7 @@ SPELL("slow monster",    "light green",
       P_ENCHANTMENT_SPELL, 30,  1, 1, IMMEDIATE, CLR_BRIGHT_GREEN,
                                                         SPE_SLOW_MONSTER),
 SPELL("wizard lock",     "dark green",
-      P_MATTER_SPELL,      30,  2, 1, IMMEDIATE, CLR_GREEN,
+      P_MATTER_SPELL,      25,  2, 1, IMMEDIATE, CLR_GREEN,
                                                         SPE_WIZARD_LOCK),
 SPELL("create monster",  "turquoise",
       P_CLERIC_SPELL,      35,  2, 1, NODIR, CLR_BRIGHT_CYAN,
@@ -1293,6 +1313,10 @@ SPELL("jumping",         "thin",
 SPELL("stone to flesh",  "thick",
       P_HEALING_SPELL,     15,  3, 1, IMMEDIATE, HI_PAPER,
                                                         SPE_STONE_TO_FLESH),
+SPELL("chain lightning", "checkered",
+      P_ATTACK_SPELL,      25,  2, 1, NODIR, CLR_GRAY,
+                                                        SPE_CHAIN_LIGHTNING),
+
 #if 0 /* DEFERRED */
 /* from slash'em, create a tame critter which explodes when attacking,
    damaging adjacent creatures--friend or foe--and dying in the process */
@@ -1312,15 +1336,15 @@ SPELL("blank paper", "plain", P_NONE, 18, 0, 0, 0, HI_PAPER, SPE_BLANK_PAPER),
    even if hero learns every spell, spl_book[] will have at least one
    unused slot at end; an unused slot is needed for use as terminator */
 MARKER(LAST_SPELL, SPE_BLANK_PAPER)
-/* tribute book for 3.6 */
+/* tribute book added in 3.6 */
 OBJECT(OBJ("novel", "paperback"),
        BITS(0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, P_NONE, PAPER),
-       0, SPBOOK_CLASS, 1, 0, 0, 20, 0, 0, 0, 1, 20, CLR_BRIGHT_BLUE,
+       0, SPBOOK_CLASS, 1, 0, 10, 20, 0, 0, 0, 1, 20, CLR_BRIGHT_BLUE,
                                                         SPE_NOVEL),
 /* a special, one of a kind, spellbook */
 OBJECT(OBJ("Book of the Dead", "papyrus"),
        BITS(0, 0, 1, 0, 1, 0, 1, 1, 0, 0, 0, P_NONE, PAPER),
-       0, SPBOOK_CLASS, 0, 0, 20, 10000, 0, 0, 0, 7, 20, HI_PAPER,
+       0, SPBOOK_CLASS, 0, 0, 50, 10000, 0, 0, 0, 7, 20, HI_PAPER,
                                                         SPE_BOOK_OF_THE_DEAD),
 #undef SPELL
 
@@ -1402,11 +1426,11 @@ COIN("gold piece", 1000, GOLD, 1, GOLD_PIECE),
                 HARDGEM(mohs), 0, -P_SLING, glass),                     \
            0, GEM_CLASS, prob, 0, 1, gval, 3, 3, 0, 0, nutr, color, sn)
 #define ROCK(name,desc,kn,prob,wt,gval,sdam,ldam,mgc,nutr,mohs,mrg,uskn,\
-             glass,color,sn)                                            \
+             glass,colr,sn)                                             \
     OBJECT(OBJ(name, desc),                                             \
            BITS(kn, mrg, uskn, 0, mgc, 0, 0, 0, 0,                      \
                 HARDGEM(mohs), 0, -P_SLING, glass),                     \
-           0, GEM_CLASS, prob, 0, wt, gval, sdam, ldam, 0, 0, nutr, color, sn)
+           0, GEM_CLASS, prob, 0, wt, gval, sdam, ldam, 0, 0, nutr, colr, sn)
 GEM("dilithium crystal", "white",  2, 1, 4500, 15,  5, GEMSTONE, CLR_WHITE,
                                                         DILITHIUM_CRYSTAL),
 MARKER(FIRST_REAL_GEM, DILITHIUM_CRYSTAL)
@@ -1532,7 +1556,6 @@ OBJECT(OBJ(NoDes, NoDes),
        BITS(0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, P_NONE, 0), 0,
        ILLOBJ_CLASS, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0)
 #undef BITS
-#undef COLOR_FIELD
 #endif
 
 #undef OBJ

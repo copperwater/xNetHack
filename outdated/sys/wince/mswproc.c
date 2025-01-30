@@ -71,8 +71,7 @@ struct window_procs mswin_procs = {
 #ifdef CHANGE_COLOR /* only a Mac option currently */
     mswin, mswin_change_background,
 #endif
-    /* other defs that really should go away (they're tty specific) */
-    mswin_start_screen, mswin_end_screen, mswin_outrip,
+    mswin_outrip,
     mswin_preference_update, genl_getmsghistory, genl_putmsghistory,
     genl_status_init, genl_status_finish, genl_status_enablefield,
     genl_status_update,
@@ -646,7 +645,7 @@ mswin_askname(void)
 {
     logDebug("mswin_askname()\n");
 
-    if (mswin_getlin_window("who are you?", gp.plname, PL_NSIZ) == IDCANCEL) {
+    if (mswin_getlin_window("who are you?", svp.plname, PL_NSIZ) == IDCANCEL) {
         bail("bye-bye");
         /* not reached */
     }
@@ -1531,31 +1530,6 @@ mswin_get_color_string()
 {
     logDebug("mswin_get_color_string()\n");
     return ("");
-}
-
-/*
-start_screen()  -- Only used on Unix tty ports, but must be declared for
-               completeness.  Sets up the tty to work in full-screen
-               graphics mode.  Look at win/tty/termcap.c for an
-               example.  If your window-port does not need this function
-               just declare an empty function.
-*/
-void
-mswin_start_screen()
-{
-    /* Do Nothing */
-    logDebug("mswin_start_screen()\n");
-}
-
-/*
-end_screen()    -- Only used on Unix tty ports, but must be declared for
-               completeness.  The complement of start_screen().
-*/
-void
-mswin_end_screen()
-{
-    /* Do Nothing */
-    logDebug("mswin_end_screen()\n");
 }
 
 /*

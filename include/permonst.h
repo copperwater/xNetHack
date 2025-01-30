@@ -1,10 +1,29 @@
-/* NetHack 3.7	permonst.h	$NHDT-Date: 1596498555 2020/08/03 23:49:15 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.14 $ */
+/* NetHack 3.7	permonst.h	$NHDT-Date: 1725653014 2024/09/06 20:03:34 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.26 $ */
 /* Copyright (c) Stichting Mathematisch Centrum, Amsterdam, 1985. */
 /*-Copyright (c) Kenneth Lorber, Kensington, Maryland, 2015. */
 /* NetHack may be freely redistributed.  See license for details. */
 
 #ifndef PERMONST_H
 #define PERMONST_H
+
+enum monnums {
+#define MONS_ENUM
+#include "monsters.h"
+#undef MONS_ENUM
+        NUMMONS,
+        NON_PM = -1,              /* "not a monster" */
+        LOW_PM = NON_PM + 1,      /* first monster in mons */
+        LEAVESTATUE = NON_PM - 1, /* leave statue instead of corpse;
+                                   * there are two lower values assigned
+                                   * in end.c so that (x == LEAVESTATUE)
+                                   * will test FALSE in bones.c:
+                                   *  (NON_PM - 2) for no corpse
+                                   *  (NON_PM - 3) for no corpse, no grave */
+        HIGH_PM = NUMMONS - 1,
+        SPECIAL_PM = PM_LONG_WORM_TAIL  /* [normal] < ~ < [special] */
+                /* mons[SPECIAL_PM] through mons[NUMMONS-1], inclusive, are
+                   never generated randomly and cannot be polymorphed into */
+};
 
 /*     This structure covers all attack forms.
  *     aatyp is the gross attack type (eg. claw, bite, breath, ...)
@@ -30,9 +49,9 @@ struct attack {
 
 /*     Weight of human body, elf, dragon
  */
-#define WT_HUMAN 1450
-#define WT_ELF 800
-#define WT_DRAGON 4500
+#define WT_HUMAN 1450U
+#define WT_ELF 800U
+#define WT_DRAGON 4500U
 
 #ifndef ALIGN_H
 #include "align.h"
@@ -42,6 +61,7 @@ struct attack {
 
 struct permonst {
     const char *pmnames[NUM_MGENDERS];
+    const enum monnums pmidx;   /* mons array index aka PM_ identifier */
     char mlet;                  /* symbol */
     schar mlevel,               /* base monster level */
         mmove,                  /* move speed */
@@ -60,35 +80,16 @@ struct permonst {
         mflags2;                /* more boolean bitflags */
     unsigned short mflags3;     /* yet more boolean bitflags */
     uchar difficulty;           /* toughness (formerly from  makedefs -m) */
-#ifdef TEXTCOLOR
-    uchar mcolor; /* color to use */
-#endif
+    uchar mcolor;               /* color to use */
 };
 
-extern NEARDATA struct permonst mons[]; /* the master list of monster types */
-
-enum monnums {
-#define MONS_ENUM
-#include "monsters.h"
-#undef MONS_ENUM
-        NUMMONS
-};
+extern NEARDATA struct permonst mons[NUMMONS + 1]; /* the master list of
+                                                    * monster types */
 
 #define VERY_SLOW 3
 #define SLOW_SPEED 9
 #define NORMAL_SPEED 12 /* movement rates */
 #define FAST_SPEED 15
 #define VERY_FAST 24
-
-#define NON_PM (-1)                  /* "not a monster" */
-#define LOW_PM (NON_PM + 1)          /* first monster in mons[] */
-#define SPECIAL_PM PM_LONG_WORM_TAIL /* [normal] < ~ < [special] */
-/* mons[SPECIAL_PM] through mons[NUMMONS-1], inclusive, are
-   never generated randomly and cannot be polymorphed into */
-
-#ifdef PMNAME_MACROS
-#define pmname(pm,g) ((((g) == MALE || (g) == FEMALE) && (pm)->pmnames[g]) \
-                        ? (pm)->pmnames[g] : (pm)->pmnames[NEUTRAL])
-#endif
 
 #endif /* PERMONST_H */

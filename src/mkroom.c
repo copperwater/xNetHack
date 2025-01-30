@@ -17,33 +17,33 @@
 
 #include "hack.h"
 
-static boolean isbig(struct mkroom *);
-static struct mkroom *pick_room(boolean);
-static void mkshop(void), mkzoo(int), mkswamp(void);
-static void mk_zoo_thronemon(coordxy, coordxy);
-static struct mkroom *mktemple(void);
-static void mkseminary(void);
-static void mksubmerged(void);
-static void mkstatuary(void);
-static coord *shrine_pos(int);
-static struct permonst *morguemon(void);
-static struct permonst *squadmon(void);
-static struct permonst *zoomon(void);
-static struct permonst *demondenmon(void);
-static struct permonst *abattoirmon(void);
-static void save_room(NHFILE *, struct mkroom *);
-static void rest_room(NHFILE *, struct mkroom *);
-static boolean invalid_shop_shape(struct mkroom *sroom);
+staticfn boolean isbig(struct mkroom *);
+staticfn struct mkroom *pick_room(boolean);
+staticfn void mkshop(void), mkzoo(int), mkswamp(void);
+staticfn void mk_zoo_thronemon(coordxy, coordxy);
+staticfn struct mkroom *mktemple(void);
+staticfn void mkseminary(void);
+staticfn void mksubmerged(void);
+staticfn void mkstatuary(void);
+staticfn coord *shrine_pos(int);
+staticfn struct permonst *morguemon(void);
+staticfn struct permonst *squadmon(void);
+staticfn struct permonst *zoomon(void);
+staticfn struct permonst *demondenmon(void);
+staticfn struct permonst *abattoirmon(void);
+staticfn void save_room(NHFILE *, struct mkroom *);
+staticfn void rest_room(NHFILE *, struct mkroom *);
+staticfn boolean invalid_shop_shape(struct mkroom *sroom);
 
 #define sq(x) ((x) * (x))
 
 extern const struct shclass shtypes[]; /* defined in shknam.c */
 
 /* Return TRUE if a room's rectangular floor area is larger than 20 */
-static boolean
-isbig(struct mkroom* sroom)
+staticfn boolean
+isbig(struct mkroom *sroom)
 {
-    register int area = (sroom->hx - sroom->lx + 1)
+    int area = (sroom->hx - sroom->lx + 1)
                         * (sroom->hy - sroom->ly + 1);
 
     return (boolean) (area > 20);
@@ -113,10 +113,10 @@ do_mkroom(int roomtype)
  * Shops are always made lit. If a wand or a book shop whose area is larger than
  * 20 would have been created, it is instead replaced with a general store.
  */
-static void
+staticfn void
 mkshop(void)
 {
-    register struct mkroom *sroom;
+    struct mkroom *sroom;
     int i = -1;
     char *ep = (char *) 0; /* (init == lint suppression) */
 
@@ -201,7 +201,7 @@ mkshop(void)
     }
 
  gottype:
-    for (sroom = &gr.rooms[0];; sroom++) {
+    for (sroom = &svr.rooms[0];; sroom++) {
         /* return from this loop: cannot find any eligible room to be a shop
          * continue: sroom is ineligible
          * break: sroom is eligible
@@ -209,7 +209,7 @@ mkshop(void)
         if (sroom->hx < 0)
             /* could not find any suitable rooms */
             return;
-        if (sroom - gr.rooms >= gn.nroom) {
+        if (sroom - svr.rooms >= svn.nroom) {
             impossible("rooms[] not closed by -1?");
             return;
         }
@@ -234,7 +234,7 @@ mkshop(void)
     }
 
     if (i < 0) { /* shoptype not yet determined */
-        register int j;
+        int j;
 
         /* pick a shop type at random */
         for (j = rnd(100), i = 0; (j -= shtypes[i].prob) > 0; i++)
@@ -268,15 +268,16 @@ mkshop(void)
  * case it may allow it with 1/3 chance.
  * Rooms with exactly one door are heavily preferred; there is only a 1/5
  * chance of selecting a room with more doors than that. */
-static struct mkroom *
+/* pick an unused room, preferably with only one door */
+staticfn struct mkroom *
 pick_room(boolean strict)
 {
-    register struct mkroom *sroom;
-    register int i = gn.nroom;
+    struct mkroom *sroom;
+    int i = svn.nroom;
 
-    for (sroom = &gr.rooms[rn2(gn.nroom)]; i--; sroom++) {
-        if (sroom == &gr.rooms[gn.nroom])
-            sroom = &gr.rooms[0];
+    for (sroom = &svr.rooms[rn2(svn.nroom)]; i--; sroom++) {
+        if (sroom == &svr.rooms[svn.nroom])
+            sroom = &svr.rooms[0];
         if (sroom->hx < 0)
             return (struct mkroom *) 0;
         if (sroom->rtype != OROOM)
@@ -294,10 +295,10 @@ pick_room(boolean strict)
 
 /* Try to find a suitable room for a zoo of the given type and, if one can be
  * found, set its room type and call fill_zoo to stock it. */
-static void
+staticfn void
 mkzoo(int type)
 {
-    register struct mkroom *sroom;
+    struct mkroom *sroom;
 
     if ((sroom = pick_room(FALSE)) != 0) {
         sroom->rtype = type;
@@ -309,7 +310,7 @@ mkzoo(int type)
 
 /* Create an appropriate "king" monster at the given location (assumed to be on
  * a throne). */
-static void
+staticfn void
 mk_zoo_thronemon(coordxy x, coordxy y)
 {
     int i = rnd(level_difficulty());
@@ -343,13 +344,13 @@ mk_zoo_thronemon(coordxy x, coordxy y)
  * Currently, all of these involve placing a monster on every square of the
  * room, whereas objects may or may not be. */
 void
-fill_zoo(struct mkroom* sroom)
+fill_zoo(struct mkroom *sroom)
 {
-    struct monst *mon = NULL;
-    register int sx, sy, i;
+    struct monst *mon;
+    int sx, sy, i;
     int sh, goldlim = 0, type = sroom->rtype;
     coordxy tx = 0, ty = 0;
-    int rmno = (int) ((sroom - gr.rooms) + ROOMOFFSET);
+    int rmno = (int) ((sroom - svr.rooms) + ROOMOFFSET);
     coord mm;
 
     /* Note: This doesn't check needfill; it assumes the caller has already
@@ -358,7 +359,7 @@ fill_zoo(struct mkroom* sroom)
     switch (type) {
     case COURT:
         /* Did a special level hardcode the throne in a given spot? */
-        if (gl.level.flags.is_maze_lev) {
+        if (svl.level.flags.is_maze_lev) {
             for (tx = sroom->lx; tx <= sroom->hx; tx++)
                 for (ty = sroom->ly; ty <= sroom->hy; ty++)
                     if (IS_THRONE(levl[tx][ty].typ))
@@ -370,7 +371,7 @@ fill_zoo(struct mkroom* sroom)
             (void) somexyspace(sroom, &mm);
             tx = mm.x;
             ty = mm.y;
-        } while (occupied((coordxy) tx, (coordxy) ty) && --i > 0);
+        } while (occupied(tx, ty) && --i > 0);
  throne_placed:
         mk_zoo_thronemon(tx, ty);
         break;
@@ -400,15 +401,18 @@ fill_zoo(struct mkroom* sroom)
             if (sroom->irregular) {
                 if ((int) levl[sx][sy].roomno != rmno || levl[sx][sy].edge
                     || (sroom->doorct
-                        && distmin(sx, sy, gd.doors[sh].x, gd.doors[sh].y) <= 1))
+                        && (distmin(sx, sy, svd.doors[sh].x, svd.doors[sh].y)
+                            <= 1)))
                     continue;
             } else if (!SPACE_POS(levl[sx][sy].typ)
                        || (sroom->doorct
-                           && ((sx == sroom->lx && gd.doors[sh].x == sx - 1)
-                               || (sx == sroom->hx && gd.doors[sh].x == sx + 1)
-                               || (sy == sroom->ly && gd.doors[sh].y == sy - 1)
+                           && ((sx == sroom->lx && svd.doors[sh].x == sx - 1)
+                               || (sx == sroom->hx && svd.doors[sh].x
+                                   == sx + 1)
+                               || (sy == sroom->ly && svd.doors[sh].y
+                                   == sy - 1)
                                || (sy == sroom->hy
-                                   && gd.doors[sh].y == sy + 1))))
+                                   && svd.doors[sh].y == sy + 1))))
                 continue;
             /* don't place monster on explicitly placed throne */
             if (type == COURT && IS_THRONE(levl[sx][sy].typ))
@@ -475,7 +479,8 @@ fill_zoo(struct mkroom* sroom)
             case LEPREHALL:
                 /* place floor gold */
                 if (sroom->doorct) {
-                    int distval = dist2(sx, sy, gd.doors[sh].x, gd.doors[sh].y);
+                    int distval = dist2(sx, sy,
+                                        svd.doors[sh].x, svd.doors[sh].y);
                     i = sq(distval);
                 } else
                     i = goldlim;
@@ -564,7 +569,7 @@ fill_zoo(struct mkroom* sroom)
                 if (!rn2(2)) {
                     const char* bloodstains[] =
                         { "/", "-", "\\", ".", ",", ":" };
-                    make_engr_at(sx, sy, bloodstains[rn2(SIZE(bloodstains))],
+                    make_engr_at(sx, sy, ROLL_FROM(bloodstains),
                                  0, ENGR_BLOOD);
                 }
                 break;
@@ -583,23 +588,23 @@ fill_zoo(struct mkroom* sroom)
         add_to_container(chest, gold);
         chest->owt = weight(chest);
         chest->spe = 2; /* so it can be found later */
-        gl.level.flags.has_court = 1;
+        svl.level.flags.has_court = 1;
         break;
     }
     case BARRACKS:
-        gl.level.flags.has_barracks = 1;
+        svl.level.flags.has_barracks = 1;
         break;
     case ZOO:
-        gl.level.flags.has_zoo = 1;
+        svl.level.flags.has_zoo = 1;
         break;
     case MORGUE:
-        gl.level.flags.has_morgue = 1;
+        svl.level.flags.has_morgue = 1;
         break;
     case SWAMP:
-        gl.level.flags.has_swamp = 1;
+        svl.level.flags.has_swamp = 1;
         break;
     case BEEHIVE:
-        gl.level.flags.has_beehive = 1;
+        svl.level.flags.has_beehive = 1;
         break;
     }
 }
@@ -626,15 +631,15 @@ mkundead(
                 || !revive(otmp, FALSE)))
             (void) makemon(mdat, cc.x, cc.y, mm_flags);
     }
-    gl.level.flags.graveyard = TRUE; /* reduced chance for undead corpse */
+    svl.level.flags.graveyard = TRUE; /* reduced chance for undead corpse */
 }
 
 /* Return an appropriate undead monster type for generating in graveyards or
  * when raising the dead. */
-static struct permonst *
+staticfn struct permonst *
 morguemon(void)
 {
-    register int i = rn2(100), hd = rn2(level_difficulty());
+    int i = rn2(100), hd = rn2(level_difficulty());
 
     if (hd > 10 && i < 10) {
         if (Inhell || In_endgame(&u.uz)) {
@@ -679,9 +684,9 @@ antholemon(void)
             break;
         }
         /* try again if chosen type has been genocided or used up */
-    } while (++trycnt < 3 && (gm.mvitals[mtyp].mvflags & G_GONE));
+    } while (++trycnt < 3 && (svm.mvitals[mtyp].mvflags & G_GONE));
 
-    return ((gm.mvitals[mtyp].mvflags & G_GONE) ? (struct permonst *) 0
+    return ((svm.mvitals[mtyp].mvflags & G_GONE) ? (struct permonst *) 0
                                              : &mons[mtyp]);
 }
 
@@ -736,21 +741,21 @@ abattoirmon(void)
  * Swamps contain a checkerboard pattern of pools (except next to doors),
  * F-class monsters, and possibly one sea monster, apiece.
  */
-static void
+staticfn void
 mkswamp(void) /* Michiel Huisjes & Fred de Wilde */
 {
-    register struct mkroom *sroom;
-    register int i, eelct = 0;
+    struct mkroom *sroom;
+    int i, eelct = 0;
     coordxy sx, sy;
     int rmno;
 
     for (i = 0; i < 5; i++) { /* turn up to 5 rooms swampy */
-        sroom = &gr.rooms[rn2(gn.nroom)];
+        sroom = &svr.rooms[rn2(svn.nroom)];
         if (sroom->hx < 0 || sroom->rtype != OROOM || has_upstairs(sroom)
             || has_dnstairs(sroom))
             continue;
 
-        rmno = (int)(sroom - gr.rooms) + ROOMOFFSET;
+        rmno = (int)(sroom - svr.rooms) + ROOMOFFSET;
 
         /* satisfied; make a swamp */
         sroom->rtype = SWAMP;
@@ -781,7 +786,7 @@ mkswamp(void) /* Michiel Huisjes & Fred de Wilde */
                         levl[sx][sy].typ = TREE;
                 }
             }
-        gl.level.flags.has_swamp = 1;
+        svl.level.flags.has_swamp = 1;
     }
 }
 
@@ -789,12 +794,12 @@ mkswamp(void) /* Michiel Huisjes & Fred de Wilde */
  * is to be a temple. It will be the exact center of the room, unless the center
  * isn't actually a square, in which case it'll be offset one space to the side.
  */
-static coord *
+staticfn coord *
 shrine_pos(int roomno)
 {
     static coord buf;
     int delta;
-    struct mkroom *troom = &gr.rooms[roomno - ROOMOFFSET];
+    struct mkroom *troom = &svr.rooms[roomno - ROOMOFFSET];
 
     /* if width and height are odd, placement will be the exact center;
        if either or both are even, center point is a hypothetical spot
@@ -815,12 +820,12 @@ shrine_pos(int roomno)
 /* Try and find a suitable room for a temple and if successful, create the
  * temple with its altar and attendant priest.
  */
-static struct mkroom *
+staticfn struct mkroom *
 mktemple(void)
 {
-    register struct mkroom *sroom;
+    struct mkroom *sroom;
     coord *shrine_spot;
-    register struct rm *lev;
+    struct rm *lev;
 
     if (!(sroom = pick_room(TRUE)))
         return NULL;
@@ -831,7 +836,7 @@ mktemple(void)
      * In temples, shrines are blessed altars
      * located in the center of the room
      */
-    shrine_spot = shrine_pos((int) ((sroom - gr.rooms) + ROOMOFFSET));
+    shrine_spot = shrine_pos((int) ((sroom - svr.rooms) + ROOMOFFSET));
     lev = &levl[shrine_spot->x][shrine_spot->y];
     lev->typ = ALTAR;
     if (!Inhell) {
@@ -842,7 +847,7 @@ mktemple(void)
     }
     priestini(&u.uz, sroom, shrine_spot->x, shrine_spot->y, FALSE);
     lev->altarmask |= AM_SHRINE;
-    gl.level.flags.has_temple = 1;
+    svl.level.flags.has_temple = 1;
     return sroom;
 }
 
@@ -860,7 +865,7 @@ mkseminary(void)
         return;
 
     /* get altar alignment, roaming priests should have the same */
-    ss = shrine_pos((int) ((sroom - gr.rooms) + ROOMOFFSET));
+    ss = shrine_pos((int) ((sroom - svr.rooms) + ROOMOFFSET));
     if (levl[ss->x][ss->y].typ != ALTAR) {
         impossible("mkseminary: altar not present?");
         return;
@@ -942,7 +947,7 @@ mkstatuary(void)
     if (!nexttodoor(x, y)) {                                 \
         statue = mkcorpstat(STATUE, NULL, &mons[u.umonster], \
                             x, y, CORPSTAT_NONE);            \
-        oname(statue, gp.plname, ONAME_NO_FLAGS);             \
+        oname(statue, svp.plname, ONAME_NO_FLAGS);           \
     }
 
     /* pick the longer dimension to place statues */
@@ -969,8 +974,8 @@ mkstatuary(void)
 boolean
 nexttodoor(int sx, int sy)
 {
-    register int dx, dy;
-    register struct rm *lev;
+    int dx, dy;
+    struct rm *lev;
 
     for (dx = -1; dx <= 1; dx++)
         for (dy = -1; dy <= 1; dy++) {
@@ -1000,14 +1005,14 @@ has_stairs(register struct mkroom *sroom, boolean up)
 
 /* Return a random x coordinate within the x limits of a room. */
 int
-somex(struct mkroom* croom)
+somex(struct mkroom *croom)
 {
     return rn1(croom->hx - croom->lx + 1, croom->lx);
 }
 
 /* Return a random y coordinate within the y limits of a room. */
 int
-somey(struct mkroom* croom)
+somey(struct mkroom *croom)
 {
     return rn1(croom->hy - croom->ly + 1, croom->ly);
 }
@@ -1016,10 +1021,10 @@ somey(struct mkroom* croom)
  * of a room.
  */
 boolean
-inside_room(struct mkroom* croom, coordxy x, coordxy y)
+inside_room(struct mkroom *croom, coordxy x, coordxy y)
 {
     if (croom->irregular) {
-        int i = (int) ((croom - gr.rooms) + ROOMOFFSET);
+        int i = (int) ((croom - svr.rooms) + ROOMOFFSET);
         return (!levl[x][y].edge && (int) levl[x][y].roomno == i);
     }
 
@@ -1032,13 +1037,13 @@ inside_room(struct mkroom* croom, coordxy x, coordxy y)
    can return a non-accessible location, eg. inside a wall
    if a themed room is not irregular, but has some non-room terrain */
 boolean
-somexy(struct mkroom* croom,coord * c)
+somexy(struct mkroom *croom, coord *c)
 {
     int try_cnt = 0;
     int i;
 
     if (croom->irregular) {
-        i = (int) ((croom - gr.rooms) + ROOMOFFSET);
+        i = (int) ((croom - svr.rooms) + ROOMOFFSET);
 
         while (try_cnt++ < 100) {
             c->x = somex(croom);
@@ -1106,9 +1111,9 @@ somexyspace(struct mkroom* croom, coord *c)
 struct mkroom *
 search_special(schar type)
 {
-    register struct mkroom *croom;
+    struct mkroom *croom;
 
-    for (croom = &gr.rooms[0]; croom->hx >= 0; croom++)
+    for (croom = &svr.rooms[0]; croom->hx >= 0; croom++)
         if ((type == ANY_TYPE && croom->rtype != OROOM)
             || (type == ANY_SHOP && croom->rtype >= SHOPBASE)
             || croom->rtype == type)
@@ -1157,7 +1162,7 @@ static const struct {
 
 /* Return an appropriate Yendorian Army monster type for generating in
  * barracks. They will generate with the percentage odds given above. */
-static struct permonst *
+staticfn struct permonst *
 squadmon(void)
 {
     int sel_prob, i, cpro, mndx;
@@ -1172,9 +1177,9 @@ squadmon(void)
             goto gotone;
         }
     }
-    mndx = squadprob[rn2(SIZE(squadprob))].pm;
+    mndx = ROLL_FROM(squadprob).pm;
  gotone:
-    if (!(gm.mvitals[mndx].mvflags & G_GONE))
+    if (!(svm.mvitals[mndx].mvflags & G_GONE))
         return &mons[mndx];
     else
         return (struct permonst *) 0;
@@ -1184,8 +1189,8 @@ squadmon(void)
  * save_room : A recursive function that saves a room and its subrooms
  * (if any).
  */
-static void
-save_room(NHFILE* nhfp, struct mkroom* r)
+staticfn void
+save_room(NHFILE *nhfp, struct mkroom *r)
 {
     short i;
 
@@ -1205,19 +1210,19 @@ save_room(NHFILE* nhfp, struct mkroom* r)
  * save_rooms : Save all the rooms on disk!
  */
 void
-save_rooms(NHFILE* nhfp)
+save_rooms(NHFILE *nhfp)
 {
     short i;
 
     /* First, write the number of rooms */
     if (nhfp->structlevel)
-        bwrite(nhfp->fd, (genericptr_t) &gn.nroom, sizeof(gn.nroom));
-    for (i = 0; i < gn.nroom; i++)
-        save_room(nhfp, &gr.rooms[i]);
+        bwrite(nhfp->fd, (genericptr_t) &svn.nroom, sizeof(svn.nroom));
+    for (i = 0; i < svn.nroom; i++)
+        save_room(nhfp, &svr.rooms[i]);
 }
 
-static void
-rest_room(NHFILE* nhfp, struct mkroom* r)
+staticfn void
+rest_room(NHFILE *nhfp, struct mkroom *r)
 {
     short i;
 
@@ -1236,19 +1241,19 @@ rest_room(NHFILE* nhfp, struct mkroom* r)
  * the disk.
  */
 void
-rest_rooms(NHFILE* nhfp)
+rest_rooms(NHFILE *nhfp)
 {
     short i;
 
     if (nhfp->structlevel)
-        mread(nhfp->fd, (genericptr_t) &gn.nroom, sizeof(gn.nroom));
+        mread(nhfp->fd, (genericptr_t) &svn.nroom, sizeof(svn.nroom));
 
     gn.nsubroom = 0;
-    for (i = 0; i < gn.nroom; i++) {
-        rest_room(nhfp, &gr.rooms[i]);
-        gr.rooms[i].resident = (struct monst *) 0;
+    for (i = 0; i < svn.nroom; i++) {
+        rest_room(nhfp, &svr.rooms[i]);
+        svr.rooms[i].resident = (struct monst *) 0;
     }
-    gr.rooms[gn.nroom].hx = -1; /* restore ending flags */
+    svr.rooms[svn.nroom].hx = -1; /* restore ending flags */
     gs.subrooms[gn.nsubroom].hx = -1;
 }
 
@@ -1378,29 +1383,29 @@ cmap_to_type(int sym)
     return typ;
 }
 
-/* With the introduction of themed rooms, there are certain room shapes that may
- * generate a door, the square just inside the door, and only one other ROOM
- * square touching that one. E.g.
+/* With the introduction of themed rooms, there are certain room shapes that
+ * may generate a door, the square just inside the door, and only one other
+ * ROOM square touching that one. E.g.
  *   ---
  * ---..
  * +....
  * ---..
  *   ---
- * This means that if the room becomes a shop, the shopkeeper will move between
- * those two squares nearest the door without ever allowing the player to get
- * past them.
+ * This means that if the room becomes a shop, the shopkeeper will move
+ * between those two squares nearest the door without ever allowing the
+ * player to get past them.
  * Before approving sroom as a shop, check for this circumstance, and if it
  * exists, don't consider it as valid for a shop.
  *
  * Note that the invalidity of the shape derives from the position of its door
  * already being chosen. It's quite possible that if the door were somewhere
  * else on the perimeter of this room, it would work fine as a shop.*/
-static boolean
+staticfn boolean
 invalid_shop_shape(struct mkroom *sroom)
 {
     coordxy x, y;
-    coordxy doorx = gd.doors[sroom->fdoor].x;
-    coordxy doory = gd.doors[sroom->fdoor].y;
+    coordxy doorx = svd.doors[sroom->fdoor].x;
+    coordxy doory = svd.doors[sroom->fdoor].y;
     coordxy insidex = 0, insidey = 0, insidect = 0;
 
     /* First, identify squares inside the room and next to the door. */

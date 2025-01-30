@@ -25,8 +25,9 @@ extern winid WIN_STATUS;
 
 static TCHAR szMainWindowClass[] = TEXT("MSNHMainWndClass");
 static TCHAR szTitle[MAX_LOADSTRING];
+struct window_tracking_data windowdata[MAXWINDOWS];
 extern void mswin_display_splash_window(BOOL);
-
+extern void free_menu_data(void); /* mhmenu.c */
 LRESULT CALLBACK MainWndProc(HWND, UINT, WPARAM, LPARAM);
 LRESULT CALLBACK About(HWND, UINT, WPARAM, LPARAM);
 static LRESULT onWMCommand(HWND hWnd, WPARAM wParam, LPARAM lParam);
@@ -208,9 +209,11 @@ MainWndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
         data = (PNHMainWindow) malloc(sizeof(NHMainWindow));
         if (!data)
             panic("out of memory");
+
         ZeroMemory(data, sizeof(NHMainWindow));
         data->mapAcsiiModeSave = MAP_MODE_ASCII12x16;
         SetWindowLongPtr(hWnd, GWLP_USERDATA, (LONG_PTR) data);
+        windowdata[NHW_MAIN].address = (genericptr_t) data;
 
         /* update menu items */
         CheckMenuItem(
@@ -383,7 +386,7 @@ MainWndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 
             c = 0;
             ZeroMemory(kbd_state, sizeof(kbd_state));
-            GetKeyboardState(kbd_state);
+            (void) GetKeyboardState(kbd_state);
 
             if (ToAscii((UINT) wParam, (lParam >> 16) & 0xFF, kbd_state, &c, 0)) {
                 NHEVENT_KBD(c & 0xFF);
@@ -457,16 +460,16 @@ MainWndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 
     case WM_CLOSE: {
         /* exit gracefully */
-        if (gp.program_state.gameover) {
+        if (program_state.gameover) {
             /* assume the user really meant this, as the game is already
              * over... */
             /* to make sure we still save bones, just set stop printing flag
              */
-            gp.program_state.stopprint++;
+            program_state.stopprint++;
             NHEVENT_KBD(
                 '\033'); /* and send keyboard input as if user pressed ESC */
             /* additional code for this is done in menu and rip windows */
-        } else if (!gp.program_state.something_worth_saving) {
+        } else if (!program_state.something_worth_saving) {
             /* User exited before the game started, e.g. during splash display
              */
             /* Just get out. */
@@ -509,7 +512,7 @@ MainWndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
         /* clean up */
         free((PNHMainWindow) GetWindowLongPtr(hWnd, GWLP_USERDATA));
         SetWindowLongPtr(hWnd, GWLP_USERDATA, (LONG_PTR) 0);
-
+        windowdata[NHW_MAIN].address = 0;
         // PostQuitMessage(0);
         exit(1);
         break;
@@ -541,6 +544,7 @@ onMSNHCommand(HWND hWnd, WPARAM wParam, LPARAM lParam)
             mswin_select_map_mode(iflags.wc_map_mode);
 
         child = GetNHApp()->windowlist[msg_param->wid].win;
+        nhUse(child);
     } break;
 
     case MSNH_MSG_RANDOM_INPUT: {
@@ -750,14 +754,18 @@ mswin_layout_main_window(HWND changed_child)
     }
     if (IsWindow(changed_child))
         SetForegroundWindow(changed_child);
+    nhUse(data);
 }
+
+VOID CALLBACK FuzzTimerProc( _In_ HWND     hwnd,
+    _In_ UINT     uMsg, _In_ UINT_PTR idEvent,
+    _In_ DWORD    dwTime);
 
 VOID CALLBACK FuzzTimerProc(
     _In_ HWND     hwnd,
-    _In_ UINT     uMsg,
-    _In_ UINT_PTR idEvent,
-    _In_ DWORD    dwTime
-    )
+    _In_ UINT     uMsg UNUSED,
+    _In_ UINT_PTR idEvent UNUSED,
+    _In_ DWORD    dwTime UNUSED)
 {
         INPUT input[16];
         int i_pos = 0;
@@ -842,7 +850,7 @@ onWMCommand(HWND hWnd, WPARAM wParam, LPARAM lParam)
     case IDM_SAVE:
         if (iflags.debug_fuzzer)
             break;
-        if (!gp.program_state.gameover && !gp.program_state.done_hup)
+        if (!program_state.gameover && !program_state.done_hup)
             dosave();
         else
             MessageBeep(0);
@@ -922,16 +930,23 @@ onWMCommand(HWND hWnd, WPARAM wParam, LPARAM lParam)
 
 #ifdef ENHANCED_SYMBOLS
         if (SYMHANDLING(H_UTF8)) {
-            WCHAR *p_copy = (WCHAR *) GlobalLock(hglbCopy);
-            wcsncpy(p_copy, wp, len);
-            p_copy[len] = 0; // null character
-        } else
+            WCHAR *p_copy;
+
+            if ((p_copy = (WCHAR *) GlobalLock(hglbCopy)) != 0) {
+                wcsncpy(p_copy, wp, len);
+                p_copy[len] = 0; // null character
+            }
+        } else {
 #endif
-        {
-            char *p_copy = (char *) GlobalLock(hglbCopy);
-            strncpy(p_copy, p, len);
-            p_copy[len] = 0; // null character
+            char *p_copy;
+
+            if ((p_copy = (char *) GlobalLock(hglbCopy)) != 0) {
+                strncpy(p_copy, p, len);
+                p_copy[len] = 0; // null character
+            }
+#ifdef ENHANCED_SYMBOLS
         }
+#endif
         GlobalUnlock(hglbCopy);
 
 #ifdef ENHANCED_SYMBOLS
@@ -1001,28 +1016,34 @@ onWMCommand(HWND hWnd, WPARAM wParam, LPARAM lParam)
             text = nh_compose_ascii_screenshot();
             if (!text)
                 return FALSE;
-
             tlen = strlen(text);
             wtext = (wchar_t *) malloc(tlen * sizeof(wchar_t));
-            if (!wtext)
-                panic("out of memory");
-            MultiByteToWideChar(NH_CODEPAGE, 0, text, -1, wtext, tlen);
+            if (wtext) {
+                MultiByteToWideChar(NH_CODEPAGE, 0, text, -1, wtext, tlen);
+            }
         }
 
+        filename[SIZE(filename) - 1] = '\0';
         pFile = _tfopen(filename, TEXT("wt+,ccs=UTF-8"));
         if (!pFile) {
             TCHAR buf[4096];
-            _stprintf(buf, TEXT("Cannot open %s for writing!"), filename);
+            nh_stprintf(buf, sizeof buf,
+			TEXT("Cannot open %s for writing!"), filename);
             NHMessageBox(hWnd, buf, MB_OK | MB_ICONERROR);
-            free(text);
-            free(wtext);
+            if (text)
+                free(text);
+            if (wtext)
+                free(wtext);
             return FALSE;
         }
 
-        fwrite(wtext, tlen * sizeof(wchar_t), 1, pFile);
-        fclose(pFile);
-        free(text);
-        free(wtext);
+        if (wtext) {
+            fwrite(wtext, tlen * sizeof(wchar_t), 1, pFile);
+            fclose(pFile);
+            free(wtext);
+        }
+        if (text)
+            free(text);
     } break;
 
     case IDM_NHMODE: {
@@ -1098,10 +1119,11 @@ onWMCommand(HWND hWnd, WPARAM wParam, LPARAM lParam)
     default:
         return 1;
     }
+    nhUse(wmEvent);
     return 0;
 }
 
-// Mesage handler for about box.
+// Message handler for about box.
 LRESULT CALLBACK
 About(HWND hDlg, UINT message, WPARAM wParam, LPARAM lParam)
 {
@@ -1197,7 +1219,7 @@ mswin_select_map_mode(int mode)
     iflags.wc_map_mode = mode;
 
     /*
-    ** first, check if WIN_MAP has been inialized.
+    ** first, check if WIN_MAP has been initialized.
     ** If not - attempt to retrieve it by type, then check it again
     */
     if (map_id == WIN_ERR)
@@ -1303,26 +1325,28 @@ nh_compose_ascii_screenshot(void)
 
     text =
         (PMSNHMsgGetText) malloc(sizeof(MSNHMsgGetText) + TEXT_BUFFER_SIZE);
-    text->max_size =
-        TEXT_BUFFER_SIZE
-        - 1; /* make sure we always have 0 at the end of the buffer */
+    if (text && retval) {
+        text->max_size =
+            TEXT_BUFFER_SIZE
+            - 1; /* make sure we always have 0 at the end of the buffer */
 
-    ZeroMemory(text->buffer, TEXT_BUFFER_SIZE);
-    SendMessage(mswin_hwnd_from_winid(WIN_MESSAGE), WM_MSNH_COMMAND,
-                (WPARAM) MSNH_MSG_GETTEXT, (LPARAM) text);
-    strcpy(retval, text->buffer);
+        ZeroMemory(text->buffer, TEXT_BUFFER_SIZE);
+        SendMessage(mswin_hwnd_from_winid(WIN_MESSAGE), WM_MSNH_COMMAND,
+                    (WPARAM) MSNH_MSG_GETTEXT, (LPARAM) text);
+        strcpy(retval, text->buffer);
 
-    ZeroMemory(text->buffer, TEXT_BUFFER_SIZE);
-    SendMessage(mswin_hwnd_from_winid(WIN_MAP), WM_MSNH_COMMAND,
-                (WPARAM) MSNH_MSG_GETTEXT, (LPARAM) text);
-    strcat(retval, text->buffer);
+        ZeroMemory(text->buffer, TEXT_BUFFER_SIZE);
+        SendMessage(mswin_hwnd_from_winid(WIN_MAP), WM_MSNH_COMMAND,
+                    (WPARAM) MSNH_MSG_GETTEXT, (LPARAM) text);
+        strcat(retval, text->buffer);
 
-    ZeroMemory(text->buffer, TEXT_BUFFER_SIZE);
-    SendMessage(mswin_hwnd_from_winid(WIN_STATUS), WM_MSNH_COMMAND,
-                (WPARAM) MSNH_MSG_GETTEXT, (LPARAM) text);
-    strcat(retval, text->buffer);
+        ZeroMemory(text->buffer, TEXT_BUFFER_SIZE);
+        SendMessage(mswin_hwnd_from_winid(WIN_STATUS), WM_MSNH_COMMAND,
+                    (WPARAM) MSNH_MSG_GETTEXT, (LPARAM) text);
+        strcat(retval, text->buffer);
 
-    free(text);
+        free(text);
+    }
     return retval;
 }
 
@@ -1342,40 +1366,42 @@ nh_compose_unicode_screenshot(void)
 
     text =
         (PMSNHMsgGetText) malloc(sizeof(MSNHMsgGetText) + TEXT_BUFFER_SIZE);
-    text->max_size =
-        TEXT_BUFFER_SIZE
-        - 1; /* make sure we always have 0 at the end of the buffer */
+    if (text && retval) {
+        text->max_size =
+            TEXT_BUFFER_SIZE
+            - 1; /* make sure we always have 0 at the end of the buffer */
 
-    wtext =
-        (PMSNHMsgGetWideText) malloc(sizeof(MSNHMsgGetWideText)
-                                     + TEXT_BUFFER_SIZE * sizeof(WCHAR));
-    wtext->max_size =
-        TEXT_BUFFER_SIZE
-        - 1; /* make sure we always have 0 at the end of the buffer */
+        wtext = (PMSNHMsgGetWideText) malloc(
+            sizeof(MSNHMsgGetWideText) + TEXT_BUFFER_SIZE * sizeof(WCHAR));
+        if (wtext) {
+            wtext->max_size =
+                TEXT_BUFFER_SIZE
+                - 1; /* make sure we always have 0 at the end of the buffer */
 
-    ZeroMemory(text->buffer, TEXT_BUFFER_SIZE);
-    SendMessage(mswin_hwnd_from_winid(WIN_MESSAGE), WM_MSNH_COMMAND,
-                (WPARAM) MSNH_MSG_GETTEXT, (LPARAM) text);
-    retsize += MultiByteToWideChar(CP_ACP, 0,
-                                   text->buffer, strlen(text->buffer),
-                                   retval + retsize, max_size - retsize);
+            ZeroMemory(text->buffer, TEXT_BUFFER_SIZE);
+            SendMessage(mswin_hwnd_from_winid(WIN_MESSAGE), WM_MSNH_COMMAND,
+                        (WPARAM) MSNH_MSG_GETTEXT, (LPARAM) text);
+            retsize += MultiByteToWideChar(
+                CP_ACP, 0, text->buffer, strlen(text->buffer),
+                retval + retsize, max_size - retsize);
 
-    ZeroMemory(wtext->buffer, TEXT_BUFFER_SIZE * sizeof(WCHAR));
-    SendMessage(mswin_hwnd_from_winid(WIN_MAP), WM_MSNH_COMMAND,
-                (WPARAM) MSNH_MSG_GETWIDETEXT, (LPARAM) wtext);
-    wcsncpy(retval + retsize, wtext->buffer, max_size - retsize - 1);
-    retsize += wcslen(retval + retsize);
+            ZeroMemory(wtext->buffer, TEXT_BUFFER_SIZE * sizeof(WCHAR));
+            SendMessage(mswin_hwnd_from_winid(WIN_MAP), WM_MSNH_COMMAND,
+                        (WPARAM) MSNH_MSG_GETWIDETEXT, (LPARAM) wtext);
+            wcsncpy(retval + retsize, wtext->buffer, max_size - retsize - 1);
+            retsize += wcslen(retval + retsize);
 
-    ZeroMemory(text->buffer, TEXT_BUFFER_SIZE);
-    SendMessage(mswin_hwnd_from_winid(WIN_STATUS), WM_MSNH_COMMAND,
-                (WPARAM) MSNH_MSG_GETTEXT, (LPARAM) text);
-    retsize += MultiByteToWideChar(CP_ACP, 0,
-                                   text->buffer, strlen(text->buffer),
-                                   retval + retsize, max_size - retsize);
-    retval[retsize] = L'\0';
-
-    free(text);
-    free(wtext);
+            ZeroMemory(text->buffer, TEXT_BUFFER_SIZE);
+            SendMessage(mswin_hwnd_from_winid(WIN_STATUS), WM_MSNH_COMMAND,
+                        (WPARAM) MSNH_MSG_GETTEXT, (LPARAM) text);
+            retsize += MultiByteToWideChar(
+                CP_ACP, 0, text->buffer, strlen(text->buffer),
+                retval + retsize, max_size - retsize);
+            retval[retsize] = L'\0';
+            free(wtext);
+        }
+        free(text);
+    }
     return retval;
 }
 #endif

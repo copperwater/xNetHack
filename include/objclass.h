@@ -10,6 +10,7 @@
    (liquid potion inside glass bottle, metal arrowhead on wooden shaft)
    and object definitions only specify one type on a best-fit basis */
 enum obj_material_types {
+    NO_MATERIAL =  0,
     LIQUID      =  1, /* currently only for venom */
     WAX         =  2,
     VEGGY       =  3, /* foodstuffs */
@@ -67,7 +68,7 @@ struct objclass {
     Bitfield(oc_tough, 1); /* hard gems/rings */
 
     Bitfield(oc_spare1, 6);         /* padding to align oc_dir + oc_material;
-                                     * can be canabalized for other use;
+                                     * can be cannibalized for other use;
                                      * aka 6 free bits */
 
     Bitfield(oc_dir, 3);
@@ -203,15 +204,18 @@ extern NEARDATA struct objdescr obj_descr[NUM_OBJECTS + 1];
 /* primary damage: fire/rust/--- */
 /* is_flammable(otmp), is_rottable(otmp) in mkobj.c */
 #define is_rustprone(otmp) ((otmp)->material == IRON)
-
+#define is_crackable(otmp) \
+    ((otmp)->material == GLASS         \
+     && (otmp)->oclass == ARMOR_CLASS) /* erosion_matters() */
 /* secondary damage: rot/acid/acid */
 #define is_corrodeable(otmp)                   \
     ((otmp)->material == COPPER || (otmp)->material == SILVER \
      || (otmp)->material == IRON)
-
-#define is_damageable(otmp)                                        \
-    (is_rustprone(otmp) || is_flammable(otmp) || is_rottable(otmp) \
-     || is_corrodeable(otmp))
+/* subject to any damage */
+#define is_damageable(otmp) \
+    (is_rustprone(otmp) || is_flammable(otmp)           \
+     || is_rottable(otmp) || is_corrodeable(otmp)       \
+     || is_crackable(otmp))
 
 /* Force rendering of materials on certain items where the object name
  * wouldn't make as much sense without a material (e.g. "leather jacket" vs

@@ -1192,7 +1192,7 @@ restore_savefile()
 {
     static int savelev;
     long saveTemp, lev;
-    xchar levc;
+    xint8 levc;
     struct version_info version_data;
 
     /* level 0 file contains:
@@ -1264,7 +1264,7 @@ restore_savefile()
         levRefNum = open_levelfile(lev);
         if (levRefNum >= 0) {
             /* any or all of these may not exist */
-            levc = (xchar) lev;
+            levc = (xint8) lev;
 
             (void) write_savefile(saveRefNum, (Ptr) &levc, sizeof(levc));
 

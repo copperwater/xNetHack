@@ -40,12 +40,12 @@
  *                       random intervals.
  */
 
-static boolean md_start(coord *);
-static boolean md_stop(coord *, coord *);
-static boolean md_rush(struct monst *, int, int);
-static void newmail(struct mail_info *);
+staticfn boolean md_start(coord *);
+staticfn boolean md_stop(coord *, coord *);
+staticfn boolean md_rush(struct monst *, int, int);
+staticfn void newmail(struct mail_info *);
 #if defined(SIMPLE_MAIL) || defined(SERVER_ADMIN_MSG)
-static void read_simplemail(const char *mbox, boolean adminmsg);
+staticfn void read_simplemail(const char *mbox, boolean adminmsg);
 #endif
 
 #if !defined(UNIX) && !defined(VMS)
@@ -145,7 +145,7 @@ getmailstatus(void)
  * Pick coordinates for a starting position for the mail daemon.  Called
  * from newmail() and newphone().
  */
-static boolean
+staticfn boolean
 md_start(coord *startp)
 {
     coord testcc;     /* scratch coordinates */
@@ -170,7 +170,8 @@ md_start(coord *startp)
      * hero.
      */
     while (stway) {
-        if (stway->tolev.dnum == u.uz.dnum && couldsee(stway->sx, stway->sy)) {
+        if (stway->tolev.dnum == u.uz.dnum
+            && couldsee(stway->sx, stway->sy)) {
             startp->x = stway->sx;
             startp->y = stway->sy;
             return TRUE;
@@ -184,8 +185,8 @@ md_start(coord *startp)
      * position that could be seen.  What we really ought to be doing is
      * finding a path from a stairwell...
      *
-     * The arrays gv.viz_rmin[] and gv.viz_rmax[] are set even when blind.  These
-     * are the LOS limits for each row.
+     * The arrays gv.viz_rmin[] and gv.viz_rmax[] are set even when blind.
+     * These are the LOS limits for each row.
      */
     lax = 0; /* be picky */
     max_distance = -1;
@@ -200,7 +201,7 @@ md_start(coord *startp)
                     startp->y = row;
                     startp->x = gv.viz_rmin[row];
 
-                } else if (enexto(&testcc, (coordxy) gv.viz_rmin[row], row,
+                } else if (enexto(&testcc, gv.viz_rmin[row], row,
                                   (struct permonst *) 0)
                            && !cansee(testcc.x, testcc.y)
                            && couldsee(testcc.x, testcc.y)) {
@@ -215,7 +216,7 @@ md_start(coord *startp)
                     startp->y = row;
                     startp->x = gv.viz_rmax[row];
 
-                } else if (enexto(&testcc, (coordxy) gv.viz_rmax[row], row,
+                } else if (enexto(&testcc, gv.viz_rmax[row], row,
                                   (struct permonst *) 0)
                            && !cansee(testcc.x, testcc.y)
                            && couldsee(testcc.x, testcc.y)) {
@@ -243,7 +244,7 @@ md_start(coord *startp)
  * enexto().  Use enexto() as a last resort because enexto() chooses
  * its point randomly, which is not what we want.
  */
-static boolean
+staticfn boolean
 md_stop(coord *stopp,  /* stopping position (we fill it in) */
         coord *startp) /* starting position (read only) */
 {
@@ -273,7 +274,7 @@ md_stop(coord *stopp,  /* stopping position (we fill it in) */
 }
 
 /* Let the mail daemon have a larger vocabulary. */
-static NEARDATA const char *mail_text[] = { "Gangway!", "Look out!",
+staticfn NEARDATA const char *mail_text[] = { "Gangway!", "Look out!",
                                             "Pardon me!" };
 #define md_exclamations() (mail_text[rn2(3)])
 
@@ -283,12 +284,12 @@ static NEARDATA const char *mail_text[] = { "Gangway!", "Look out!",
  * FALSE if the md gets stuck in a position where there is a monster.  Return
  * TRUE otherwise.
  */
-static boolean
+staticfn boolean
 md_rush(struct monst *md,
-        register int tx, register int ty) /* destination of mail daemon */
+        int tx, int ty) /* destination of mail daemon */
 {
     struct monst *mon;            /* displaced monster */
-    register int dx, dy;          /* direction counters */
+    int dx, dy;          /* direction counters */
     int fx = md->mx, fy = md->my; /* current location */
     int nfx = fx, nfy = fy,       /* new location */
         d1, d2;                   /* shortest distances */
@@ -387,7 +388,7 @@ md_rush(struct monst *md,
 
 /* Deliver a scroll of mail. */
 /*ARGSUSED*/
-static void
+staticfn void
 newmail(struct mail_info *info)
 {
     struct monst *md;
@@ -406,7 +407,7 @@ newmail(struct mail_info *info)
 
     message_seen = TRUE;
     SetVoice(md, 0, 80, 0);
-    verbalize("%s, %s!  %s.", Hello(md), gp.plname, info->display_txt);
+    verbalize("%s, %s!  %s.", Hello(md), svp.plname, info->display_txt);
 
     if (info->message_typ) {
         struct obj *obj = mksobj(SCR_MAIL, FALSE, FALSE);
@@ -416,7 +417,7 @@ newmail(struct mail_info *info)
         if (info->response_cmd)
             new_omailcmd(obj, info->response_cmd);
 
-        if (!next2u(md->mx, md->my)) {
+        if (!m_next2u(md)) {
             SetVoice(md, 0, 80, 0);
             verbalize("Catch!");
         }
@@ -447,7 +448,8 @@ ckmailstatus(void)
         return;
     if (mustgetmail < 0) {
 #if defined(AMIGA) || defined(MSDOS) || defined(TOS)
-        mustgetmail = (gm.moves < 2000) ? (100 + rn2(2000)) : (2000 + rn2(3000));
+        mustgetmail = (svm.moves < 2000) ? (100 + rn2(2000))
+                                         : (2000 + rn2(3000));
 #endif
         return;
     }
@@ -488,11 +490,13 @@ readmail(struct obj *otmp UNUSED)
            (suboptimal but works correctly);
            dollar sign and fractional zorkmids are inappropriate within
            nethack but are suitable for typical dysfunctional spam mail */
-     "Buy a potion of gain level for only $19.99!  Guaranteed to be blessed!",
-        /* DEVTEAM_URL will be substituted for 2nd "%s"; terminating punctuation
-           (formerly "!") has deliberately been omitted so that it can't be
-           mistaken for part of the URL (unfortunately that is still followed
-           by a closing quote--in the pline below, not the data here) */
+        ("Buy a potion of gain level for only $19.99! "
+         " Guaranteed to be blessed!"),
+        /* DEVTEAM_URL will be substituted for 2nd "%s";
+           terminating punctuation (formerly "!") has deliberately been
+           omitted so that it can't be mistaken for part of the URL
+           (unfortunately that is still followed by a closing quote--in
+           the pline below, not the data here) */
         "%sInvitation: Visit the NetHack web site at %s%s"
     };
     const char *const it_reads = "It reads:  \"";
@@ -533,12 +537,12 @@ ckmailstatus(void)
 
     if (!mailbox || u.uswallow || !flags.biff
 #ifdef MAILCKFREQ
-        || gm.moves < laststattime + MAILCKFREQ
+        || svm.moves < laststattime + MAILCKFREQ
 #endif
         )
         return;
 
-    laststattime = gm.moves;
+    laststattime = svm.moves;
     if (stat(mailbox, &nmstat)) {
 #ifdef PERMANENT_MAILBOX
         pline("Cannot get status of MAIL=\"%s\" anymore.", mailbox);
@@ -568,7 +572,7 @@ ckmailstatus(void)
 void
 read_simplemail(const char *mbox, boolean adminmsg)
 {
-    FILE* mb = fopen(mbox, "r");
+    FILE *mb = fopen(mbox, "r");
     char curline[128], *msg;
     boolean seen_one_already = FALSE;
 #ifdef SIMPLE_MAIL
@@ -668,8 +672,8 @@ ck_server_admin_msg(void)
     static struct stat ost,nst;
     static long lastchk = 0;
 
-    if (gm.moves < lastchk + SERVER_ADMIN_MSG_CKFREQ) return;
-    lastchk = gm.moves;
+    if (svm.moves < lastchk + SERVER_ADMIN_MSG_CKFREQ) return;
+    lastchk = svm.moves;
 
     if (!stat(SERVER_ADMIN_MSG, &nst)) {
         if (nst.st_mtime > ost.st_mtime)
@@ -684,7 +688,7 @@ void
 readmail(struct obj *otmp UNUSED)
 {
 #ifdef DEF_MAILREADER /* This implies that UNIX is defined */
-    register const char *mr = 0;
+    const char *mr = 0;
 #endif /* DEF_MAILREADER */
 #ifdef SIMPLE_MAIL
     read_simplemail(mailbox, FALSE);

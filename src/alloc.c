@@ -1,9 +1,8 @@
-/* NetHack 3.7	alloc.c	$NHDT-Date: 1596498147 2020/08/03 23:42:27 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.18 $ */
+/* NetHack 3.7	alloc.c	$NHDT-Date: 1737281026 2025/01/19 02:03:46 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.38 $ */
 /* Copyright (c) Stichting Mathematisch Centrum, Amsterdam, 1985. */
 /*-Copyright (c) Robert Patrick Rankin, 2012. */
 /* NetHack may be freely redistributed.  See license for details. */
 
-/* to get the malloc() prototype from system.h */
 #define ALLOC_C /* comment line for pre-compiled headers */
 /* since this file is also used in auxiliary programs, don't include all the
    function declarations for all of nethack */
@@ -14,10 +13,11 @@
 #include "nhlua.h"
 #endif
 
-/*#define FITSint(x) FITSint_(x, __func__, (int) __LINE__)*/
-extern int FITSint_(LUA_INTEGER, const char *, int);
-/*#define FITSuint(x) FITSuint_(x, __func__, (int) __LINE__)*/
-extern unsigned FITSuint_(unsigned long long, const char *, int);
+
+/*#define FITSint(x) FITSint_(x, __func__, __LINE__)*/
+extern int FITSint_(LUA_INTEGER, const char *, int) NONNULLARG2;
+/*#define FITSuint(x) FITSuint_(x, __func__, __LINE__)*/
+extern unsigned FITSuint_(unsigned long long, const char *, int) NONNULLARG2;
 
 char *fmt_ptr(const genericptr) NONNULL;
 
@@ -26,25 +26,56 @@ char *fmt_ptr(const genericptr) NONNULL;
 #undef re_alloc
 #undef free
 extern void free(genericptr_t);
-static void heapmon_init(void);
+staticfn void heapmon_init(void);
 
 static FILE *heaplog = 0;
 static boolean tried_heaplog = FALSE;
 #endif
 
+/*
+ * For historical reasons, nethack's alloc() returns 'long *' rather
+ * than 'void *' or 'char *'.
+ *
+ * Some static analysis complains if it can't deduce that the number
+ * of bytes being allocated is a multiple of 'sizeof (long)'.  It
+ * recognizes that the following manipulation overcomes that via
+ * rounding the requested length up to the next long.  NetHack doesn't
+ * make a lot of tiny allocations, so this shouldn't waste much memory
+ * regardless of whether malloc() does something similar.  NetHack
+ * isn't expected to call alloc(0), but if that happens treat it as
+ * alloc(sizeof (long)) instead.
+ */
+#define ForceAlignedLength(LTH) \
+    do {                                                        \
+        if (!(LTH) || (LTH) % sizeof (long) != 0)               \
+            (LTH) += sizeof (long) - (LTH) % sizeof (long);     \
+    } while (0)
+
+#ifndef MONITOR_HEAP
 long *alloc(unsigned int) NONNULL;
 long *re_alloc(long *, unsigned int) NONNULL;
+#else
+    /* for #if MONITOR_HEAP, alloc() might return Null but only nhalloc()
+       should be calling it; nhalloc() never returns Null */
+long *alloc(unsigned int);
+long *re_alloc(long *, unsigned int);
+long *nhalloc(unsigned int, const char *, int) NONNULL;
+long *nhrealloc(long *, unsigned int, const char *, int) NONNULL;
+#endif
 ATTRNORETURN extern void panic(const char *, ...) PRINTF_F(1, 2) NORETURN;
 
 long *
 alloc(unsigned int lth)
 {
-    register genericptr_t ptr;
+    genericptr_t ptr;
 
+    ForceAlignedLength(lth);
     ptr = malloc(lth);
 #ifndef MONITOR_HEAP
     if (!ptr)
         panic("Memory allocation failure; cannot get %u bytes", lth);
+#else
+    /* for #if MONITOR_HEAP, failure is handled in nhalloc() */
 #endif
     return (long *) ptr;
 }
@@ -53,11 +84,16 @@ alloc(unsigned int lth)
 long *
 re_alloc(long *oldptr, unsigned int newlth)
 {
-    long *newptr = (long *) realloc((genericptr_t) oldptr, (size_t) newlth);
+    long *newptr;
+
+    ForceAlignedLength(newlth);
+    newptr = (long *) realloc((genericptr_t) oldptr, (size_t) newlth);
 #ifndef MONITOR_HEAP
     /* "extend to":  assume it won't ever fail if asked to shrink */
     if (newlth && !newptr)
         panic("Memory allocation failure; cannot extend to %u bytes", newlth);
+#else
+    /* for #if MONITOR_HEAP, failure is handled in nhrealloc() */
 #endif
     return newptr;
 }
@@ -102,7 +138,7 @@ fmt_ptr(const genericptr ptr)
 
 /* If ${NH_HEAPLOG} is defined and we can create a file by that name,
    then we'll log the allocation and release information to that file. */
-static void
+staticfn void
 heapmon_init(void)
 {
     char *logname = getenv("NH_HEAPLOG");
@@ -185,6 +221,10 @@ nhdupstr(const char *string, const char *file, int line)
     /* we've got some info about the caller, so use it instead of __func__ */
     unsigned len = FITSuint_(strlen(string), file, line);
 
+    if (FITSuint(len + 1, file, line) < len)
+        panic("nhdupstr: string length overflow, line %d of %s",
+              line, file);
+
     return strcpy((char *) nhalloc(len + 1, file, line), string);
 }
 #undef dupstr
@@ -197,22 +237,27 @@ nhdupstr(const char *string, const char *file, int line)
 char *
 dupstr(const char *string)
 {
-    unsigned len = FITSuint_(strlen(string), __func__, (int) __LINE__);
+    size_t len = strlen(string);
+
+    /* make sure len+1 doesn't overflow plain unsigned (for alloc()) */
+    if (len > (unsigned) (~0U - 1U))
+        panic("dupstr: string length overflow");
 
     return strcpy((char *) alloc(len + 1), string);
 }
 
-/* similar for reasonable size strings, but return the length of the input as well */
+/* similar for reasonable size strings, but return length of input as well */
 char *
 dupstr_n(const char *string, unsigned int *lenout)
 {
     size_t len = strlen(string);
 
     if (len >= LARGEST_INT)
-        panic("string too long");
+        panic("dupstr_n: string too long");
     *lenout = (unsigned int) len;
     return strcpy((char *) alloc(len + 1), string);
 }
+
 
 /* cast to int or panic on overflow; use via macro */
 int

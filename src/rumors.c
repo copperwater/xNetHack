@@ -41,14 +41,14 @@
  * and placed there by 'makedefs'.
  */
 
-static void unpadline(char *);
-static void init_rumors(dlb *);
-static char *get_rnd_line(dlb *, char *, unsigned, int (*)(int),
+staticfn void unpadline(char *);
+staticfn void init_rumors(dlb *);
+staticfn char *get_rnd_line(dlb *, char *, unsigned, int (*)(int),
                           long, long, unsigned);
-static void init_oracles(dlb *);
-static void others_check(const char *ftype, const char *, winid *);
-static void couldnt_open_file(const char *);
-static void init_CapMons(void);
+staticfn void init_oracles(dlb *);
+staticfn void others_check(const char *ftype, const char *, winid *);
+staticfn void couldnt_open_file(const char *);
+staticfn void init_CapMons(void);
 
 /* used by CapitalMon(); set up by init_CapMons(), released by free_CapMons();
    there's no need for these to be put into 'struct instance_globals g' */
@@ -62,7 +62,7 @@ extern const char bogon_codes[]; /* from do_name.c */
 
 /* makedefs pads short rumors, epitaphs, engravings, and hallucinatory
    monster names with trailing underscores; strip those off */
-static void
+staticfn void
 unpadline(char *line)
 {
     char *p = eos(line);
@@ -80,7 +80,7 @@ unpadline(char *line)
 
 DISABLE_WARNING_FORMAT_NONLITERAL
 
-static void
+staticfn void
 init_rumors(dlb *fp)
 {
     static const char rumors_header[] = "%d,%ld,%lx;%d,%ld,%lx;0,0,%lx\n";
@@ -170,7 +170,7 @@ getrumor(
         (void) dlb_fclose(rumors);
         if (count >= 50)
             impossible("Can't find non-cookie rumor?");
-        else if (!gi.in_mklev) /* avoid exercizing wisdom for graffiti */
+        else if (!gi.in_mklev) /* avoid exercising wisdom for graffiti */
             exercise(A_WIS, (adjtruth > 0));
     } else {
         couldnt_open_file(RUMORFILE);
@@ -307,7 +307,7 @@ rumor_check(void)
 DISABLE_WARNING_FORMAT_NONLITERAL
 
 /* 3.7: augments rumors_check(); test 'engrave' or 'epitaph' or 'bogusmon' */
-static void
+staticfn void
 others_check(
     const char *ftype, /* header: "{Engravings|Epitaphs|Bogus monsters}:" */
     const char *fname, /* filename: {ENGRAVEFILE|EPITAPHFILE|BOGUSMONFILE} */
@@ -419,7 +419,7 @@ RESTORE_WARNING_FORMAT_NONLITERAL
    chosen; however, if padlength is 0, lines following long lines are
    more likely than average to be picked, and lines after short lines
    are less likely */
-static char *
+staticfn char *
 get_rnd_line(
     dlb *fh,            /* already opened file */
     char *buf,          /* output buffer */
@@ -448,7 +448,7 @@ get_rnd_line(
         return buf;
     /* 'rumors' is about 3/4 of the way to the limit on a 16-bit config
        for the whole, roughly 3/8 of the way for either half; all active
-       configuations these days are at least 32-bits anyway */
+       configurations these days are at least 32-bits anyway */
     nhassert(filechunksize <= INT_MAX); /* essential for rn2() */
 
     /*
@@ -598,6 +598,7 @@ outrumor(
         return;
     case BY_COOKIE:
         pline(fortune_msg);
+        FALLTHROUGH;
     /* FALLTHRU */
     case BY_PAPER:
         pline("It reads:");
@@ -606,10 +607,10 @@ outrumor(
     pline1(line);
 }
 
-static void
+staticfn void
 init_oracles(dlb *fp)
 {
-    register int i;
+    int i;
     char line[BUFSZ];
     int cnt = 0;
 
@@ -617,7 +618,7 @@ init_oracles(dlb *fp)
     (void) dlb_fgets(line, sizeof line, fp); /* skip "don't edit" comment*/
     (void) dlb_fgets(line, sizeof line, fp);
     if (sscanf(line, "%5d\n", &cnt) == 1 && cnt > 0) {
-        go.oracle_cnt = (unsigned) cnt;
+        svo.oracle_cnt = (unsigned) cnt;
         go.oracle_loc = (unsigned long *) alloc((unsigned) cnt * sizeof(long));
         for (i = 0; i < cnt; i++) {
             (void) dlb_fgets(line, sizeof line, fp);
@@ -632,19 +633,19 @@ save_oracles(NHFILE *nhfp)
 {
     if (perform_bwrite(nhfp)) {
             if (nhfp->structlevel)
-                bwrite(nhfp->fd, (genericptr_t) &go.oracle_cnt,
-                       sizeof go.oracle_cnt);
-            if (go.oracle_cnt) {
+                bwrite(nhfp->fd, (genericptr_t) &svo.oracle_cnt,
+                       sizeof svo.oracle_cnt);
+            if (svo.oracle_cnt) {
                 if (nhfp->structlevel) {
                     bwrite(nhfp->fd, (genericptr_t) go.oracle_loc,
-                           go.oracle_cnt * sizeof (long));
+                           svo.oracle_cnt * sizeof (long));
                 }
             }
     }
     if (release_data(nhfp)) {
-        if (go.oracle_cnt) {
+        if (svo.oracle_cnt) {
             free((genericptr_t) go.oracle_loc);
-            go.oracle_loc = 0, go.oracle_cnt = 0, go.oracle_flg = 0;
+            go.oracle_loc = 0, svo.oracle_cnt = 0, go.oracle_flg = 0;
         }
     }
 }
@@ -653,13 +654,13 @@ void
 restore_oracles(NHFILE *nhfp)
 {
     if (nhfp->structlevel)
-        mread(nhfp->fd, (genericptr_t) &go.oracle_cnt, sizeof go.oracle_cnt);
+        mread(nhfp->fd, (genericptr_t) &svo.oracle_cnt, sizeof svo.oracle_cnt);
 
-    if (go.oracle_cnt) {
-        go.oracle_loc = (unsigned long *) alloc(go.oracle_cnt * sizeof(long));
+    if (svo.oracle_cnt) {
+        go.oracle_loc = (unsigned long *) alloc(svo.oracle_cnt * sizeof(long));
         if (nhfp->structlevel) {
             mread(nhfp->fd, (genericptr_t) go.oracle_loc,
-                  go.oracle_cnt * sizeof (long));
+                  svo.oracle_cnt * sizeof (long));
         }
         go.oracle_flg = 1; /* no need to call init_oracles() */
     }
@@ -675,7 +676,7 @@ outoracle(boolean special, boolean delphi)
 
     /* early return if we couldn't open ORACLEFILE on previous attempt,
        or if all the oracularities are already exhausted */
-    if (go.oracle_flg < 0 || (go.oracle_flg > 0 && go.oracle_cnt == 0))
+    if (go.oracle_flg < 0 || (go.oracle_flg > 0 && svo.oracle_cnt == 0))
         return;
 
     oracles = dlb_fopen(ORACLEFILE, "r");
@@ -684,17 +685,17 @@ outoracle(boolean special, boolean delphi)
         if (go.oracle_flg == 0) { /* if this is the first outoracle() */
             init_oracles(oracles);
             go.oracle_flg = 1;
-            if (go.oracle_cnt == 0)
+            if (svo.oracle_cnt == 0)
                 goto close_oracles;
         }
         /* oracle_loc[0] is the special oracle;
            oracle_loc[1..oracle_cnt-1] are normal ones */
-        if (go.oracle_cnt <= 1 && !special)
+        if (svo.oracle_cnt <= 1 && !special)
             goto close_oracles; /*(shouldn't happen)*/
-        oracle_idx = special ? 0 : rnd((int) go.oracle_cnt - 1);
+        oracle_idx = special ? 0 : rnd((int) svo.oracle_cnt - 1);
         (void) dlb_fseek(oracles, (long) go.oracle_loc[oracle_idx], SEEK_SET);
         if (!special) /* move offset of very last one into this slot */
-            go.oracle_loc[oracle_idx] = go.oracle_loc[--go.oracle_cnt];
+            go.oracle_loc[oracle_idx] = go.oracle_loc[--svo.oracle_cnt];
 
         tmpwin = create_nhwindow(NHW_TEXT);
         if (delphi)
@@ -758,7 +759,7 @@ doconsult(struct monst *oracl)
         break;
     case 'n':
         if (umoney <= (long) minor_cost /* don't even ask */
-            || (go.oracle_cnt == 1 || go.oracle_flg < 0))
+            || (svo.oracle_cnt == 1 || go.oracle_flg < 0))
             return ECMD_OK;
         Sprintf(qbuf, "\"Then dost thou desire a major one?\" (%d %s)",
                 major_cost, currency((long) major_cost));
@@ -768,7 +769,7 @@ doconsult(struct monst *oracl)
         break;
     }
     money2mon(oracl, (long) u_pay);
-    gc.context.botl = 1;
+    disp.botl = TRUE;
     if (!u.uevent.major_oracle && !u.uevent.minor_oracle)
         record_achievement(ACH_ORCL);
     add_xpts = 0; /* first oracle of each type gives experience points */
@@ -795,19 +796,19 @@ doconsult(struct monst *oracl)
     return ECMD_TIME;
 }
 
-static void
+staticfn void
 couldnt_open_file(const char *filename)
 {
-    int save_something = gp.program_state.something_worth_saving;
+    int save_something = program_state.something_worth_saving;
 
     /* most likely the file is missing, so suppress impossible()'s
        "saving and restoring might fix this" (unless the fuzzer,
        which escalates impossible to panic, is running) */
     if (!iflags.debug_fuzzer)
-        gp.program_state.something_worth_saving = 0;
+        program_state.something_worth_saving = 0;
 
     impossible("Can't open '%s' file.", filename);
-    gp.program_state.something_worth_saving = save_something;
+    program_state.something_worth_saving = save_something;
 }
 
 /* is 'word' a capitalized monster name that should be preceded by "the"?
@@ -829,6 +830,7 @@ CapitalMon(
 
     if (!CapMons)
         init_CapMons();
+    assert(CapMons != 0);
 
     wln = (unsigned) strlen(word);
     for (i = 0; i < CapMonSiz - 1; ++i) {
@@ -853,7 +855,7 @@ CapitalMon(
    having a capitalized type name like Green-elf or Archon, plus unique
    monsters whose "name" is a title rather than a personal name, plus
    hallucinatory monster names that fall into either of those categories */
-static void
+staticfn void
 init_CapMons(void)
 {
     unsigned pass;
@@ -870,7 +872,7 @@ init_CapMons(void)
         unsigned mndx, mgend;
 
         /* the first CapMonstCnt entries come from mons[].pmnames[] and
-           the next CapBogonCnt entries from from the 'bogusmons' file;
+           the next CapBogonCnt entries from the 'bogusmons' file;
            there is an extra entry for Null at the end, but that is only
            useful to force non-zero array size in case both mons[] and
            bogusmons get modified to have no applicable monster names */

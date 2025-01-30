@@ -10,7 +10,7 @@
  * These were moved here from save.c and restore.c between 3.6.3 and 3.7.0.
  */
 
-static int getidx(int, int);
+staticfn int getidx(int, int);
 
 #if defined(UNIX) || defined(WIN32)
 #define USE_BUFFERING
@@ -46,7 +46,7 @@ static FILE *bw_FILE[MAXFD] = {0,0,0,0,0};
  * Once buffered IO (stdio) has been enabled on the file
  * associated with a descriptor via fdopen():
  *
- *    1. If you use bufoff and bufon to try and toggle the
+ *    1. If you use bufoff and bufon to try to toggle the
  *       use of write vs fwrite; the code just tracks which
  *       routine is to be called through the tracking
  *       variables and acts accordingly.
@@ -66,7 +66,7 @@ static FILE *bw_FILE[MAXFD] = {0,0,0,0,0};
  *       happen.
  */
 
-static int
+staticfn int
 getidx(int fd, int flg)
 {
     int i, retval = -1;
@@ -194,7 +194,7 @@ bwrite(int fd, const genericptr_t loc, unsigned num)
         }
         if (failed) {
 #if defined(HANGUPHANDLING)
-            if (gp.program_state.done_hup)
+            if (program_state.done_hup)
                 nh_terminate(EXIT_FAILURE);
             else
 #endif
@@ -230,7 +230,7 @@ mread(int fd, genericptr_t buf, unsigned len)
         } else {
             pline("Read %d instead of %u bytes.", (int) rlen, len);
             display_nhwindow(WIN_MESSAGE, TRUE); /* flush before error() */
-            if (gp.program_state.restoring) {
+            if (program_state.restoring) {
                 (void) nhclose(fd);
                 (void) delete_savefile();
                 error("Error restoring old game.");

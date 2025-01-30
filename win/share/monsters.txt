@@ -1,3 +1,6 @@
+# monsters.txt - tile definitions for monsters
+#  Note: lines beginning with '# tile ' are not comments; other
+#  lines beginning with '#' are.
 . = (71, 108, 108)
 A = (0, 0, 0)
 B = (0, 182, 255)
@@ -46,6 +49,12 @@ Z = (195, 195, 195)
   ......JA.JA.....
   ................
 }
+#
+# Contributing artist: Kestrel Gregorich-Trevor 27-Dec-2020
+# Female ants are slightly larger than male ants, just like in real
+# life. I could have added wings to the male ants, but I felt that
+# doing so would lead to some confusion.
+#
 # tile 1 (giant ant,female)
 {
   ................
@@ -845,7 +854,7 @@ Z = (195, 195, 195)
   ................
 }
 #
-# Contributing artist: NullCGT 27-Dec-2020
+# Contributing artist: Kestrel Gregorich-Trevor 27-Dec-2020
 # Female wolves are slightly smaller than male wolves.
 # There wasn't a great way to show this without making winter wolves
 # look very similar to winter wolf cubs, so I just made the female
@@ -889,7 +898,7 @@ Z = (195, 195, 195)
   ...L.LLAA..PP...
   .....LL.........
 }
-# Contributing artist: NullCGT 27-Dec-2020
+# Contributing artist: Kestrel Gregorich-Trevor 27-Dec-2020
 # Female werewolves wear slightly different clothing.
 #
 # tile 45 (werewolf,female)
@@ -952,39 +961,39 @@ Z = (195, 195, 195)
 # tile 48 (warg,male)
 {
   ................
-  ...P..P....PP...
-  ...P.PP......P..
-  ..PPPP.......P.A
-  ..N.NPP......P.A
-  .P..PPPPP....P.A
-  PPPPDPPPPPPPPPAA
-  DPPNDPPPPPPPPPAA
-  ..DDDPPPPPPPPPAA
-  PNDNP.PPPPPPPPAA
-  .PPPPAPPPPAPP.A.
-  ...PAAPPAAAAPPAA
-  ...PAAP.AAAAP.A.
-  .PPPAAPAAAAAPAA.
-  ....PPPAA.PPPA..
+  ...P..0....P0...
+  ...0.0P......0..
+  ..0P0P.......P.A
+  ..N.N0P......0.A
+  .P..0P0P0....P.A
+  P0P0D0P0P0P0P0AA
+  DP0NDP0P0P0P0PAA
+  ..DDD0P0P0P0P0AA
+  0NDN0.0P0P0P0PAA
+  .0P0PAP0P0A0P.A.
+  ...PAA0PAAAA0PAA
+  ...0AAP.AAAAP.A.
+  .P0PAA0AAAAA0AA.
+  ....P0PAA.P0PA..
   ................
 }
 # tile 49 (warg,female)
 {
   ................
-  ...P..P.....P...
-  ...P.PP......P..
-  ..PPPP.......P.A
-  ..N.NPP......P.A
-  .P..PPPPP....P.A
-  PPPPDPPPPPPPPPAA
-  DPPNDPPPPPPPPPAA
-  ..DDDPPPPPPPPPAA
-  PNDNP.PPPPPPPPAA
-  .PPPPAPPPPAPP.A.
-  ...PAAPPAAAAPPAA
-  ...PAAP.AAAAP.A.
-  .PPPAAPAAAAAPAA.
-  ....PPPAA.PPPA..
+  ...P..0.....P...
+  ...0.0P......0..
+  ..0P0P.......P.A
+  ..N.N0P......0.A
+  .P..0P0P0....P.A
+  P0P0D0P0P0P0P0AA
+  DP0NDP0P0P0P0PAA
+  ..DDD0P0P0P0P0AA
+  0NDN0.0P0P0P0PAA
+  .0P0PAP0P0A0P.A.
+  ...PAA0PAAAA0PAA
+  ...0AAP.AAAAP.A.
+  .P0PAA0AAAAA0AA.
+  ....P0PAA.P0PA..
   ................
 }
 # tile 50 (winter wolf,male)
@@ -1424,7 +1433,7 @@ Z = (195, 195, 195)
   .....CCA...CA...
   ................
 }
-# Contributing artist: NullCGT 27-Dec-2020
+# Contributing artist: Kestrel Gregorich-Trevor 27-Dec-2020
 # Calico cats are almost exclusively female, so I turned the female cats
 # into calico cats. The other piece of logic behind this choice was that
 # players will probably really enjoy seeing different variants of their
@@ -1810,7 +1819,7 @@ Z = (195, 195, 195)
   ....LLL.LLL.....
   ................
 }
-# Contributing artist: NullCGT 27-Dec-2020
+# Contributing artist: Kestrel Gregorich-Trevor 27-Dec-2020
 # Female hobbits wear slightly different clothing.
 #
 # tile 93 (hobbit,female)
@@ -1832,7 +1841,7 @@ Z = (195, 195, 195)
   ....LLL.LLL.....
   ................
 }
-# Note from contributing artist: NullCGT 27-Dec-2020
+# Note from contributing artist: Kestrel Gregorich-Trevor 27-Dec-2020
 # Male and female dwarfs are not differentiated in any way whatsoever.
 # According to Terry Pratchett (in Unseen Academicals, if I remember
 # correctly) it is almost impossible to tell what gender a dwarf is,
@@ -2466,7 +2475,7 @@ Z = (195, 195, 195)
   ................
   ................
 }
-# Contributing artist: NullCGT 27-Dec-2020
+# Contributing artist: Kestrel Gregorich-Trevor 27-Dec-2020
 # Female leprechauns are clean-shaven. Although of course not one
 # hundred percent accurate, it's convenient visual shorthand.
 #
@@ -2793,7 +2802,7 @@ Z = (195, 195, 195)
   ................
   ................
 }
-# tile 146 (orc,male)
+# tile 144 (orc,male)
 {
   ................
   ................
@@ -2812,7 +2821,7 @@ Z = (195, 195, 195)
   ................
   ................
 }
-# tile 147 (orc,female)
+# tile 145 (orc,female)
 {
   ................
   ................
@@ -2831,7 +2840,7 @@ Z = (195, 195, 195)
   ................
   ................
 }
-# tile 148 (hill orc,male)
+# tile 146 (hill orc,male)
 {
   ................
   ................
@@ -2850,7 +2859,7 @@ Z = (195, 195, 195)
   ................
   ................
 }
-# tile 149 (hill orc,female)
+# tile 147 (hill orc,female)
 {
   ................
   ................
@@ -2869,7 +2878,7 @@ Z = (195, 195, 195)
   ................
   ................
 }
-# tile 144 (bugbear,male)
+# tile 148 (bugbear,male)
 {
   ................
   ................
@@ -2888,7 +2897,7 @@ Z = (195, 195, 195)
   ........CCA.....
   ................
 }
-# tile 145 (bugbear,female)
+# tile 149 (bugbear,female)
 {
   ................
   ................
@@ -4750,7 +4759,7 @@ Z = (195, 195, 195)
   ..BF.LLAALLAFB..
   ................
 }
-# Contributing artist: NullCGT 27-Dec-2020
+# Contributing artist: Kestrel Gregorich-Trevor 27-Dec-2020
 # Female Aleax wears slightly different clothing.
 #
 # tile 247 (Aleax,female)
@@ -4867,7 +4876,7 @@ Z = (195, 195, 195)
   ................
   ................
 }
-# Contributing artist: NullCGT 27-Dec-2020
+# Contributing artist: Kestrel Gregorich-Trevor 27-Dec-2020
 # Female archons are clean-shaven. Although of course not one
 # hundred percent accurate, it's convenient visual shorthand.
 #
@@ -5099,6 +5108,10 @@ Z = (195, 195, 195)
   ....CA...C......
   ................
 }
+# Note from contributing artist: Kestrel Gregorich-Trevor 27-Dec-2020
+# Centaur tiles have no differentiation because the different types of
+# centaurs are already extremely difficult to tell apart from one another.
+#
 # tile 265 (plains centaur,female)
 {
   ................
@@ -6543,7 +6556,7 @@ Z = (195, 195, 195)
   ................
   ................
 }
-# Contributing artist: NullCGT 27-Dec-2020
+# Contributing artist: Kestrel Gregorich-Trevor 27-Dec-2020
 # Female gnomes are clean-shaven. Although of course not one
 # hundred percent accurate, it's convenient visual shorthand.
 #
@@ -6585,7 +6598,7 @@ Z = (195, 195, 195)
   ................
   ................
 }
-# Contributing artist: NullCGT 27-Dec-2020
+# Contributing artist: Kestrel Gregorich-Trevor 27-Dec-2020
 # Female gnome leaders are clean-shaven. Although of course not one
 # hundred percent accurate, it's convenient visual shorthand.
 #
@@ -6665,7 +6678,7 @@ Z = (195, 195, 195)
   ................
   ................
 }
-# Contributing artist: NullCGT 27-Dec-2020
+# Contributing artist: Kestrel Gregorich-Trevor 27-Dec-2020
 # Female gnome rulers are clean-shaven. Although of course not one
 # hundred percent accurate, it's convenient visual shorthand.
 #
@@ -6859,7 +6872,7 @@ Z = (195, 195, 195)
   .....CLJACLJAAAA
   ...LLLLJ.CLLLKAA
 }
-# Contributing artist: NullCGT 27-Dec-2020
+# Contributing artist: Kestrel Gregorich-Trevor 27-Dec-2020
 # Female frost giants are clean-shaven. Although of course not one
 # hundred percent accurate, it's convenient visual shorthand.
 #
@@ -7015,7 +7028,7 @@ Z = (195, 195, 195)
   ....CLCACLCAAAAA
   ..LLLLL.LLLLLAA.
 }
-# Contributing artist: NullCGT 27-Dec-2020
+# Contributing artist: Kestrel Gregorich-Trevor 27-Dec-2020
 # Female minotaurs wear slightly different clothing.
 #
 # tile 365 (minotaur,female)
@@ -7474,7 +7487,7 @@ Z = (195, 195, 195)
   ................
   ................
 }
-# Contributing artist: NullCGT 27-Dec-2020
+# Contributing artist: Kestrel Gregorich-Trevor 27-Dec-2020
 # Female gnome mummies are clean-shaven. Although of course not one
 # hundred percent accurate, it's convenient visual shorthand.
 #
@@ -8124,7 +8137,7 @@ Z = (195, 195, 195)
   ....CJJJCLAAAAAA
   ..LLLLL.LLLLLAA.
 }
-# Contributing artist: NullCGT 27-Dec-2020
+# Contributing artist: Kestrel Gregorich-Trevor 27-Dec-2020
 # Female ogre tyrants have slightly different crowns.
 #
 # tile 423 (ogre tyrant,female)
@@ -9080,7 +9093,7 @@ Z = (195, 195, 195)
   ....NAAEBAANN...
   ................
 }
-# Contributing artist: NullCGT 27-Dec-2020
+# Contributing artist: Kestrel Gregorich-Trevor 27-Dec-2020
 # Female quantum mechanics have a different hairstyle and no beard.
 #
 # tile 473 (quantum mechanic,female)
@@ -9140,7 +9153,7 @@ Z = (195, 195, 195)
   ......CFFCAA....
   ....IIC.IIA.....
 }
-# Note from contributing artist: NullCGT 27-Dec-2020
+# Note from contributing artist: Kestrel Gregorich-Trevor 27-Dec-2020
 # Male and female genetic engineers look the same, because the genetic
 # engineer tile is perfect.
 #
@@ -9391,7 +9404,7 @@ Z = (195, 195, 195)
   .J.....LLAA.....
   ................
 }
-# Contributing artist: NullCGT 27-Dec-2020
+# Contributing artist: Kestrel Gregorich-Trevor 27-Dec-2020
 # Female barrow wights look like old grandmothers with flyaway hair. I
 # kept the hair color the same and used a similar quantity of pixels so
 # that they look similar enough to the males that you can tell they are
@@ -10651,7 +10664,7 @@ Z = (195, 195, 195)
   ................
   ................
 }
-# Contributing artist: NullCGT 27-Dec-2020
+# Contributing artist: Kestrel Gregorich-Trevor 27-Dec-2020
 # Female humans wear slightly different clothing.
 #
 # tile 555 (human,female)
@@ -10730,7 +10743,7 @@ Z = (195, 195, 195)
   ................
   ................
 }
-# Contributing artist: NullCGT 27-Dec-2020
+# Contributing artist: Kestrel Gregorich-Trevor 27-Dec-2020
 # Female werejackals wear slightly different clothing.
 #
 # tile 559 (werejackal,female)
@@ -10771,7 +10784,7 @@ Z = (195, 195, 195)
   ................
   ................
 }
-# Contributing artist: NullCGT 27-Dec-2020
+# Contributing artist: Kestrel Gregorich-Trevor 27-Dec-2020
 # Female werewolves wear slightly different clothing.
 #
 # tile 561 (werewolf,female)
@@ -10888,7 +10901,7 @@ Z = (195, 195, 195)
   .....BPPABPPAAAA
   ....BPPP.BPPPAAA
 }
-# Contributing artist: NullCGT 27-Dec-2020
+# Contributing artist: Kestrel Gregorich-Trevor 27-Dec-2020
 # Female guards are clean-shaven. Although of course not one
 # hundred percent accurate, it's convenient visual shorthand.
 #
@@ -11714,18 +11727,18 @@ Z = (195, 195, 195)
   ................
   ......OPP.O.....
   ......PPPP......
-  .....CPPDP......
-  ....CCCPPP......
-  ....CCPPPP......
-  ....C..PPA......
-  .....DDAADD.AAA.
-  ....DDDDDDDDAAA.
-  ....DADDDDADAAA.
-  ....DADDDDADAAA.
-  ....DADDDDADAAA.
-  ......DAADAAAA..
-  ......DAADAA.A..
-  .....DDA.DDA....
+  .....KPPDP......
+  ....KJJPPP......
+  ....KJPPPP......
+  ....K..PPA......
+  .....GGAAGG.AAA.
+  ....FDFDFDFDAAA.
+  ..G.GADGDFAGAGA.
+  ....GAFGFGAGAAA.
+  ..G.DADFDGAFAAA.
+  ......GAADAAAG..
+  .F.G..GAAFAA.A..
+  .....DFA.GGA..F.
   ................
 }
 # tile 611 (vrock,female)
@@ -11733,18 +11746,18 @@ Z = (195, 195, 195)
   ................
   ......OPP.O.....
   ......PPPP......
-  .....CPPDP......
-  ....CCCPPP......
-  ....CCPPPP......
-  ....C..PPA......
-  .....DDAADD.AAA.
-  ....DDDDDDDDAAA.
-  ....DADDDDADAAA.
-  ....DADDDDADAAA.
-  ....DADDDDADAAA.
-  ......DAADAAAA..
-  ......DAADAA.A..
-  .....DDA.DDA....
+  .....LPPGP......
+  ....LCCPPP......
+  ....LCPPPP......
+  ....L..PPA......
+  .....GGAAGG.AAA.
+  ....FDFDFDFDAAA.
+  ..G.GADGDFAGAGA.
+  ....GAFGFGAGAAA.
+  ..G.DADFDGAFAAA.
+  ......GAADAAAG..
+  .F.G..GAAFAA.A..
+  .....DFA.GGA..F.
   ................
 }
 # tile 612 (hezrou,male)
@@ -13096,7 +13109,7 @@ Z = (195, 195, 195)
   .....CJJ.JKJ....
   ................
 }
-# Contributing artist: NullCGT 27-Dec-2020
+# Contributing artist: Kestrel Gregorich-Trevor 27-Dec-2020
 # Female archeologist tile is a reference to a certain archeologist
 # known for raiding tombs.
 #
@@ -14335,43 +14348,45 @@ Z = (195, 195, 195)
   ....CJJJCLAAAAAA
   ..LLLLL.LLLLLAA.
 }
+#: Ixoth is a male red dragon
+#: [for many years his tile erroneously depicted a demon]
 # tile 748 (Ixoth,male)
 {
-  ....O......O....
-  ....O......O....
-  ...LOOCDDCOOL...
-  ...DDDDDDDDDDD..
-  .CCDDDGDDGDDDCC.
-  CCDKDDDDDDDDJCCC
-  CDDKKKDIIDJJDCCD
-  CDDKDDKJJJDDDCDD
-  CCDKDDDDDDDDKCDD
-  .CCDKKDDDDKKCDDD
-  .CCDADKDDKDACDD.
-  .DDDADDDDDDADDD.
-  ....CCDDDDKKAA..
-  ...CDDDAADDDKAA.
-  ..CDDDAAA.DDDK..
-  ................
+  ......O.........
+  ...KJ.DDD.O.....
+  ..KJODDDKKDD..O.
+  .KJCDIDKJJJDDDDD
+  .KJDDDKJJJJJAAA.
+  .KJDDKJJKJDAAA..
+  .CJODCJKJDDDA...
+  .CJIDCKJDADDA...
+  .ACDOCKDAAAD....
+  .AADDDCDAAAA....
+  ..DDDOICOAAA....
+  .DDDOODIODA.....
+  .DDADDDDCDA.....
+  DDAADGDDGDD.....
+  DDDAADDDDADD....
+  ADD.AADD..AD....
 }
 # tile 749 (Ixoth,female)
 {
-  ....O......O....
-  ....O......O....
-  ...LOOCDDCOOL...
-  ...DDDDDDDDDDD..
-  .CCDDDGDDGDDDCC.
-  CCDKDDDDDDDDJCCC
-  CDDKKKDIIDJJDCCD
-  CDDKDDKJJJDDDCDD
-  CCDKDDDDDDDDKCDD
-  .CCDKKDDDDKKCDDD
-  .CCDADKDDKDACDD.
-  .DDDADDDDDDADDD.
-  ....CCDDDDKKAA..
-  ...CDDDAADDDKAA.
-  ..CDDDAAA.DDDK..
-  ................
+  ......O.........
+  ...KJ.DDD.O.....
+  ..KJODDDKKDD..O.
+  .KJCDIDKJJJDDDDD
+  .KJDDDKJJJJJAAA.
+  .KJDDKJJKJDAAA..
+  .CJODCJKJDDDA...
+  .CJIDCKJDADDA...
+  .ACDOCKDAAAD....
+  .AADDDCDAAAA....
+  ..DDDOICOAAA....
+  .DDDOODIODA.....
+  .DDADDDDCDA.....
+  DDAADGDDGDD.....
+  DDDAADDDDADD....
+  ADD.AADD..AD....
 }
 # tile 750 (Master Kaen,male)
 {

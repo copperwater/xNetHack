@@ -1,4 +1,4 @@
-NetHack 3.7  sound.txt	$NHDT-Date: $  $NHDT-Branch: $:$NHDT-Revision: $
+NetHack 3.7  sound.txt	$NHDT-Date: 1693253363 2023/08/28 20:09:23 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.7 $
 
 Introduction
 
@@ -282,7 +282,7 @@ gc.chosen_soundlib
 ga.active_soundlib
 a usersound mappings reference
 
-iflags.sounds is the master on/off swith to control whether any audio
+iflags.sounds is the master on/off switch to control whether any audio
 is produced by the soundlib interface
 
 iflags.voice is the master on/off switch for voices produced by
@@ -508,8 +508,8 @@ use the following guidelines:
                         Windows with Visual studio nmake at the command
                         line.
 
-       sys/windows/Makefile.mingw32
-       sys/windows/Makefile.mingw32.depend
+       sys/windows/GNUmakefile
+       sys/windows/GNUmakefile.depend
 
                         Will require updates in order to build on
                         Windows with mingw32 or MSYS2 using GNU make at

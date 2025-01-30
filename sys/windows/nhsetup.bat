@@ -1,6 +1,6 @@
 @REM  NetHack 3.7	nhsetup.bat	$NHDT-Date: 1596498315 2020/08/03 23:45:15 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.40 $ */
-@REM  Copyright (c) NetHack Development Team 1993-2022
-@REM  NetHack may be freely redistributed.  See license for details. 
+@REM  Copyright (c) NetHack Development Team 1993-2024
+@REM  NetHack may be freely redistributed.  See license for details.
 @REM  Win32 setup batch file, see Install.windows for details
 @REM
 @echo off
@@ -31,20 +31,27 @@ echo Directories look ok.
 
 :movemakes
 echo Moving Makefiles into ..\..\src for those not using Visual Studio
-REM Some file movemet for those that still want to use MAKE or NMAKE and a Makefile
+REM Some file movement for those that still want to use MAKE or NMAKE and a Makefile
 :do_tty
 if NOT exist %BINPATH%\*.* mkdir %BINPATH%
 if NOT exist %BINPATH%\license copy ..\..\dat\license %BINPATH%\license >nul
-echo Copying Microsoft Makefile - Makefile.nmake to ..\..\src\Makefile...
-if NOT exist ..\..\src\Makefile goto :donmake
+
+echo Copying Microsoft Makefile - Makefile.nmake to ..\..\src\Makefile
+if NOT exist ..\..\src\Makefile goto donenmake
 copy ..\..\src\Makefile ..\..\src\Makefile-orig >nul
 echo      Your existing
 echo           ..\..\src\Makefile
 echo      has been renamed to
 echo           ..\..\src\Makefile-orig
-:donmake
-copy Makefile.nmake ..\..\src\Makefile >nul
-echo Microsoft Makefile copied ok.
+:donenmake
+copy /Y Makefile.nmake ..\..\src\Makefile >nul
+echo Microsoft nmake Makefile.nmake copy to ..\..\src\Makefile completed.
+
+echo Copying mingw-w64 GNUmakefile to ..\..\src\GNUmakefile
+copy /Y GNUmakefile ..\..\src\GNUmakefile >nul
+echo Copying mingw-w64 GNUmakefile.depend to ..\..\src\GNUmakefile.depend
+copy /Y GNUmakefile.depend ..\..\src\GNUmakefile.depend >nul
+echo mingw-w64 Makefile copies to ..\..\src completed.
 
 echo Done copying files.
 goto :done
@@ -57,7 +64,7 @@ goto :fini
 :done
 echo done!
 echo.
-echo Proceed with the next step documented in Install.windows 
+echo Proceed with the next step documented in Install.windows
 echo.
 
 :fini

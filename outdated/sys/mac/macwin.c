@@ -3275,9 +3275,6 @@ struct window_procs mac_procs = {
     tty_change_color, tty_change_background, set_tty_font_name,
     tty_get_color_string,
 #endif
-    /* other defs that really should go away (they're tty specific) */
-    0, //    mac_start_screen,
-    0, //    mac_end_screen,
     genl_outrip, genl_preference_update, genl_can_suspend_no,
 };
 

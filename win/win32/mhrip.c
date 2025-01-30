@@ -56,6 +56,7 @@ mswin_init_RIP_window(void)
 
     ZeroMemory(data, sizeof(NHRIPWindow));
     SetWindowLongPtr(ret, GWLP_USERDATA, (LONG_PTR) data);
+    windowdata[NHW_RIP].address = (genericptr_t) data;
     return ret;
 }
 
@@ -227,7 +228,7 @@ NHRIPWndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
             GetNHApp()->hMainWnd = NULL;
         DestroyWindow(hWnd);
         SetFocus(GetNHApp()->hMainWnd);
-        gp.program_state.stopprint++;
+        program_state.stopprint++;
         return TRUE;
 
     case WM_DESTROY:
@@ -240,6 +241,7 @@ NHRIPWndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
                 DeleteObject(data->rip_bmp);
             free(data);
             SetWindowLongPtr(hWnd, GWLP_USERDATA, (LONG_PTR) 0);
+            windowdata[NHW_RIP].address = 0;
         }
         break;
     }
@@ -262,13 +264,20 @@ onMSNHCommand(HWND hWnd, WPARAM wParam, LPARAM lParam)
             text_size = strlen(msg_data->text) + 4;
             data->window_text =
                 (TCHAR *) malloc(text_size * sizeof(data->window_text[0]));
-            ZeroMemory(data->window_text,
-                       text_size * sizeof(data->window_text[0]));
+            if (data->window_text) {
+                ZeroMemory(data->window_text,
+                           text_size * sizeof(data->window_text[0]));
+            }
         } else {
+            TCHAR *was = data->window_text;
+
             text_size =
                 _tcslen(data->window_text) + strlen(msg_data->text) + 4;
             data->window_text = (TCHAR *) realloc(
                 data->window_text, text_size * sizeof(data->window_text[0]));
+            if (!data->window_text) {
+                free(was);
+            }
         }
         if (!data->window_text)
             break;
@@ -288,6 +297,7 @@ onMSNHCommand(HWND hWnd, WPARAM wParam, LPARAM lParam)
             break;
 
     }
+    nhUse(InRipText);
 }
 
 void

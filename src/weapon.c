@@ -1,4 +1,4 @@
-/* NetHack 3.7	weapon.c	$NHDT-Date: 1646688071 2022/03/07 21:21:11 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.100 $ */
+/* NetHack 3.7	weapon.c	$NHDT-Date: 1725227810 2024/09/01 21:56:50 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.128 $ */
 /* Copyright (c) Stichting Mathematisch Centrum, Amsterdam, 1985. */
 /*-Copyright (c) Robert Patrick Rankin, 2011. */
 /* NetHack may be freely redistributed.  See license for details. */
@@ -10,12 +10,12 @@
  */
 #include "hack.h"
 
-static void give_may_advance_msg(int);
-static void finish_towel_change(struct obj *obj, int);
-static boolean could_advance(int);
-static boolean peaked_skill(int);
-static int slots_required(int);
-static void skill_advance(int);
+staticfn void give_may_advance_msg(int);
+staticfn void finish_towel_change(struct obj *obj, int) NONNULLARG1;
+staticfn boolean could_advance(int);
+staticfn boolean peaked_skill(int);
+staticfn int slots_required(int);
+staticfn void skill_advance(int);
 
 /* Categories whose names don't come from OBJ_NAME(objects[type])
  */
@@ -66,10 +66,12 @@ static NEARDATA const char *const barehands_or_martial[] = {
                ? barehands_or_martial[martial_bonus()]  \
                : odd_skill_names[-skill_names_indices[type]])
 
-static NEARDATA const char kebabable[] = { S_XORN, S_DRAGON, S_JABBERWOCK,
-                                           S_NAGA, S_GIANT,  '\0' };
+/* targets that provide attacker with small to-hit bonus when using a spear */
+static NEARDATA const char kebabable[] = {
+    S_XORN, S_DRAGON, S_JABBERWOCK, S_NAGA, S_GIANT,  '\0'
+};
 
-static void
+staticfn void
 give_may_advance_msg(int skill)
 {
     You_feel("more confident in your %sskills.",
@@ -77,7 +79,7 @@ give_may_advance_msg(int skill)
                  : (skill <= P_LAST_WEAPON) ? "weapon "
                      : (skill <= P_LAST_SPELL) ? "spell casting "
                          : "fighting ");
-    handle_tip(TIP_ENHANCE);
+    (void) handle_tip(TIP_ENHANCE);
 }
 
 /* weapon's skill category name for use as generalized description of weapon;
@@ -184,7 +186,7 @@ hitval(struct obj *otmp, struct monst *mon)
 }
 
 /* Historical note: The original versions of Hack used a range of damage
- * which was similar to, but not identical to the damage used in Advanced
+ * which was similar to, but not identical to, the damage used in Advanced
  * Dungeons and Dragons.  I figured that since it was so close, I may as well
  * make it exactly the same as AD&D, adding some more weapons in the process.
  * This has the advantage that it is at least possible that the player would
@@ -439,7 +441,7 @@ special_dmgval(struct monst *magr,
     if (try_body && mon_hates_material(mdef, magr_material)) {
         bonus = sear_damage(magr_material);
         if (hated_obj)
-            *hated_obj = (struct obj *) &cg.zeroobj;
+            *hated_obj = &hands_obj;
     }
 
     /* The order of armor slots in this array doesn't really matter because we
@@ -497,9 +499,9 @@ special_dmgval(struct monst *magr,
  */
 void
 searmsg(
-    struct monst *magr,
+    struct monst *magr, /* can be null if mdef is searing themselves */
     struct monst *mdef,
-    struct obj *obj, /* the offending item, or &cg.zeroobj if magr's body */
+    struct obj *obj, /* the offending item, or &hands_obj if magr's body */
     boolean minimal) /* print a shorter message leaving out obj details */
 {
     boolean youattack = (magr == &gy.youmonst);
@@ -518,7 +520,7 @@ searmsg(
     char whose[BUFSZ];
     int mat;
 
-    if (obj == &cg.zeroobj) {
+    if (obj == &hands_obj) {
         if (youattack) {
             Strcpy(whose, "your ");
         }
@@ -615,19 +617,27 @@ static struct obj *oselect(struct monst *, int, boolean);
     } while (0)
 
 static struct obj *
-oselect(struct monst *mtmp, int otyp, boolean missile)
+oselect(struct monst *mtmp, int type, boolean missile)
 {
     struct obj *otmp;
 
     for (otmp = mtmp->minvent; otmp; otmp = otmp->nobj) {
-        if (otmp->otyp == otyp
-            /* never select non-cockatrice corpses */
-            && !((otyp == CORPSE || otyp == EGG)
-                 && !touch_petrifies(&mons[otmp->corpsenm]))
-            && (!otmp->oartifact || touch_artifact(otmp, mtmp))
-            && !mon_hates_material(mtmp, otmp->material)
-            && !(missile && undroppable(otmp)))
-            return otmp;
+        if (otmp->otyp != type)
+            continue;
+
+        /* never select non-cockatrice corpses */
+        if ((type == CORPSE || type == EGG)
+            && (otmp->corpsenm == NON_PM
+                || !touch_petrifies(&mons[otmp->corpsenm])))
+            continue;
+
+        if (!can_touch_safely(mtmp, otmp))
+            continue;
+
+        if (missile && undroppable(otmp))
+            continue;
+
+        return otmp;
     }
     return (struct obj *) 0;
 }
@@ -647,14 +657,14 @@ static NEARDATA const int pwep[] = { HALBERD,  GLAIVE, BEC_DE_CORBIN,
 struct obj *
 select_rwep(struct monst *mtmp)
 {
-    register struct obj *otmp;
+    struct obj *otmp;
     struct obj *mwep;
     boolean mweponly;
     int i;
 
     char mlet = mtmp->data->mlet;
 
-    gp.propellor = (struct obj *) &cg.zeroobj;
+    gp.propellor = &hands_obj;
     Oselect(EGG, TRUE);           /* cockatrice egg */
     if (mlet == S_KOP)            /* pies are first choice for Kops */
         Oselect(CREAM_PIE, TRUE);
@@ -712,7 +722,7 @@ select_rwep(struct monst *mtmp)
         }
 
         /* KMH -- This belongs here so darts will work */
-        gp.propellor = (struct obj *) &cg.zeroobj;
+        gp.propellor = &hands_obj;
 
         prop = objects[rwep[i]].oc_skill;
         if (prop < 0) {
@@ -736,9 +746,9 @@ select_rwep(struct monst *mtmp)
                 && mtmp->weapon_check == NO_WEAPON_WANTED)
                 gp.propellor = 0;
         }
-        /* gp.propellor = obj, propellor to use
-         * gp.propellor = &cg.zeroobj, doesn't need a propellor
-         * gp.propellor = 0, needed one and didn't have one
+        /* propellor = obj, propellor to use
+         * propellor = &hands_obj, doesn't need a propellor
+         * propellor = 0, needed one and didn't have one
          */
         if (gp.propellor != 0) {
             /* Don't throw a cursed weapon-in-hand or an artifact */
@@ -782,8 +792,8 @@ static const NEARDATA short hwep[] = {
 struct obj *
 select_hwep(struct monst *mtmp)
 {
-    register struct obj *otmp;
-    register int i;
+    struct obj *otmp;
+    int i;
     boolean strong = strongmonst(mtmp->data);
     boolean wearing_shield = (mtmp->misc_worn_check & W_ARMS) != 0;
 
@@ -799,6 +809,8 @@ select_hwep(struct monst *mtmp)
 
     if (is_giant(mtmp->data)) /* giants just love to use clubs */
         Oselect(CLUB, FALSE);
+    else if (mtmp->data == &mons[PM_BALROG] && uwep)
+        Oselect(BULLWHIP, FALSE);
 
     /* only strong monsters can wield big (esp. long) weapons */
     /* big weapon is basically the same as bimanual */
@@ -838,7 +850,7 @@ possibly_unwield(struct monst *mon, boolean polyspot)
         mon->weapon_check = NO_WEAPON_WANTED;
         /* if we're going to call distant_name(), do so before extract_self */
         if (cansee(mon->mx, mon->my)) {
-            pline("%s drops %s.", Monnam(mon), distant_name(obj, doname));
+            pline_mon(mon, "%s drops %s.", Monnam(mon), distant_name(obj, doname));
             newsym(mon->mx, mon->my);
         }
         obj_extract_self(obj);
@@ -888,11 +900,11 @@ mon_wield_item(struct monst *mon)
         struct obj *otmp_h = select_hwep(mon);
         struct obj *otmp_r = select_rwep(mon);
         if (otmp_r) {
-            /* assumes that if select_rwep leaves gp.propellor == cg.zeroobj, the
+            /* assumes that if select_rwep leaves gp.propellor == hands_obj, the
              * ranged weapon selected doesn't have a launcher; rather than
              * wasting this call wielding nothing, since we also have a melee
              * weapon available, use that */
-            if (otmp_h && (gp.propellor == &cg.zeroobj || !rn2(2))) {
+            if (otmp_h && (gp.propellor == &hands_obj || !rn2(2))) {
                 obj = otmp_h;
             }
             else {
@@ -941,7 +953,7 @@ mon_wield_item(struct monst *mon)
                    mon_nam(mon));
         return 0;
     }
-    if (obj && obj != &cg.zeroobj) {
+    if (obj && obj != &hands_obj) {
         struct obj *mw_tmp = MON_WEP(mon);
 
         if (mw_tmp && mw_tmp->otyp == obj->otyp) {
@@ -970,7 +982,7 @@ mon_wield_item(struct monst *mon)
                     pline("%s cannot wield that %s.", mon_nam(mon),
                           xname(obj));
                 } else {
-                    pline("%s tries to wield %s.", Monnam(mon), doname(obj));
+                    pline_mon(mon, "%s tries to wield %s.", Monnam(mon), doname(obj));
                     pline("%s %s!", Yname2(mw_tmp), welded_buf);
                 }
                 mw_tmp->bknown = 1;
@@ -984,8 +996,9 @@ mon_wield_item(struct monst *mon)
         if (!gi.in_mklev && canseemon(mon)) {
             boolean newly_welded;
 
-            pline("%s wields %s%c", Monnam(mon), doname(obj),
-                  exclaim ? '!' : '.');
+            pline_mon(mon, "%s wields %s%c",
+                      Monnam(mon), doname(obj),
+                      exclaim ? '!' : '.');
             /* 3.6.3: mwelded() predicate expects the object to have its
                W_WEP bit set in owormmask, but the pline here and for
                artifact_light don't want that because they'd have '(weapon
@@ -1101,7 +1114,7 @@ dbon(void)
 }
 
 /* called when wet_a_towel() or dry_a_towel() is changing a towel's wetness */
-static void
+staticfn void
 finish_towel_change(struct obj *obj, int newspe)
 {
     /* towel wetness is always between 0 (dry) and 7, inclusive */
@@ -1120,10 +1133,10 @@ finish_towel_change(struct obj *obj, int newspe)
 
 /* increase a towel's wetness */
 void
-wet_a_towel(struct obj *obj,
-            int amt, /* positive: new value; negative: increment by -amt;
-                        zero: no-op */
-            boolean verbose)
+wet_a_towel(
+    struct obj *obj,
+    int amt, /* positive: new val; negative: increment by -amt; zero: no-op */
+    boolean verbose)
 {
     int newspe = (amt <= 0) ? obj->spe - amt : amt;
 
@@ -1243,7 +1256,7 @@ skill_name(int skill)
 }
 
 /* return the # of slots required to advance the skill */
-static int
+staticfn int
 slots_required(int skill)
 {
     int tmp = P_SKILL(skill);
@@ -1284,7 +1297,7 @@ can_advance(int skill, boolean speedy)
 }
 
 /* return true if this skill could be advanced if more slots were available */
-static boolean
+staticfn boolean
 could_advance(int skill)
 {
     if (P_RESTRICTED(skill)
@@ -1298,7 +1311,7 @@ could_advance(int skill)
 
 /* return true if this skill has reached its maximum and there's been enough
    practice to become eligible for the next step if that had been possible */
-static boolean
+staticfn boolean
 peaked_skill(int skill)
 {
     if (P_RESTRICTED(skill))
@@ -1309,7 +1322,7 @@ peaked_skill(int skill)
                           >= practice_needed_to_advance(P_SKILL(skill))));
 }
 
-static void
+staticfn void
 skill_advance(int skill)
 {
     u.weapon_slots -= slots_required(skill);
@@ -1324,6 +1337,12 @@ skill_advance(int skill)
     You("are now %s skilled in %s.",
         P_SKILL(skill) >= P_MAX_SKILL(skill) ? "most" : "more",
         P_NAME(skill));
+
+    /* wizards discover spellbook IDs depending on spell 'school' skill limits;
+       this allows them to successfully write books for unknown spells without
+       the Luck bias they used to have over other roles */
+    if (skill >= P_FIRST_SPELL && skill <= P_LAST_SPELL)
+        skill_based_spellbook_id();
 }
 
 static const struct skill_range {
@@ -1353,10 +1372,10 @@ enhance_weapon_skill(void)
     anything any;
     winid win;
     boolean speedy = FALSE;
-    int clr = 0;
+    int clr = NO_COLOR;
 
     /* player knows about #enhance, don't show tip anymore */
-    gc.context.tips[TIP_ENHANCE] = TRUE;
+    svc.context.tips[TIP_ENHANCE] = TRUE;
 
     if (wizard && y_n("Advance skills without practice?") == 'y')
         speedy = TRUE;
@@ -1383,25 +1402,21 @@ enhance_weapon_skill(void)
         /* start with a legend if any entries will be annotated
            with "*" or "#" below */
         if (eventually_advance > 0 || maxxed_cnt > 0) {
-            any = cg.zeroany;
             if (eventually_advance > 0) {
                 Sprintf(buf, "(Skill%s flagged by \"*\" may be enhanced %s.)",
                         plur(eventually_advance),
                         (u.ulevel < MAXULEV)
                             ? "when you're more experienced"
                             : "if skill slots become available");
-                add_menu(win, &nul_glyphinfo, &any, 0, 0,
-                         ATR_NONE, clr, buf, MENU_ITEMFLAGS_NONE);
+                add_menu_str(win, buf);
             }
             if (maxxed_cnt > 0) {
                 Sprintf(buf,
                  "(Skill%s flagged by \"#\" cannot be enhanced any further.)",
                         plur(maxxed_cnt));
-                add_menu(win, &nul_glyphinfo, &any, 0, 0,
-                         ATR_NONE, clr, buf, MENU_ITEMFLAGS_NONE);
+                add_menu_str(win, buf);
             }
-            add_menu(win, &nul_glyphinfo, &any, 0, 0,
-                     ATR_NONE, clr, "", MENU_ITEMFLAGS_NONE);
+            add_menu_str(win, "");
         }
 
         /* List the skills, making ones that could be advanced
@@ -1414,9 +1429,7 @@ enhance_weapon_skill(void)
                 /* Print headings for skill types */
                 any = cg.zeroany;
                 if (i == skill_ranges[pass].first)
-                    add_menu(win, &nul_glyphinfo, &any, 0, 0,
-                             iflags.menu_headings, clr,
-                             skill_ranges[pass].name, MENU_ITEMFLAGS_NONE);
+                    add_menu_heading(win, skill_ranges[pass].name);
 
                 if (P_RESTRICTED(i))
                     continue;
@@ -1454,20 +1467,24 @@ enhance_weapon_skill(void)
 
                 if (wizard) {
                     if (!iflags.menu_tab_sep)
-                        Snprintf(buf, sizeof(buf), " %s%-*s %-12s %5d(%4d)", prefix,
-                                longest, P_NAME(i), sklnambuf, P_ADVANCE(i),
-                                practice_needed_to_advance(P_SKILL(i)));
+                        Snprintf(buf, sizeof(buf),
+                                 " %s%-*s %-12s %5d(%4d)", prefix,
+                                 longest, P_NAME(i), sklnambuf, P_ADVANCE(i),
+                                 practice_needed_to_advance(P_SKILL(i)));
                     else
-                        Snprintf(buf, sizeof(buf), " %s%s\t%s\t%5d(%4d)", prefix, P_NAME(i),
-                                sklnambuf, P_ADVANCE(i),
-                                practice_needed_to_advance(P_SKILL(i)));
+                        Snprintf(buf, sizeof(buf),
+                                 " %s%s\t%s\t%5d(%4d)", prefix, P_NAME(i),
+                                 sklnambuf, P_ADVANCE(i),
+                                 practice_needed_to_advance(P_SKILL(i)));
                 } else {
                     if (!iflags.menu_tab_sep)
-                        Snprintf(buf, sizeof(buf), " %s %-*s [%12s / %-12s] %4s",
+                        Snprintf(buf, sizeof(buf),
+                                 " %s %-*s [%12s / %-12s] %4s",
                                  prefix, longest, P_NAME(i), sklnambuf,
                                  maxsklnambuf, percentbuf);
                     else
-                        Snprintf(buf,  sizeof(buf), " %s%s\t[%s\t /%s] %4s",
+                        Snprintf(buf,  sizeof(buf),
+                                 " %s%s\t[%s\t /%s] %4s",
                                  prefix, P_NAME(i), sklnambuf, maxsklnambuf,
                                  percentbuf);
                 }
@@ -1634,6 +1651,7 @@ uwep_skill_type(void)
 
 /*
  * Return hit bonus/penalty based on skill of weapon.
+ * weapon can be null, meaning bare-handed combat.
  * Treat restricted weapons as unskilled.
  */
 int
@@ -1653,7 +1671,9 @@ weapon_hit_bonus(struct obj *weapon)
     } else if (type <= P_LAST_WEAPON) {
         switch (P_SKILL(type)) {
         default:
-            impossible(bad_skill, P_SKILL(type)); /* fall through */
+            impossible(bad_skill, P_SKILL(type));
+            FALLTHROUGH;
+            /* FALLTHRU */
         case P_ISRESTRICTED:
         case P_UNSKILLED:
             bonus = -4;
@@ -1674,7 +1694,9 @@ weapon_hit_bonus(struct obj *weapon)
             skill = P_SKILL(wep_type);
         switch (skill) {
         default:
-            impossible(bad_skill, skill); /* fall through */
+            impossible(bad_skill, skill);
+            FALLTHROUGH;
+            /* FALLTHRU */
         case P_ISRESTRICTED:
         case P_UNSKILLED:
             bonus = -9;
@@ -1728,6 +1750,7 @@ weapon_hit_bonus(struct obj *weapon)
 
 /*
  * Return damage bonus/penalty based on skill of weapon.
+ * weapon can be null, meaning bare-handed combat.
  * Treat restricted weapons as unskilled.
  */
 int
@@ -1747,7 +1770,8 @@ weapon_dam_bonus(struct obj *weapon)
         switch (P_SKILL(type)) {
         default:
             impossible("weapon_dam_bonus: bad skill %d", P_SKILL(type));
-        /* fall through */
+            FALLTHROUGH;
+        /* FALLTHRU */
         case P_ISRESTRICTED:
         case P_UNSKILLED:
             bonus = -2;
@@ -1890,6 +1914,9 @@ skill_init(const struct def_skill *class_skill)
             P_ADVANCE(skill) = practice_needed_to_advance(P_SKILL(skill) - 1);
         }
     }
+
+    if (!u.uroleplay.pauper) /* paupers lack advanced access to books */
+        skill_based_spellbook_id();
 }
 
 void

@@ -1,11 +1,11 @@
-/* NetHack 3.7	explode.c	$NHDT-Date: 1619553210 2021/04/27 19:53:30 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.77 $ */
+/* NetHack 3.7	explode.c	$NHDT-Date: 1736530208 2025/01/10 09:30:08 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.122 $ */
 /*      Copyright (C) 1990 by Ken Arromdee */
 /* NetHack may be freely redistributed.  See license for details. */
 
 #include "hack.h"
 
-static int explosionmask(struct monst *, uchar, char);
-static void engulfer_explosion_msg(uchar, char);
+staticfn int explosionmask(struct monst *, uchar, char) NONNULLARG1;
+staticfn void engulfer_explosion_msg(uchar, char);
 
 /* Note: Arrays are column first, while the screen is row first */
 static const int explosion[3][3] = {
@@ -22,7 +22,7 @@ enum explode_action {
 };
 
 /* check if shield effects are needed for location affected by explosion */
-static int
+staticfn int
 explosionmask(
     struct monst *m, /* target monster (might be youmonst) */
     uchar adtyp,     /* damage type */
@@ -115,7 +115,7 @@ explosionmask(
     return res;
 }
 
-static void
+staticfn void
 engulfer_explosion_msg(uchar adtyp, char olet)
 {
     const char *adj = (char *) 0;
@@ -301,9 +301,9 @@ explode(
      */
 
     if (olet == MON_EXPLODE && !you_exploding) {
-        /* when explode() is called recursively, gk.killer.name might change so
-           we need to retain a copy of the current value for this explosion */
-        str = strcpy(killr_buf, gk.killer.name);
+        /* when explode() is called recursively, svk.killer.name might change
+           so retain a copy of the current value for this explosion */
+        str = strcpy(killr_buf, svk.killer.name);
         do_hallu = (Hallucination
                     && (strstri(str, "'s explosion")
                         || strstri(str, "s' explosion")));
@@ -473,15 +473,16 @@ explode(
                      * with an explosion attack, leave them (and their gear)
                      * unharmed, to avoid punishing them from using such
                      * polyforms creatively */
-                    if (!gc.context.mon_moving && you_exploding)
+                    if (!svc.context.mon_moving && you_exploding)
                         uhurt = 0;
                 } else if (inside_engulfer) {
                     /* for inside_engulfer, only <u.ux,u.uy> is affected */
                     continue;
                 }
+
                 /* Affect the floor unless the player caused the explosion
                  * from inside their engulfer. */
-                if (!(u.uswallow && !gc.context.mon_moving))
+                if (!(u.uswallow && !svc.context.mon_moving))
                     (void) zap_over_floor(xx, yy, type,
                                           &shopdamage, FALSE,
                                           exploding_wand_typ);
@@ -519,19 +520,19 @@ explode(
                 }
 
                 if ((explmask[i][j] & EXPL_MON) != 0) {
-                    /* damage from ring/wand explosion isn't itself
-                     * electrical in nature, nor is damage from freezing potion
-                     * really cold in nature, nor is damage from boiling potion
-                     * or exploding oil; only burning items damage is the "same
-                     * type" as the explosion. Because this is imperfect and
-                     * marginal (burning items only deal 1 damage), ignore it
-                     * for golemeffects(). */
+                    /* Damage from ring/wand explosion isn't itself
+                     * electrical in nature, nor is damage from freezing
+                     * potion really cold in nature, nor is damage from
+                     * boiling potion or exploding oil; only burning items
+                     * damage is the "same type" as the explosion.  Because
+                     * this is imperfect and marginal (burning items only
+                     * deal 1 damage), ignore it for golemeffects(). */
                     golemeffects(mtmp, (int) adtyp, dam);
-                    mtmp->mhp -= itemdmg;
+                    mtmp->mhp -= itemdmg; /* item destruction dmg */
                 } else {
-                    /* call resist with 0 and do damage manually so 1) we can
+                    /* Call resist with 0 and do damage manually so 1) we can
                      * get out the message before doing the damage, and 2) we
-                     * can call mondied, not killed, if it's not your blast
+                     * can call mondied, not killed, if it's not your blast.
                      */
                     int mdam = dam;
 
@@ -561,7 +562,7 @@ explode(
                                   && completelyburns(mtmp->data))
                                  ? XKILL_NOCORPSE : 0);
 
-                    if (!gc.context.mon_moving) {
+                    if (!svc.context.mon_moving) {
                         xkilled(mtmp, XKILL_GIVEMSG | xkflg);
                     } else if (mdef && mtmp == mdef) {
                         /* 'mdef' killed self trying to cure being turned
@@ -583,7 +584,7 @@ explode(
                             adtyp = AD_RBRE; /* no corpse */
                         monkilled(mtmp, "", (int) adtyp);
                     }
-                } else if (!gc.context.mon_moving) {
+                } else if (!svc.context.mon_moving) {
                     /* all affected monsters, even if mdef is set */
                     setmangry(mtmp, TRUE);
                 }
@@ -595,7 +596,7 @@ explode(
     if (uhurt) {
         /* give message for any monster-induced explosion
            or player-induced one other than scroll of fire */
-        if (Verbose(1, explode) && (type < 0 || olet != SCROLL_CLASS)) {
+        if (flags.verbose && (type < 0 || olet != SCROLL_CLASS)) {
             if (do_hallu) { /* (see explanation above) */
                 do {
                     Sprintf(hallu_buf, "%s explosion",
@@ -633,37 +634,44 @@ explode(
                 u.mh -= damu;
             else
                 u.uhp -= damu;
-            gc.context.botl = 1;
+            disp.botl = TRUE;
         }
 
         /* You resisted the damage, lets not keep that to ourselves */
         if (uhurt == 1)
             monstseesu_ad(adtyp);
+        else
+            monstunseesu_ad(adtyp);
 
         if (u.uhp <= 0 || (Upolyd && u.mh <= 0)) {
             if (olet == MON_EXPLODE) {
                 if (generic) /* explosion was unseen; str=="explosion", */
-                    ;        /* gk.killer.name=="gas spore's explosion". */
-                else if (str != gk.killer.name && str != hallu_buf)
-                    Strcpy(gk.killer.name, str);
-                gk.killer.format = KILLED_BY_AN;
-            } else if ((olet == BURNING_OIL && gc.context.mon_moving)
+                    ; /* svk.killer.name=="gas spore's explosion". */
+                else if (str != svk.killer.name && str != hallu_buf)
+                    Strcpy(svk.killer.name, str);
+                svk.killer.format = KILLED_BY_AN;
+            } else if (olet == TRAP_EXPLODE) {
+                svk.killer.format = NO_KILLER_PREFIX;
+                Snprintf(svk.killer.name, sizeof svk.killer.name,
+                         "caught %sself in a %s", uhim(),
+                         str);
+            } else if ((olet == BURNING_OIL && svc.context.mon_moving)
                        || olet == EXPLODING_DOOR) {
-                gk.killer.format = KILLED_BY_AN;
-                Snprintf(gk.killer.name, sizeof gk.killer.name,
+                svk.killer.format = KILLED_BY_AN;
+                Snprintf(svk.killer.name, sizeof svk.killer.name,
                          "exploding %s",
                          olet == BURNING_OIL ? "fire bomb" : "door");
             } else if (type >= 0 && olet != SCROLL_CLASS) {
-                gk.killer.format = NO_KILLER_PREFIX;
-                Snprintf(gk.killer.name, sizeof gk.killer.name,
+                svk.killer.format = NO_KILLER_PREFIX;
+                Snprintf(svk.killer.name, sizeof svk.killer.name,
                          "caught %sself in %s own %s", uhim(),
                          uhis(), str);
             } else {
-                gk.killer.format = (!strcmpi(str, "tower of flame")
+                svk.killer.format = (!strcmpi(str, "tower of flame")
                                     || !strcmpi(str, "fireball"))
                                     ? KILLED_BY_AN
                                     : KILLED_BY;
-                Strcpy(gk.killer.name, str);
+                Strcpy(svk.killer.name, str);
             }
 
             if (Upolyd) {
@@ -728,8 +736,8 @@ scatter(coordxy sx, coordxy sy,  /* location of objects to scatter */
         unsigned int scflags,
         struct obj *obj) /* only scatter this obj        */
 {
-    register struct obj *otmp;
-    register int tmp;
+    struct obj *otmp;
+    int tmp;
     int farthest = 0;
     uchar typ;
     long qtmp;
@@ -750,7 +758,8 @@ scatter(coordxy sx, coordxy sy,  /* location of objects to scatter */
     if (shop_origin)
         credit_report(shkp, 0, TRUE);   /* establish baseline, without msgs */
 
-    while ((otmp = (individual_object ? obj : gl.level.objects[sx][sy])) != 0) {
+    while ((otmp = (individual_object ? obj
+                                      : svl.level.objects[sx][sy])) != 0) {
         if (otmp == uball || otmp == uchain) {
             boolean waschain = (otmp == uchain);
 
@@ -811,7 +820,7 @@ scatter(coordxy sx, coordxy sy,  /* location of objects to scatter */
         } else if ((scflags & MAY_DESTROY) != 0
                    && (!rn2(10) || (otmp->material == GLASS
                                     || otmp->otyp == EGG))) {
-            if (breaks(otmp, (coordxy) sx, (coordxy) sy))
+            if (breaks(otmp, sx, sy))
                 used_up = TRUE;
         }
 
@@ -850,7 +859,10 @@ scatter(coordxy sx, coordxy sy,  /* location of objects to scatter */
                 gt.thrownobj = stmp->obj; /* mainly in case it kills hero */
                 gb.bhitpos.x = stmp->ox + stmp->dx;
                 gb.bhitpos.y = stmp->oy + stmp->dy;
-                typ = levl[gb.bhitpos.x][gb.bhitpos.y].typ;
+                if (isok(gb.bhitpos.x, gb.bhitpos.y))
+                    typ = levl[gb.bhitpos.x][gb.bhitpos.y].typ;
+                else
+                    typ = STONE;
                 if (!isok(gb.bhitpos.x, gb.bhitpos.y)) {
                     gb.bhitpos.x -= stmp->dx;
                     gb.bhitpos.y -= stmp->dy;
@@ -924,7 +936,8 @@ scatter(coordxy sx, coordxy sy,  /* location of objects to scatter */
                        retrieve the item and drop it back inside the shop,
                        the owed charges will only be reduced at that point
                        by the lesser shopkeeper buying-price.
-                       The non-gold situation will likely get adjusted further.
+                       The non-gold situation will likely get adjusted
+                       further.
                      */
                     if (stmp->obj->otyp == GOLD_PIECE) {
                         addtobill(stmp->obj, FALSE, FALSE, TRUE);
@@ -984,6 +997,7 @@ explode_oil(struct obj *obj, coordxy x, coordxy y)
     if (cansee(x, y)) {
         makeknown(obj->otyp);
     }
+    obj->how_lost = LOST_EXPLODING;
     splatter_burning_oil(x, y, diluted_oil);
 }
 
@@ -1016,12 +1030,14 @@ adtyp_to_expltype(const int adtyp)
     }
 }
 
-/* A monster explodes in a way that produces a real explosion (e.g. a sphere or
- * gas spore, not a yellow light or similar).
+/* A monster explodes in a way that produces a real explosion (e.g. a sphere
+ * or gas spore, not a yellow light or similar).
  * This is some common code between explmu() and explmm().
  */
 void
-mon_explodes(struct monst *mon, struct attack *mattk)
+mon_explodes(
+    struct monst *mon,
+    struct attack *mattk)
 {
     int dmg;
     int type;
@@ -1039,8 +1055,9 @@ mon_explodes(struct monst *mon, struct attack *mattk)
         type = PHYS_EXPL_TYPE;
     }
     else if (mattk->adtyp >= AD_MAGM && mattk->adtyp <= AD_SPC2) {
-        /* The -1, +20, *-1 math is to set it up as a 'monster breath' type for
-         * the explosions (it isn't, but this is the closest analogue). */
+        /* The -1, +20, *-1 math is to set it up as a 'monster breath' type
+         * for the explosions (it isn't, but this is the closest analogue). */
+        /* FIXME: there are macros for kind of thing... */
         type = -((mattk->adtyp - 1) + 20);
     }
     else {
@@ -1049,17 +1066,17 @@ mon_explodes(struct monst *mon, struct attack *mattk)
     }
 
     /* Kill it now so it won't appear to be caught in its own explosion.
-     * Must check to see if already dead - which happens if this is called from
-     * an AT_BOOM attack upon death. */
+     * Must check to see if already dead - which happens if this is called
+     * from an AT_BOOM attack upon death. */
     if (!DEADMONSTER(mon)) {
         mondead(mon);
     }
 
     /* This might end up killing you, too; you never know...
      * also, it is used in explode() messages */
-    Sprintf(gk.killer.name, "%s explosion",
+    Sprintf(svk.killer.name, "%s explosion",
             s_suffix(pmname(mon->data, Mgender(mon))));
-    gk.killer.format = KILLED_BY_AN;
+    svk.killer.format = KILLED_BY_AN;
 
     explode(mon->mx, mon->my, type, dmg, MON_EXPLODE,
             adtyp_to_expltype(mattk->adtyp));
@@ -1078,7 +1095,7 @@ mon_explodes(struct monst *mon, struct attack *mattk)
     }
 
     /* reset killer */
-    gk.killer.name[0] = '\0';
+    svk.killer.name[0] = '\0';
 }
 
 /* A monster explodes in a way that doesn't produce a "real" damage-causing
@@ -1142,7 +1159,7 @@ mon_explodes_nodmg(struct monst *magr, struct attack *mattk)
                     make_blinded((long) severity, FALSE);
                     if (!Blind)
                         Your1(vision_clears);
-            } else if (Verbose(1, explmu)) /* FIXME: not in explmu anymore */
+                } else if (flags.verbose)
                     You("get the impression it was not terribly bright.");
             }
             break;

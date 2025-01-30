@@ -1,4 +1,4 @@
-# NetHack 3.7  macOS.370 $NHDT-Date: 1668359835 2022/11/13 17:17:15 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.116 $
+# NetHack 3.7  macOS.370 $NHDT-Date: 1693359574 2023/08/30 01:39:34 $  $NHDT-Branch: keni-crashweb2 $:$NHDT-Revision: 1.138 $
 # Copyright (c) Kenneth Lorber, Kensington, Maryland, 2015.
 # NetHack may be freely redistributed.  See license for details.
 #
@@ -20,6 +20,21 @@
 # note: '#-INCLUDE' is not just a comment; multiw-1 contains sections 1 to 2
 #-INCLUDE multiw-1.370
 
+HINTSVERSION := 370
+
+ifdef MAKEFILE_TOP
+ifeq ($(MAKELEVEL),0)
+PRECHECK+=checkmakefiles
+# all files included from this hints file get listed
+# in HINTSINCLNAMES (without suffix and without a path)
+HINTSINCLNAMES := compiler cross-pre1 cross-pre2 cross-post \
+		gbdates-pre gbdates-post \
+		multiw-1 multiw-2 misc \
+		multisnd1-pre multisnd2-pre multisnd-post
+HINTSINCLFILES := $(addsuffix .$(HINTSVERSION), $(HINTSINCLNAMES))
+endif
+endif
+
 ifneq "$(USEMACPORTS)" "1"
 HAVE_HOMEBREW := $(shell expr `which -s brew; echo $$?` = 0)
 endif
@@ -31,12 +46,16 @@ ifndef LIBXPM
 LIBXPM= -L/opt/X11/lib -lXpm
 endif
 
+#WANT_WIN_CHAIN=1
+
 # 4. Other
 
 #-----------------------------------------------------------------------------
 # You shouldn't need to change anything below here (in the hints file; if
 # you're reading this in Makefile augmented by hints, that may not be true).
 #
+
+#-INCLUDE cross-pre1.370
 
 #-INCLUDE multiw-2.370
 
@@ -68,10 +87,21 @@ endif   # HAVE_MACPORTS
 endif   # QTDIR
 endif   # WANT_WIN_QT
 
-# multiw-3.370 must come after compiler.370
+ifdef WANT_WIN_QT
+ifeq "$(CLANGPPGTEQ16)" "1"
+CXX=clang++ --std=c++17
+CCXXFLAGS +=-Wno-c++20-attribute-extensions
+endif
+endif
+
+# misc.370 must come after compiler.370
 # and after QTDIR is defined
 
-#-INCLUDE multiw-3.370
+#-INCLUDE misc.370
+
+# manpages directory
+MANDIR=/usr/local/share/man/man6
+PREMANPAGES = checkmandir
 
 ifeq "$(USE_ASAN)" "1"
 CFLAGS +=-fsanitize=address
@@ -97,6 +127,8 @@ NHCFLAGS+=-DNOMAIL
 #NHCFLAGS+=-DTTY_SOUND_ESCCODES
 #NHCFLAGS+=-DNO_CHRONICLE
 #NHCFLAGS+=-DLIVELOG
+# not NHCFLAGS - needed for makedefs
+CFLAGS+=-DCRASHREPORT=\"/usr/bin/open\"
 
 ifdef MAKEFILE_SRC
 # default
@@ -116,10 +148,18 @@ else
 # CURSESLIB = -lncurses -ltinfo
 comma:=,
 NCURSES_LFLAGS = $(shell pkg-config ncursesw --libs)
-ifneq (,$(findstring ncurses, $(NCURSES_LFLAGS)))
-HAVE_NCURSESW=1
-else
+ifeq (,$(findstring ncursesw, $(NCURSES_LFLAGS)))
+ifeq (,$(findstring ncurses, $(NCURSES_LFLAGS)))
+#this indicates that pkg-config itself was unavailable
+CURSESLIB = $(NCURSES_LFLAGS)
+NHCFLAGS+=-DCURSES_UNICODE
+endif
+endif
+#$(info $(NCURSES_LFLAGS))
+ifeq (,$(findstring ncursesw, $(NCURSES_LFLAGS)))
 HAVE_NCURSESW=0
+else
+HAVE_NCURSESW=1
 endif
 ifeq "$(HAVE_NCURSESW)" "1"
 CURSESLIB = $(NCURSES_LFLAGS)
@@ -252,12 +292,16 @@ VARDATND += $(sort $(VARDATND0))
 
 GIT_HASH := $(shell echo `git rev-parse --verify HEAD` 2>&1)
 GIT_BRANCH := $(shell echo `git rev-parse --abbrev-ref HEAD` 2>&1)
+GIT_PREFIX := $(shell echo `git config nethack.substprefix` 2>&1)
 
 ifdef GIT_HASH
 GITHASH = -DNETHACK_GIT_SHA=\"$(GIT_HASH)\"
 endif
 ifdef GIT_BRANCH
 GITBRANCH = -DNETHACK_GIT_BRANCH=\"$(GIT_BRANCH)\"
+endif
+ifdef GIT_PREFIX
+GITPREFIX = -DNETHACK_GIT_PREFIX=\"$(GIT_PREFIX)\"
 endif
 
 ifdef WANT_LIBNH
@@ -320,11 +364,13 @@ ROOTCHECK= [[ `id -u` == 0 ]] || ( echo "Must run install with sudo."; exit 1)
 # make sure we have group GAMEUID and group GAMEGRP
 PREINSTALL= . sys/unix/hints/macosx.sh user2 $(GAMEUID); \
 		. sys/unix/hints/macosx.sh group2 $(GAMEGRP); \
-		mkdir $(SHELLDIR); chown $(GAMEUID) $(SHELLDIR)
-POSTINSTALL+= sys/unix/hints/macosx.sh editsysconf sys/unix/sysconf $(HACKDIR)/sysconf; \
-		$(CHOWN) $(GAMEUID) $(HACKDIR)/sysconf; \
-		$(CHGRP) $(GAMEGRP) $(HACKDIR)/sysconf; \
-		chmod $(VARFILEPERM) $(HACKDIR)/sysconf;
+		(mkdir $(SHELLDIR) || true); chown $(GAMEUID) $(SHELLDIR)
+#======= XXX can this go away?
+#POSTINSTALL+= sys/unix/hints/macosx.sh editsysconf sys/unix/sysconf $(HACKDIR)/sysconf; \
+#		$(CHOWN) $(GAMEUID) $(HACKDIR)/sysconf; \
+#		$(CHGRP) $(GAMEGRP) $(HACKDIR)/sysconf; \
+#		chmod $(VARFILEPERM) $(HACKDIR)/sysconf;
+#>>>>>>> keni-wincw2
 
 else ifdef WANT_SOURCE_INSTALL
 
@@ -341,6 +387,7 @@ GAMEPERM = 0700
 VARFILEPERM = 0600
 VARDIRPERM = 0700
 POSTINSTALL+= sys/unix/hints/macosx.sh editsysconf sys/unix/sysconf $(HACKDIR)/sysconf;
+
 # We can use "make all" to build the whole thing - but it misses some things:
 MOREALL=$(MAKE) install
 CFLAGS+=-DSYSCF -DSYSCF_FILE=\"$(HACKDIR)/sysconf\" -DSECURE
@@ -364,7 +411,7 @@ ifdef ($(WANT_DEFAULT),X11)
 PREINSTALL+= cp -n win/X11/nethack.rc ~/.xnethackrc || true;
 endif	# WANT_DEFAULT X11
 
-PREINSTALL+= mkdir $(SHELLDIR);
+PREINSTALL+= (mkdir $(SHELLDIR) || true);
 POSTINSTALL+= sys/unix/hints/macosx.sh editsysconf sys/unix/sysconf $(HACKDIR)/sysconf; \
 		$(CHOWN) $(GAMEUID) $(HACKDIR)/sysconf; \
 		$(CHGRP) $(GAMEGRP) $(HACKDIR)/sysconf; \
@@ -375,6 +422,16 @@ endif   # !WANT_SHARE_INSTALL
 INSTDIR=$(HACKDIR)
 VARDIR=$(HACKDIR)
 
+SYSCONFCREATE = sys/unix/hints/macosx.sh editsysconf sys/unix/sysconf $(HACKDIR)/sysconf
+SYSCONFINSTALL = $(SYSCONFCREATE) && \
+	 $(CHOWN) $(GAMEUID) $(INSTDIR)/sysconf && \
+	 $(CHGRP) $(GAMEGRP) $(INSTDIR)/sysconf && \
+	 chmod $(VARFILEPERM) $(INSTDIR)/sysconf;
+SYSCONFENSURE = (if ! test -f $(INSTDIR)/sysconf ; then \
+	 $(SYSCONFCREATE) && \
+	 $(CHOWN) $(GAMEUID) $(INSTDIR)/sysconf && \
+	 $(CHGRP) $(GAMEGRP) $(INSTDIR)/sysconf && \
+	 chmod $(VARFILEPERM) $(INSTDIR)/sysconf; fi );
 
 # ~/Library/Preferences/NetHack Defaults
 # OPTIONS=name:player,number_pad,menustyle:partial,!time,showexp
@@ -383,7 +440,7 @@ VARDIR=$(HACKDIR)
 # Install.Qt mentions a patch for macos - it's not there (it seems to be in the Qt binary
 # package under the docs directory).
 #
-#-INCLUDE cross-pre.370
+#-INCLUDE cross-pre2.370
 #
 #
 #-INCLUDE gbdates-pre.370
@@ -465,6 +522,15 @@ endif   # MAKEFILE_SRC
 #-INCLUDE multisnd-post.370
 #
 
+ifdef MAKEFILE_TOP
+ifeq ($(MAKELEVEL),0)
+.PHONY: checkmakefiles
+checkmakefiles:
+	@$(MAKE) -f sys/unix/Makefile.check \
+		HINTSFILE="$(HINTSFILE)" HINTSINCLFILES="$(HINTSINCLFILES)"
+endif
+endif
+
 ifdef WANT_LIBNH
 $(TARGETPFX)libnh.a: $(HOBJ) $(LIBNHSYSOBJ) ../lib/lua/liblua.a
 	$(AR) rcs $@ $(HOBJ) $(LIBNHSYSOBJ) ../lib/lua/liblua.a
@@ -474,6 +540,11 @@ $(TARGETPFX)libnhmain.o : ../sys/libnh/libnhmain.c $(HACK_H)
 $(TARGETPFX)winshim.o : ../win/shim/winshim.c $(HACK_H)
 	$(CC) $(CFLAGS) -c -o$@ $<
 endif  # WANT_LIBNH
+
+ifdef MAKEFILE_DOC
+checkmandir:
+	@( if test -d $(MANDIR) ; then true ; else mkdir -p $(MANDIR) ; fi )
+endif  # MAKEFILE_DOC
 
 # -- bundle ---
 #
@@ -619,7 +690,7 @@ ifdef MAKEFILE_TOP
 # Installer certificate.  Set DEVELOPER_CERT to the name of the certificate
 # if you wish for your package to be signed for distribution.
 #
-# If building a package for signing, you must use sudo approriately.
+# If building a package for signing, you must use sudo appropriately.
 # the binaries and package using sudo but you DO NOT use sudo to sign the
 # package.  If you use sudo to sign the package, it will fail.
 #
@@ -787,4 +858,3 @@ endif	# end of build_qt_pkg
 endif	# WANT_WIN_QT for packaging
 endif	# MAKEFILE_TOP
 #
-

@@ -1,4 +1,4 @@
-/* NetHack 3.7	config.h	$NHDT-Date: 1610141601 2021/01/08 21:33:21 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.148 $ */
+/* NetHack 3.7	config.h	$NHDT-Date: 1710344316 2024/03/13 15:38:36 $  $NHDT-Branch: keni-staticfn $:$NHDT-Revision: 1.188 $ */
 /* Copyright (c) Stichting Mathematisch Centrum, Amsterdam, 1985. */
 /*-Copyright (c) Robert Patrick Rankin, 2016. */
 /* NetHack may be freely redistributed.  See license for details. */
@@ -24,7 +24,7 @@
 /* #define TOS */ /* define for Atari ST/TT */
 
 /* #define STUPID */ /* avoid some complicated expressions if
-                        your C compiler chokes on them */
+                      * your C compiler chokes on them */
 /* #define MINIMAL_TERM */
 /* if a terminal handles highlighting or tabs poorly,
    try this define, used in pager.c and termcap.c */
@@ -96,8 +96,8 @@
 
 #ifdef QT_GRAPHICS
 #ifndef DEFAULT_WC_TILED_MAP
-#define DEFAULT_WC_TILED_MAP /* Default to tiles if users doesn't say \
-                                wc_ascii_map */
+#define DEFAULT_WC_TILED_MAP /* Default to tiles if users doesn't request
+                              * wc_ascii_map */
 #endif
 #ifndef USE_XPM
 #define USE_XPM           /* Use XPM format for images (required) */
@@ -154,7 +154,8 @@
  * the free XPM library.  The second option allows you to then use other
  * programs to generate tiles files.  For example, the PBMPlus tools
  * would allow:
- *  xpmtoppm <x11tiles.xpm | pnmscale 1.25 | ppmquant 90 >x11tiles_big.xpm
+ *  xpmtoppm <x11tiles.xpm | pnmscale 1.25 | ppmquant 90 | \
+ *      ppmtoxpm >x11tiles_big.xpm
  */
 /* # define USE_XPM */ /* Disable if you do not have the XPM library */
 #ifdef USE_XPM
@@ -205,6 +206,10 @@
  *            The following options pertain to crash reporting:
  *              GREPPATH     (the path to the system grep(1) utility)
  *              GDBPATH      (the path to the system gdb(1) program)
+ *              CRASHREPORT  (use CRASHREPORTURL if defined in syscf; this
+ *                           define specifies the name of the helper program
+ *                           used to launch the browser and enables the
+ *                           feature))
  *            Regular nethack options can also be specified in order to
  *            provide system-wide default values local to your system:
  *              OPTIONS      (same as in users' .xnethackrc or defaults.nh)
@@ -235,6 +240,59 @@
 #define GREPPATH "/bin/grep"
 #endif
 
+#ifndef NOCRASHREPORT
+# ifndef CRASHREPORT
+#  ifdef MACOS
+#   define CRASHREPORT "/usr/bin/open"
+#  endif
+#  ifdef __linux__
+#   define CRASHREPORT "/usr/bin/xdg-open"
+       /* Define this if the terminal is filled with useless error messages
+        * when the browser launches. */
+#   define CRASHREPORT_EXEC_NOSTDERR
+#  endif
+#  ifdef WIN32
+#   define CRASHREPORT /* builtin helper */
+#  endif
+# endif
+#else
+# ifdef CRASHREPORT
+#  undef CRASHREPORT
+# endif
+# ifdef MSDOS
+#  undef PANICTRACE
+# endif
+#endif
+
+#ifdef CRASHREPORT
+# ifndef DUMPLOG_CORE
+#  define DUMPLOG_CORE     // required to get ^P info
+# endif
+# ifdef MACOS
+#  define PANICTRACE
+# endif
+# ifdef __linux__
+#  define PANICTRACE
+#  define NOSTATICFN
+# endif
+// This test isn't quite right: CNG is only available from Windows 2000 on.
+// But we'll check that at runtime.
+# ifdef WIN32
+#  define PANICTRACE
+#  define NOSTATICFN
+# endif
+#endif
+
+#ifdef NONOSTATICFN
+# define staticfn static
+#else
+# ifdef NOSTATICFN
+#  define staticfn
+# else
+#  define staticfn static
+# endif
+#endif
+
 /* note: "larger" is in comparison with 'record', the high-scores file
    (whose name can be overridden via #define in global.h if desired) */
 #define LOGFILE  "logfile"  /* larger file for debugging purposes */
@@ -245,6 +303,21 @@
 /* alternative paniclog format, better suited for public servers with
    many players, as it saves the player name and the game start time */
 /* #define PANICLOG_FMT2 */
+
+/*
+ *      When building the program, whether the 'makedefs' utility
+ *      checks for non-ASCII or non-printable (control) characters
+ *      in various data files (data.base, rumors.tru, rumors.fal,
+ *      {oracles,epitaphs,engravings,bogusmons}.txt and warns about them.
+ *      They also get changed to '#' instead of possibly remaining
+ *      unprintable.
+ *
+ *      If you modify the data files to intentionally add accented
+ *      letters or something comparable, comment this out.  (Such things
+ *      won't necessarily work as intended within nethack but at least
+ *      makedefs wouldn't reject them.)
+ */
+#define MAKEDEFS_FILTER_NONASCII
 
 /*
  *      PERSMAX, POINTSMIN, ENTRYMAX, PERS_IS_UID:
@@ -285,9 +358,8 @@
 
 /*
  *      ENHANCED_SYMBOLS
- *      Support the enhanced display of symbols by utilizing utf8 and 24-bit
- *      color sequences. Enabled by default, but it can be disabled by
- *      commenting it out.
+ *      Support the enhanced display of symbols by utilizing utf8.
+ *      Enabled by default, but it can be disabled by commenting it out.
  */
 
 #define ENHANCED_SYMBOLS
@@ -391,7 +463,7 @@
  */
 #define INSURANCE /* allow crashed game recovery */
 
-#ifndef MAC
+#if !defined(MAC) && !defined(SHIM_GRAPHICS)
 #define CHDIR /* delete if no chdir() available */
 #endif
 
@@ -532,7 +604,7 @@ typedef unsigned char uchar;
 #define SELECTSAVED /* support for restoring via menu */
 
 /* TTY_TILES_ESCCODES: Enable output of special console escape codes
- * which act as hints for external programs such as EbonHack, or hterm.
+ * which act as hints for external programs such as EbonHack or hterm.
  *
  * TTY_SOUND_ESCCODES: Enable output of special console escape codes
  * which act as hints for theoretical external programs to play sound effect.
@@ -557,22 +629,16 @@ typedef unsigned char uchar;
  * glyph" code, then the escape codes for color and the glyph character
  * itself, and then the "end glyph" code.
  *
- * To compile NetHack with this, add tile.c to WINSRC and tile.o to WINOBJ
- * in the hints file or Makefile.
- * Set boolean option vt_xdata in your config file to turn either of these on.
- * Note that gnome-terminal at least doesn't work with this. */
+ * To compile NetHack with this, add tile.c to WINSRC and tile.o to WINOBJ in
+ * the hints file or Makefile.  Set boolean option vt_tiledata and/or
+ * vt_sounddata in your config file to turn either of these on.  Note that some
+ * terminals (e.g. old versions of gnome-terminal) don't work with this. */
 /* #define TTY_TILES_ESCCODES */
 /* #define TTY_SOUND_ESCCODES */
 
 /* An experimental minimalist inventory list capability under tty if you have
  * at least 28 additional rows beneath the status window on your terminal  */
 /* #define TTY_PERM_INVENT */
-
-/* NetHack will execute an external program whenever a new message-window
- * message is shown.  The program to execute is given in environment variable
- * NETHACK_MSGHANDLER.  It will get the message as the only parameter.
- * Only available with POSIX_TYPES, GNU C, or WIN32 */
-/* #define MSGHANDLER */
 
 /* enable status highlighting via STATUS_HILITE directives in run-time
    config file and the 'statushilites' option */
@@ -582,13 +648,13 @@ typedef unsigned char uchar;
 
 #if defined(DEBUG) && !defined(DEBUG_MIGRATING_MONS)
 #define DEBUG_MIGRATING_MONS  /* add a wizard-mode command to help debug
-                                 migrating monsters */
+                               * migrating monsters */
 #endif
 
 /* SCORE_ON_BOTL is neither experimental nor inadequately tested,
    but doesn't seem to fit in any other section... */
 /* #define SCORE_ON_BOTL */         /* enable the 'showscore' option to
-                                       show estimated score on status line */
+                                     * show estimated score on status line */
 
 /* FREE_ALL_MEMORY is neither experimental nor inadequately tested,
    but it isn't necessary for successful operation of the program */
@@ -658,11 +724,18 @@ typedef unsigned char uchar;
 
 /* #define DUMPLOG */  /* End-of-game dump logs */
 
-#define USE_ISAAC64 /* Use cross-plattform, bundled RNG */
+#define USE_ISAAC64 /* Use cross-platform, bundled RNG */
 
 /* TEMPORARY - MAKE UNCONDITIONAL BEFORE RELEASE */
 /* undef this to check if sandbox breaks something */
 #define NHL_SANDBOX
+
+#ifdef NHL_SANDBOX
+#ifdef CHRONICLE
+    /* LIVELOG (and therefore CHRONICLE)  is needed for --loglua */
+#define LIVELOG
+#endif
+#endif
 
 /* End of Section 4 */
 
@@ -677,7 +750,7 @@ typedef unsigned char uchar;
 #include "global.h" /* Define everything else according to choices above */
 
 /* Place the following after #include [platform]conf.h in global.h so that
-   overrides are possible in there, for things like unix-specfic file
+   overrides are possible in there, for things like unix-specific file
    paths. */
 
 #ifdef LIVELOG
@@ -687,9 +760,7 @@ typedef unsigned char uchar;
 #endif /* LIVELOG */
 
 #ifdef DUMPLOG
-#ifndef DUMPLOG_MSG_COUNT
-#define DUMPLOG_MSG_COUNT   50
-#endif /* DUMPLOG_MSG_COUNT */
+#define DUMPLOG_CORE
 #ifndef DUMPLOG_FILE
 #define DUMPLOG_FILE        "/tmp/xnethack.%n.%d.log"
 /* DUMPLOG_FILE allows following placeholders:
@@ -708,6 +779,7 @@ typedef unsigned char uchar;
 #endif /* DUMPLOG */
 
 #ifdef DUMPHTML
+#define DUMPLOG_CORE
 #ifndef DUMPHTML_FILE
 #define DUMPHTML_FILE        "/tmp/xnethack.%n.%d.html"
 /* Placeholders as above
@@ -715,6 +787,12 @@ typedef unsigned char uchar;
  */
 #endif /* DUMPHTML_FILE */
 #endif /* DUMPHTML */
+
+#ifdef DUMPLOG_CORE
+#ifndef DUMPLOG_MSG_COUNT
+#define DUMPLOG_MSG_COUNT   50
+#endif /* DUMPLOG_MSG_COUNT */
+#endif
 
 #define USE_ISAAC64 /* Use cross-plattform, bundled RNG */
 

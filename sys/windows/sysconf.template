@@ -15,6 +15,10 @@ WIZARDS=*
 # Uses the same syntax as the WIZARDS option above.
 #SHELLERS=
 
+# Execute this program whenever a new message-window message is shown.
+# The program will get the message text as the only parameter.
+#MSGHANDLER=\path\program
+
 # Show debugging information originating from these source files.
 # Use '*' for all, or list source files separated by spaces.
 # Only available if game has been compiled with DEBUG.
@@ -150,3 +154,6 @@ HIDEUSAGE=1
 #
 # The location that file synchronization locks are stored (writeable)
 #LOCKDIR=c:\ProgramData\xNetHack\6.0
+
+# URL loaded for creating reports to the NetHack DevTeam
+#CRASHREPORTURL=https://github.com/copperwater/xNetHack/issues

@@ -4,28 +4,24 @@ strategy:
       imageName: 'ubuntu-latest'
       toolchainName: gcc9
       buildTargetName: minimal
-    linux_focal_clang_all:
-      imageName: 'ubuntu-20.04'
+    linux_noble_clang_all:
+      imageName: 'ubuntu-24.04'
       toolchainName: clang
       buildTargetName: all
-    linux_focal_gcc9_all:
-      imageName: 'ubuntu-20.04'
+    linux_jammy_gcc9_all:
+      imageName: 'ubuntu-22.04'
       toolchainName: gcc9
       buildTargetName: all
-    linux_focal_gcc10_all:
-      imageName: 'ubuntu-20.04'
-      toolchainName: gcc10
-      buildTargetName: all
-    linux_jammy_gcc11_all:
-      imageName: 'ubuntu-22.04'
-      toolchainName: gcc11
+    linux_noble_gcc13_all:
+      imageName: 'ubuntu-24.04'
+      toolchainName: gcc13
       buildTargetName: all
     macOS_latest_clang_all:
       imageName: 'macOS-latest'
       toolchainName: clang
       buildTargetName: all
-    macOS_monterey_clang13_all:
-      imageName: 'macOS-12'
+    macOS_Sequoia_clang15_all:
+      imageName: 'macOS-15'
       toolchainName: clang
       buildTargetName: all
     windows-visualstudio:
@@ -36,12 +32,12 @@ strategy:
       imageName: 'windows-2019'
       toolchainName: mingw
       buildTargetName: all
-    linux_focal_cross_msdos:
-      imageName: 'ubuntu-20.04'
+    linux_noble_cross_msdos:
+      imageName: 'ubuntu-24.04'
       toolchainName: cross
       buildTargetName: msdos
-    linux_jammy_docs:
-      imageName: 'ubuntu-22.04'
+    linux_noble_docs:
+      imageName: 'ubuntu-24.04'
       toolchainName: docs
       buildTargetName: all
       continueOnError: true
@@ -64,25 +60,15 @@ variables:
 
 steps:
 - bash: |
-    if [ "$(toolchain)" == "gcc7" ]
-    then
-      echo "##vso[task.setvariable variable=CC]gcc-7"
-      echo "##vso[task.setvariable variable=CXX]g++-7"
-    fi
     if [ "$(toolchain)" == "gcc9" ]
     then
       echo "##vso[task.setvariable variable=CC]gcc-9"
       echo "##vso[task.setvariable variable=CXX]g++-9"
     fi
-    if [ "$(toolchain)" == "gcc10" ]
+    if [ "$(toolchain)" == "gcc13" ]
     then
-      echo "##vso[task.setvariable variable=CC]gcc-10"
-      echo "##vso[task.setvariable variable=CXX]g++-10"
-    fi
-    if [ "$(toolchain)" == "gcc11" ]
-    then
-      echo "##vso[task.setvariable variable=CC]gcc-11"
-      echo "##vso[task.setvariable variable=CXX]g++-11"
+      echo "##vso[task.setvariable variable=CC]gcc-13"
+      echo "##vso[task.setvariable variable=CXX]g++-13"
     fi
     if [ "$(toolchain)" == "clang" ]
     then
@@ -91,8 +77,8 @@ steps:
     fi
     if [ "$(toolchain)" == "cross" ]
     then
-      echo "##vso[task.setvariable variable=CC]gcc-9"
-      echo "##vso[task.setvariable variable=CXX]g++-9"
+      echo "##vso[task.setvariable variable=CC]gcc-13"
+      echo "##vso[task.setvariable variable=CXX]g++-13"
     fi
   displayName: 'Setting variables'
 
@@ -137,17 +123,19 @@ steps:
     export LUATOP=../submodules/lua
     export LUASRC=../submodules/lua
     export ADD_CURSES=Y
-    export PDCURSES_TOP=../submodules/pdcurses
-    export LUA_VERSION=5.4.4
+    export PDCURSES_TOP=../submodules/pdcursesmod
+    export LUA_VERSION=5.4.6
     #
     # 64-bit
     #export CURLSRC=https://github.com/brechtsanders/winlibs_mingw/releases/download/11.2.0-9.0.0-ucrt-r5/winlibs-x86_64-posix-seh-gcc-11.2.0-mingw-w64ucrt-9.0.0-r5.zip
+    #export CURLSRC=https://github.com/brechtsanders/winlibs_mingw/releases/download/14.2.0posix-19.1.1-12.0.0-ucrt-r2/winlibs-x86_64-posix-seh-gcc-14.2.0-llvm-19.1.1-mingw-w64ucrt-12.0.0-r2.zip
     #export CURLDST=mingw-x64.zip
     #export MINGWBIN=mingw64
     #export MSYSTEM=MINGW64
     #
     # 32-bit
-    export CURLSRC=https://github.com/brechtsanders/winlibs_mingw/releases/download/11.2.0-9.0.0-ucrt-r5/winlibs-i686-posix-dwarf-gcc-11.2.0-mingw-w64ucrt-9.0.0-r5.zip
+    #export CURLSRC=https://github.com/brechtsanders/winlibs_mingw/releases/download/11.2.0-9.0.0-ucrt-r5/winlibs-i686-posix-dwarf-gcc-11.2.0-mingw-w64ucrt-9.0.0-r5.zip
+    export CURLSRC=https://github.com/brechtsanders/winlibs_mingw/releases/download/14.2.0posix-19.1.1-12.0.0-ucrt-r2/winlibs-i686-posix-dwarf-gcc-14.2.0-llvm-19.1.1-mingw-w64ucrt-12.0.0-r2.zip
     export CURLDST=mingw-x86.zip
     export MINGWBIN=mingw32
     export MSYSTEM=MINGW32
@@ -163,19 +151,19 @@ steps:
     export
     cd ../src
     pwd
-    cp ../sys/windows/Makefile.mingw32* .
-    mingw32-make -f Makefile.mingw32 CI_COMPILER=1 GIT=1 MSYSTEM=$MSYSTEM LUA_VERSION=$LUA_VERSION clean
-    mingw32-make -f Makefile.mingw32 CI_COMPILER=1 GIT=1 MSYSTEM=$MSYSTEM LUA_VERSION=$LUA_VERSION depend
-    mingw32-make -f Makefile.mingw32 CI_COMPILER=1 GIT=1 MSYSTEM=$MSYSTEM LUA_VERSION=$LUA_VERSION
+    cp ../sys/windows/GNUmakefile* .
+    mingw32-make -f GNUmakefile CI_COMPILER=1 GIT=1 MSYSTEM=$MSYSTEM LUA_VERSION=$LUA_VERSION clean
+    mingw32-make -f GNUmakefile CI_COMPILER=1 GIT=1 MSYSTEM=$MSYSTEM LUA_VERSION=$LUA_VERSION depend
+    mingw32-make -f GNUmakefile CI_COMPILER=1 GIT=1 MSYSTEM=$MSYSTEM LUA_VERSION=$LUA_VERSION
   condition: eq( variables.toolchain, 'mingw' )
   workingDirectory: $(Agent.BuildDirectory)/$(netHackPath)/src
   displayName: 'MinGW Build'
 
 - bash: |
     sudo apt-get -qq -y update
-    sudo apt-get -qq -y install libncurses5-dev
+    sudo apt-get -qq -y install libncurses-dev
     sudo apt-get -qq -y install libx11-dev libxaw7-dev xfonts-utils qtbase5-dev qtmultimedia5-dev qtbase5-dev-tools
-  condition: eq( variables['Agent.OS'], 'Linux' )
+  condition: and(eq( variables['Agent.OS'], 'Linux' ), eq( variables.buildTarget, 'all'))
   workingDirectory: $(Agent.BuildDirectory)/$(netHackPath)
   displayName: 'Getting linux build dependencies'
 
@@ -193,28 +181,29 @@ steps:
     cd sys/unix
     sh setup.sh hints/linux-minimal
     cd ../..
-    sed -i '/^#define CLIPPING/d'       include/config.h
-    sed -i '/^#define COMPRESS/d'       include/config.h
-    #sed -i '/^#define DOAGAIN/d'        include/config.h
-    sed -i '/^#define DUMPLOG/d'        include/config.h
-    #sed -i '/^#define GDBPATH/d'        include/config.h
-    #sed -i '/^#define GREPPATH/d'       include/config.h
-    sed -i '/^#define INSURANCE/d'      include/config.h
-    sed -i '/^#define ENHANCED_SYMBOLS/d' include/config.h
-    sed -i '/^#define LOGFILE/d'        include/config.h
-    sed -i '/^#define NEWS/d'           include/config.h
-    sed -i '/^#define PANICLOG/d'       include/config.h
-    #sed -i '/^#define STATUS_HILITES/d' include/config.h
-    sed -i '/^#define SYSCF/d'          include/config.h
-    sed -i '/^#define USER_SOUNDS/d'    include/config.h
-    sed -i '/^#define XLOGFILE/d'       include/config.h
-    sed -i '/^#define HANGUPHANDLING/d' include/global.h
-    sed -i '/^#define MAIL/d'           include/unixconf.h
-    sed -i '/^#define SHELL/d'          include/unixconf.h
-    sed -i '/^#define SUSPEND/d'        include/unixconf.h
-    sed -i 's/^#define TEXTCOLOR//'     include/unixconf.h
+    sed -i '/^#[ 	]*define CLIPPING/d'       include/config.h
+    sed -i '/^#[ 	]*define COMPRESS/d'       include/config.h
+    sed -i '/^#[ 	]*define CRASHREPORT/d'    include/config.h
+    #sed -i '/^#[ 	]*define DOAGAIN/d'        include/config.h
+    sed -i '/^#[ 	]*define DUMPLOG/d'        include/config.h
+    sed -i '/^#[ 	]*define DUMPLOG_CORE/d'   include/config.h
+    #sed -i '/^#[ 	]*define GDBPATH/d'        include/config.h
+    #sed -i '/^#[ 	]*define GREPPATH/d'       include/config.h
+    sed -i '/^#[ 	]*define INSURANCE/d'      include/config.h
+    sed -i '/^#[ 	]*define ENHANCED_SYMBOLS/d' include/config.h
+    sed -i '/^#[ 	]*define LOGFILE/d'        include/config.h
+    sed -i '/^#[ 	]*define NEWS/d'           include/config.h
+    sed -i '/^#[ 	]*define PANICLOG/d'       include/config.h
+    #sed -i '/^#[ 	]*define STATUS_HILITES/d' include/config.h
+    sed -i '/^#[ 	]*define SYSCF/d'          include/config.h
+    sed -i '/^#[ 	]*define USER_SOUNDS/d'    include/config.h
+    sed -i '/^#[ 	]*define XLOGFILE/d'       include/config.h
+    sed -i '/^#[ 	]*define HANGUPHANDLING/d' include/global.h
+    sed -i '/^#[ 	]*define MAIL/d'           include/unixconf.h
+    sed -i '/^#[ 	]*define SHELL/d'          include/unixconf.h
+    sed -i '/^#[ 	]*define SUSPEND/d'        include/unixconf.h
     make fetch-lua
-    make WANT_WIN_ALL=1 all
+    make WANT_WIN_ALL=1 NOCRASHREPORT=1 all
   condition: and(eq( variables['Agent.OS'], 'Linux' ), eq( variables.buildTarget, 'minimal'))
   displayName: 'Building linux minimal build'
   workingDirectory: $(Agent.BuildDirectory)/$(netHackPath)
@@ -230,15 +219,16 @@ steps:
   displayName: 'Building mac full build'
 
 - bash: |
-    export GCCVER=gcc1210
+    sudo apt -qq -y install libfl2
+    export GCCVER=gcc1220
     cd sys/unix
     sh setup.sh hints/linux.370
     cd ../..
     make fetch-lua
-    sh sys/msdos/fetch-cross-compiler.sh
+    sys/msdos/fetch-cross-compiler.sh
     retVal=$?
     if [ $retVal -eq 0 ]; then
-        make LUA_VERSION=5.4.4 WANT_WIN_TTY=1 WANT_WIN_CURSES=1 CROSS_TO_MSDOS=1 package
+        make LUA_VERSION=5.4.6 WANT_WIN_TTY=1 WANT_WIN_CURSES=1 CROSS_TO_MSDOS=1 package
     fi
   condition: and(eq( variables['Agent.OS'], 'Linux' ), eq( variables.toolchain, 'cross'))
   workingDirectory: $(Agent.BuildDirectory)/$(netHackPath)

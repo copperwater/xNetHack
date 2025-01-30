@@ -1,4 +1,4 @@
-/* NetHack 3.7	display.h	$NHDT-Date: 1661295667 2022/08/23 23:01:07 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.77 $ */
+/* NetHack 3.7	display.h	$NHDT-Date: 1725653008 2024/09/06 20:03:28 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.106 $ */
 /* Copyright (c) Dean Luick, with acknowledgements to Kevin Darcy */
 /* and Dave Cohrs, 1990.                                          */
 /* NetHack may be freely redistributed.  See license for details. */
@@ -19,13 +19,13 @@
  * Returns the head of the list of objects that the player can see
  * at location (x,y).  [Vestige of unimplemented invisible objects.]
  */
-#define vobj_at(x, y) (gl.level.objects[x][y])
+#define vobj_at(x, y) (svl.level.objects[x][y])
 
 /*
  * sensemon()
  *
  * Returns true if the hero can sense the given monster.  This includes
- * monsters that are hiding or mimicing other monsters.
+ * monsters that are hiding or mimicking other monsters.
  *
  * [3.7] Note: the map doesn't display any monsters when hero is swallowed
  * (or display non-adjacent, non-submerged ones when hero is underwater),
@@ -49,7 +49,7 @@
           /* OR 3b. hero is using a telepathy inducing */                   \
           /*        object and in range                */                   \
               || (Unblind_telepat                                           \
-                  && (mdistu(mon) <= (BOLT_LIM * BOLT_LIM))))))
+                  && (mdistu(mon) <= u.unblind_telepat_range)))))
 
 /* organized to perform cheaper tests first;
    is_pool() vs is_pool_or_lava(): hero who is underwater can see adjacent
@@ -65,7 +65,7 @@
  */
 #define _mon_warning(mon) \
     (Warning && !(mon)->mpeaceful && (mdistu(mon) < 100)     \
-     && (((int) ((mon)->m_lev / 4)) >= gc.context.warnlevel))
+     && (((int) ((mon)->m_lev / 4)) >= svc.context.warnlevel))
 
 /*
  * mon_visible()
@@ -89,7 +89,7 @@
     (/* The hero can see the monster IF the monster                     */ \
      (!mon->minvis || See_invisible)  /*     1. is not invisible        */ \
      && !mon->mundetected             /* AND 2. not an undetected hider */ \
-     && !(mon->mburied || u.uburied)) /* AND 3. neither you nor it is buried */
+     && !(mon->mburied || u.uburied)) /* AND 3. neither you nor it buried */
 #else   /* without 'mburied' and 'uburied' */
 #define _mon_visible(mon) \
     (/* The hero can see the monster IF the monster                     */ \
@@ -106,7 +106,7 @@
  * canseemon() or canspotmon() which already check that.
  */
 #define _see_with_infrared(mon) \
-    (!Blind && Infravision && mon && infravisible(mon->data) \
+    (!Blind && Infravision && infravisible(mon->data) \
      && couldsee(mon->mx, mon->my))
 
 /*
@@ -159,7 +159,7 @@
  * definition here is convenient.  No longer limited to pets.
  */
 #define _is_safemon(mon) \
-    (flags.safe_dog && (mon) && (mon)->mpeaceful && canspotmon(mon)     \
+    (flags.safe_dog && (mon)->mpeaceful && canspotmon(mon)              \
      && !Confusion && !Hallucination && !Stunned)
 
 /*
@@ -183,10 +183,10 @@
  *
  * Respectively return a random monster or object.
  * random_object() won't return STRANGE_OBJECT or the generic objects.
- * -/+ MAXOCLASSES is used to skip it and them.
+ * -/+ FIRST_OBJECT is used to skip it and them.
  */
 #define random_monster(rng) ((*rng)(NUMMONS))
-#define random_object(rng) ((*rng)(NUM_OBJECTS - MAXOCLASSES) + MAXOCLASSES)
+#define random_object(rng) ((*rng)(NUM_OBJECTS - FIRST_OBJECT) + FIRST_OBJECT)
 
 /*
  * what_obj()
@@ -230,14 +230,14 @@
 #define DISP_ALL     (-2) /* Like beam, but still displayed if not visible. */
 #define DISP_TETHER  (-3) /* Like beam, but tether glyph differs from final */
 #define DISP_FLASH   (-4) /* Clean up each glyph before displaying new one. */
-#define DISP_ALWAYS  (-5) /* Like flash, but still displayed if not visible. */
+#define DISP_ALWAYS  (-5) /* Like flash, but still displayed if not visible */
 #define DISP_CHANGE  (-6) /* Change glyph. */
 #define DISP_END     (-7) /* Clean up. */
 #define DISP_FREEMEM (-8) /* Free all memory during exit only. */
 
 /* Total number of cmap indices in the shield_static[] array. */
 #define SHIELD_COUNT 21
-#define BACKTRACK (-1)    /* flag for DISP_END to display each prior location */
+#define BACKTRACK    (-1) /* for DISP_END to display each prior location */
 
 /*
  * display_self()
@@ -327,8 +327,7 @@ enum engraving_colors {
     engraving_color_blood = CLR_RED,
 };
 
-enum magicplatform_colors {
-    platform_color_default = CLR_BRIGHT_MAGENTA,
+enum magicplatform_extra_colors {
     platform_color_red = CLR_RED,
     platform_color_orange = CLR_ORANGE,
     platform_color_yellow = CLR_YELLOW,
@@ -377,16 +376,16 @@ enum altar_types {
     altar_other
 };
 enum engraving_types {
-    engr_dust,
+    engr_dust = 0,
     engr_engrave,
     engr_burn,
     engr_mark1,
     engr_mark2,
     engr_mark3,
-    engr_blood
+    engr_blood,
+    max_engraving_glyphtypes
 };
-enum magicplatform_types {
-    platform_default,
+enum magicplatform_extra_types {
     platform_red,
     platform_orange,
     platform_yellow,
@@ -477,15 +476,6 @@ enum glyphmap_change_triggers { gm_nochange, gm_newgame, gm_levelchange,
  * Altars           Altar (unaligned, chaotic, neutral, lawful, other)
  *                  Count: 5
  *
- * Engravings       Engraving types (dust, engrave, burn, mark1, mark2, mark3,
- *                  blood)
- *                  HEADSTONE is always on GRAVE terrain and never renders as
- *                  an engraving
- *                  Count: 7
- *
- * Magic platforms  Default appearance plus six colors
- *                  Count: 7
- *
  * cmap B           S_grave through S_arrow_trap + TRAPNUM - 1
  *                  Count: (S_arrow_trap + (TRAPNUM - 1) - S_grave) = 39
  *
@@ -521,6 +511,15 @@ enum glyphmap_change_triggers { gm_nochange, gm_newgame, gm_levelchange,
  *
  * frosty explosions      A set of nine.
  *                        Count: MAXEXPCHAR
+ *
+ * Engravings             Engraving types (dust, engrave, burn, mark1, mark2,
+ *                        mark3, blood)
+ *                        HEADSTONE is always on GRAVE terrain and never
+ *                        renders as an engraving
+ *                        Count: 2 defsyms x 7 engraving types = 14
+ *
+ * Extra colors of        Six colors ("default" appearance is in cmap B)
+ * magic platforms        Count: 6
  *
  * warning                A set of six representing the different warning
  *                        levels.
@@ -582,9 +581,7 @@ enum glyph_offsets {
     GLYPH_CMAP_SOKO_OFF = (((S_trwall - S_vwall) + 1) + GLYPH_CMAP_KNOX_OFF),
     GLYPH_CMAP_A_OFF = (((S_trwall - S_vwall) + 1) + GLYPH_CMAP_SOKO_OFF),
     GLYPH_ALTAR_OFF = (((S_brdnladder - S_ndoor) + 1) + GLYPH_CMAP_A_OFF),
-    GLYPH_ENGRAVING_OFF = (5 + GLYPH_ALTAR_OFF),
-    GLYPH_MAGICPLATFORM_OFF = (7 + GLYPH_ENGRAVING_OFF),
-    GLYPH_CMAP_B_OFF = (7 + GLYPH_MAGICPLATFORM_OFF),
+    GLYPH_CMAP_B_OFF = (5 + GLYPH_ALTAR_OFF),
     GLYPH_ZAP_OFF = ((S_arrow_trap + MAXTCHARS - S_grave) + GLYPH_CMAP_B_OFF),
     GLYPH_CMAP_C_OFF = ((NUM_ZAP << 2) + GLYPH_ZAP_OFF),
     GLYPH_SWALLOW_OFF = (((S_goodpos - S_digbeam) + 1) + GLYPH_CMAP_C_OFF),
@@ -596,7 +593,19 @@ enum glyph_offsets {
     GLYPH_EXPLODE_MAGICAL_OFF = (MAXEXPCHARS + GLYPH_EXPLODE_WET_OFF),
     GLYPH_EXPLODE_FIERY_OFF = (MAXEXPCHARS + GLYPH_EXPLODE_MAGICAL_OFF),
     GLYPH_EXPLODE_FROSTY_OFF = (MAXEXPCHARS + GLYPH_EXPLODE_FIERY_OFF),
-    GLYPH_WARNING_OFF = (MAXEXPCHARS + GLYPH_EXPLODE_FROSTY_OFF),
+    /* bit of weirdness: prior to S_engroom and S_engrcorr existing in upstream
+     * NetHack, xNetHack had a S_engraving and S_magicplatform following altars
+     * in between cmaps A and B, with their corresponding glyphs along with
+     * them.
+     * S_engraving no longer exists and S_magicplatform is moved to cmap B.
+     * There are still 2 cmap A glyphs (and tiles) for "engraving in room" and
+     * "engraving in corridor", but they won't actually be shown in real play
+     * because engraving_to_glyph will only return things in the
+     * GLYPH_ENGRAVING_OFF range.
+     */
+    GLYPH_ENGRAVING_OFF = (MAXEXPCHARS + GLYPH_EXPLODE_FROSTY_OFF),
+    GLYPH_MAGICPLATFORM_OFF = (14 + GLYPH_ENGRAVING_OFF),
+    GLYPH_WARNING_OFF = (6 + GLYPH_MAGICPLATFORM_OFF),
     GLYPH_STATUE_OFF = (WARNCOUNT + GLYPH_WARNING_OFF),
     GLYPH_STATUE_MALE_OFF = (GLYPH_STATUE_OFF),
     GLYPH_STATUE_FEM_OFF = (NUMMONS + GLYPH_STATUE_MALE_OFF),
@@ -646,17 +655,6 @@ enum glyph_offsets {
                /* (((amsk) & AM_MASK) == AM_UNALIGNED) */ \
                : (GLYPH_ALTAR_OFF + altar_unaligned))
 
-#define engr_to_glyph(type, x, y, z)                           \
-    ((type == DUST)                                            \
-     ? GLYPH_ENGRAVING_OFF + engr_dust                         \
-     : (type == ENGRAVE)                                       \
-       ? GLYPH_ENGRAVING_OFF + engr_engrave                    \
-       : (type == BURN)                                        \
-         ? GLYPH_ENGRAVING_OFF + engr_burn                     \
-         : (type == ENGR_BLOOD)                                \
-         ? GLYPH_ENGRAVING_OFF + engr_blood                    \
-         : GLYPH_ENGRAVING_OFF + engr_mark1 + (x + y + z) % 3)
-
 /* magicplatform_to_glyph is in display.c */
 
 /* not used, nor is it correct
@@ -704,9 +702,6 @@ enum glyph_offsets {
     : ((cmap_idx) <= S_trwall)  ? cmap_walls_to_glyph(cmap_idx)             \
     : ((cmap_idx) <  S_altar)   ? cmap_a_to_glyph(cmap_idx)                 \
     : ((cmap_idx) == S_altar)   ? altar_to_glyph(AM_NEUTRAL)                \
-    : ((cmap_idx) == S_engraving) ? (engr_to_glyph(ENGRAVE, 0, 0, 0))       \
-    : ((cmap_idx) == S_magicplatform)                                       \
-      ? (GLYPH_MAGICPLATFORM_OFF + platform_default)                        \
     : ((cmap_idx) <  S_arrow_trap + MAXTCHARS) ? cmap_b_to_glyph(cmap_idx)  \
     : ((cmap_idx) <= S_goodpos) ? cmap_c_to_glyph(cmap_idx)                 \
       : NO_GLYPH )
@@ -740,7 +735,7 @@ enum glyph_offsets {
                     (Ugender))
 
 /*
- * Change the given glyph into it's given type.  Note:
+ & * Change the given glyph into its given type.  Note:
  *      1) Pets, detected, and ridden monsters are animals and are converted
  *         to the proper monster number.
  *      2) Bodies are all mapped into the generic CORPSE object
@@ -777,11 +772,6 @@ enum glyph_offsets {
      && (glyph) < (((S_brdnladder - S_ndoor) + 1) + GLYPH_CMAP_A_OFF))
 #define glyph_is_cmap_altar(glyph) \
     ((glyph) >= GLYPH_ALTAR_OFF && (glyph) < (5 + GLYPH_ALTAR_OFF))
-#define glyph_is_cmap_engraving(glyph) \
-    ((glyph) >= GLYPH_ENGRAVING_OFF && (glyph) < (7 + GLYPH_ENGRAVING_OFF))
-#define glyph_is_cmap_magicplatform(glyph) \
-    ((glyph) >= GLYPH_MAGICPLATFORM_OFF                                 \
-     && (glyph) < (7 + GLYPH_MAGICPLATFORM_OFF))
 #define glyph_is_cmap_b(glyph) \
     ((glyph) >= GLYPH_CMAP_B_OFF                                        \
      && ((glyph) < ((S_arrow_trap + MAXTCHARS - S_grave) + GLYPH_CMAP_B_OFF)))
@@ -796,6 +786,12 @@ enum glyph_offsets {
 #define glyph_is_explosion(glyph) \
     ((glyph) >= GLYPH_EXPLODE_OFF                                       \
      && (glyph) < (MAXEXPCHARS + GLYPH_EXPLODE_FROSTY_OFF))
+#define glyph_is_cmap_engraving(glyph) \
+    ((glyph) >= GLYPH_ENGRAVING_OFF                                     \
+     && (glyph) < (14 + GLYPH_ENGRAVING_OFF))
+#define glyph_is_cmap_magicplatform(glyph) \
+    ((glyph) >= GLYPH_MAGICPLATFORM_OFF                                 \
+     && (glyph) < (6 + GLYPH_MAGICPLATFORM_OFF))
 #if 0   /* this is more precise but expands to a lot of unnecessary code */
 #define glyph_is_cmap(glyph) \
     (((glyph) == GLYPH_CMAP_STONE_OFF) \
@@ -811,51 +807,27 @@ enum glyph_offsets {
      || glyph_is_cmap_b(glyph)         \
      || glyph_is_cmap_c(glyph))
 #endif
+/* note: the extra engraving/magicplatform glyphs are noncontiguous with the
+ * rest of the cmap glyphs */
 #define glyph_is_cmap(glyph) \
-    ((glyph) >= GLYPH_CMAP_STONE_OFF \
-     && (glyph) < (GLYPH_CMAP_C_OFF + ((S_goodpos - S_digbeam) + 1)))
-
-/* final MAXPCHARS is legal array index because of trailing fencepost entry */
-#define glyph_to_cmap(glyph) \
-    (((glyph) == GLYPH_CMAP_STONE_OFF)                                  \
-      ? S_stone                                                         \
-      : glyph_is_cmap_main(glyph)                                       \
-        ? (((glyph) - GLYPH_CMAP_MAIN_OFF) + S_vwall)                   \
-        : glyph_is_cmap_mines(glyph)                                    \
-          ? (((glyph) - GLYPH_CMAP_MINES_OFF) + S_vwall)                \
-          : glyph_is_cmap_gehennom(glyph)                               \
-            ? (((glyph) - GLYPH_CMAP_GEH_OFF) + S_vwall)                \
-            : glyph_is_cmap_knox(glyph)                                 \
-              ? (((glyph) - GLYPH_CMAP_KNOX_OFF) + S_vwall)             \
-              : glyph_is_cmap_sokoban(glyph)                            \
-                ? (((glyph) - GLYPH_CMAP_SOKO_OFF) + S_vwall)           \
-                : glyph_is_cmap_a(glyph)                                \
-                  ? (((glyph) - GLYPH_CMAP_A_OFF) + S_ndoor)            \
-                  : glyph_is_cmap_altar(glyph)                          \
-                    ? (S_altar)                                         \
-                    : glyph_is_cmap_engraving(glyph)                    \
-                    ? (S_engraving)                                     \
-                    : glyph_is_cmap_magicplatform(glyph)                \
-                    ? (S_magicplatform)                                 \
-                    : glyph_is_cmap_b(glyph)                            \
-                      ? (((glyph) - GLYPH_CMAP_B_OFF) + S_grave)        \
-                      : glyph_is_cmap_c(glyph)                          \
-                        ? (((glyph) - GLYPH_CMAP_C_OFF) + S_digbeam)    \
-                        : glyph_is_cmap_zap(glyph)                      \
-                          ? ((((glyph) - GLYPH_ZAP_OFF) % 4) + S_vbeam) \
-                          : MAXPCHARS)
-
+    (((glyph) >= GLYPH_CMAP_STONE_OFF                                  \
+      && (glyph) < (GLYPH_CMAP_C_OFF + ((S_goodpos - S_digbeam) + 1))) \
+     || ((glyph) >= GLYPH_ENGRAVING_OFF                                \
+         && (glyph) < GLYPH_MAGICPLATFORM_OFF + 6))
 #define glyph_to_swallow(glyph) \
     (glyph_is_swallow(glyph) ? (((glyph) - GLYPH_SWALLOW_OFF) & 0x7) : 0)
+#define glyph_to_explosion(glyph) \
+    (glyph_is_explosion(glyph) ? (((glyph) - GLYPH_EXPLODE_OFF) % (S_expl_br - S_expl_tl + 1)) : 0)
 #define glyph_to_warning(glyph) \
-    (glyph_is_warning(glyph) ? ((glyph) - GLYPH_WARNING_OFF) : NO_GLYPH)
+    (glyph_is_warning(glyph) ? ((glyph) - GLYPH_WARNING_OFF) : 0)
 
 /*
  * Return true if the given glyph is what we want.  Note that bodies are
  * considered objects.
  */
 #define glyph_is_normal_male_monster(glyph) \
-    ((glyph) >= GLYPH_MON_MALE_OFF && (glyph) < (GLYPH_MON_MALE_OFF + NUMMONS))
+    ((glyph) >= GLYPH_MON_MALE_OFF                      \
+     && (glyph) < (GLYPH_MON_MALE_OFF + NUMMONS))
 #define glyph_is_normal_female_monster(glyph) \
     ((glyph) >= GLYPH_MON_FEM_OFF && (glyph) < (GLYPH_MON_FEM_OFF + NUMMONS))
 #define glyph_is_normal_monster(glyph) \
@@ -864,7 +836,8 @@ enum glyph_offsets {
 #define glyph_is_female_pet(glyph) \
     ((glyph) >= GLYPH_PET_FEM_OFF && (glyph) < (GLYPH_PET_FEM_OFF + NUMMONS))
 #define glyph_is_male_pet(glyph) \
-    ((glyph) >= GLYPH_PET_MALE_OFF && (glyph) < (GLYPH_PET_MALE_OFF + NUMMONS))
+    ((glyph) >= GLYPH_PET_MALE_OFF                      \
+     && (glyph) < (GLYPH_PET_MALE_OFF + NUMMONS))
 #define glyph_is_pet(glyph) \
     (glyph_is_male_pet(glyph) || glyph_is_female_pet(glyph))
 #define glyph_is_female_peaceful(glyph) \
@@ -880,8 +853,8 @@ enum glyph_offsets {
     ((glyph) >= GLYPH_RIDDEN_MALE_OFF                   \
      && (glyph) < (GLYPH_RIDDEN_MALE_OFF + NUMMONS))
 #define glyph_is_ridden_monster(glyph) \
-    (glyph_is_ridden_male_monster(glyph) \
-        || glyph_is_ridden_female_monster(glyph))
+    (glyph_is_ridden_male_monster(glyph)                \
+     || glyph_is_ridden_female_monster(glyph))
 #define glyph_is_detected_female_monster(glyph) \
     ((glyph) >= GLYPH_DETECT_FEM_OFF                    \
      && (glyph) < (GLYPH_DETECT_FEM_OFF + NUMMONS))
@@ -889,7 +862,7 @@ enum glyph_offsets {
     ((glyph) >= GLYPH_DETECT_MALE_OFF                   \
      && (glyph) < (GLYPH_DETECT_MALE_OFF + NUMMONS))
 #define glyph_is_detected_monster(glyph) \
-    (glyph_is_detected_male_monster(glyph) \
+    (glyph_is_detected_male_monster(glyph)              \
         || glyph_is_detected_female_monster(glyph))
 #define glyph_is_monster(glyph)                            \
     (glyph_is_normal_monster(glyph) || glyph_is_pet(glyph) \
@@ -925,8 +898,9 @@ enum glyph_offsets {
    the otg_otmp assignment might occur multiple times in the same
    expression but there will always be sequence points in between */
 #define obj_is_piletop(obj) \
-    ((obj)->where == OBJ_FLOOR                                  \
-     && (go.otg_otmp = gl.level.objects[(obj)->ox][(obj)->oy]->nexthere) != 0 \
+    ((obj)->where == OBJ_FLOOR                                             \
+     && ((go.otg_otmp = svl.level.objects[(obj)->ox][(obj)->oy]->nexthere) \
+         != 0)                                                             \
      && ((obj)->otyp != BOULDER || go.otg_otmp->otyp == BOULDER))
 /* used to hide info such as potion and gem color when not seen yet;
    stones and rock are excluded for gem class; LAST_SPELL includes blank
@@ -963,22 +937,22 @@ enum glyph_offsets {
 #define glyph_is_statue(glyph) \
     (glyph_is_male_statue(glyph) || glyph_is_fem_statue(glyph))
 /* generic objects are after strange object (GLYPH_OBJ_OFF) and before
-   other objects (GLYPH_OBJ_OFF + MAXOCLASSES) */
+   other objects (GLYPH_OBJ_OFF + FIRST_OBJECT) */
 #define glyph_is_normal_generic_obj(glyph) \
-    ((glyph) > GLYPH_OBJ_OFF && (glyph) < GLYPH_OBJ_OFF + MAXOCLASSES)
+    ((glyph) > GLYPH_OBJ_OFF && (glyph) < GLYPH_OBJ_OFF + FIRST_OBJECT - 1)
 #define glyph_is_piletop_generic_obj(glyph) \
     ((glyph) > GLYPH_OBJ_PILETOP_OFF                            \
-     && (glyph) < GLYPH_OBJ_PILETOP_OFF + MAXOCLASSES)
+     && (glyph) < GLYPH_OBJ_PILETOP_OFF + FIRST_OBJECT - 1)
 #define glyph_is_generic_object(glyph) \
     (glyph_is_normal_generic_obj(glyph)                         \
      || glyph_is_piletop_generic_obj(glyph))
 #define glyph_is_normal_piletop_obj(glyph) \
     ((glyph) == GLYPH_OBJ_PILETOP_OFF                           \
-     || ((glyph) > GLYPH_OBJ_PILETOP_OFF + MAXOCLASSES          \
+     || ((glyph) > GLYPH_OBJ_PILETOP_OFF + FIRST_OBJECT - 1     \
          && (glyph) < (GLYPH_OBJ_PILETOP_OFF + NUM_OBJECTS)))
 #define glyph_is_normal_object(glyph) \
     ((glyph) == GLYPH_OBJ_OFF                                   \
-     || ((glyph) >= GLYPH_OBJ_OFF + MAXOCLASSES                 \
+     || ((glyph) >= GLYPH_OBJ_OFF + FIRST_OBJECT - 1            \
          && (glyph) < (GLYPH_OBJ_OFF + NUM_OBJECTS))            \
      || glyph_is_normal_piletop_obj(glyph))
 
@@ -1109,9 +1083,10 @@ enum glyph_offsets {
 #if 0
 #define glyph_is_piletop(glyph) \
     (glyph_is_body_piletop(glyph)           \
-     || glyph_is_statue_piletop(glyph)      \
+     || glyph_is_fem_statue_piletop(glyph)  \
+     || glyph_is_male_statue_piletop(glyph) \
      || glyph_is_piletop_generic_obj(glyph) \
-     || glyph_is_obj_piletop(glyph))
+     || glyph_is_normal_piletop_obj(glyph))
 #endif
 
 /* mgflags for altering map_glyphinfo() internal behavior */
@@ -1132,6 +1107,7 @@ enum glyph_offsets {
 #define MG_BW_ICE  0x00200  /* similar for ice vs floor */
 #define MG_BW_SINK 0x00200  /* identical for sink vs fountain [note: someday
                              * this may become a distinct flag */
+#define MG_BW_ENGR 0x00200  /* likewise for corridor engravings */
 #define MG_NOTHING 0x00400  /* char represents GLYPH_NOTHING */
 #define MG_UNEXPL  0x00800  /* char represents GLYPH_UNEXPLORED */
 #define MG_MALE    0x01000  /* represents a male mon or statue of one */
@@ -1141,19 +1117,26 @@ enum glyph_offsets {
 #define MG_STAIRS  0x08000  /* hidden stairs */
 #define MG_PEACEFUL 0x10000 /* peaceful monster */
 
+/* docrt(): re-draw whole screen; docrt_flags(): docrt() with more control */
+enum docrt_flags_bits {
+    docrtRecalc  = 0, /* full docrt(), recalculate what the map should show */
+    docrtRefresh = 1, /* redraw_map(), draw what we think the map shows */
+    docrtMapOnly = 2, /* ORed with Recalc or Refresh; draw the map but not
+                       * status or perminv */
+    docrtNocls = 4,
+};
+
 typedef struct {
     xint8 gnew; /* perhaps move this bit into the rm structure. */
     glyph_info glyphinfo;
 } gbuf_entry;
 
-#ifdef TEXTCOLOR
 extern const int altarcolors[];
 extern const int engravingcolors[];
 extern const int magicplatformcolors[];
 extern const int zapcolors[];
 extern const int explodecolors[];
 extern int wallcolors[];
-#endif
 
 /* If TILES_IN_GLYPHMAP is defined during build, this is defined
  * in the generated tile.c, complete with appropriate tile references in

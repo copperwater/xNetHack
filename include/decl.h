@@ -1,4 +1,4 @@
-/* NetHack 3.7  decl.h  $NHDT-Date: 1657918080 2022/07/15 20:48:00 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.303 $ */
+/* NetHack 3.7  decl.h  $NHDT-Date: 1725653004 2024/09/06 20:03:24 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.377 $ */
 /* Copyright (c) Stichting Mathematisch Centrum, Amsterdam, 1985. */
 /*-Copyright (c) Michael Allison, 2007. */
 /* NetHack may be freely redistributed.  See license for details. */
@@ -29,6 +29,7 @@ extern NEARDATA const struct c_color_names c_color_names;
 /* common_strings */
 extern const struct c_common_strings c_common_strings;
 #define nothing_happens c_common_strings.c_nothing_happens
+#define nothing_seems_to_happen c_common_strings.c_nothing_seems_to_happen
 #define thats_enough_tries c_common_strings.c_thats_enough_tries
 #define silly_thing_to c_common_strings.c_silly_thing_to
 #define shudder_for_moment c_common_strings.c_shudder_for_moment
@@ -67,6 +68,9 @@ extern const char *fqn_prefix_names[PREFIX_COUNT];
 extern NEARDATA boolean has_strong_rngseed;
 extern struct engr *head_engr;
 
+/* used by coloratt.c, options.c, utf8map.c, windows.c */
+extern const char hexdd[33];
+
 /* material strings */
 extern const char *materialnm[];
 
@@ -84,6 +88,8 @@ extern const char ynchars[];
 extern const char ynqchars[];
 extern const char ynaqchars[];
 extern const char ynNaqchars[];
+extern const char rightleftchars[];
+extern const char hidespinchars[];
 extern NEARDATA long yn_number;
 extern struct restore_info restoreinfo;
 extern NEARDATA struct savefile_info sfcap, sfrestinfo, sfsaveinfo;
@@ -124,6 +130,13 @@ extern char *fuzzer_log[FUZZER_LOG_SIZE];
 extern long fuzzer_log_idx;
 #endif /* FUZZER_LOG */
 
+struct display_hints {
+    boolean botl;            /* partially redo status line */
+    boolean botlx;           /* print an entirely new bottom line */
+    boolean time_botl;       /* context.botl for 'time' (moves) only */
+};
+extern struct display_hints disp;
+
 /*
  * 'gX' -- instance_globals holds engine state that does not need to be
  * persisted upon game exit.  The initialization state is well defined
@@ -155,7 +168,14 @@ struct instance_globals_a {
     short *animal_list; /* list of PM values for animal monsters */
     int animal_list_count;
 
+#ifdef CHANGE_COLOR
+    /* options.c */
+    uint32 altpalette[CLR_MAX];
+#endif
+
     /* pickup.c */
+    int A_first_hint; /* menustyle:Full plus 'A' response + !paranoid:A */
+    int A_second_hint; /* menustyle:Full plus 'A' response + paranoid:A */
     boolean abort_looting;
 
     /* shk.c */
@@ -184,12 +204,8 @@ struct instance_globals_b {
 #endif
 
     /* decl.c */
-    int bases[MAXOCLASSES + 1];
     coord bhitpos; /* place where throw or zap hits or stops */
     struct obj *billobjs; /* objects not yet paid for */
-
-    /* dungeon.c */
-    branch *branches; /* dungeon branch list */
 
     /* files.c */
     char bones[BONESSIZE];
@@ -199,14 +215,14 @@ struct instance_globals_b {
     long bldrpushtime;     /* turn that a message was given for pushing
                             * a boulder; used in lieu of Norep() */
 
-    /* mkmaze.c */
-    struct bubble *bbubbles;
-
     /* pickup.c */
     boolean bucx_filter;
 
     /* zap.c */
     struct monst *buzzer; /* zapper/caster/breather who initiates buzz() */
+
+    /* new */
+    boolean bot_disabled;
 
     boolean havestate;
     unsigned long magic; /* validate that structure layout is preserved */
@@ -231,17 +247,21 @@ struct instance_globals_c {
     coord clicklook_cc;
     /* decl.c */
     char chosen_windowtype[WINTYPELEN];
-    char command_line[COLNO];
+    int cmd_key; /* parse() / rhack() */
     cmdcount_nht command_count;
     /* some objects need special handling during destruction or placement */
     struct obj *current_wand;  /* wand currently zapped/applied */
 #ifdef DEF_PAGER
     const char *catmore; /* external pager; from getenv() or DEF_PAGER */
 #endif
-    struct context_info context;
 
     /* dog.c */
     char catname[PL_PSIZ];
+
+    /* end.c */
+    char *crash_email;  // email for crash reports
+    char *crash_name;   // human name for crash reports
+    int crash_urlmax;   // maximum length for the url of a crash report
 
     /* symbols.c */
     int currentgraphics;
@@ -256,7 +276,7 @@ struct instance_globals_c {
     /* invent.c */
     /* for perm_invent when operating on a partial inventory display, so that
        persistent one doesn't get shrunk during filtering for item selection
-       then regrown to full inventory, possibly being resized in the process */
+       then regrown to full inventory, possibly being resized in process */
     winid cached_pickinv_win;
     int core_invent_state;
 
@@ -297,15 +317,7 @@ struct instance_globals_d {
     long domove_succeeded;
 #define DOMOVE_WALK         0x00000001
 #define DOMOVE_RUSH         0x00000002
-    dungeon dungeons[MAXDUNGEON]; /* ini'ed by init_dungeon() */
-    dest_area dndest;
     boolean defer_see_monsters;
-    struct dgn_topology dungeon_topology;
-    int doors_alloc; /* doors-array allocated size */
-    /* Holds the coordinates of all doors on the level.
-     * mkroom structs each have a fdoor which is their first door in this array.
-     */
-    coord *doors; /* array of door locations */
 
     /* dig.c */
     boolean did_dig_msg;
@@ -324,18 +336,24 @@ struct instance_globals_d {
     /* mon.c */
     boolean disintegested;
 
-    /* o_init.c */
-    short disco[NUM_OBJECTS];
-
     /* objname.c */
     /* distantname used by distant_name() to pass extra information to
        xname_flags(); it would be much cleaner if this were a parameter,
        but that would require all xname() and doname() calls to be modified */
     int distantname;
 
+    /* pickup.c */
+    boolean decor_fumble_override;
+    boolean decor_levitate_override;
+
+    /* windows.c */
 #ifdef DUMPHTML
     boolean dumping_list;
 #endif
+
+    /* new */
+    boolean deferred_showpaths;
+    char *deferred_showpaths_dir;
 
     boolean havestate;
     unsigned long magic; /* validate that structure layout is preserved */
@@ -395,6 +413,7 @@ struct instance_globals_g {
     coordxy gbuf_stop[ROWNO];
 
     /* do_name.c */
+    coordxy getposx, getposy; /* cursor position in case of async resize */
     struct selectionvar *gloc_filter_map;
     int gloc_filter_floodfill_match_glyph;
 
@@ -412,6 +431,12 @@ struct instance_globals_g {
 
     /* invent.c */
     long glyph_reset_timestamp;
+
+    /* nhlua.c */
+    boolean gmst_stored;
+    long gmst_moves;
+    struct obj *gmst_invent;
+    genericptr_t *gmst_ubak, *gmst_disco, *gmst_mvitals;
 
     /* pline.c */
     struct gamelog_line *gamelog;
@@ -432,7 +457,6 @@ struct instance_globals_h {
 
     /* decl.c */
     const char *hname; /* name of the game (argv[0] of main) */
-    int hackpid; /* current process id */
 #if defined(MICRO) || defined(WIN32)
     char hackdir[PATHLEN]; /* where rumors, help, record are */
 #endif /* MICRO || WIN32 */
@@ -454,7 +478,6 @@ struct instance_globals_i {
 
     /* decl.c */
     int in_doagain;
-    coord inv_pos;
     boolean in_mklev;
     boolean in_steed_dismounting;
     struct obj *invent;
@@ -469,11 +492,17 @@ struct instance_globals_i {
     unsigned invbufsiz;
     int in_sync_perminvent;
 
+    /* mon.c */
+    struct monst **itermonarr; /* temporary array of all N monsters
+                                * on the current level */
+
     /* restore.c */
     struct bucket *id_map;
 
     /* sp_lev.c */
     boolean in_mk_themerooms;
+
+    /* new */
 
     boolean havestate;
     unsigned long magic; /* validate that structure layout is preserved */
@@ -490,9 +519,10 @@ struct instance_globals_j {
 
 struct instance_globals_k {
 
+    coord kickedloc; /* location hero just kicked */
+
     /* decl.c */
     struct obj *kickedobj;     /* object in flight due to kicking */
-    struct kinfo killer;
 
     /* read.c */
     boolean known;
@@ -506,10 +536,7 @@ struct instance_globals_l {
     /* cmd.c */
     cmdcount_nht last_command_count;
 
-    /* dbridge.c */
-    schar lastseentyp[COLNO][ROWNO]; /* last seen/touched dungeon typ */
-    struct linfo level_info[MAXLINFO];
-    dlevel_t level; /* level map */
+    /* decl.c (before being incorporated into instance_globals_*) */
 #if defined(UNIX) || defined(VMS)
     int locknum; /* max num of simultaneous users */
 #endif
@@ -530,6 +557,9 @@ struct instance_globals_l {
     /* mklev.c */
     genericptr_t luathemes[MAXDUNGEON];
 
+    /* mon.c */
+    unsigned last_hider; /* m_id of hides-under mon seen going into hiding */
+
     /* nhlan.c */
 #ifdef MAX_LAN_USERNAME
     char lusername[MAX_LAN_USERNAME];
@@ -539,6 +569,8 @@ struct instance_globals_l {
     /* nhlua.c */
     genericptr_t luacore; /* lua_State * */
     char lua_warnbuf[BUFSZ];
+    int loglua;
+    int lua_sid;
 
     /* options.c */
     boolean loot_reset_justpicked;
@@ -582,7 +614,6 @@ struct instance_globals_m {
     struct multishot m_shot;
     boolean mrg_to_wielded; /* weapon picked is merged with wielded one */
     struct menucoloring *menu_colorings;
-    long moves; /* turn counter */
     struct obj *migrating_objs; /* objects moving to another dungeon level */
 
     /* display.c */
@@ -591,13 +622,9 @@ struct instance_globals_m {
     /* dog.c */
     struct monst *mydogs; /* monsters that went down/up together with @ */
     struct monst *migrating_mons; /* monsters moving to another level */
-    struct mvitals mvitals[NUMMONS];
 
     /* dokick.c */
     struct rm *maploc;
-
-    /* dungeon.c */
-    mapseen *mapseenchn; /*DUNGEON_OVERVIEW*/
 
     /* mhitu.c */
     int mhitu_dieroll;
@@ -606,10 +633,10 @@ struct instance_globals_m {
     boolean made_branch; /* used only during level creation */
 
     /* mkmap.c */
-    int min_rx; /* rectangle bounds for regions */
-    int max_rx;
-    int min_ry;
-    int max_ry;
+    coordxy min_rx; /* rectangle bounds for regions */
+    coordxy max_rx;
+    coordxy min_ry;
+    coordxy max_ry;
 
     /* mkobj.c */
     boolean mkcorpstat_norevive; /* for trolls */
@@ -631,6 +658,11 @@ struct instance_globals_m {
     /* region.c */
     int max_regions;
 
+    /* trap.c */
+    boolean mentioned_water; /* set to True by water_damage() if it issues
+                              * a message about water; dodip() should make
+                              * POT_WATER should become discovered */
+
     boolean havestate;
     unsigned long magic; /* validate that structure layout is preserved */
 };
@@ -642,14 +674,10 @@ struct instance_globals_n {
 
     /* decl.c */
     const char *nomovemsg;
-    int nroom;
     int nsubroom;
 
     /* dokick.c */
     struct rm nowhere;
-
-    /* dungeon.c */
-    int n_dgns; /* number of dungeons (also used in mklev.c and do.c) */
 
     /* files.c */
     int nesting;
@@ -673,9 +701,6 @@ struct instance_globals_n {
     /* questpgr.c */
     char nambuf[CVT_BUF_SIZE];
 
-    /* region.c */
-    int n_regions;
-
     /* restore.c */
     int n_ids_mapped;
 
@@ -694,6 +719,8 @@ struct instance_globals_n {
 
 struct instance_globals_o {
 
+    struct obj *objs_deleted;
+
     /* dbridge.c */
     struct entity occupants[ENTITIES];
 
@@ -706,7 +733,6 @@ struct instance_globals_o {
 
     /* symbols.c */
     nhsym ov_primary_syms[SYM_MAX];   /* loaded primary symbols          */
-    nhsym ov_rogue_syms[SYM_MAX];   /* loaded rogue symbols           */
 
     /* invent.c */
     /* query objlist callback: return TRUE if obj is at given location */
@@ -722,9 +748,14 @@ struct instance_globals_o {
     boolean opt_from_file;
     boolean opt_need_redraw; /* for doset() */
     boolean opt_need_glyph_reset;
+    boolean opt_need_promptstyle;
+    boolean opt_reset_customcolors;
+    boolean opt_reset_customsymbols;
+    boolean opt_update_basic_palette;
+    boolean opt_symset_changed;
 
     /* pickup.c */
-    int oldcap; /* last encumberance */
+    int oldcap; /* last encumbrance */
 
     /* restore.c */
     struct fruit *oldfruit;
@@ -732,7 +763,6 @@ struct instance_globals_o {
 
     /* rumors.c */
     int oracle_flg; /* -1=>don't use, 0=>need init, 1=>init done */
-    unsigned oracle_cnt; /* oracles are handled differently from rumors... */
     unsigned long *oracle_loc;
 
     /* uhitm.c */
@@ -752,13 +782,9 @@ struct instance_globals_p {
     int polearm_range_max;
 
     /* decl.c */
-    char plname[PL_NSIZ]; /* player name */
     int plnamelen; /* length of plname[] if that came from getlogin() */
-    char pl_character[PL_CSIZ];
     char pl_race; /* character's race */
-    char pl_fruit[PL_FSIZ];
     struct plinemsg_type *plinemsg_types;
-    struct sinfo program_state; /* flags describing game's current state */
 
     /* dog.c */
     int petname_used; /* user preferred pet name has been used */
@@ -772,6 +798,8 @@ struct instance_globals_p {
 
     /* pickup.c */
     boolean picked_filter;
+    int pickup_encumbrance; /* when picking up multiple items in a single
+                             * operation, encumbrance after previous item */
 
     /* pline.c */
     unsigned pline_flags;
@@ -800,23 +828,11 @@ struct instance_globals_p {
 
 struct instance_globals_q {
 
-    /* quest.c */
-    struct q_score quest_status;
-
     boolean havestate;
     unsigned long magic; /* validate that structure layout is preserved */
 };
 
 struct instance_globals_r {
-
-    /* decl.c */
-    struct mkroom rooms[(MAXNROFROOMS + 1) * 2];
-
-    /* symbols.c */
-    nhsym rogue_syms[SYM_MAX];   /* loaded rogue symbols           */
-
-    /* extralev.c */
-    struct rogueroom r[3][3];
 
     /* mkmaze.c */
     boolean ransacked;
@@ -846,14 +862,12 @@ struct instance_globals_s {
                               messages in artifact_hit() */
 
     /* decl.c */
-    s_level * sp_levchn;
     stairway *stairs;
     /* smeq - stores room numbers for the purposes of determining which rooms have
      * been connected yet, and which haven't.
      * Not sure why this isn't just stored in struct mkroom directly. */
     int smeq[MAXNROFROOMS + 1];
     boolean stoned; /* done to monsters hit by 'c' */
-    struct spell spl_book[MAXSPELL + 1];
     struct mkroom *subrooms;
 
     /* do.c */
@@ -861,9 +875,9 @@ struct instance_globals_s {
 
     /* symbols.c */
     struct symsetentry symset[NUM_GRAPHICS];
-#ifdef ENHANCED_SYMBOLS
-    struct symset_customization sym_customizations[NUM_GRAPHICS + 1]; /* adds UNICODESET */
-#endif
+    /* adds UNICODESET */
+    struct symset_customization
+        sym_customizations[NUM_GRAPHICS + 1][custom_count];
     nhsym showsyms[SYM_MAX]; /* symbols to be displayed */
 
     /* files.c */
@@ -892,10 +906,11 @@ struct instance_globals_s {
     boolean simple_options_help;
 
     /* pickup.c */
+    boolean sellobj_first; /* True => need sellobj_state(); False => don't */
     boolean shop_filter;
 
     /* pline.c */
-#ifdef DUMPLOG
+#ifdef DUMPLOG_CORE
     unsigned saved_pline_index;  /* slot in saved_plines[] to use next */
     char *saved_plines[DUMPLOG_MSG_COUNT];
 #endif
@@ -912,7 +927,7 @@ struct instance_globals_s {
 
     /* spells.c */
     int spl_sortmode;   /* index into spl_sortchoices[] */
-    int *spl_orderindx; /* array of gs.spl_book[] indices */
+    int *spl_orderindx; /* array of svs.spl_book[] indices */
 
     /* steal.c */
     unsigned int stealoid; /* object to be stolen */
@@ -931,7 +946,6 @@ struct instance_globals_t {
     struct trapinfo trapinfo;
 
     /* decl.c */
-    char tune[6];
     schar tbx;  /* mthrowu: target x */
     schar tby;  /* mthrowu: target y */
     char toplines[TBUFSZ];
@@ -949,19 +963,19 @@ struct instance_globals_t {
     const char *this_title; /* title for inventory list of specific type */
 
     /* muse.c */
-    int trapx;
-    int trapy;
+    coordxy trapx;
+    coordxy trapy;
 
     /* pickup.c */
     struct obj *transfer_container;
 
     /* rumors.c */
     long true_rumor_size; /* rumor size variables are signed so that value -1
-                            can be used as a flag */
-    unsigned long true_rumor_start; /* rumor start offsets are unsigned because
-                                       they're handled via %lx format */
+                           * can be used as a flag */
+    unsigned long true_rumor_start; /* rumor start offsets are unsigned due
+                                     * to use of %lx format */
     long true_rumor_end; /* rumor end offsets are signed because they're
-                            compared with [dlb_]ftell() */
+                          * compared with [dlb_]ftell() */
 
     /* sp_lev.c */
     boolean themeroom_failed;
@@ -969,10 +983,12 @@ struct instance_globals_t {
     /* timeout.c */
     /* ordered timer list */
     struct fe *timer_base; /* "active" */
-    unsigned long timer_id;
 
     /* topten.c */
     winid toptenwin;
+
+    /* uhitm.c */
+    int twohits; /* 0: single hit; 1: first of 2; 2: second of 2 */
 
     boolean havestate;
     unsigned long magic; /* validate that structure layout is preserved */
@@ -984,7 +1000,6 @@ struct instance_globals_u {
     boolean update_all;
 
     /* decl.c */
-    dest_area updest;
     boolean unweapon;
 
     /* role.c */
@@ -992,8 +1007,6 @@ struct instance_globals_u {
     struct Race urace; /* player's race. May be munged in role_init() */
 
     /* save.c */
-    unsigned ustuck_id; /* need to preserve during save */
-    unsigned usteed_id; /* need to preserve during save */
     d_level uz_save;
 
     /* new stuff */
@@ -1044,6 +1057,9 @@ struct instance_globals_w {
     int warn_obj_cnt; /* count of monsters meeting criteria */
     long wailmsg;
 
+    /* do_wear.c */
+    uint8 wasinwater;
+
     /* symbols.c */
     nhsym warnsyms[WARNCOUNT]; /* the current warning display symbols */
 
@@ -1074,8 +1090,11 @@ struct instance_globals_x {
     /* lock.c */
     struct xlock_s xlock;
 
-    /* mkmaze.c */
-    int xmin, xmax; /* level boundaries x */
+    /* objnam.c */
+    char *xnamep; /* obuf[] returned by xname(), for use in doname() for
+                   * bounds checking; differs from xname() return value
+                   * due to reserving PREFIX bytes at start and possibly
+                   * skipping leading "the " after constructing result */
 
     /* sp_lev.c */
     coordxy xstart, xsize;
@@ -1089,9 +1108,6 @@ struct instance_globals_y {
     /* decl.c */
     int y_maze_max;
     struct monst youmonst;
-
-    /* mkmaze.c */
-    int ymin, ymax; /* level boundaries y */
 
     /* pline.c */
     /* work buffer for You(), &c and verbalize() */
@@ -1122,6 +1138,126 @@ struct instance_globals_z {
     unsigned long magic; /* validate that structure layout is preserved */
 };
 
+struct instance_globals_saved_b {
+    /* dungeon.c */
+    branch *branches; /* dungeon branch list */
+    /* mkmaze.c */
+    struct bubble *bbubbles;
+    /* o_init.c */
+    int bases[MAXOCLASSES + 2]; /* make bases[MAXOCLASSES+1] available */
+};
+
+struct instance_globals_saved_c {
+    /* decl.c */
+    struct context_info context;
+};
+
+struct instance_globals_saved_d {
+    /* dungeon.c */
+    dungeon dungeons[MAXDUNGEON]; /* ini'ed by init_dungeon() */
+    struct dgn_topology dungeon_topology;
+    /* decl.c */
+    dest_area dndest;
+    coord *doors; /* array of door locations */
+    int doors_alloc; /* doors-array allocated size */
+    /* o_init.c */
+    short disco[NUM_OBJECTS];
+};
+
+struct instance_globals_saved_e {
+    /* decl.c */
+    struct exclusion_zone *exclusion_zones;
+};
+
+struct instance_globals_saved_h {
+    /* decl.c */
+    int hackpid; /* current process id */
+};
+
+struct instance_globals_saved_i {
+    /* decl.c */
+    coord inv_pos;
+};
+
+struct instance_globals_saved_k {
+    /* decl.c */
+    struct kinfo killer;
+};
+
+struct instance_globals_saved_l {
+    /* decl.c */
+    schar lastseentyp[COLNO][ROWNO]; /* last seen/touched dungeon typ */
+    dlevel_t level; /* level map */
+    struct linfo level_info[MAXLINFO];
+};
+
+struct instance_globals_saved_m {
+    /* dungeon.c */
+    mapseen *mapseenchn; /*DUNGEON_OVERVIEW*/
+    /* decl.c */
+    long moves; /* turn counter */
+    struct mvitals mvitals[NUMMONS];
+};
+
+struct instance_globals_saved_n {
+    /* dungeon.c */
+    int n_dgns; /* number of dungeons (also used in mklev.c and do.c) */
+    /* mkroom.c */
+    int nroom;
+    /* region.c */
+    int n_regions;
+};
+
+struct instance_globals_saved_o {
+    /* rumors.c */
+    unsigned oracle_cnt; /* oracles are handled differently from rumors... */
+};
+
+struct instance_globals_saved_p {
+    /* decl.c */
+    char plname[PL_NSIZ]; /* player name */
+    char pl_character[PL_CSIZ];
+    char pl_fruit[PL_FSIZ];
+};
+
+struct instance_globals_saved_q {
+    /* quest.c */
+    struct q_score quest_status;
+};
+
+struct instance_globals_saved_r {
+    /* mkroom.c */
+    struct mkroom rooms[(MAXNROFROOMS + 1) * 2];
+};
+
+struct instance_globals_saved_s {
+    /* decl.c */
+    struct spell spl_book[MAXSPELL + 1];
+    s_level *sp_levchn;
+};
+
+struct instance_globals_saved_t {
+    /* decl.c */
+    char tune[6];
+    /* timeout.c */
+    unsigned long timer_id;
+};
+
+struct instance_globals_saved_u {
+    /* decl.c */
+    dest_area updest;
+};
+
+struct instance_globals_saved_x {
+    /* mkmaze.c */
+    int xmin, xmax; /* level boundaries x */
+};
+
+struct instance_globals_saved_y {
+    /* mkmaze.c */
+    int ymin, ymax; /* level boundaries y */
+};
+
 extern struct instance_globals_a ga;
 extern struct instance_globals_b gb;
 extern struct instance_globals_c gc;
@@ -1148,15 +1284,36 @@ extern struct instance_globals_w gw;
 extern struct instance_globals_x gx;
 extern struct instance_globals_y gy;
 extern struct instance_globals_z gz;
+extern struct instance_globals_saved_b svb;
+extern struct instance_globals_saved_c svc;
+extern struct instance_globals_saved_d svd;
+extern struct instance_globals_saved_e sve;
+extern struct instance_globals_saved_h svh;
+extern struct instance_globals_saved_i svi;
+extern struct instance_globals_saved_k svk;
+extern struct instance_globals_saved_l svl;
+extern struct instance_globals_saved_m svm;
+extern struct instance_globals_saved_n svn;
+extern struct instance_globals_saved_o svo;
+extern struct instance_globals_saved_p svp;
+extern struct instance_globals_saved_q svq;
+extern struct instance_globals_saved_r svr;
+extern struct instance_globals_saved_s svs;
+extern struct instance_globals_saved_t svt;
+extern struct instance_globals_saved_u svu;
+extern struct instance_globals_saved_x svx;
+extern struct instance_globals_saved_y svy;
+extern struct sinfo program_state; /* flags describing game's current state */
 
 struct const_globals {
     const struct obj zeroobj;      /* used to zero out a struct obj */
     const struct monst zeromonst;  /* used to zero out a struct monst */
     const anything zeroany;        /* used to zero out union any */
+    const NhRect zeroNhRect;       /* used to zero out NhRect */
 };
 
 extern const struct const_globals cg;
 
+extern struct obj hands_obj;
+
 #endif /* DECL_H */
-
-

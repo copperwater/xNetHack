@@ -19,7 +19,6 @@
 
 
 extern COLORREF nhcolor_to_RGB(int c); /* from mhmap */
-
 typedef struct back_buffer {
     HWND hWnd;
     HDC hdc;
@@ -28,6 +27,11 @@ typedef struct back_buffer {
     int width;
     int height;
 } back_buffer_t;
+
+void back_buffer_free(back_buffer_t * back_buffer);
+void back_buffer_allocate(back_buffer_t * back_buffer, int width, int height);
+void back_buffer_size(back_buffer_t * back_buffer, int width, int height);
+void back_buffer_init(back_buffer_t * back_buffer, HWND hWnd, int width, int height);
 
 void back_buffer_free(back_buffer_t * back_buffer)
 {
@@ -73,7 +77,7 @@ typedef struct mswin_nethack_status_window {
     mswin_status_lines * status_lines;
     back_buffer_t back_buffer;
     boolean blink_state; /* true = invert blink text */
-    boolean has_blink_fields; /* true if one or more has blink attriubte */
+    boolean has_blink_fields; /* true if one or more has blink attribute */
 } NHStatusWindow, *PNHStatusWindow;
 
 
@@ -127,6 +131,7 @@ mswin_init_status_window(void)
     if (!data)
         panic("out of memory");
 
+    windowdata[NHW_STATUS].address = (genericptr_t) data;
     ZeroMemory(data, sizeof(NHStatusWindow));
     SetWindowLongPtr(ret, GWLP_USERDATA, (LONG_PTR) data);
 
@@ -253,6 +258,7 @@ StatusWndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
     case WM_DESTROY:
         free(data);
         SetWindowLongPtr(hWnd, GWLP_USERDATA, (LONG_PTR) 0);
+        windowdata[NHW_STATUS].address = 0;
         break;
 
     case WM_SETFOCUS:
@@ -272,7 +278,7 @@ StatusWndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 }
 
 static LRESULT
-onWMPaint(HWND hWnd, WPARAM wParam, LPARAM lParam)
+onWMPaint(HWND hWnd, WPARAM wParam UNUSED, LPARAM lParam UNUSED)
 {
     SIZE sz;
     WCHAR wbuf[BUFSZ];

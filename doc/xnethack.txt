@@ -1,30 +1,31 @@
-XNETHACK(6)                      Games Manual                      XNETHACK(6)
+4mXNETHACK24m(6)                      Games Manual                      4mXNETHACK24m(6)
 
-NAME
+1mNAME0m
        xnethack - Exploring The Mazes of Menace
 
-SYNOPSIS
-       xnethack [ -d|--directory directory ] [ -w|--windowtype interface ]
-       [ --xnethackrc:RC-file | --no-xnethackrc ] [ -n ] [ -dec | -ibm ]
-       [ -u playername ] [ -X | -D ] [ -p profession ] [ -r race ] [ -@ ]
+1mSYNOPSIS0m
+       1mxnethack 22m[ 1m-d22m|1m--directory 4m22mdirectory24m ] [ 1m-w22m|1m--windowtype 4m22minterface24m ]
+       [ 1m--xnethackrc:4m22mRC-file24m | 1m--no-xnethackrc 22m] [ 1m-n 22m] [ 1m-dec 22m| 1m-ibm 22m]
+       [ 1m-u 4m22mplayername24m ] [ 1m-X 22m| 1m-D 22m] [ 1m-p 4m22mprofession24m ] [ 1m-r 4m22mrace24m ] [ 1m-@ 22m]
 
-       Also [ -A|-Arc | -B|-Bar | -C|-Cav | -H|-Hea | -K|-Kni | -M|-Mon |
-       -P|-Pri | -R|-Rog | -Ran | -S|-Sam | -T|-Tou | -V|-Val | -W|-Wiz ]
+       Also [ 1m-A22m|1m-Arc 22m| 1m-B22m|1m-Bar 22m| 1m-C22m|1m-Cav 22m| 1m-H22m|1m-Hea 22m| 1m-K22m|1m-Kni 22m| 1m-M22m|1m-Mon 22m|
+       1m-P22m|1m-Pri 22m| 1m-R22m|1m-Rog 22m| 1m-Ran 22m| 1m-S22m|1m-Sam 22m| 1m-T22m|1m-Tou 22m| 1m-V22m|1m-Val 22m| 1m-W22m|1m-Wiz 22m]
 
-       xnethack [ -d|--directory directory ] -s|--scores [ -v ]
-       [ -p profession ] [ -r race ] [ playernames ]
+       1mxnethack 22m[ 1m-d22m|1m--directory 4m22mdirectory24m ] 1m-s22m|1m--scores 22m[ 1m-v 22m]
+       [ 1m-p 4m22mprofession24m ] [ 1m-r 4m22mrace24m ] [ 4mplayernames24m ]
 
-       xnethack [ --usage | --help ] [ --showpaths ] [ --version[:paste] ]
+       1mxnethack 22m[ 1m--usage 22m| 1m--help 22m] [ 1m--showpaths 22m]
+       [ 1m--version22m[1m:copy22m|1m:dump22m|1m:show22m] ]
 
-DESCRIPTION
-       xNetHack is a display oriented Dungeons & Dragons(tm) - like game.  The
+1mDESCRIPTION0m
+       4mxNetHack24m is a display oriented Dungeons & Dragons(tm) - like game.  The
        standard tty display and command structure resemble rogue.
 
        Other, more graphical display options exist for most platforms.
 
        To  get started you really only need to know two commands.  The command
-       ?  will give you a list of the available commands  (as  well  as  other
-       information)  and the command / will identify the things you see on the
+       1m?  22mwill give you a list of the available commands  (as  well  as  other
+       information)  and the command 1m/ 22mwill identify the things you see on the
        screen.
 
        To win the game (as opposed to merely playing to  beat  other  people's
@@ -32,11 +33,11 @@ DESCRIPTION
        below the 20th level of the dungeon and get it out.  Few people achieve
        this; most never do.  Those who have done so  go  down  in  history  as
        heroes  among  heroes — and then they find ways of making the game even
-       harder.  See the Guidebook section on Conduct if this game  has  gotten
+       harder.  See the 4mGuidebook24m section on Conduct if this game  has  gotten
        too easy for you.
 
        When  the  game ends, whether by your dying, quitting, or escaping from
-       the caves, xNetHack will give you (a fragment of) the list of top scor‐
+       the caves, 4mxNetHack24m will give you (a fragment of) the list of top scor‐
        ers.  The scoring is based on many aspects  of  your  behavior,  but  a
        rough estimate is obtained by taking the amount of gold you've found in
        the  cave  plus four times your (real) experience.  Precious stones may
@@ -45,8 +46,8 @@ DESCRIPTION
 
        The environment variable XNETHACKOPTIONS can be used to initialize many
        run-time  options.   The  ?  command  provides  a  description of these
-       options and syntax.  (The -dec and -ibm command line options are  mutu‐
-       ally  exclusive  and  are equivalent to the decgraphics and ibmgraphics
+       options and syntax.  (The 1m-dec 22mand 1m-ibm 22mcommand line options are  mutu‐
+       ally  exclusive  and  are equivalent to the 1mdecgraphics 22mand 1mibmgraphics0m
        run-time options described there, and are provided  purely  for  conve‐
        nience on systems supporting multiple types of terminals.)
 
@@ -54,15 +55,15 @@ DESCRIPTION
        in a configuration file.  The default is located in your home directory
        and named .xnethackrc on UNIX systems (including  descendants  such  as
        linux,  NetBSD,  and  macOS).  On Windows, the name is also .xnethackrc
-       but the location can vary (see --showpaths below).  On  other  systems,
+       but the location can vary (see 1m--showpaths 22mbelow).  On  other  systems,
        the  default  may  be different, possibly xNetHack.cnf.  On MS-DOS, the
        name  is  defaults.nh  in  xNetHack's  directory  (folder),  while   on
        VMS|OpenVMS  it  is  xnethack.ini  in your home directory.  The default
-       configuration file may be overridden via the --xnethackrc:rc-file  com‐
+       configuration file may be overridden via the 1m--xnethackrc:4m22mrc-file24m  com‐
        mand line option or by setting XNETHACKOPTIONS in your environment to a
        string consisting of an @ character followed by the path and filename.
 
-       The  -u  playername option supplies the answer to the question "Who are
+       The  1m-u  4m22mplayername24m option supplies the answer to the question "Who are
        you?".  It overrides any name from the options or  configuration  file,
        USER,  LOGNAME,  or getlogin(), which will otherwise be tried in order.
        If none of these provides a useful name, the player will be  asked  for
@@ -71,101 +72,107 @@ DESCRIPTION
        versely,  you  must  use the appropriate player name to restore a saved
        game.
 
-       A playername suffix can be used to specify the profession, race, align‐
+       A 4mplayername24m suffix can be used to specify the profession, race, align‐
        ment and/or gender of the character.  The full syntax of the playername
        that includes a suffix is "name-ppp-rrr-aaa-ggg".  "ppp" are  at  least
        the  first  three letters of the profession (this can also be specified
-       using a separate -p profession option).  "rrr" are at least  the  first
+       using a separate 1m-p 4m22mprofession24m option).  "rrr" are at least  the  first
        three letters of the character's race (this can also be specified using
-       a separate -r race option).  "aaa" are at least the first three letters
+       a separate 1m-r 4m22mrace24m option).  "aaa" are at least the first three letters
        of  the  character's  alignment, and "ggg" are at least the first three
        letters of the character's gender.  Any of the parts of the suffix  may
        be left out.
 
-       -p  profession  can be used to determine the character profession, also
+       1m-p  4m22mprofession24m  can be used to determine the character profession, also
        known as the role.  You can specify either the male or female name  for
        the  character  role,  or  the first three characters of the role as an
        abbreviation.
 
-       Likewise, -r race can be used to explicitly request that a race be cho‐
+       Likewise, 1m-r 4m22mrace24m can be used to explicitly request that a race be cho‐
        sen.
 
-       The -A|-Arc | -B|-Bar | -C|-Cav | -H|-Hea | -K|-Kni | -M|-Mon | -P|-Pri
-       | -R|-Rog | -Ran | -S|-Sam | -T|-Tou | -V|-Val |  -W|-Wiz  options  for
+       The 1m-A22m|1m-Arc 22m| 1m-B22m|1m-Bar 22m| 1m-C22m|1m-Cav 22m| 1m-H22m|1m-Hea 22m| 1m-K22m|1m-Kni 22m| 1m-M22m|1m-Mon 22m| 1m-P22m|1m-Pri0m
+       | 1m-R22m|1m-Rog 22m| 1m-Ran 22m| 1m-S22m|1m-Sam 22m| 1m-T22m|1m-Tou 22m| 1m-V22m|1m-Val 22m|  1m-W22m|1m-Wiz  22moptions  for
        role  selection are maintained for compatibility with older versions of
        the program.  They are mutually exclusive and  the  single-letter  form
-       must  be  uppercase.   Ranger has no single-letter choice because -R is
-       already used for the Rogue role.
+       must  be  uppercase.   4mRanger24m has no single-letter choice because 1m-R 22mis
+       already used for the 4mRogue24m role.
 
-       -@ tells  xnethack  to  choose  any  omitted  characteristics  (profes‐
+       1m-@ 22mtells  xnethack  to  choose  any  omitted  characteristics  (profes‐
        sion/role, race, gender, alignment) randomly without prompting.  Other‐
        wise, leaving out any of these characteristics will result in you being
        prompted during game startup for the information.
 
-       The -n option suppresses printing of any news from the game administra‐
+       The 1m-n 22moption suppresses printing of any news from the game administra‐
        tor.
 
-       The  -X  option  will start the game in a special non-scoring discovery
-       mode (also known as explore mode).  -D will start  the  game  in  debug
+       The  1m-X  22moption  will start the game in a special non-scoring discovery
+       mode (also known as explore mode).  1m-D 22mwill start  the  game  in  debug
        mode  (also  known as wizard mode) after changing the character name to
-       “wizard”, if the player is allowed.  Otherwise it will  switch  to  -X.
-       Control  of who is allowed to use debug mode is done via the “WIZARDS=”
-       line in xnethack's sysconf file.
+       “wizard”, if the player is allowed.  Otherwise it will  switch  to  1m-X22m.
+       Control  of who is allowed to use debug mode is done via the “4mWIZARDS=24m”
+       line in xnethack's 4msysconf24m file.
 
-       The -d or --directory option, which must be the first  argument  if  it
+       The 1m-d 22mor 1m--directory 22moption, which must be the first  argument  if  it
        appears,  supplies a directory which is to serve as the playground.  It
        overrides the value from NETHACKDIR, HACKDIR, or the  directory  speci‐
        fied   by   the   game   administrator   during   compilation  (usually
        /usr/games/lib/nethackdir).  This option is usually only useful to  the
        game  administrator.   The  playground  must  contain several auxiliary
        files such as help files, the list of top scorers, and  a  subdirectory
-       save where games are saved.
+       4msave24m where games are saved.
 
-       The  -w  or  --windowtype interface option can be used to specify which
+       The  1m-w  22mor  1m--windowtype 4m22minterface24m option can be used to specify which
        interface to use if the program has been built with  support  for  more
        than  one.   Specifying a value on the command line overrides any value
        specified in the run-time configuration file.  xNetHack's #version com‐
        mand shows available interfaces.
 
-       The --xnethackrc:RC-file option will use RC-file instead of the default
-       run-time  configuration  file   (typically   ~/.xnethackrc)   and   the
-       --no-xnethackrc  option  can be used to skip any run-time configuration
+       The 1m--xnethackrc:4m22mRC-file24m option will use 4mRC-file24m instead of the default
+       run-time  configuration  file   (typically   4m~/.xnethackrc24m)   and   the
+       1m--no-xnethackrc  22moption  can be used to skip any run-time configuration
        file.
 
        Some options provide feedback and then exit rather than play the game:
 
-       The -s or --scores option alone will print out the list of your  scores
-       on  the  current  version.   An immediately following -v reports on all
-       versions present in the score file.  ‘-s|-s -v’ may also be followed by
-       arguments -p profession and -r race to print the scores  of  particular
+       The 1m-s 22mor 1m--scores 22moption alone will print out the list of your  scores
+       on  the  current  version.   An immediately following 1m-v 22mreports on all
+       versions present in the score file.  ‘1m-s22m|1m-s -v22m’ may also be followed by
+       arguments 1m-p 4m22mprofession24m and 1m-r 4m22mrace24m to print the scores  of  particular
        roles  and  races  only.   Either  can  be  specified multiple times to
        include more than one role or more than one race.  When both are speci‐
        fied, score entries which match either the role or the race  (or  both)
-       are  printed rather than just entries which match both.  ‘-s|-s -v’ may
+       are  printed rather than just entries which match both.  ‘1m-s22m|1m-s -v22m’ may
        be followed by one or more player names to  print  the  scores  of  the
        players  mentioned, by 'all' to print out all scores, or by a number to
        print that many top scores.  Combining names with role or race or  both
        will  report entries which match any of those rather than just the ones
        which match all.
 
-       --version can be used to cause xNetHack to show the version information
-       it was compiled with, then exit.  That will include the git commit hash
-       if the information was available when the game was compiled.   On  some
-       platforms,  such  as Windows and macOS, a variation --version:paste can
-       be used to cause xNetHack to show the version information,  then  exit,
-       while  also  leaving  a  copy  of  the version information in the paste
-       buffer or clipboard  for  potential  insertion  into  things  like  bug
-       reports.
+       1m--version 22mor 1m--version:show 22mcan be used to cause xNetHack to  show  the
+       version  number,  the date and time that the program was built from its
+       source code, and possibly some auxiliary information about that  source
+       code, then exit.  The optional auxiliary information is 4mgit24m commit hash
+       (reflecting  the  source code's most recent modification when extracted
+       from the 4mgit24m version control system, if that is in  use)  if  available
+       when  the  program  was  built.   On some platforms such as Windows and
+       macOS, a variation, 1m--version:copy22m, can be used to  cause  xNetHack  to
+       show  the  version information, then exit, while also leaving a copy of
+       that information in the paste buffer or clipboard for potential  inser‐
+       tion into things like bug reports.  On any platform, 1m--version:dump 22mcan
+       be used to show most of the data used when checking whether a save file
+       or bones file is compatible with the program.  The program will display
+       a line containing five numbers expressed in hexadecimal, then exit.
 
-       --showpaths can be used to cause xNetHack to show where it is expecting
+       1m--showpaths 22mcan be used to cause xNetHack to show where it is expecting
        to  find  various  files.   Among other things it shows the path to and
        name for the player's run-time configuration file, a  text  file  which
-       can be editted to customize aspects of how the game operates.
+       can be edited to customize aspects of how the game operates.
 
-       --usage or --help will display information similar to this manual page,
-       then exit.  Use ‘xnethack --usage | more’ to read it a page at a time.
+       1m--usage 22mor 1m--help 22mwill display information similar to this manual page,
+       then exit.  Use ‘1mxnethack --usage | more22m’ to read it a page at a time.
 
-AUTHORS
+1mAUTHORS0m
        Jay  Fenlason  (+  Kenny  Woodland, Mike Thome and Jon Payne) wrote the
        original hack, very much like rogue (but full of bugs).
 
@@ -182,7 +189,7 @@ AUTHORS
        the Usenet.  Andries Brouwer has made this request for the distinction,
        as he may eventually release a new version of his own.
 
-FILES
+1mFILES0m
        Run-time  configuration options were discussed above and use a platform
        specific name for a file in a platform specific  location.   For  Unix,
        the name is '.xnethackrc' in the user's home directory.
@@ -242,7 +249,7 @@ FILES
 
        In a perfect world, 'paniclog' would remain empty.
 
-ENVIRONMENT
+1mENVIRONMENT0m
        USER or LOGNAME         Your login name.
        HOME                    Your home directory.
        SHELL                   Your shell.
@@ -260,17 +267,17 @@ ENVIRONMENT
        SHOPTYPE and SPLEVTYPE can be used in debugging (wizard) mode.
        DEBUGFILES can be used if the program was built with 'DEBUG' enabled.
 
-SEE ALSO
+1mSEE ALSO0m
        recover(6)
 
-BUGS
+1mBUGS0m
        Probably infinite.
 
-COPYRIGHT
-       This  file  is  Copyright  (C)  Robert Patrick Rankin, 2022 for version
-       NetHack-3.7:1.27.  xNetHack may be freely redistributed.   See  license
+1mCOPYRIGHT0m
+       This  file  is  Copyright  (C)  Robert Patrick Rankin, 2025 for version
+       NetHack-3.7:1.31.  xNetHack may be freely redistributed.   See  license
        for details.
 
        Dungeons & Dragons is a Trademark of Wizards of the Coast, Inc.
 
-XNETHACK                       21 February 2022                    XNETHACK(6)
+XNETHACK                        26 January 2025                    4mXNETHACK24m(6)

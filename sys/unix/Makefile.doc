@@ -1,5 +1,5 @@
 #      NetHack Documentation Makefile.
-# NetHack 3.7  Makefile.doc    $NHDT-Date: 1596498290 2020/08/03 23:44:50 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.21 $
+# NetHack 3.7  Makefile.doc    $NHDT-Date: 1700788000 2023/11/24 01:06:40 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.28 $
 # Copyright (c) 2015 by Kenneth Lorber, Kensington, Maryland
 # NetHack may be freely redistributed.  See license for details.
 
@@ -19,6 +19,8 @@ GUIDEBOOK = Guidebook		# regular ASCII file
 # Some versions of col need -x to keep them from converting spaces to tabs;
 # some versions of col don't do the conversion by default and don't
 # recognize the option.  Sigh.
+#
+# col is unnecessary, but harmless, with groff.  See grotty(1).
 COLCMD = col -bx
 #COLCMD = col -b
 
@@ -33,9 +35,8 @@ PSCMD = groff
 # Single page. Might need adjustment to .pl value
 # GUIDECMD= $(GUIDE_PREFORMAT) | perl -pe 's/^(.mt)$$/.pl 4720v\n.in 0\n.po 8\n.ll 64m\n$$1/' | nroff -c -Tascii | $(COLCMD)
 #
-GUIDECMD = $(GUIDE_PREFORMAT) | nroff -c -Tascii | $(COLCMD)
-ONEPAGECMD = $(ONEPAGE_PREFORMAT) | nroff -c -Tascii | $(COLCMD) \
-	| sed -e '/EOF--EOF/,12345D'
+GUIDECMD = $(GUIDE_PREFORMAT) | nroff -c -Tascii $(NROFF_FLAGS) | $(COLCMD)
+ONEPAGECMD = $(ONEPAGE_PREFORMAT) | nroff -c -Tascii $(NROFF_FLAGS) | $(COLCMD)
 
 # Only generate output for the current configuration:
 NHGREP = $(MAKEDEFS) --grep --input - --output -
@@ -62,6 +63,7 @@ Guidebook	: $(GUIDEBOOK_MN) tmac.n tmac.nh $(NEEDMAKEDEFS)
 	$(GUIDECMD) > Guidebook
 
 # Fancier output for those with ditroff, psdit and a PostScript printer.
+# Could be converted to Guidebook.pdf if tool(s) for that are available.
 Guidebook.ps	: $(GUIDEBOOK_MN) tmac.n tmac.nh $(NEEDMAKEDEFS)
 	$(GUIDE_PREFORMAT) | $(PSCMD) > Guidebook.ps
 
@@ -81,8 +83,9 @@ $(MAKEDEFS)	: ../util/makedefs.c ../include/config.h ../src/mdlib.c \
 	( cd ../util ; make makedefs )
 
 GAME	= xnethack
-MANDIR	= /usr/man/man6
+MANDIR	?= /usr/man/man6
 MANEXT	= 6
+NROFF ?= nroff
 
 # manual installation for most BSD-style systems
 GAMEMANCREATE = cat xnethack.6 | $(NHGREP) >
@@ -95,7 +98,7 @@ MDMANCREATE = cat makedefs.6 | $(NHGREP) >
 # DLBMANCREATE = cat dlb.6 | $(NHGREP) | nroff -man - >
 # MDMANCREATE = cat makedefs.6 | $(NHGREP) | nroff -man - >
 
-manpages:
+manpages: $(PREMANPAGES)
 	-$(GAMEMANCREATE) $(MANDIR)/$(GAME).$(MANEXT)
 	-$(RCVRMANCREATE) $(MANDIR)/recover.$(MANEXT)
 	-$(DLBMANCREATE) $(MANDIR)/dlb.$(MANEXT)
@@ -114,8 +117,16 @@ Guidebook.dat	: Gbk-1pg-pfx.mn Gbk-1pg-sfx.mn $(GUIDEBOOK_MN) tmac.n tmac.nh \
 		  $(NEEDMAKEDEFS)
 	$(ONEPAGECMD) > $@
 
-MAN2TXT = $(NHGREP) | nroff -man - | $(COLCMD)
-xnethack.txt	: xnethack.6
+# plain text output
+#
+# MAN2TXTPRE and MAN2TXTPOST are included so that a hints file can alter
+# both of them as required
+MAN2TXTPOST ?= | col -b
+MAN2TXT = $(NHGREP) | $(NROFF) -man $(MAN2TXTPRE) $(MAN2TXTPOST)
+# If you aren't using a hints file, you can uncomment the following
+# line if you have groff 1.23 or greater.
+#MAN2TXT = $(NHGREP) | groff -man -Tascii -P -cbou
+nethack.txt	: nethack.6
 	cat xnethack.6 | $(MAN2TXT) > xnethack.txt
 recover.txt	: recover.6
 	cat recover.6 | $(MAN2TXT) > recover.txt

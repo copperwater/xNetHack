@@ -220,6 +220,7 @@ NetHackQtMenuWindow::NetHackQtMenuWindow(QWidget *parent) :
             this, SLOT(TableCellClicked(int,int)));
 
     setLayout(grid);
+    setModal(true);
 }
 
 NetHackQtMenuWindow::~NetHackQtMenuWindow()
@@ -258,7 +259,7 @@ NetHackQtMenuWindow::MenuItem::~MenuItem()
 }
 
 void NetHackQtMenuWindow::AddMenu(int glyph, const ANY_P *identifier,
-                                  char ch, char gch, int attr,
+                                  char ch, char gch, int attr, int clr,
                                   const QString& str, unsigned itemflags)
 {
     bool presel = (itemflags & MENU_ITEMFLAGS_SELECTED) != 0;
@@ -279,11 +280,11 @@ void NetHackQtMenuWindow::AddMenu(int glyph, const ANY_P *identifier,
     itemlist[itemcount].ch = ch;
     itemlist[itemcount].gch = gch;
     itemlist[itemcount].attr = attr;
+    itemlist[itemcount].color = clr;
     itemlist[itemcount].str = str;
     itemlist[itemcount].selected = itemlist[itemcount].preselected = presel;
     itemlist[itemcount].itemflags = itemflags;
     itemlist[itemcount].count = -1L;
-    itemlist[itemcount].color = -1;
     // Display the boulder symbol correctly
     if (str.left(8) == "boulder\t") {
 	int bracket = str.indexOf('[');
@@ -292,12 +293,6 @@ void NetHackQtMenuWindow::AddMenu(int glyph, const ANY_P *identifier,
 		+ QChar(cp437(str.at(bracket+1).unicode()))
 		+ str.mid(bracket+2);
 	}
-    }
-    int mcolor, mattr;
-    if (attr == 0 && ::iflags.use_menu_color
-        && get_menu_coloring(str.toLatin1().constData(), &mcolor, &mattr)) {
-	itemlist[itemcount].attr = mattr;
-	itemlist[itemcount].color = mcolor;
     }
     ++itemcount;
 
@@ -488,64 +483,56 @@ void NetHackQtMenuWindow::UpdateCountColumn(long newcount)
     table->repaint();
 }
 
-struct qcolor {
-    QColor q;
-    const char *nm;
-};
-// these match the tty colors, or better versions of same;
-// [0] is used for black, and [8] (the first white) corresponds to "no color"
-static const struct qcolor colors[] = {
-    { QColor(64, 64, 64),    "64,64,64" },    // black
-    { QColor(Qt::red),       "red" },
-    { QColor(0, 191, 0),     "0,191,0" },     // green
-    { QColor(127, 127, 0),   "127,127,0" },   // brownish
-    { QColor(Qt::blue),      "blue" },
-    { QColor(Qt::magenta),   "magenta" },
-    { QColor(Qt::cyan),      "cyan" },
-    { QColor(Qt::gray),      "gray" },
-    // on tty, the "light" variations are "bright" instead; here they're paler
-    { QColor(Qt::white),     "white" },       // no-color, so not rendered
-    { QColor(255, 127, 0),   "255,127,0" },   // orange
-    { QColor(127, 255, 127), "127,255,127" }, // light green
-    { QColor(Qt::yellow),    "yellow" },
-    { QColor(127, 127, 255), "127,127,255" }, // light blue
-    { QColor(255, 127, 255), "255,127,255" }, // light magenta
-    { QColor(127, 255, 255), "127,255,255" }, // light cyan
-    { QColor(Qt::white),     "white" },
-};
-
-#if 0   /* available for debugging */
-static const char *color_name(const QColor q)
+void NetHackQtMenuWindow::SetTwiAttr(QTableWidgetItem *twi, int color, int attr)
 {
-    for (int i = 0; i < SIZE(colors); ++i)
-        if (q == colors[i].q)
-            return colors[i].nm;
-    // these are all the enum GlobalColor values <qt5/QtCore/qnamespace.h>;
-    // black and white have been moved in front of color0 and color1 here
-    const char *nm = (q == Qt::black) ? "black"
-                   : (q == Qt::white) ? "white"
-                   : (q == Qt::color0) ? "color0" // doesn't duplicate white?
-                   : (q == Qt::color1) ? "color1" // does duplicate black
-                   : (q == Qt::darkGray) ? "darkGray"
-                   : (q == Qt::gray) ? "gray"
-                   : (q == Qt::lightGray) ? "lightGray"
-                   : (q == Qt::red) ? "red"
-                   : (q == Qt::green) ? "green"
-                   : (q == Qt::blue) ? "blue"
-                   : (q == Qt::cyan)  ? "cyan"
-                   : (q == Qt::magenta) ? "magenta"
-                   : (q == Qt::yellow) ? "yellow"
-                   : (q == Qt::darkRed) ? "darkRed"
-                   : (q == Qt::darkGreen) ? "darkGreen"
-                   : (q == Qt::darkBlue) ? "darkBlue"
-                   : (q == Qt::darkCyan) ? "darkCyan"
-                   : (q == Qt::darkMagenta) ? "darkMagenta"
-                   : (q == Qt::darkYellow) ? "darkYellow"
-                   : (q == Qt::transparent) ? "transparent"
-                   : "other";
-    return nm;
+    if (color != NO_COLOR) {
+        const QPen qp = NetHackQtBind::nhcolor_to_pen(color);
+	twi->setForeground(qp.color());
+    }
+
+    if (attr != ATR_NONE) {
+        QFont itemfont(table->font());
+        switch (attr) {
+        case ATR_BOLD:
+            itemfont.setWeight(QFont::Bold);
+            twi->setFont(itemfont);
+            break;
+        case ATR_ITALIC:
+            itemfont.setItalic(true);
+            twi->setFont(itemfont);
+            break;
+        case ATR_DIM:
+            twi->setFlags(Qt::NoItemFlags);
+            break;
+        case ATR_ULINE:
+            itemfont.setUnderline(true);
+            twi->setFont(itemfont);
+            break;
+        case ATR_INVERSE: {
+            QBrush fg = twi->foreground();
+            QBrush bg = twi->background();
+            if (fg.color() == bg.color()) {
+                // default foreground and background come up the same for
+                // some unknown reason
+                //[pr: both are set to 'Qt::color1' which has same RGB
+                //     value as 'Qt::black'; X11 on OSX behaves similarly]
+                if (fg.color() == Qt::color1) {
+                    fg = Qt::black;
+                    bg = Qt::white;
+                } else {
+                    fg = (bg.color() == Qt::white) ? Qt::black : Qt::white;
+                }
+            }
+            twi->setForeground(bg);
+            twi->setBackground(fg);
+            break;
+        }
+        case ATR_BLINK:
+            // not supported
+            break;
+        } /* switch */
+    } /* if attr != ATR_NONE */
 }
-#endif
 
 void NetHackQtMenuWindow::AddRow(int row, const MenuItem& mi)
 {
@@ -618,48 +605,7 @@ void NetHackQtMenuWindow::AddRow(int row, const MenuItem& mi)
     table->item(row, 4)->setFlags(Qt::ItemIsEnabled);
     WidenColumn(4, fm.QFM_WIDTH(text));
 
-    if ((int) mi.color != -1) {
-	twi->setForeground(colors[mi.color].q);
-    }
-
-    if (mi.attr != ATR_NONE) {
-        QFont itemfont(table->font());
-        switch (mi.attr) {
-        case ATR_BOLD:
-            itemfont.setWeight(QFont::Bold);
-            twi->setFont(itemfont);
-            break;
-        case ATR_DIM:
-            twi->setFlags(Qt::NoItemFlags);
-            break;
-        case ATR_ULINE:
-            itemfont.setUnderline(true);
-            twi->setFont(itemfont);
-            break;
-        case ATR_INVERSE: {
-            QBrush fg = twi->foreground();
-            QBrush bg = twi->background();
-            if (fg.color() == bg.color()) {
-                // default foreground and background come up the same for
-                // some unknown reason
-                //[pr: both are set to 'Qt::color1' which has same RGB
-                //     value as 'Qt::black'; X11 on OSX behaves similarly]
-                if (fg.color() == Qt::color1) {
-                    fg = Qt::black;
-                    bg = Qt::white;
-                } else {
-                    fg = (bg.color() == Qt::white) ? Qt::black : Qt::white;
-                }
-            }
-            twi->setForeground(bg);
-            twi->setBackground(fg);
-            break;
-        }
-        case ATR_BLINK:
-            // not supported
-            break;
-        } /* switch */
-    } /* if mi.attr != ATR_NONE */
+    SetTwiAttr(twi, mi.color, mi.attr);
 }
 
 void NetHackQtMenuWindow::WidenColumn(int column, int width)
@@ -1010,6 +956,7 @@ NetHackQtTextWindow::NetHackQtTextWindow(QWidget *parent) :
     setFocusPolicy(Qt::StrongFocus);
     // needed so that keystrokes get sent to our keyPressEvent()
     lines->setFocusPolicy(Qt::NoFocus);
+    setModal(true);
 }
 
 void NetHackQtTextWindow::doUpdate()
@@ -1066,7 +1013,7 @@ void NetHackQtTextWindow::UseRIP(int how, time_t when)
 
     /* Put name on stone */
     (void) snprintf(rip_line[NAME_LINE], STONE_LINE_LEN + 1,
-                    "%.*s", STONE_LINE_LEN, gp.plname);
+                    "%.*s", STONE_LINE_LEN, svp.plname);
 
     /* Put $ on stone;
        to keep things safe and relatively simple, impose an arbitrary
@@ -1168,8 +1115,7 @@ void NetHackQtTextWindow::Display(bool block UNUSED)
 #endif
     int mh = screensize.height()*3/5;
     if ( (qt_compact_mode && lines->TotalHeight() > mh) || use_rip ) {
-	// big, so make it fill
-	showMaximized();
+        showNormal();
     } else {
 	move(0, 0);
 	adjustSize();
@@ -1344,13 +1290,13 @@ void NetHackQtMenuOrTextWindow::StartMenu(bool using_WIN_INVEN)
 }
 void NetHackQtMenuOrTextWindow::AddMenu(
     int glyph, const ANY_P* identifier,
-    char ch, char gch, int attr,
+    char ch, char gch, int attr, int clr,
     const QString& str, unsigned itemflags)
 {
     if (!actual)
         MenuOrText_too_soon_warning("AddMenu");
     else
-        actual->AddMenu(glyph, identifier, ch, gch, attr, str, itemflags);
+        actual->AddMenu(glyph, identifier, ch, gch, attr, clr, str, itemflags);
 }
 void NetHackQtMenuOrTextWindow::EndMenu(const QString& prompt)
 {

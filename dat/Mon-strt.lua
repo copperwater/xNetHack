@@ -87,14 +87,13 @@ des.object({ id = "chest", trapped = 0, coord = {51,08},
           })
 des.object({ id = "chest", trapped = 0, coord = {51,11},
              contents = function()
-                for i=1,5 do
-                   des.object("%")
-                end
+               -- ensure enough vegetarian food generates for vegetarian games
+               des.object({ id="food ration", coord = {46, 4}, quantity = 4})
              end
           })
 -- next to leader, so possibly tricky to pick up if not ready for quest yet;
 -- there's no protection against a xorn eating these tins; BUC state is random
-des.object({ id="tin", coord = {29, 10}, quantity=2, montype="spinach" })
+des.object({ id="tin", coord = {50, 09}, quantity=2, montype="spinach" })
 
 -- Non diggable walls - try to hit as few trees as possible
 des.non_diggable(selection.area(16,00,18,19))

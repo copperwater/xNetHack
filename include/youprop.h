@@ -1,4 +1,4 @@
-/* NetHack 3.7	youprop.h	$NHDT-Date: 1596498577 2020/08/03 23:49:37 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.32 $ */
+/* NetHack 3.7	youprop.h	$NHDT-Date: 1725653018 2024/09/06 20:03:38 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.45 $ */
 /* Copyright (c) 1989 Mike Threepoint                             */
 /* NetHack may be freely redistributed.  See license for details. */
 
@@ -138,6 +138,7 @@
 #define EWounded_legs u.uprops[WOUNDED_LEGS].extrinsic
 #define Wounded_legs (HWounded_legs || EWounded_legs)
 
+/* Sleepy: prone to falling asleep periodically; not necessarily asleep now */
 #define HSleepy u.uprops[SLEEPY].intrinsic
 #define ESleepy u.uprops[SLEEPY].extrinsic
 #define Sleepy (HSleepy || ESleepy)
@@ -155,6 +156,10 @@
 #define ETelepat u.uprops[TELEPAT].extrinsic
 #define Blind_telepat (HTelepat || ETelepat)
 #define Unblind_telepat (ETelepat)
+
+#define HBlnd_resist u.uprops[BLND_RES].intrinsic /* from form */
+#define EBlnd_resist u.uprops[BLND_RES].extrinsic /* wielding Sunsword */
+#define Blnd_resist (HBlnd_resist || EBlnd_resist)
 
 #define HWarning u.uprops[WARNING].intrinsic
 #define EWarning u.uprops[WARNING].extrinsic
@@ -201,6 +206,7 @@
 
 #define HStealth u.uprops[STEALTH].intrinsic
 #define EStealth u.uprops[STEALTH].extrinsic
+/* BStealth has FROMOUTSIDE set if mounted on non-flying steed */
 #define BStealth u.uprops[STEALTH].blocked
 #define Stealth ((HStealth || EStealth) && !BStealth)
 
@@ -391,6 +397,10 @@
  * Some pseudo-properties.
  */
 
+/* the code will needs lots of updating to use this so leave it commented
+#define Riding (u.usteed != NULL)
+*/
+
 /* unconscious() includes u.usleep but not is_fainted(); the multi test is
    redundant but allows the function calls to be skipped most of the time */
 #define Unaware (gm.multi < 0 && (unconscious() || is_fainted()))
@@ -398,8 +408,9 @@
 /* Whether the hero is in a form that dislikes a certain material */
 #define Hate_material(material) mon_hates_material(&gy.youmonst, material)
 
-/* _Hitchhikers_Guide_to_the_Galaxy_ on uses for 'towel': "wrap it round
+/* _The_Hitchhikers_Guide_to_the_Galaxy_ on uses for 'towel': "wrap it round
    your head to ward off noxious fumes" [we require it to be damp or wet] */
-#define Half_gas_damage (ublindf && ublindf->otyp == TOWEL && ublindf->spe > 0)
+#define Half_gas_damage \
+    (ublindf && ublindf->otyp == TOWEL && ublindf->spe > 0)
 
 #endif /* YOUPROP_H */

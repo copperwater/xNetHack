@@ -77,49 +77,6 @@ extern int qt_compact_mode;
 
 namespace nethack_qt_ {
 
-#ifdef TEXTCOLOR
-static const QPen nhcolor_to_pen(uint32_t c)
-{
-    static QPen *pen = (QPen *) 0;
-    if (!pen) {
-        pen = new QPen[17];
-        //
-        // FIXME:  these are duplicated in qt_menu.cpp
-        //
-        pen[ 0] = QColor(64, 64, 64);    // black
-        pen[ 1] = QColor(Qt::red);
-        pen[ 2] = QColor(0, 191, 0);     // green
-        pen[ 3] = QColor(127, 127, 0);   // brownish
-        pen[ 4] = QColor(Qt::blue);
-        pen[ 5] = QColor(Qt::magenta);
-        pen[ 6] = QColor(Qt::cyan);
-        pen[ 7] = QColor(Qt::gray);
-        // on tty, "light" variations are "bright" instead; here they're paler
-        pen[ 8] = QColor(Qt::white);     // no color
-        pen[ 9] = QColor(255, 127, 0);   // orange
-        pen[10] = QColor(127, 255, 127); // light green
-        pen[11] = QColor(Qt::yellow);
-        pen[12] = QColor(127, 127, 255); // light blue
-        pen[13] = QColor(255, 127, 255); // light magenta
-        pen[14] = QColor(127, 255, 255); // light cyan
-        pen[15] = QColor(Qt::white);
-        // ? out of range for 0..15
-        pen[16] = QColor(Qt::black);
-    }
-
-#ifdef ENHANCED_SYMBOLS
-    if (c & 0x80000000) {
-        return QColor(
-            (c >> 16) & 0xFF,
-            (c >>  8) & 0xFF,
-            (c >>  0) & 0xFF);
-    } else
-#endif
-    {
-        return pen[c];
-    }
-}
-#endif
 
 NetHackQtMapViewport::NetHackQtMapViewport(NetHackQtClickBuffer& click_sink) :
 	QWidget(NULL),
@@ -182,10 +139,8 @@ void NetHackQtMapViewport::paintEvent(QPaintEvent* event)
     painter.begin(this);
 
     unsigned special, tileidx;
-#ifdef TEXTCOLOR
     uint32 color;
     uint32 framecolor;
-#endif
     if (iflags.wc_ascii_map) {
 	// You enter a VERY primitive world!
 
@@ -204,15 +159,20 @@ void NetHackQtMapViewport::paintEvent(QPaintEvent* event)
                 if (SYMHANDLING(H_IBM)) {
                     ch = cp437(ch);
                 }
-#ifdef TEXTCOLOR
                 color = Glyphcolor(i, j);
-                painter.setPen(nhcolor_to_pen(color));
-#else
-                painter.setPen(Qt::green);
-#endif
+                painter.setPen(NetHackQtBind::nhcolor_to_pen(color));
                 if (!DrawWalls(painter, i * gW, j * gH, gW, gH, ch)) {
+                    ushort utf16[3];
+                    if (ch < 0x10000) {
+                        utf16[0] = static_cast<ushort>(ch);
+                        utf16[1] = 0;
+                    } else {
+                        utf16[0] = static_cast<ushort>((ch >> 10) + 0xD7C0);
+                        utf16[1] = static_cast<ushort>((ch & 0x3FF) + 0xDC00);
+                        utf16[2] = 0;
+                    }
                     painter.drawText(i * gW, j * gH, gW, gH, Qt::AlignCenter,
-                                     QString(QChar(ch)).left(1));
+                                     QString::fromUtf16(utf16));
                 }
                 if ((special & MG_PET) != 0 && ::iflags.hilite_pet) {
                     painter.drawPixmap(QPoint(i * gW, j * gH),
@@ -222,16 +182,14 @@ void NetHackQtMapViewport::paintEvent(QPaintEvent* event)
                     painter.drawPixmap(QPoint(i * gW, j * gH),
                                        pile_annotation);
                 }
-#ifdef TEXTCOLOR
                 framecolor = GlyphFramecolor(i, j);
                 if (framecolor != NO_COLOR) {
-                   painter.setPen(nhcolor_to_pen(framecolor));
+                   painter.setPen(NetHackQtBind::nhcolor_to_pen(framecolor));
                    painter.drawRect(i * qt_settings->glyphs().width(),
                                     j * qt_settings->glyphs().height(),
                                     qt_settings->glyphs().width() - 1,
                                     qt_settings->glyphs().height() - 1);
                 }
-#endif
             }
         }
 
@@ -253,25 +211,20 @@ void NetHackQtMapViewport::paintEvent(QPaintEvent* event)
                     painter.drawPixmap(QPoint(i * gW, j * gH),
                                        pile_annotation);
                 }
-#ifdef TEXTCOLOR
                 framecolor = GlyphFramecolor(i, j);
                 if (framecolor != NO_COLOR) {
-                   painter.setPen(nhcolor_to_pen(framecolor));
+                   painter.setPen(NetHackQtBind::nhcolor_to_pen(framecolor));
                    painter.drawRect(i * qt_settings->glyphs().width(),
                                     j * qt_settings->glyphs().height(),
                                     qt_settings->glyphs().width() - 1,
                                     qt_settings->glyphs().height() - 1);
                 }
-#endif
 	    }
 	}
     }
 
     if (garea.contains(cursor)) {
-        int hp100;
-        if (Upolyd) {
-            hp100=u.mhmax ? u.mh*100/u.mhmax : 100;
-        } else {
+        {
 	    int hp = !Upolyd ? u.uhp : u.mh,
                 hpmax = !Upolyd ? u.uhpmax :  u.mhmax,
                 hp100 = hpmax ? (hp * 100 / hpmax) : 100;
@@ -528,7 +481,7 @@ void NetHackQtMapViewport::Clear()
 {
     for (int j = 0; j < ROWNO; ++j) {
         //
-        // FIXME:  map column 0 should be surpressed from being displayed
+        // FIXME:  map column 0 should be suppressed from being displayed
         //
         Glyph(0, j) = GLYPH_NOTHING;
         Glyphttychar(0, j) = ' ';
@@ -585,15 +538,20 @@ void NetHackQtMapViewport::PrintGlyph(int x, int y,
     Glyphcolor(x, y) = (uint32) glyphinfo->gm.sym.color;
     GlyphFramecolor(x, y) = (uint32) bkglyphinfo->framecolor;
 #ifdef ENHANCED_SYMBOLS
-    if (SYMHANDLING(H_UTF8)
-        && glyphinfo->gm.u
-        && glyphinfo->gm.u->utf8str) {
+    if (SYMHANDLING(H_UTF8) && glyphinfo->gm.u && glyphinfo->gm.u->utf8str) {
         Glyphttychar(x, y) = glyphinfo->gm.u->utf32ch;
-        if (glyphinfo->gm.u->ucolor != 0) {
-            Glyphcolor(x, y) = glyphinfo->gm.u->ucolor | 0x80000000;
-        }
     }
 #endif
+    if (glyphinfo->gm.customcolor != 0) {
+        uint32 nhcolor = COLORVAL(glyphinfo->gm.customcolor);
+        if (glyphinfo->gm.customcolor == nhcolor) {
+            /* 24-bit color */
+            Glyphcolor(x, y) = COLORVAL(glyphinfo->gm.customcolor) | 0x80000000;
+        } else {
+            /* NH_BASIC_COLOR */
+            Glyphcolor(x, y) = COLORVAL(glyphinfo->gm.customcolor);
+        }
+    }
     Glyphflags(x, y) = glyphinfo->gm.glyphflags;
     Glyphtileidx(x, y) = (unsigned short) glyphinfo->gm.tileidx;
     Changed(x, y);
@@ -921,11 +879,9 @@ void NetHackQtMapWindow::paintEvent(QPaintEvent* event)
                                      qt_settings->glyphs().width()-1,
                                      qt_settings->glyphs().height()-1,
                                      nhcolor_to_pen(framecolor).color());
-                }               
+                }
 		painter.setPen( Qt::green );
-#ifdef TEXTCOLOR
 		painter.setPen( nhcolor_to_pen(color) );
-#endif
 		painter.drawText(
 		    i*qt_settings->glyphs().width(),
 		    j*qt_settings->glyphs().height(),
@@ -934,7 +890,6 @@ void NetHackQtMapWindow::paintEvent(QPaintEvent* event)
 		    Qt::AlignCenter,
 		    QString(QChar(ch)).left(1)
 		);
-#ifdef TEXTCOLOR
                 if ((special & MG_PET) != 0 && ::iflags.hilite_pet) {
                     painter.drawPixmap(QPoint(i*qt_settings->glyphs().width(),
                                              j*qt_settings->glyphs().height()),
@@ -945,7 +900,6 @@ void NetHackQtMapWindow::paintEvent(QPaintEvent* event)
                                              j*qt_settings->glyphs().height()),
                                        pile_annotation);
                 }
-#endif
                 if (framecolor != NO_COLOR) {
                     painter.setPen( nhcolor_to_pen(framecolor) );
                     painter.drawRect(i*qt_settings->glyphs().width(),
@@ -966,7 +920,6 @@ void NetHackQtMapWindow::paintEvent(QPaintEvent* event)
                 uint32 framecolor = GlyphFramecolor(i,j);
 
                 qt_settings->glyphs().drawCell(painter, g, tileidx, i, j);
-#ifdef TEXTCOLOR
                 if ((special & MG_PET) != 0 && ::iflags.hilite_pet) {
                     painter.drawPixmap(QPoint(i*qt_settings->glyphs().width(),
                                              j*qt_settings->glyphs().height()),
@@ -977,7 +930,6 @@ void NetHackQtMapWindow::paintEvent(QPaintEvent* event)
                                              j*qt_settings->glyphs().height()),
                                        pile_annotation);
                 }
-#endif
                 if (framecolor != NO_COLOR) {
                     painter.setPen( nhcolor_to_pen(framecolor) );
                     painter.drawRect(i*qt_settings->glyphs().width(),
@@ -990,11 +942,24 @@ void NetHackQtMapWindow::paintEvent(QPaintEvent* event)
     }
 
     if (garea.contains(cursor)) {
-	int hp100;
-	if (Upolyd) {
-	    hp100=u.mhmax ? u.mh*100/u.mhmax : 100;
-	} else {
-	    hp100=u.uhpmax ? u.uhp*100/u.uhpmax : 100;
+        {
+	    int hp100;
+	    if (Upolyd) {
+		hp100=u.mhmax ? u.mh*100/u.mhmax : 100;
+	    } else {
+		hp100=u.uhpmax ? u.uhp*100/u.uhpmax : 100;
+	    }
+
+            if (hp100 > 75)
+                painter.setPen(Qt::white);
+            else if (hp100 > 50)
+                painter.setPen(Qt::yellow);
+            else if (hp100 > 25)
+                painter.setPen(QColor(0xff, 0xbf, 0x00)); // orange
+            else if (hp100 > 10)
+                painter.setPen(Qt::red);
+            else
+                painter.setPen(Qt::magenta);
 	}
 
 	if (hp100 > 75)

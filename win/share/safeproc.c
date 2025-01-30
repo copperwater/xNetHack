@@ -65,8 +65,38 @@
  * ***********************************************************
  */
 
+void safe_dismiss_nhwindow(winid);
+void safe_putstr(winid, int, const char *);
+void win_safe_init(int);
+void safe_number_pad(int);
+
 struct window_procs safe_procs = {
-    WPID(safestartup), 0L, 0L,
+    WPID(safestartup),
+    (0
+#ifdef TTY_PERM_INVENT
+     | WC_PERM_INVENT
+#endif
+#ifdef MSDOS
+     | WC_TILED_MAP | WC_ASCII_MAP
+#endif
+#if defined(WIN32CON)
+     | WC_MOUSE_SUPPORT
+#endif
+     | WC_COLOR | WC_HILITE_PET | WC_INVERSE | WC_EIGHT_BIT_IN),
+    (0
+#if defined(SELECTSAVED)
+     | WC2_SELECTSAVED
+#endif
+#if defined(STATUS_HILITES)
+     | WC2_HILITE_STATUS | WC2_HITPOINTBAR | WC2_FLUSH_STATUS
+     | WC2_RESET_STATUS
+#endif
+     | WC2_DARKGRAY | WC2_SUPPRESS_HIST | WC2_URGENT_MESG | WC2_STATUSLINES
+     | WC2_U_UTF8STR | WC2_PETATTR
+#if !defined(NO_TERMS) || defined(WIN32CON)
+     | WC2_EXTRACOLORS
+#endif
+    ),
     {1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1}, /* color availability */
     safe_init_nhwindows, safe_player_selection, safe_askname,
     safe_get_nh_event,
@@ -93,7 +123,7 @@ struct window_procs safe_procs = {
 #endif
     safe_get_color_string,
 #endif
-    safe_start_screen, safe_end_screen, safe_outrip,
+    safe_outrip,
     safe_preference_update,
     safe_getmsghistory, safe_putmsghistory,
     safe_status_init,
@@ -200,7 +230,7 @@ safe_curs(winid window UNUSED, int x UNUSED, int y UNUSED)
 }
 
 void
-safe_putstr(winid window, int attr, const char *str)
+safe_putstr(winid window UNUSED, int attr UNUSED, const char *str UNUSED)
 {
     return;
 }
@@ -326,7 +356,7 @@ safe_nhgetch(void)
 
 /*
  * return a key, or 0, in which case a mouse button was pressed
- * mouse events should be returned as character postitions in the map window.
+ * mouse events should be returned as character positions in the map window.
  * Since normal tty's don't have mice, just return a key.
  */
 /*ARGSUSED*/
@@ -399,25 +429,13 @@ safe_get_ext_cmd(void)
 }
 
 void
-safe_number_pad(int mode)
+safe_number_pad(int mode UNUSED)
 {
     return;
 }
 
 void
 safe_delay_output(void)
-{
-    return;
-}
-
-void
-safe_start_screen(void)
-{
-    return;
-}
-
-void
-safe_end_screen(void)
 {
     return;
 }
@@ -430,7 +448,7 @@ safe_outrip(winid tmpwin UNUSED, int how UNUSED, time_t when UNUSED)
 
 /*ARGSUSED*/
 void
-safe_preference_update(const char* pref UNUSED)
+safe_preference_update(const char *pref UNUSED)
 {
     return;
 }
@@ -480,13 +498,23 @@ safe_update_inventory(int arg UNUSED)
     return;
 }
 
+#ifdef WIN32CON
+extern win_request_info *tty_ctrl_nhwindow(winid window UNUSED,
+                                          int request UNUSED,
+                                          win_request_info *wri UNUSED);
+#endif
+
 win_request_info *
 safe_ctrl_nhwindow(
     winid window UNUSED,
     int request UNUSED,
     win_request_info *wri UNUSED)
 {
+#ifdef WIN32CON
+    return (*tty_ctrl_nhwindow)(window, request, wri);
+#else
     return (win_request_info *) 0;
+#endif
 }
 
 /**************************************************************
@@ -518,7 +546,7 @@ stdio_wait_synch(void)
 
 /* Add to your code: windowprocs.win_raw_print = stdio_raw_print; */
 void
-stdio_raw_print(const char* str)
+stdio_raw_print(const char *str)
 {
     if (str)
         fprintf(stdout, "%s\n", str);
@@ -528,7 +556,7 @@ stdio_raw_print(const char* str)
 /* no newline variation, add to your code:
     windowprocs.win_raw_print = stdio_nonl_raw_print;  */
 void
-stdio_nonl_raw_print(const char* str)
+stdio_nonl_raw_print(const char *str)
 {
     if (str)
         fprintf(stdout, "%s", str);
@@ -537,7 +565,7 @@ stdio_nonl_raw_print(const char* str)
 
 /* Add to your code: windowprocs.win_raw_print_bold = stdio_raw_print_bold; */
 void
-stdio_raw_print_bold(const char* str)
+stdio_raw_print_bold(const char *str)
 {
     stdio_raw_print(str);
     return;
@@ -550,5 +578,19 @@ stdio_nhgetch(void)
     return getchar();
 }
 
+#ifdef CHANGE_COLOR
+void
+safe_change_color(int color UNUSED, long rgb UNUSED, int reverse UNUSED)
+{
+}
+
+char *
+safe_get_color_string(void)
+{
+    return ("");
+}
+
+
+#endif
 
 /* safeprocs.c */

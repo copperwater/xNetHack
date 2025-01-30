@@ -78,7 +78,7 @@ delete_text(Widget w, XEvent *event, String *params, Cardinal *num_params)
 }
 
 /*
- * Callback used for all text windows.  The window is poped down on any key
+ * Callback used for all text windows.  The window is popped down on any key
  * or button down event.  It is destroyed if the main nethack code is done
  * with it.
  */
@@ -296,7 +296,7 @@ create_text_window(struct xwindow *wp)
              XtParseTranslationTable(text_translations));
     num_args++;
 
-    wp->w = XtCreateManagedWidget(gk.killer.name[0] && WIN_MAP == WIN_ERR
+    wp->w = XtCreateManagedWidget(svk.killer.name[0] && WIN_MAP == WIN_ERR
                                       ? "tombstone"
                                       : "text_text", /* name */
                                   asciiTextWidgetClass,
@@ -467,7 +467,7 @@ calculate_rip_text(int how, time_t when)
     long cash;
 
     /* Put name on stone */
-    Sprintf(rip_line[NAME_LINE], "%.16s", gp.plname); /* STONE_LINE_LEN */
+    Sprintf(rip_line[NAME_LINE], "%.16s", svp.plname); /* STONE_LINE_LEN */
 
     /* Put $ on stone */
     cash = max(gd.done_money, 0L);
@@ -482,7 +482,7 @@ calculate_rip_text(int how, time_t when)
 
     /* Put death type on stone */
     for (line = DEATH_LINE, dpx = buf; line < YEAR_LINE; line++) {
-        register int i, i0;
+        int i, i0;
         char tmpchar;
 
         if ((i0 = strlen(dpx)) > STONE_LINE_LEN) {

@@ -1,4 +1,4 @@
-/* NetHack 3.7	flag.h	$NHDT-Date: 1684791761 2023/05/22 21:42:41 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.217 $ */
+/* NetHack 3.7	flag.h	$NHDT-Date: 1715979826 2024/05/17 21:03:46 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.246 $ */
 /* Copyright (c) Stichting Mathematisch Centrum, Amsterdam, 1985. */
 /*-Copyright (c) Michael Allison, 2006. */
 /* NetHack may be freely redistributed.  See license for details. */
@@ -49,8 +49,10 @@ struct flag {
     boolean mention_decor;   /* give feedback for unobscured furniture */
     boolean mention_walls;   /* give feedback when bumping walls */
     boolean nap;             /* `timed_delay' option for display effects */
+    boolean nopick_dropped;  /* items you dropped may be autopicked */
     boolean null;            /* OK to send nulls to the terminal */
     boolean pickup;          /* whether you pickup or move and look */
+    boolean pickup_stolen;   /* auto-pickup items stolen by a monster */
     boolean pickup_thrown;   /* auto-pickup items you threw */
     boolean pushweapon; /* When wielding, push old weapon into second slot */
     boolean quick_farsight;  /* True disables map browsing during random
@@ -60,6 +62,7 @@ struct flag {
     boolean safe_wait;       /* prevent wait or search next to hostile */
     boolean showexp;         /* show experience points */
     boolean showscore;       /* show score */
+    boolean showvers;        /* show version on status lines */
     boolean silent;          /* whether the bell rings or not */
     boolean sortpack;        /* sorted inventory */
     boolean sparkle;         /* show "resisting" special FX (Scott Bigham) */
@@ -90,7 +93,14 @@ struct flag {
 #define PARANOID_EATING     0x0200
 #define PARANOID_SWIM       0x0400
 #define PARANOID_TRAP       0x0800
-#define PARANOID_THROW      0x1000
+#define PARANOID_AUTOALL    0x1000
+#define PARANOID_THROW      0x2000
+    unsigned versinfo; /* flag mask for 'showvers' option */
+    /* mask bits for 'versinfo'; numeric order does not match display order
+       which is "name branch number" */
+#define VI_NUMBER 1 /* x.y.z */
+#define VI_NAME   2 /* game's name (ie, "nethack") */
+#define VI_BRANCH 4 /* development branch (from git, via Makefile -CFLAGS) */
     int pickup_burden; /* maximum burden before prompt */
     int pile_limit;    /* controls feedback when walking over objects */
     char discosort;    /* order of dodiscovery/doclassdisco output: o,s,c,a */
@@ -191,6 +201,41 @@ struct debug_flags {
 #endif
 };
 
+enum windowcolors_windows {
+    wcolor_menu, wcolor_message, wcolor_status, wcolor_text,
+    WC_COUNT
+};
+
+struct windowcolors_struct {
+    char *fg;
+    char *bg;
+};
+
+struct accessibility_data {
+    boolean accessiblemsg; /* use msg_loc for plined messages */
+    coord msg_loc;         /* accessiblemsg: location */
+    boolean mon_notices;   /* msg when hero notices a monster */
+    int mon_notices_blocked; /* temp disable mon_notices */
+    boolean mon_movement;  /* msg when hero sees monster move */
+    boolean glyph_updates; /* msg when map glyphs change */
+};
+
+/* Use notice_mon_off() / notice_mon_on() to temporarily disable
+   noticing the monsters in the vision code - perhaps the game
+   needs to output some other messages in between.
+   Call notice_all_mons() afterwards to catch up. */
+#define notice_mon_off() do { a11y.mon_notices_blocked++; } while(0)
+#define notice_mon_on()  do { if (--a11y.mon_notices_blocked < 0) { \
+            impossible("mon_notices_blocked<0");                    \
+            a11y.mon_notices_blocked = 0;                           \
+        } } while(0)
+
+enum debug_fuzzer_states {
+    fuzzer_off,
+    fuzzer_impossible_panic,
+    fuzzer_impossible_continue
+};
+
 /*
  * Stuff that really isn't option or platform related and does not
  * get saved and restored.  They are set and cleared during the game
@@ -198,8 +243,9 @@ struct debug_flags {
  * and probably warrant a structure of their own elsewhere some day.
  */
 struct instance_flags {
-    boolean debug_fuzzer;  /* fuzz testing */
-    boolean defer_plname;  /* X11 hack: askname() might not set gp.plname */
+    boolean query_menu;    /* use a menu for yes/no queries */
+    boolean showdamage;
+    boolean defer_plname;  /* X11 hack: askname() might not set svp.plname */
     boolean herecmd_menu;  /* use menu when mouseclick on yourself */
     boolean invis_goldsym; /* gold symbol is ' '? */
     boolean in_lua;        /* executing a lua script */
@@ -209,27 +255,30 @@ struct instance_flags {
                                 * indirectly so we can't use xname_flags() */
     boolean remember_getpos; /* save getpos() positioning in do-again queue */
     boolean sad_feeling;   /* unseen pet is dying */
+    xint8 debug_fuzzer;    /* fuzz testing */
     int at_midnight;       /* only valid during end of game disclosure */
     int at_night;          /* also only valid during end of game disclosure */
     int failing_untrap;    /* move_into_trap() -> spoteffects() -> dotrap() */
-    int in_lava_effects;   /* hack for Boots_off() */
-    int last_msg;          /* indicator of last message player saw */
-    int override_ID;       /* true to force full identification of objects */
-    int parse_config_file_src;  /* hack for parse_config_line() */
-    int purge_monsters;    /* # of dead monsters still on fmon list */
-    int suppress_price;    /* controls doname() for unpaid objects */
-    int terrainmode; /* for getpos()'s autodescribe when #terrain is active */
-#define TER_MAP    0x01
-#define TER_TRP    0x02
-#define TER_OBJ    0x04
-#define TER_MON    0x08
-#define TER_DETECT 0x10    /* detect_foo magic rather than #terrain */
-#define TER_VISIT  0x20
     int getdir_click;      /* as input to getdir(): non-zero, accept simulated
                             * click that's not adjacent to or on hero;
                             * as output from getdir(): simulated button used
                             * 0 (none) or CLICK_1 (left) or CLICK_2 (right) */
     int getloc_filter;     /* GFILTER_foo */
+    int in_lava_effects;   /* hack for Boots_off() */
+    int last_msg;          /* indicator of last message player saw */
+    int override_ID;       /* true to force full identification of objects */
+    int parse_config_file_src;  /* hack for parse_config_line() */
+    int purge_monsters;    /* # of dead monsters still on fmon list */
+    int raw_printed;       /* count of messages issued before window_inited */
+    int suppress_price;    /* controls doname() for unpaid objects */
+    unsigned  terrainmode; /* for getpos()'s autodescribe during #terrain */
+#define TER_MAP    0x01U
+#define TER_TRP    0x02U
+#define TER_OBJ    0x04U
+#define TER_MON    0x08U
+#define TER_FULL   0x10U   /* explore|wizard mode view full map */
+#define TER_DETECT 0x20U   /* detect_foo magic rather than #terrain */
+#define TER_VISIT  0x40U
     boolean bgcolors;      /* display background colors on a map position */
     boolean getloc_moveskip;
     boolean getloc_travelmode;
@@ -244,6 +293,7 @@ struct instance_flags {
     boolean debug_mongen;  /* debug: prevent monster generation */
     boolean debug_hunger;  /* debug: prevent hunger */
     boolean mon_polycontrol; /* debug: control monster polymorphs */
+    boolean mon_telecontrol; /* debug: control monster teleports */
     boolean in_dumplog;    /* doing the dumplog right now? */
     boolean in_parse;      /* is a command being parsed? */
      /* suppress terminate during options parsing, for --showpaths */
@@ -255,7 +305,7 @@ struct instance_flags {
     int getpos_coords;    /* show coordinates when getting cursor position */
     int menuinvertmode;  /* 0 = invert toggles every item;
                             1 = invert skips 'all items' item */
-    int menu_headings;    /* ATR for menu headings */
+    color_attr menu_headings;    /* CLR_ and ATR_ for menu headings */
     uint32_t colorcount;    /* store how many colors terminal is capable of */
     boolean use_truecolor;  /* force use of truecolor */
 #ifdef ALTMETA
@@ -275,7 +325,8 @@ struct instance_flags {
     boolean menu_tab_sep;     /* Use tabs to separate option menu fields */
     boolean news;             /* print news */
     boolean num_pad;          /* use numbers for movement commands */
-    boolean perm_invent;      /* keep full inventories up until dismissed */
+    boolean perm_invent;      /* display persistent inventory window */
+    boolean perm_invent_pending;  /* need to try again */
     boolean renameallowed;    /* can change hero name during role selection */
     boolean renameinprogress; /* we are changing hero name */
     boolean sounds;           /* master on/off switch for using soundlib */
@@ -294,8 +345,16 @@ struct instance_flags {
     boolean zerocomp;         /* write zero-compressed save files */
     boolean rlecomp;          /* alternative to zerocomp; run-length encoding
                                * compression of levels when writing savefile */
+    schar ice_rating;         /* ice_descr()'s classification of ice terrain */
     schar prev_decor;         /* 'mention_decor' just mentioned this */
-    uchar num_pad_mode;
+    uchar num_pad_mode;       /* for num_pad==True, controls how 5 behaves
+                               * and/or 789456123 vs phone-style 123456789;
+                               * for False, qwertY vs qwertZ */
+    uchar perminv_mode;       /* what to display in persistent invent window
+                               * 0: nothing, 1: all inventory except gold,
+                               * 2: full including gold, 8: in-use items only,
+                               * 5|6: 1|2 with invent letters shown in empty
+                               * slots (TTY only: 'sparse' modes) */
     uchar bouldersym;         /* symbol for boulder display */
     char prevmsg_window;      /* type of old message window to use */
     boolean extmenu;          /* extended commands use menu interface */
@@ -329,11 +388,12 @@ struct instance_flags {
 #endif
     boolean cmdassist;       /* provide detailed assistance for some comnds */
     boolean fireassist;      /* autowield launcher when using fire-command */
-    boolean time_botl;       /* context.botl for 'time' (moves) only */
     boolean wizmgender;      /* test gender info from core in window port */
     boolean invweight;       /* display weights of items in inventory */
     boolean msg_is_alert;    /* suggest windowport should grab player's attention
                               * and request <TAB> acknowlegement */
+    boolean customcolors;    /* support customcolors defined in glyphmap */
+    boolean customsymbols;   /* support customsymbols defined in glyphmap */
     /*
      * Window capability support.
      */
@@ -350,6 +410,7 @@ struct instance_flags {
     int wc_align_status;      /*  status win at top|bot|right|left   */
     int wc_align_message;     /* message win at top|bot|right|left   */
     int wc_vary_msgcount;     /* show more old messages at a time    */
+#if 0
     char *wc_foregrnd_menu; /* points to foregrnd color name for menu win   */
     char *wc_backgrnd_menu; /* points to backgrnd color name for menu win   */
     char *wc_foregrnd_message; /* points to foregrnd color name for msg win */
@@ -358,6 +419,9 @@ struct instance_flags {
     char *wc_backgrnd_status; /* points to backgrnd color name for status   */
     char *wc_foregrnd_text; /* points to foregrnd color name for text win   */
     char *wc_backgrnd_text; /* points to backgrnd color name for text win   */
+#else
+    struct windowcolors_struct wcolors[WC_COUNT];
+#endif
     char *wc_font_map;      /* points to font name for the map win */
     char *wc_font_message;  /* points to font name for message win */
     char *wc_font_status;   /* points to font name for status win  */
@@ -411,6 +475,8 @@ struct instance_flags {
                                     chosen_windowport[], but do not switch to
                                     it in the midst of options processing */
     genericptr_t returning_missile; /* 'struct obj *'; Mjollnir or aklys */
+    boolean wiz_error_flag;     /* flag for tracking failed wizmode auth */
+    boolean explore_error_flag; /* ditto for explore mode */
     boolean obsolete;  /* obsolete options can point at this, it isn't used */
 };
 
@@ -434,6 +500,7 @@ struct instance_flags {
 
 extern NEARDATA struct flag flags;
 extern NEARDATA struct instance_flags iflags;
+extern NEARDATA struct accessibility_data a11y;
 
 /* last_msg values
  * Usage:
@@ -448,12 +515,15 @@ enum plnmsg_types {
     PLNMSG_ONE_ITEM_HERE,       /* "you see <single item> here" */
     PLNMSG_TOWER_OF_FLAME,      /* scroll of fire */
     PLNMSG_CAUGHT_IN_EXPLOSION, /* explode() feedback */
+    PLNMSG_ENVELOPED_IN_GAS,    /* create_gas_cloud() feedback */
     PLNMSG_OBJ_GLOWS,           /* "the <obj> glows <color>" */
     PLNMSG_OBJNAM_ONLY,         /* xname/doname only, for #tip */
     PLNMSG_OK_DONT_DIE,         /* overriding death in explore/wizard mode */
     PLNMSG_BACK_ON_GROUND,      /* leaving water */
     PLNMSG_GROWL,               /* growl() gave some message */
-    PLNMSG_enum /* allows inserting new entries with unconditional trailing comma */
+    PLNMSG_HIDE_UNDER,          /* hero saw a monster hide under something */
+    PLNMSG_MON_TAKES_OFF_ITEM,  /* thief (nymph, monkey) taking worn item */
+    PLNMSG_enum /* 'none of the above' */
 };
 
 /* runmode options */
@@ -491,8 +561,10 @@ enum runmode_types {
 #define ParanoidEating ((flags.paranoia_bits & PARANOID_EATING) != 0)
 /* Prevent going into lava or water without explicitly forcing it */
 #define ParanoidSwim ((flags.paranoia_bits & PARANOID_SWIM) != 0)
-/* trap: move onto a trap that you know is there */
+/* Prevent going onto/into known trap unless it is harmless */
 #define ParanoidTrap ((flags.paranoia_bits & PARANOID_TRAP) != 0)
+/* Require confirmation for choosing 'A' in class menu for menustyle:Full */
+#define ParanoidAutoAll ((flags.paranoia_bits & PARANOID_AUTOALL) != 0U)
 /* throw: throw ammo without a corresponding launcher wielded */
 #define ParanoidThrow ((flags.paranoia_bits & PARANOID_THROW) != 0)
 

@@ -1,22 +1,24 @@
-/* NetHack 3.7	o_init.c	$NHDT-Date: 1672829455 2023/01/04 10:50:55 $  $NHDT-Branch: naming-overflow-fix $:$NHDT-Revision: 1.68 $ */
+/* NetHack 3.7	o_init.c	$NHDT-Date: 1720391455 2024/07/07 22:30:55 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.87 $ */
 /* Copyright (c) Stichting Mathematisch Centrum, Amsterdam, 1985. */
 /*-Copyright (c) Robert Patrick Rankin, 2011. */
 /* NetHack may be freely redistributed.  See license for details. */
 
 #include "hack.h"
 
-static void setgemprobs(d_level *);
-static void shuffle(int, int, boolean);
-static void shuffle_all(void);
-static int QSORTCALLBACK discovered_cmp(const genericptr, const genericptr);
-static char *sortloot_descr(int, char *);
-static char *disco_typename(int);
-static void disco_append_typename(char *, int);
-static char *oclass_to_name(char, char *);
+staticfn void setgemprobs(d_level *);
+staticfn void randomize_gem_colors(void);
+staticfn void shuffle(int, int, boolean);
+staticfn void shuffle_all(void);
+staticfn int QSORTCALLBACK discovered_cmp(const genericptr, const genericptr);
+staticfn char *sortloot_descr(int, char *);
+staticfn char *disco_typename(int);
+staticfn void disco_append_typename(char *, int);
+staticfn void disco_output_sorted(winid, char **, int, boolean);
+staticfn char *oclass_to_name(char, char *);
 
 #ifdef TILES_IN_GLYPHMAP
 extern glyph_map glyphmap[MAX_GLYPH];
-static void shuffle_tiles(void);
+staticfn void shuffle_tiles(void);
 
 /* Shuffle tile assignments to match descriptions, so a red potion isn't
  * displayed with a blue tile and so on.
@@ -27,7 +29,7 @@ static void shuffle_tiles(void);
  * is restored.  So might as well do that the first time instead of writing
  * another routine.
  */
-static void
+staticfn void
 shuffle_tiles(void)
 {
     int i;
@@ -46,8 +48,8 @@ shuffle_tiles(void)
 }
 #endif /* TILES_IN_GLYPHMAP */
 
-static void
-setgemprobs(d_level* dlev)
+staticfn void
+setgemprobs(d_level *dlev)
 {
     int j, first, lev, sum = 0;
 
@@ -56,7 +58,7 @@ setgemprobs(d_level* dlev)
                                                 : ledger_no(dlev);
     else
         lev = 0;
-    first = gb.bases[GEM_CLASS];
+    first = svb.bases[GEM_CLASS];
 
     for (j = 0; j < 9 - lev / 3; j++)
         objects[first + j].oc_prob = 0;
@@ -71,13 +73,41 @@ setgemprobs(d_level* dlev)
         objects[j].oc_prob = (171 + j - first) / (LAST_REAL_GEM + 1 - first);
 
     /* recompute GEM_CLASS total oc_prob - including rocks/stones */
-    for (j = gb.bases[GEM_CLASS]; j < gb.bases[GEM_CLASS + 1]; j++)
+    for (j = svb.bases[GEM_CLASS]; j < svb.bases[GEM_CLASS + 1]; j++)
         sum += objects[j].oc_prob;
     go.oclass_prob_totals[GEM_CLASS] = sum;
 }
 
+/* some gems can have different colors */
+staticfn void
+randomize_gem_colors(void)
+{
+#define COPY_OBJ_DESCR(o_dst, o_src) \
+    o_dst.oc_descr_idx = o_src.oc_descr_idx, o_dst.oc_color = o_src.oc_color
+    if (rn2(2)) { /* change turquoise from green to blue? */
+        COPY_OBJ_DESCR(objects[TURQUOISE], objects[SAPPHIRE]);
+    }
+    if (rn2(2)) { /* change aquamarine from green to blue? */
+        COPY_OBJ_DESCR(objects[AQUAMARINE], objects[SAPPHIRE]);
+    }
+    switch (rn2(4)) { /* change fluorite from violet? */
+    case 0:
+        break;
+    case 1: /* blue */
+        COPY_OBJ_DESCR(objects[FLUORITE], objects[SAPPHIRE]);
+        break;
+    case 2: /* white */
+        COPY_OBJ_DESCR(objects[FLUORITE], objects[DIAMOND]);
+        break;
+    case 3: /* green */
+        COPY_OBJ_DESCR(objects[FLUORITE], objects[EMERALD]);
+        break;
+    }
+#undef COPY_OBJ_DESCR
+}
+
 /* shuffle descriptions on objects o_low to o_high */
-static void
+staticfn void
 shuffle(int o_low, int o_high, boolean domaterial)
 {
     int i, j, num_to_shuffle;
@@ -120,15 +150,9 @@ init_objects(void)
 {
     int i, first, last, prevoclass;
     char oclass;
-#ifdef TEXTCOLOR
-#define COPY_OBJ_DESCR(o_dst, o_src) \
-    o_dst.oc_descr_idx = o_src.oc_descr_idx, o_dst.oc_color = o_src.oc_color
-#else
-#define COPY_OBJ_DESCR(o_dst, o_src) o_dst.oc_descr_idx = o_src.oc_descr_idx
-#endif
 
     for (i = 0; i <= MAXOCLASSES; i++) {
-        gb.bases[i] = 0;
+        svb.bases[i] = 0;
         if (i > 0 && i < MAXOCLASSES && objects[i].oc_class != i)
             panic(
               "init_objects: class for generic object #%d doesn't match (%d)",
@@ -156,30 +180,11 @@ init_objects(void)
         last = first + 1;
         while (last < NUM_OBJECTS && objects[last].oc_class == oclass)
             last++;
-        gb.bases[(int) oclass] = first;
+        svb.bases[(int) oclass] = first;
 
         if (oclass == GEM_CLASS) {
             setgemprobs((d_level *) 0);
-
-            if (rn2(2)) { /* change turquoise from green to blue? */
-                COPY_OBJ_DESCR(objects[TURQUOISE], objects[SAPPHIRE]);
-            }
-            if (rn2(2)) { /* change aquamarine from green to blue? */
-                COPY_OBJ_DESCR(objects[AQUAMARINE], objects[SAPPHIRE]);
-            }
-            switch (rn2(4)) { /* change fluorite from violet? */
-            case 0:
-                break;
-            case 1: /* blue */
-                COPY_OBJ_DESCR(objects[FLUORITE], objects[SAPPHIRE]);
-                break;
-            case 2: /* white */
-                COPY_OBJ_DESCR(objects[FLUORITE], objects[DIAMOND]);
-                break;
-            case 3: /* green */
-                COPY_OBJ_DESCR(objects[FLUORITE], objects[EMERALD]);
-                break;
-            }
+            randomize_gem_colors();
         }
         first = last;
         prevoclass = (int) oclass;
@@ -187,14 +192,18 @@ init_objects(void)
     /* extra entry allows deriving the range of a class via
        bases[class] through bases[class+1]-1 for all classes
        (except for ILLOBJ_CLASS which is separated from WEAPON_CLASS
-       by generic objects) */
-    gb.bases[MAXOCLASSES] = NUM_OBJECTS;
+       by generic objects); second extra entry is to prevent an
+       explained crash in doclassdisco(), where the code ended up
+       attempting to process non-existent class MAXOCLASSES; the
+       [MAXOCLASSES+1] element gives that non-class 0 objects
+       when traversing objects[] from bases[X] through bases[X+1]-1 */
+    svb.bases[MAXOCLASSES] = svb.bases[MAXOCLASSES + 1] = NUM_OBJECTS;
     /* hypothetically someone might remove all objects of some class,
        or be adding a new class and not populated it yet, leaving gaps
        in bases[]; guarantee that there are no such gaps */
     for (last = MAXOCLASSES - 1; last >= 0; --last)
-        if (!gb.bases[last])
-            gb.bases[last] = gb.bases[last + 1];
+        if (!svb.bases[last])
+            svb.bases[last] = svb.bases[last + 1];
 
     /* check objects[].oc_name_known */
     for (i = MAXOCLASSES; i < NUM_OBJECTS; ++i) {
@@ -224,7 +233,7 @@ init_objects(void)
 }
 
 /* Compute the total probability of each object class.
- * Assumes gb.bases[] has already been set. */
+ * Assumes svb.bases[] has already been set. */
 void
 init_oclass_probs(void)
 {
@@ -236,15 +245,15 @@ init_oclass_probs(void)
         /* note: for ILLOBJ_CLASS, bases[oclass+1]-1 isn't the last item
            in the class; but all the generic items have probability 0 so
            adding them to 'sum' has no impact */
-        for (i = gb.bases[oclass]; i < gb.bases[oclass + 1]; ++i) {
+        for (i = svb.bases[oclass]; i < svb.bases[oclass + 1]; ++i) {
             sum += objects[i].oc_prob;
         }
         if (sum <= 0 && oclass != ILLOBJ_CLASS
-            && gb.bases[oclass] != gb.bases[oclass + 1]) {
+            && svb.bases[oclass] != svb.bases[oclass + 1]) {
             impossible("%s (%d) probability total for oclass %d",
                        !sum ? "zero" : "negative", sum, oclass);
             /* gracefully fail by setting all members of this class to 1 */
-            for (i = gb.bases[oclass]; i < gb.bases[oclass + 1]; ++i) {
+            for (i = svb.bases[oclass]; i < svb.bases[oclass + 1]; ++i) {
                 objects[i].oc_prob = 1;
                 sum++;
             }
@@ -277,14 +286,14 @@ obj_shuffle_range(
         break;
     case POTION_CLASS:
         /* potion of water has the only fixed description */
-        *lo_p = gb.bases[POTION_CLASS];
+        *lo_p = svb.bases[POTION_CLASS];
         *hi_p = POT_WATER - 1;
         break;
     case AMULET_CLASS:
     case SCROLL_CLASS:
     case SPBOOK_CLASS:
         /* exclude non-magic types and also unique ones */
-        *lo_p = gb.bases[ocls];
+        *lo_p = svb.bases[ocls];
         for (i = *lo_p; objects[i].oc_class == ocls; i++)
             if (objects[i].oc_unique || !objects[i].oc_magic)
                 break;
@@ -294,8 +303,8 @@ obj_shuffle_range(
     case WAND_CLASS:
     case VENOM_CLASS:
         /* entire class */
-        *lo_p = gb.bases[ocls];
-        *hi_p = gb.bases[ocls + 1] - 1;
+        *lo_p = svb.bases[ocls];
+        *hi_p = svb.bases[ocls + 1] - 1;
         break;
     }
 
@@ -307,7 +316,7 @@ obj_shuffle_range(
 }
 
 /* randomize object descriptions */
-static void
+staticfn void
 shuffle_all(void)
 {
     /* entire classes; obj_shuffle_range() handles their exceptions */
@@ -323,7 +332,8 @@ shuffle_all(void)
 
     /* do whole classes (amulets, &c) */
     for (idx = 0; idx < SIZE(shuffle_classes); idx++) {
-        obj_shuffle_range(gb.bases[(int) shuffle_classes[idx]], &first, &last);
+        obj_shuffle_range(svb.bases[(int) shuffle_classes[idx]],
+                          &first, &last);
         shuffle(first, last, TRUE);
     }
     /* do type ranges (helms, &c) */
@@ -360,16 +370,16 @@ oinit(void)
 }
 
 void
-savenames(NHFILE* nhfp)
+savenames(NHFILE *nhfp)
 {
     int i;
     unsigned int len;
 
     if (perform_bwrite(nhfp)) {
         if (nhfp->structlevel) {
-            bwrite(nhfp->fd, (genericptr_t)gb.bases, sizeof gb.bases);
-            bwrite(nhfp->fd, (genericptr_t)gd.disco, sizeof gd.disco);
-            bwrite(nhfp->fd, (genericptr_t)objects,
+            bwrite(nhfp->fd, (genericptr_t) svb.bases, sizeof svb.bases);
+            bwrite(nhfp->fd, (genericptr_t) svd.disco, sizeof svd.disco);
+            bwrite(nhfp->fd, (genericptr_t) objects,
                    sizeof(struct objclass) * NUM_OBJECTS);
         }
     }
@@ -381,8 +391,8 @@ savenames(NHFILE* nhfp)
             if (perform_bwrite(nhfp)) {
                 len = Strlen(objects[i].oc_uname) + 1;
                 if (nhfp->structlevel) {
-                    bwrite(nhfp->fd, (genericptr_t)&len, sizeof len);
-                    bwrite(nhfp->fd, (genericptr_t)objects[i].oc_uname, len);
+                    bwrite(nhfp->fd, (genericptr_t) &len, sizeof len);
+                    bwrite(nhfp->fd, (genericptr_t) objects[i].oc_uname, len);
                 }
             }
             if (release_data(nhfp)) {
@@ -393,16 +403,16 @@ savenames(NHFILE* nhfp)
 }
 
 void
-restnames(NHFILE* nhfp)
+restnames(NHFILE *nhfp)
 {
     int i;
     unsigned int len = 0;
 
     if (nhfp->structlevel) {
-        mread(nhfp->fd, (genericptr_t) gb.bases, sizeof gb.bases);
-        mread(nhfp->fd, (genericptr_t) gd.disco, sizeof gd.disco);
+        mread(nhfp->fd, (genericptr_t) svb.bases, sizeof svb.bases);
+        mread(nhfp->fd, (genericptr_t) svd.disco, sizeof svd.disco);
         mread(nhfp->fd, (genericptr_t) objects,
-                sizeof(struct objclass) * NUM_OBJECTS);
+              NUM_OBJECTS * sizeof (struct objclass));
     }
     for (i = 0; i < NUM_OBJECTS; i++) {
         if (objects[i].oc_uname) {
@@ -411,7 +421,7 @@ restnames(NHFILE* nhfp)
             }
             objects[i].oc_uname = (char *) alloc(len);
             if (nhfp->structlevel) {
-                mread(nhfp->fd, (genericptr_t)objects[i].oc_uname, len);
+                mread(nhfp->fd, (genericptr_t) objects[i].oc_uname, len);
             }
         }
     }
@@ -435,10 +445,10 @@ discover_object(
            uname'd) or the next open slot; one or the other will be found
            before we reach the next class...
          */
-        for (dindx = gb.bases[acls]; gd.disco[dindx] != 0; dindx++)
-            if (gd.disco[dindx] == oindx)
+        for (dindx = svb.bases[acls]; svd.disco[dindx] != 0; dindx++)
+            if (svd.disco[dindx] == oindx)
                 break;
-        gd.disco[dindx] = oindx;
+        svd.disco[dindx] = oindx;
 
         /* if already known, we forced an item with a Japanese name into
            disco[] but don't want to exercise wisdom or update perminv */
@@ -451,7 +461,7 @@ discover_object(
                 exercise(A_WIS, TRUE);
         }
         /* !in_moveloop => initial inventory, gameover => final disclosure */
-        if (gp.program_state.in_moveloop && !gp.program_state.gameover) {
+        if (program_state.in_moveloop && !program_state.gameover) {
             if (objects[oindx].oc_class == GEM_CLASS)
                 gem_learned(oindx); /* could affect price of unpaid gems */
             update_inventory();
@@ -464,22 +474,22 @@ void
 undiscover_object(int oindx)
 {
     if (!objects[oindx].oc_name_known) {
-        register int dindx, acls = objects[oindx].oc_class;
-        register boolean found = FALSE;
+        int dindx, acls = objects[oindx].oc_class;
+        boolean found = FALSE;
 
         /* find the object; shift those behind it forward one slot */
-        for (dindx = gb.bases[acls];
-             dindx < NUM_OBJECTS && gd.disco[dindx] != 0
+        for (dindx = svb.bases[acls];
+             dindx < NUM_OBJECTS && svd.disco[dindx] != 0
                  && objects[dindx].oc_class == acls;
              dindx++)
             if (found)
-                gd.disco[dindx - 1] = gd.disco[dindx];
-            else if (gd.disco[dindx] == oindx)
+                svd.disco[dindx - 1] = svd.disco[dindx];
+            else if (svd.disco[dindx] == oindx)
                 found = TRUE;
 
         /* clear last slot */
         if (found)
-            gd.disco[dindx - 1] = 0;
+            svd.disco[dindx - 1] = 0;
         else
             impossible("named object not in disco");
 
@@ -511,7 +521,7 @@ static const short uniq_objs[] = {
 };
 
 /* discoveries qsort comparison function */
-static int QSORTCALLBACK
+staticfn int QSORTCALLBACK
 discovered_cmp(const genericptr v1, const genericptr v2)
 {
     const char *s1 = *(const char **) v1;
@@ -525,7 +535,7 @@ discovered_cmp(const genericptr v1, const genericptr v2)
     return res;
 }
 
-static char *
+staticfn char *
 sortloot_descr(int otyp, char *outbuf)
 {
     Loot sl_cookie;
@@ -540,7 +550,7 @@ sortloot_descr(int otyp, char *outbuf)
     o.corpsenm = NON_PM; /* suppress statue and figurine details */
     /* but suppressing fruit details leads to "bad fruit #0" */
     if (otyp == SLIME_MOLD)
-        o.spe = gc.context.current_fruit;
+        o.spe = svc.context.current_fruit;
 
     (void) memset((genericptr_t) &sl_cookie, 0, sizeof sl_cookie);
     sl_cookie.obj = (struct obj *) 0;
@@ -557,8 +567,8 @@ sortloot_descr(int otyp, char *outbuf)
 #define DISCO_ALPHABYCLASS 2 /* alphabetized within each class */
 #define DISCO_ALPHABETIZED 3 /* alphabetized across all classes */
 /* also used in options.c (optfn_sortdiscoveries) */
-const char disco_order_let[] = "osca";
-const char *const disco_orders_descr[] = {
+static const char disco_order_let[] = "osca";
+static const char *const disco_orders_descr[] = {
     "by order of discovery within each class",
     "sortloot order (by class with some sub-class groupings)",
     "alphabetical within each class",
@@ -568,13 +578,13 @@ const char *const disco_orders_descr[] = {
 
 int
 choose_disco_sort(
-    int mode) /* 0 => 'O' cmd, 1 => full discoveries; 2 => class discoveries */
+    int mode) /* 0 => 'O' cmd, 1 => full discoveries; 2 => class disco */
 {
     winid tmpwin;
     menu_item *selected;
     anything any;
     int i, n, choice;
-    int clr = 0;
+    int clr = NO_COLOR;
 
     tmpwin = create_nhwindow(NHW_MENU);
     start_menu(tmpwin, MENU_BEHAVE_STANDARD);
@@ -592,18 +602,13 @@ choose_disco_sort(
         /* called via 'm `' where full alphabetize doesn't make sense
            (only showing one class so can't span all classes) but the
            chosen sort will stick and also apply to '\' usage */
-        any = cg.zeroany;
-        add_menu(tmpwin, &nul_glyphinfo, &any, 0, 0, ATR_NONE, clr,
-                 "", MENU_ITEMFLAGS_NONE);
-        add_menu(tmpwin, &nul_glyphinfo, &any, 0, 0, ATR_NONE, clr,
-                 "Note: full alphabetical and alphabetical within class",
-                 MENU_ITEMFLAGS_NONE);
-        add_menu(tmpwin, &nul_glyphinfo, &any, 0, 0, ATR_NONE, clr,
-                 "      are equivalent for single class discovery, but",
-                 MENU_ITEMFLAGS_NONE);
-        add_menu(tmpwin, &nul_glyphinfo, &any, 0, 0, ATR_NONE, clr,
-                 "      will matter for future use of total discoveries.",
-                 MENU_ITEMFLAGS_NONE);
+        add_menu_str(tmpwin, "");
+        add_menu_str(tmpwin,
+                     "Note: full alphabetical and alphabetical within class");
+        add_menu_str(tmpwin,
+                     "      are equivalent for single class discovery, but");
+        add_menu_str(tmpwin,
+                    "      will matter for future use of total discoveries.");
     }
     end_menu(tmpwin, "Ordering of discoveries");
 
@@ -621,7 +626,7 @@ choose_disco_sort(
 }
 
 /* augment obj_typename() with explanation of Japanese item names */
-static char *
+staticfn char *
 disco_typename(int otyp)
 {
     char *result = obj_typename(otyp);
@@ -653,7 +658,7 @@ disco_typename(int otyp)
 }
 
 /* append typename(dis) to buf[], possibly truncating in the process */
-static void
+staticfn void
 disco_append_typename(char *buf, int dis)
 {
     unsigned len = (unsigned) strlen(buf);
@@ -676,6 +681,27 @@ disco_append_typename(char *buf, int dis)
     }
 }
 
+/* sort and output sorted_lines to window and free the lines */
+staticfn void
+disco_output_sorted(winid tmpwin,
+                    char **sorted_lines, int sorted_ct,
+                    boolean lootsort)
+{
+    char *p;
+    int j;
+
+    qsort(sorted_lines, sorted_ct, sizeof (char *), discovered_cmp);
+    for (j = 0; j < sorted_ct; ++j) {
+        p = sorted_lines[j];
+        if (lootsort) {
+            p[6] = p[0]; /* '*' or ' ' */
+            p += 6;
+        }
+        putstr(tmpwin, 0, p);
+        free(sorted_lines[j]), sorted_lines[j] = 0;
+    }
+}
+
 /* the #known command - show discovered object types */
 int
 dodiscovered(void) /* free after Robert Viduya */
@@ -684,7 +710,7 @@ dodiscovered(void) /* free after Robert Viduya */
     char *s, *p, oclass, prev_class,
          classes[MAXOCLASSES], buf[BUFSZ],
          *sorted_lines[NUM_OBJECTS]; /* overkill */
-    int i, j, dis, ct, uniq_ct, arti_ct, sorted_ct;
+    int i, dis, ct, uniq_ct, arti_ct, sorted_ct;
     long sortindx;  // should be ptrdiff_t, but we don't require that exists
     boolean alphabetized, alphabyclass, lootsort;
 
@@ -700,7 +726,7 @@ dodiscovered(void) /* free after Robert Viduya */
     lootsort = (flags.discosort == 's');
     sortindx = strchr(disco_order_let, flags.discosort) - disco_order_let;
 
-    tmpwin = create_nhwindow(NHW_MENU);
+    tmpwin = create_nhwindow(NHW_TEXT);
     Sprintf(buf, "Discoveries, %s", disco_orders_descr[sortindx]);
     putstr(tmpwin, 0, buf);
     putstr(tmpwin, 0, "");
@@ -711,7 +737,7 @@ dodiscovered(void) /* free after Robert Viduya */
     for (i = dis = 0; i < SIZE(uniq_objs); i++)
         if (objects[uniq_objs[i]].oc_name_known) {
             if (!dis++)
-                putstr(tmpwin, iflags.menu_headings, "Unique items");
+                putstr(tmpwin, iflags.menu_headings.attr, "Unique items");
             ++uniq_ct;
             Sprintf(buf, "  %s", OBJ_NAME(objects[uniq_objs[i]]));
             putstr(tmpwin, 0, buf);
@@ -729,29 +755,20 @@ dodiscovered(void) /* free after Robert Viduya */
     for (s = classes; *s; s++) {
         oclass = *s;
         prev_class = oclass + 1; /* forced different from oclass */
-        for (i = gb.bases[(int) oclass];
+        for (i = svb.bases[(int) oclass];
              i < NUM_OBJECTS && objects[i].oc_class == oclass; i++) {
-            if ((dis = gd.disco[i]) != 0 && interesting_to_discover(dis)) {
+            if ((dis = svd.disco[i]) != 0 && interesting_to_discover(dis)) {
                 ct++;
                 if (oclass != prev_class) {
                     if ((alphabyclass || lootsort) && sorted_ct) {
                         /* output previous class */
-                        qsort(sorted_lines, sorted_ct, sizeof (char *),
-                              discovered_cmp);
-                        for (j = 0; j < sorted_ct; ++j) {
-                            p = sorted_lines[j];
-                            if (lootsort) {
-                                p[6] = p[0]; /* '*' or ' ' */
-                                p += 6;
-                            }
-                            putstr(tmpwin, 0, p);
-                            free(sorted_lines[j]), sorted_lines[j] = 0;
-                        }
+                        disco_output_sorted(tmpwin, sorted_lines, sorted_ct,
+                                            lootsort);
                         sorted_ct = 0;
                     }
                     if (!alphabetized || alphabyclass) {
                         /* header for new class */
-                        putstr(tmpwin, iflags.menu_headings,
+                        putstr(tmpwin, iflags.menu_headings.attr,
                                let_to_name(oclass, FALSE, FALSE));
                         prev_class = oclass;
                     }
@@ -777,17 +794,8 @@ dodiscovered(void) /* free after Robert Viduya */
                classes, we normally don't need a header; but it we showed
                any unique items or any artifacts then we do need one */
             if ((uniq_ct || arti_ct) && alphabetized && !alphabyclass)
-                putstr(tmpwin, iflags.menu_headings, "Discovered items");
-            qsort(sorted_lines, sorted_ct, sizeof (char *), discovered_cmp);
-            for (j = 0; j < sorted_ct; ++j) {
-                p = sorted_lines[j];
-                if (lootsort) {
-                    p[6] = p[0]; /* '*' or ' ' */
-                    p += 6;
-                }
-                putstr(tmpwin, 0, p);
-                free(sorted_lines[j]), sorted_lines[j] = 0;
-            }
+                putstr(tmpwin, iflags.menu_headings.attr, "Discovered items");
+            disco_output_sorted(tmpwin, sorted_lines, sorted_ct, lootsort);
         }
         display_nhwindow(tmpwin, TRUE);
     }
@@ -797,7 +805,7 @@ dodiscovered(void) /* free after Robert Viduya */
 }
 
 /* lower case let_to_name() output, which differs from def_oc_syms[].name */
-static char *
+staticfn char *
 oclass_to_name(char oclass, char *buf)
 {
     char *s;
@@ -825,7 +833,7 @@ doclassdisco(void)
          *sorted_lines[NUM_OBJECTS]; /* overkill */
     int i, ct, dis, xtras, sorted_ct;
     boolean traditional, alphabetized, lootsort;
-    int clr = 0;
+    int clr = NO_COLOR;
 
     if (!flags.discosort || !(p = strchr(disco_order_let, flags.discosort)))
         flags.discosort = 'o';
@@ -878,11 +886,11 @@ doclassdisco(void)
     for (s = allclasses; *s; ++s) {
         oclass = *s;
         c = def_oc_syms[(int) oclass].sym;
-        for (i = gb.bases[(int) oclass];
+        for (i = svb.bases[(int) oclass];
              i < NUM_OBJECTS && objects[i].oc_class == oclass; ++i)
-            if ((dis = gd.disco[i]) != 0 && interesting_to_discover(dis)) {
+            if ((dis = svd.disco[i]) != 0 && interesting_to_discover(dis)) {
                 if (!strchr(discosyms, c)) {
-                    Sprintf(eos(discosyms), "%c", c);
+                    (void) strkitten(discosyms, c);
                     if (!traditional) {
                         any.a_int = c;
                         add_menu(tmpwin, &nul_glyphinfo, &any,
@@ -947,11 +955,11 @@ doclassdisco(void)
     /*
      * show discoveries for object class c
      */
-    tmpwin = create_nhwindow(NHW_MENU);
+    tmpwin = create_nhwindow(NHW_TEXT);
     ct = 0;
     switch (c) {
     case 'u':
-        putstr(tmpwin, iflags.menu_headings,
+        putstr(tmpwin, iflags.menu_headings.attr,
                upstart(strcpy(buf, unique_items)));
         for (i = 0; i < SIZE(uniq_objs); i++)
             if (objects[uniq_objs[i]].oc_name_known) {
@@ -979,14 +987,18 @@ doclassdisco(void)
         break;
     default:
         oclass = def_char_to_objclass(c);
+        /* this should never happen but has been observed via the fuzzer */
+        if (oclass == MAXOCLASSES)
+            impossible("doclassdisco: invalid object class '%s'", visctrl(c));
         Sprintf(buf, "Discovered %s in %s", let_to_name(oclass, FALSE, FALSE),
                 (flags.discosort == 'o') ? "order of discovery"
                 : (flags.discosort == 's') ? "'sortloot' order"
                   : "alphabetical order");
         putstr(tmpwin, 0, buf); /* skip iflags.menu_headings */
         sorted_ct = 0;
-        for (i = gb.bases[(int) oclass]; i <= gb.bases[oclass + 1] - 1; ++i) {
-            if ((dis = gd.disco[i]) != 0 && interesting_to_discover(dis)) {
+        for (i = svb.bases[(int) oclass]; i <= svb.bases[oclass + 1] - 1;
+             ++i) {
+            if ((dis = svd.disco[i]) != 0 && interesting_to_discover(dis)) {
                 ++ct;
                 Strcpy(buf,  objects[dis].oc_pre_discovered ? "* " : "  ");
                 if (lootsort)
@@ -1025,13 +1037,13 @@ doclassdisco(void)
 void
 rename_disco(void)
 {
-    register int i, dis;
+    int i, dis;
     int ct = 0, mn = 0, sl;
     char *s, oclass, prev_class;
     winid tmpwin;
     anything any;
     menu_item *selected = 0;
-    int clr = 0;
+    int clr = NO_COLOR;
 
     any = cg.zeroany;
     tmpwin = create_nhwindow(NHW_MENU);
@@ -1048,9 +1060,9 @@ rename_disco(void)
     for (s = flags.inv_order; *s; s++) {
         oclass = *s;
         prev_class = oclass + 1; /* forced different from oclass */
-        for (i = gb.bases[(int) oclass];
+        for (i = svb.bases[(int) oclass];
              i < NUM_OBJECTS && objects[i].oc_class == oclass; i++) {
-            dis = gd.disco[i];
+            dis = svd.disco[i];
             if (!dis || !interesting_to_discover(dis))
                 continue;
             ct++;
@@ -1060,10 +1072,8 @@ rename_disco(void)
 
             if (oclass != prev_class) {
                 any.a_int = 0;
-                add_menu(tmpwin, &nul_glyphinfo, &any, 0, 0,
-                         iflags.menu_headings, clr,
-                         let_to_name(oclass, FALSE, FALSE),
-                         MENU_ITEMFLAGS_NONE);
+                add_menu_heading(tmpwin,
+                                 let_to_name(oclass, FALSE, FALSE));
                 prev_class = oclass;
             }
             any.a_int = dis;
@@ -1101,4 +1111,16 @@ rename_disco(void)
     return;
 }
 
+void
+get_sortdisco(char *opts, boolean cnf)
+{
+    const char *p = strchr(disco_order_let, flags.discosort);
+
+    if (!p)
+        flags.discosort = 'o', p = disco_order_let;
+    if (cnf)
+        Sprintf(opts, "%c", flags.discosort);
+    else
+        Strcpy(opts, disco_orders_descr[p - disco_order_let]);
+}
 /*o_init.c*/

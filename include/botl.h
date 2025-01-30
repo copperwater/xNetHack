@@ -1,4 +1,4 @@
-/* NetHack 3.7  botl.h  $NHDT-Date: 1596498528 2020/08/03 23:48:48 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.34 $ */
+/* NetHack 3.7  botl.h  $NHDT-Date: 1694893330 2023/09/16 19:42:10 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.37 $ */
 /* Copyright (c) Michael Allison, 2003                            */
 /* NetHack may be freely redistributed.  See license for details. */
 
@@ -41,12 +41,15 @@ enum statusfields {
     BL_ALIGN, BL_SCORE, BL_CAP, BL_GOLD, BL_ENE, BL_ENEMAX, /* 7..12 */
     BL_XP, BL_AC, BL_HD, BL_TIME, BL_HUNGER, BL_HP, /* 13..18 */
     BL_HPMAX, BL_LEVELDESC, BL_EXP, BL_CONDITION, /* 19..22 */
-    MAXBLSTATS /* [23] */
+    BL_VERS, /* 23 */
+    MAXBLSTATS, /* [24] */
 };
 
-enum relationships { NO_LTEQGT = -1,
-                     EQ_VALUE, LT_VALUE, LE_VALUE,
-                     GE_VALUE, GT_VALUE, TXT_VALUE };
+enum relationships {
+    NO_LTEQGT = -1,
+    EQ_VALUE, LT_VALUE, LE_VALUE,
+    GE_VALUE, GT_VALUE, TXT_VALUE
+};
 
 enum blconditions {
     bl_bareh,
@@ -201,10 +204,18 @@ extern int cond_idx[CONDITION_COUNT];
 
 /* #ifdef STATUS_HILITES */
 /* hilite status field behavior - coloridx values */
-#define BL_HILITE_NONE -1    /* no hilite of this field */
-#define BL_HILITE_INVERSE -2 /* inverse hilite */
-#define BL_HILITE_BOLD -3    /* bold hilite */
-                             /* or any CLR_ index (0 - 15) */
+#define BL_HILITE_NONE    -1    /* no hilite of this field */
+
+#if 0
+#define BL_HILITE_BOLD    -2    /* bold hilite */
+#define BL_HILITE_DIM     -3    /* dim hilite */
+#define BL_HILITE_ITALIC  -4    /* italic hilite */
+#define BL_HILITE_ULINE   -5    /* underline hilite */
+#define BL_HILITE_BLINK   -6    /* blink hilite */
+#define BL_HILITE_INVERSE -7    /* inverse hilite */
+                                /* or any CLR_ index (0 - 15) */
+#endif
+
 #define BL_TH_NONE 0
 #define BL_TH_VAL_PERCENTAGE 100 /* threshold is percentage */
 #define BL_TH_VAL_ABSOLUTE 101   /* threshold is particular value */
@@ -212,25 +223,30 @@ extern int cond_idx[CONDITION_COUNT];
 #define BL_TH_CONDITION 103      /* threshold is bitmask of conditions */
 #define BL_TH_TEXTMATCH 104      /* threshold text value to match against */
 #define BL_TH_ALWAYS_HILITE 105  /* highlight regardless of value */
+#define BL_TH_CRITICALHP 106     /* highlight critically low HP */
 
+#define HL_ATTCLR_NONE    CLR_MAX + 1
+#define HL_ATTCLR_BOLD    CLR_MAX + 2
+#define HL_ATTCLR_DIM     CLR_MAX + 3
+#define HL_ATTCLR_ITALIC  CLR_MAX + 4
+#define HL_ATTCLR_ULINE   CLR_MAX + 5
+#define HL_ATTCLR_BLINK   CLR_MAX + 6
+#define HL_ATTCLR_INVERSE CLR_MAX + 7
+#define BL_ATTCLR_MAX     CLR_MAX + 8
 
-#define HL_ATTCLR_DIM     CLR_MAX + 0
-#define HL_ATTCLR_BLINK   CLR_MAX + 1
-#define HL_ATTCLR_ULINE   CLR_MAX + 2
-#define HL_ATTCLR_INVERSE CLR_MAX + 3
-#define HL_ATTCLR_BOLD    CLR_MAX + 4
-#define BL_ATTCLR_MAX     CLR_MAX + 5
-
-enum hlattribs { HL_UNDEF   = 0x00,
-                 HL_NONE    = 0x01,
-                 HL_BOLD    = 0x02,
-                 HL_INVERSE = 0x04,
-                 HL_ULINE   = 0x08,
-                 HL_BLINK   = 0x10,
-                 HL_DIM     = 0x20 };
+enum hlattribs {
+    HL_UNDEF   = 0x00,
+    HL_NONE    = 0x01,
+    HL_BOLD    = 0x02,
+    HL_DIM     = 0x04,
+    HL_ITALIC  = 0x08,
+    HL_ULINE   = 0x10,
+    HL_BLINK   = 0x20,
+    HL_INVERSE = 0x40
+};
 
 #define MAXVALWIDTH 80 /* actually less, but was using 80 to allocate title
-                       * and leveldesc then using QBUFSZ everywhere else   */
+                        * and leveldesc then using QBUFSZ everywhere else   */
 #ifdef STATUS_HILITES
 struct hilite_s {
     enum statusfields fld;
@@ -245,6 +261,11 @@ struct hilite_s {
 };
 #endif
 
+/*
+ * Note: If you add/change/remove fields in istat_s, you need to
+ * update the initialization of the istat_s struct blstats[][]
+ * array in instance_globals_b (decl.c).
+ */
 struct istat_s {
     const char *fldname;
     const char *fldfmt;
@@ -253,7 +274,7 @@ struct istat_s {
     boolean percent_matters;
     short percent_value;
     unsigned anytype;
-    anything a;
+    anything a, rawval;
     char *val;
     int valwidth;
     enum statusfields idxmax;

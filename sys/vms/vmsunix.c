@@ -1,4 +1,4 @@
-/* NetHack 3.7	vmsunix.c	$NHDT-Date: 1605493693 2020/11/16 02:28:13 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.24 $ */
+/* NetHack 3.7	vmsunix.c	$NHDT-Date: 1685522050 2023/05/31 08:34:10 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.31 $ */
 /* Copyright (c) Stichting Mathematisch Centrum, Amsterdam, 1985. */
 /*-Copyright (c) Robert Patrick Rankin, 2011. */
 /* NetHack may be freely redistributed.  See license for details. */
@@ -29,12 +29,11 @@
 #include <stat.h>
 #undef umask
 #endif
-#include <ctype.h>
 
 extern int debuggable; /* defined in vmsmisc.c */
 
 #ifndef VMSVSI
-extern void VDECL(lib$signal, (unsigned, ...));
+extern void lib$signal(unsigned, ...);
 extern unsigned long sys$setprv();
 extern unsigned long lib$getdvi(), lib$getjpi(), lib$spawn(), lib$attach();
 extern unsigned long smg$init_term_table_by_type(), smg$del_term_table();
@@ -43,7 +42,7 @@ extern unsigned long smg$init_term_table_by_type(), smg$del_term_table();
 #define vms_ok(sts) ((sts) & 1) /* odd => success */
 
 /* this could be static; it's only used within this file;
-   it won't be used at all if C_LIB$INTIALIZE gets commented out below,
+   it won't be used at all if C_LIB$INITIALIZE gets commented out below,
    so make it global so that compiler won't complain that it's not used */
 int vmsexeini(const void *, const void *, const unsigned char *);
 
@@ -57,7 +56,7 @@ static void hack_resume(boolean);
 static int
 veryold(int fd)
 {
-    register int i;
+    int i;
     time_t date;
     struct stat buf;
 
@@ -99,7 +98,7 @@ veryold(int fd)
 void
 getlock(void)
 {
-    register int i = 0, fd;
+    int i = 0, fd;
 
     /* idea from rpick%ucqais@uccba.uc.edu
      * prevent automated rerolling of characters
@@ -120,7 +119,7 @@ getlock(void)
        'a','b',&c below; override the default and use <uid><charname>
        if we aren't restricting the number of simultaneous games */
     if (!gl.locknum)
-        Sprintf(gl.lock, "_%u%s", (unsigned) getuid(), gp.plname);
+        Sprintf(gl.lock, "_%u%s", (unsigned) getuid(), svp.plname);
 
     regularize(gl.lock);
     set_levelfile_name(gl.lock, 0);
@@ -154,8 +153,8 @@ getlock(void)
     if (fd == -1) {
         error("cannot creat lock file.");
     } else {
-        if (write(fd, (char *) &gh.hackpid, sizeof(gh.hackpid))
-            != sizeof(gh.hackpid)) {
+        if (write(fd, (char *) &svh.hackpid, sizeof(svh.hackpid))
+            != sizeof(svh.hackpid)) {
             error("cannot write lock");
         }
         if (close(fd) == -1) {
@@ -165,9 +164,9 @@ getlock(void)
 }
 
 /* normalize file name */
-void regularize(register char *s)
+void regularize(char *s)
 {
-    register char *lp;
+    char *lp;
 
     for (lp = s; *lp; lp++) /* note: '-' becomes '_' */
         if (!(isalpha(*lp) || isdigit(*lp) || *lp == '$'))
@@ -241,6 +240,7 @@ vms_define(const char *name, const char *value, int flag)
     switch (flag) {
     case ENV_JOB: /* job logical name */
         tbl_dsc.len = strlen(tbl_dsc.adr = "LNM$JOB");
+        FALLTHROUGH;
     /*FALLTHRU*/
     case ENV_SUP: /* supervisor-mode process logical name */
         result = lib$set_logical(&nam_dsc, &val_dsc, &tbl_dsc);
@@ -308,7 +308,7 @@ verify_term(void)
 
         if (devtype && vms_ok(smg$init_term_table_by_type(&devtype, &termtab,
                                                           &smgdsc))) {
-            register char *p = &smgdevtyp[smgdsc.dsc$w_length];
+            char *p = &smgdevtyp[smgdsc.dsc$w_length];
             /* strip trailing blanks */
             while (p > smgdevtyp && *--p == ' ')
                 *p = '\0';
@@ -603,8 +603,9 @@ vmscond lib$find_file_end(void **);
 
 /* collect a list of character names from all save files for this player */
 int
-vms_get_saved_games(const char *savetemplate, /* wildcarded save file name in native VMS format */
-                    char ***outarray)
+vms_get_saved_games(
+    const char *savetemplate, /* wildcarded save name in native VMS format */
+    char ***outarray)
 {
     struct dsc in, out;
     unsigned short l;
@@ -629,7 +630,7 @@ vms_get_saved_games(const char *savetemplate, /* wildcarded save file name in na
             if (filename[l - 1] != ' ')
                 break;
         filename[l] = '\0';
-        if ((charname = plname_from_file(filename)) != 0)
+        if ((charname = plname_from_file(filename, FALSE)) != 0)
             savefile(charname, count++, &asize, outarray);
     }
     (void) lib$find_file_end(&context);
@@ -845,11 +846,11 @@ vmsexeini(const void *inirtn_unused, const void *clirtn_unused,
  * are appended rather than overwriting each other).
  *
  * VAX C made global variables become named program sections, to be
- * compatable with Fortran COMMON blocks, simplifying mixed-language
- * programs.  GNU C for VAX/VMS did the same, to be compatable with
+ * compatible with Fortran COMMON blocks, simplifying mixed-language
+ * programs.  GNU C for VAX/VMS did the same, to be compatible with
  * VAX C.  By default, DEC C makes global variables be global symbols
  * instead, with its /Extern_Model=Relaxed_Ref_Def mode, but can be
- * told to be VAX C compatable by using /Extern_Model=Common_Block.
+ * told to be VAX C compatible by using /Extern_Model=Common_Block.
  *
  * We don't want to force that for the whole program; occasional use
  * of /Extern_Model=Strict_Ref_Def to find mistakes is too useful.
@@ -866,7 +867,7 @@ vmsexeini(const void *inirtn_unused, const void *clirtn_unused,
  * So, we switch modes for this hack only.  Besides, psect attributes
  * for lib$initialize are different from the ones used for ordinary
  * variables, so we'd need to resort to some linker magic anyway.
- * (With assembly language, in addtion to having full control of the
+ * (With assembly language, in addition to having full control of the
  * psect attributes in the source code, Macro32 would include enough
  * information in its object file such that linker wouldn't need any
  * extra instructions from us to make this work.)  [If anyone links

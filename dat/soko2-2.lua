@@ -4,7 +4,7 @@
 --
 des.level_init({ style = "solidfill", fg = " " });
 
-des.level_flags("mazelevel", "noteleport", "premapped", "solidify", "noflip");
+des.level_flags("mazelevel", "noteleport", "premapped", "sokoban", "solidify", "noflip");
 
 des.map([[
   --------          
@@ -46,6 +46,8 @@ des.object("boulder",06,09)
 des.object("boulder",05,10)
 des.object("boulder",05,11)
 
+-- prevent monster generation over the (filled) holes
+des.exclusion({ type = "monster-generation", region = { 06,11, 18,11 } });
 -- Traps
 des.trap("hole",07,11)
 des.trap("hole",08,11)

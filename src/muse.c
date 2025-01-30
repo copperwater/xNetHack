@@ -1,4 +1,4 @@
-/* NetHack 3.7	muse.c	$NHDT-Date: 1654972707 2022/06/11 18:38:27 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.164 $ */
+/* NetHack 3.7	muse.c	$NHDT-Date: 1737392015 2025/01/20 08:53:35 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.234 $ */
 /*      Copyright (C) 1990 by Ken Arromdee                         */
 /* NetHack may be freely redistributed.  See license for details.  */
 
@@ -14,41 +14,47 @@
  * are confused don't know not to read scrolls, etc....
  */
 
-static int precheck(struct monst *, struct obj *);
-static void mzapwand(struct monst *, struct obj *, boolean);
-static void mplayhorn(struct monst *, struct obj *, boolean);
-static void mreadmsg(struct monst *, struct obj *);
-static void mquaffmsg(struct monst *, struct obj *);
-static boolean m_use_healing(struct monst *);
-static boolean m_sees_sleepy_soldier(struct monst *);
-static boolean linedup_chk_corpse(coordxy, coordxy);
-static void m_use_undead_turning(struct monst *, struct obj *);
-static boolean hero_behind_chokepoint(struct monst *);
-static boolean mon_has_friends(struct monst *);
-static int mbhitm(struct monst *, struct obj *);
-static void mbhit(struct monst *, int, int (*)(MONST_P, OBJ_P),
+staticfn int precheck(struct monst *, struct obj *);
+staticfn void mzapwand(struct monst *, struct obj *, boolean) NONNULLPTRS;
+staticfn void mplayhorn(struct monst *, struct obj *, boolean) NONNULLPTRS;
+staticfn void mreadmsg(struct monst *, struct obj *) NONNULLPTRS;
+staticfn void mquaffmsg(struct monst *, struct obj *) NONNULLPTRS;
+staticfn boolean m_use_healing(struct monst *);
+staticfn boolean m_sees_sleepy_soldier(struct monst *);
+staticfn void m_tele(struct monst *, boolean, boolean, int);
+staticfn boolean m_next2m(struct monst *);
+staticfn void reveal_trap(struct trap *, boolean);
+staticfn int mon_escape(struct monst *, boolean);
+staticfn boolean linedup_chk_corpse(coordxy, coordxy);
+staticfn void m_use_undead_turning(struct monst *, struct obj *);
+staticfn boolean hero_behind_chokepoint(struct monst *);
+staticfn boolean mon_has_friends(struct monst *);
+staticfn int mbhitm(struct monst *, struct obj *);
+staticfn boolean fhito_loc(struct obj *obj, coordxy x, coordxy y,
+                           int (*fhito)(OBJ_P, OBJ_P));
+staticfn void mbhit(struct monst *, int, int (*)(MONST_P, OBJ_P),
                   int (*)(OBJ_P, OBJ_P), struct obj *);
-static struct permonst *muse_newcham_mon(struct monst *);
-static int mloot_container(struct monst *mon, struct obj *, boolean);
-static void you_aggravate(struct monst *);
+staticfn struct permonst *muse_newcham_mon(struct monst *);
+staticfn int mloot_container(struct monst *mon, struct obj *, boolean);
+staticfn void you_aggravate(struct monst *);
 #if 0
-static boolean necrophiliac(struct obj *, boolean);
+staticfn boolean necrophiliac(struct obj *, boolean);
 #endif
-static void mon_consume_unstone(struct monst *, struct obj *, boolean,
+staticfn void mon_consume_unstone(struct monst *, struct obj *, boolean,
                                 boolean);
-static boolean cures_stoning(struct monst *, struct obj *, boolean);
-static boolean mcould_eat_tin(struct monst *);
-static boolean muse_unslime(struct monst *, struct obj *, struct trap *,
+staticfn boolean cures_stoning(struct monst *, struct obj *, boolean);
+staticfn boolean mcould_eat_tin(struct monst *);
+staticfn boolean muse_unslime(struct monst *, struct obj *, struct trap *,
                             boolean);
-static int cures_sliming(struct monst *, struct obj *);
-static boolean green_mon(struct monst *);
-static boolean wont_leave_level(struct monst *);
+staticfn int cures_sliming(struct monst *, struct obj *);
+staticfn boolean green_mon(struct monst *);
+staticfn boolean wont_leave_level(struct monst *);
 
 /* Any preliminary checks which may result in the monster being unable to use
  * the item.  Returns 0 if nothing happened, 2 if the monster can't do
  * anything (i.e. it teleported) and 1 if it's dead.
  */
-static int
+staticfn int
 precheck(struct monst *mon, struct obj *obj)
 {
     boolean vis;
@@ -63,8 +69,8 @@ precheck(struct monst *mon, struct obj *obj)
         struct monst *mtmp;
 
         if (objdescr_is(obj, "milky")) {
-            if (!(gm.mvitals[PM_GHOST].mvflags & G_GONE)
-                && !rn2(POTION_OCCUPANT_CHANCE(gm.mvitals[PM_GHOST].born))) {
+            if (!(svm.mvitals[PM_GHOST].mvflags & G_GONE)
+                && !rn2(POTION_OCCUPANT_CHANCE(svm.mvitals[PM_GHOST].born))) {
                 if (!enexto(&cc, mon->mx, mon->my, &mons[PM_GHOST]))
                     return 0;
                 mquaffmsg(mon, obj);
@@ -80,7 +86,8 @@ precheck(struct monst *mon, struct obj *obj)
                               mon_nam(mon),
                               Hallucination ? rndmonnam(NULL)
                                             : (const char *) "ghost");
-                        pline("%s is frightened to death, and unable to move.",
+                        pline("%s is frightened to death,"
+                              " and unable to move.",
                               Monnam(mon));
                     }
                     paralyze_monst(mon, 3);
@@ -89,8 +96,8 @@ precheck(struct monst *mon, struct obj *obj)
             }
         }
         if (objdescr_is(obj, "smoky")
-            && !(gm.mvitals[PM_DJINNI].mvflags & G_GONE)
-            && !rn2(POTION_OCCUPANT_CHANCE(gm.mvitals[PM_DJINNI].born))) {
+            && !(svm.mvitals[PM_DJINNI].mvflags & G_GONE)
+            && !rn2(POTION_OCCUPANT_CHANCE(svm.mvitals[PM_DJINNI].born))) {
             if (!enexto(&cc, mon->mx, mon->my, &mons[PM_DJINNI]))
                 return 0;
             mquaffmsg(mon, obj);
@@ -101,7 +108,7 @@ precheck(struct monst *mon, struct obj *obj)
                     pline1(empty);
             } else {
                 if (vis)
-                    pline("In a cloud of smoke, %s emerges!", a_monnam(mtmp));
+                    pline_mon(mtmp, "In a cloud of smoke, %s emerges!", a_monnam(mtmp));
                 pline("%s speaks.", vis ? Monnam(mtmp) : Something);
                 /* I suspect few players will be upset that monsters */
                 /* can't wish for wands of death here.... */
@@ -127,7 +134,7 @@ precheck(struct monst *mon, struct obj *obj)
         /* 3.6.1: no Deaf filter; 'if' message doesn't warrant it, 'else'
            message doesn't need it since You_hear() has one of its own */
         if (vis) {
-            pline("%s zaps %s, which suddenly explodes!", Monnam(mon),
+            pline_mon(mon, "%s zaps %s, which suddenly explodes!", Monnam(mon),
                   an(xname(obj)));
         } else {
             /* same near/far threshold as mzapwand() */
@@ -153,7 +160,7 @@ precheck(struct monst *mon, struct obj *obj)
 
 /* when a monster zaps a wand give a message, deduct a charge, and if it
    isn't directly seen, remove hero's memory of the number of charges */
-static void
+staticfn void
 mzapwand(
     struct monst *mtmp,
     struct obj *otmp,
@@ -176,14 +183,14 @@ mzapwand(
               monverbself(mtmp, Monnam(mtmp), "zap", (char *) 0),
               doname(otmp));
     } else {
-        pline("%s zaps %s!", Monnam(mtmp), an(xname(otmp)));
+        pline_mon(mtmp, "%s zaps %s!", Monnam(mtmp), an(xname(otmp)));
         stop_occupation();
     }
     otmp->spe -= 1;
 }
 
 /* similar to mzapwand() but for magical horns (only instrument mons play) */
-static void
+staticfn void
 mplayhorn(
     struct monst *mtmp,
     struct obj *otmp,
@@ -226,11 +233,12 @@ mplayhorn(
 
 /* see or hear a monster reading a scroll;
    when scroll hasn't been seen, its label is revealed unless hero is deaf */
-static void
+staticfn void
 mreadmsg(struct monst *mtmp, struct obj *otmp)
 {
     char onambuf[BUFSZ];
-    boolean vismon = canseemon(mtmp);
+    boolean vismon = canseemon(mtmp),
+            tpindicator = (!vismon && sensemon(mtmp));
 
     if (!vismon && Deaf)
         return; /* no feedback */
@@ -240,7 +248,7 @@ mreadmsg(struct monst *mtmp, struct obj *otmp)
 
     if (vismon) {
         /* directly see the monster reading the scroll */
-        pline("%s reads %s!", Monnam(mtmp), onambuf);
+        pline_mon(mtmp, "%s reads %s!", Monnam(mtmp), onambuf);
     } else { /* !Deaf, otherwise we wouldn't reach here */
         char blindbuf[BUFSZ];
         boolean similar = same_race(gy.youmonst.data, mtmp->data),
@@ -256,11 +264,15 @@ mreadmsg(struct monst *mtmp, struct obj *otmp)
         int mflags = (SUPPRESS_INVISIBLE | SUPPRESS_SADDLE
                       | (recognize ? SUPPRESS_IT : AUGMENT_IT));
 
-        /* monster can't be seen; hero might be blind or monster might
-           be at a spot that isn't in view or might be invisible; remember
-           it if the spot is within line of sight and relatively close */
-        if (couldsee(mtmp->mx, mtmp->my) && mdistu(mtmp) <= 10 * 10)
+        if (sensemon(mtmp)) {
+            tpindicator = TRUE;
+        } else if (couldsee(mtmp->mx, mtmp->my) && mdistu(mtmp) <= 10 * 10) {
+            /* monster can't be seen or sensed; hero might be blind or monster
+               might be at a spot that isn't in view or might be invisible;
+               remember it if the spot is within line of sight and relatively
+               close */
             map_invisible(mtmp->mx, mtmp->my);
+        }
 
         Snprintf(blindbuf, sizeof blindbuf, "reading %s", onambuf);
         strsubst(blindbuf, "reading a scroll labeled",
@@ -268,18 +280,20 @@ mreadmsg(struct monst *mtmp, struct obj *otmp)
         You_hear("%s %s.",
                  x_monnam(mtmp, ARTICLE_A, (char *) 0, mflags, FALSE),
                  blindbuf);
+        if (tpindicator)
+            flash_mon(mtmp);
     }
     if (mtmp->mconf) /* (note: won't get if not seen and hero can't hear) */
         pline("Being confused, %s mispronounces the magic words...",
               vismon ? mon_nam(mtmp) : mhe(mtmp));
 }
 
-static void
+staticfn void
 mquaffmsg(struct monst *mtmp, struct obj *otmp)
 {
     if (canseemon(mtmp)) {
         otmp->dknown = 1;
-        pline("%s drinks %s!", Monnam(mtmp), singular(otmp, doname));
+        pline_mon(mtmp, "%s drinks %s!", Monnam(mtmp), singular(otmp, doname));
     } else if (!Deaf) {
         Soundeffect(se_mon_chugging_potion, 25);
         You_hear(Hallucination ? "a steam locomotive passing by."
@@ -321,7 +335,7 @@ mquaffmsg(struct monst *mtmp, struct obj *otmp)
  * that if you polymorph into one you teleport at will.
  */
 
-static boolean
+staticfn boolean
 m_use_healing(struct monst *mtmp)
 {
     struct obj *obj;
@@ -345,7 +359,7 @@ m_use_healing(struct monst *mtmp)
 }
 
 /* return TRUE if monster mtmp can see at least one sleeping soldier */
-static boolean
+staticfn boolean
 m_sees_sleepy_soldier(struct monst *mtmp)
 {
     coordxy x = mtmp->mx, y = mtmp->my;
@@ -363,6 +377,61 @@ m_sees_sleepy_soldier(struct monst *mtmp)
             if ((mon = m_at(xx, yy)) != 0 && is_mercenary(mon->data)
                 && mon->data != &mons[PM_GUARD]
                 && helpless(mon))
+                return TRUE;
+        }
+    return FALSE;
+}
+
+staticfn void
+m_tele(
+    struct monst *mtmp, /* monst that might be teleported */
+    boolean vismon,     /* can see it */
+    boolean oseen,      /* have seen the object that triggered this */
+    int how)            /* type of that object */
+{
+    if (tele_restrict(mtmp)) { /* mysterious force... */
+        if (vismon && how)     /* mentions 'teleport' */
+            makeknown(how);
+        /* monster learns that teleportation isn't useful here */
+        if (noteleport_level(mtmp))
+            mon_learns_traps(mtmp, TELEP_TRAP);
+    } else if ((mon_has_amulet(mtmp) || On_W_tower_level(&u.uz)) && !rn2(3)) {
+        if (vismon)
+            pline_mon(mtmp, "%s seems disoriented for a moment.", Monnam(mtmp));
+    } else {
+        /* teleport monster 'mtmp' */
+        if (how) {
+            /* teleporation has been triggered by an object */
+            if (oseen)
+                makeknown(how);
+            (void) rloc(mtmp, RLOC_MSG);
+        } else {
+            /* monster is voluntarily entering a teleporation trap; use the
+               trap instead of rloc() in case it sends 'victim' to a vault */
+            mtmp->mx = gt.trapx, mtmp->my = gt.trapy;
+            (void) mintrap(mtmp, FORCETRAP);
+        }
+    }
+}
+
+/* return TRUE if monster mtmp has another monster next to it.
+ * Called from find_defensive() where it is limited to Is_knox()
+ * only, otherwise you could trap two monsters next to each other
+ * in a boulder fort, and they would be happy to stay in there. */
+staticfn boolean
+m_next2m(struct monst *mtmp)
+{
+    coordxy x, y;
+    struct monst *m2;
+
+    if (DEADMONSTER(mtmp) || mon_offmap(mtmp))
+        return FALSE;
+
+    for (x = mtmp->mx - 1; x <= mtmp->mx + 1; x++)
+        for (y = mtmp->my - 1; y <= mtmp->my + 1; y++) {
+            if (!isok(x,y))
+                continue;
+            if ((m2 = m_at(x, y)) && m2 != mtmp)
                 return TRUE;
         }
     return FALSE;
@@ -387,6 +456,9 @@ find_defensive(struct monst *mtmp, boolean tryescape)
     if (is_animal(mtmp->data) || mindless(mtmp->data))
         return FALSE;
     if (!tryescape && dist2(x, y, mtmp->mux, mtmp->muy) > 25)
+        return FALSE;
+    if (tryescape && Is_knox(&u.uz)
+        && !m_next2u(mtmp) && m_next2m(mtmp))
         return FALSE;
     if (u.uswallow && stuck)
         return FALSE;
@@ -540,7 +612,7 @@ find_defensive(struct monst *mtmp, boolean tryescape)
                or some other monster is there */
             if (u_at(xx, yy)
                 || (xx != x && yy != y && !diag_ok)
-                || (gl.level.monsters[xx][yy] && !(xx == x && yy == y)))
+                || (svl.level.monsters[xx][yy] && !(xx == x && yy == y)))
                 continue;
             /* skip if there's no trap or can't/won't move onto trap */
             if ((t = t_at(xx, yy)) == 0
@@ -603,8 +675,7 @@ find_defensive(struct monst *mtmp, boolean tryescape)
             && !(levl[x][y].wall_info & W_NONDIGGABLE)
             && !(Is_botlevel(&u.uz) || In_endgame(&u.uz))
             && !(is_ice(x, y) || is_pool(x, y) || is_lava(x, y))
-            && !(mtmp->data == &mons[PM_VLAD_THE_IMPALER]
-                 && In_V_tower(&u.uz))) {
+            && !(is_Vlad(mtmp) && In_V_tower(&u.uz))) {
             gm.m.defensive = obj;
             gm.m.has_defense = MUSE_WAN_DIGGING;
         }
@@ -701,6 +772,49 @@ find_defensive(struct monst *mtmp, boolean tryescape)
 #undef nomore
 }
 
+/* when a monster deliberately enters a trap, make sure the spot becomes
+   accessible (trap doors and teleporters inside niches are located at
+   secret corridor locations; convert such into normal corridor even if
+   hero doesn't see it happen) */
+staticfn void
+reveal_trap(struct trap *t, boolean seeit)
+{
+    struct rm *lev = &levl[t->tx][t->ty];
+
+    if (lev->typ == SCORR) {
+        lev->typ = CORR, lev->flags = 0; /* set_levltyp(,,CORR) */
+        unblock_point(t->tx, t->ty);
+    }
+    if (seeit)
+        seetrap(t);
+}
+
+/* Monsters without the Amulet escape the dungeon and
+ * are gone for good when they leave up the up stairs.
+ * A monster with the Amulet would leave it behind
+ * (mongone -> mdrop_special_objs) but we force any
+ * monster who manages to acquire it or the invocation
+ * tools to stick around instead of letting it escape.
+ * Don't let the Wizard escape even when not carrying
+ * anything of interest unless there are more than 1
+ * of him.
+ */
+staticfn int
+mon_escape(struct monst *mtmp, boolean vismon)
+{
+    if (mon_has_special(mtmp)
+        || (mtmp->iswiz && svc.context.no_of_wizards < 2))
+        return 0;
+    if (vismon)
+        pline_mon(mtmp, "%s escapes the dungeon!", Monnam(mtmp));
+    mongone(mtmp);
+    if (is_archfiend(mtmp->data)) {
+	struct fiend_info *fiend = lookup_fiend(monsndx(mtmp->data));
+	fiend->escaped = TRUE;
+    }
+    return 2;
+}
+
 /* Perform a defensive action for a monster.  Must be called immediately
  * after find_defensive().  Return values are 0: did something, 1: died,
  * 2: did something and can't attack again (i.e. teleported).
@@ -708,10 +822,11 @@ find_defensive(struct monst *mtmp, boolean tryescape)
 int
 use_defensive(struct monst *mtmp)
 {
-    int i, fleetim, how = 0;
+    static const char MissingDefensiveItem[] = "use_defensive: no %s";
+    int i, fleetim;
     struct obj *otmp = gm.m.defensive;
     boolean vis, vismon, oseen;
-    const char *Mnam;
+    struct trap *t;
     stairway *stway;
 
     if ((i = precheck(mtmp, otmp)) != 0)
@@ -730,9 +845,11 @@ use_defensive(struct monst *mtmp)
 
     switch (gm.m.has_defense) {
     case MUSE_UNICORN_HORN:
+        if (!otmp)
+            panic(MissingDefensiveItem, "unicorn horn");
         if (vismon) {
             if (otmp)
-                pline("%s uses a unicorn horn!", Monnam(mtmp));
+                pline_mon(mtmp, "%s uses a unicorn horn!", Monnam(mtmp));
             else
                 pline_The("tip of %s's horn glows!", mon_nam(mtmp));
         }
@@ -741,13 +858,15 @@ use_defensive(struct monst *mtmp)
         } else if (mtmp->mconf || mtmp->mstun) {
             mtmp->mconf = mtmp->mstun = 0;
             if (vismon)
-                pline("%s seems steadier now.", Monnam(mtmp));
+                pline_mon(mtmp, "%s seems steadier now.", Monnam(mtmp));
         } else
             impossible("No need for unicorn horn?");
         return 2;
     case MUSE_BUGLE:
+        if (!otmp)
+            panic(MissingDefensiveItem, "bugle");
         if (vismon) {
-            pline("%s plays %s!", Monnam(mtmp), doname(otmp));
+            pline_mon(mtmp, "%s plays %s!", Monnam(mtmp), doname(otmp));
         } else if (!Deaf) {
             Soundeffect(se_bugle_playing_reveille, 100);
             You_hear("a bugle playing reveille!");
@@ -755,30 +874,17 @@ use_defensive(struct monst *mtmp)
         awaken_soldiers(mtmp);
         return 2;
     case MUSE_WAN_TELEPORTATION_SELF:
+        if (!otmp)
+            panic(MissingDefensiveItem, "wand of teleportation");
         if ((mtmp->isshk && inhishop(mtmp)) || mtmp->isgd || mtmp->ispriest)
             return 2;
         m_flee(mtmp);
         mzapwand(mtmp, otmp, TRUE);
-        how = WAN_TELEPORTATION;
- mon_tele:
-        if (tele_restrict(mtmp)) { /* mysterious force... */
-            if (vismon && how)     /* mentions 'teleport' */
-                makeknown(how);
-            /* monster learns that teleportation isn't useful here */
-            if (noteleport_level(mtmp))
-                mon_learns_traps(mtmp, TELEP_TRAP);
-            return 2;
-        }
-        if (mon_has_amulet(mtmp) || On_W_tower_level(&u.uz)) {
-            if (vismon)
-                pline("%s seems disoriented for a moment.", Monnam(mtmp));
-            return 2;
-        }
-        if (oseen && how)
-            makeknown(how);
-        (void) rloc(mtmp, RLOC_MSG);
+        m_tele(mtmp, vismon, oseen, WAN_TELEPORTATION);
         return 2;
     case MUSE_WAN_TELEPORTATION:
+        if (!otmp)
+            panic(MissingDefensiveItem, "wand of teleportation");
         gz.zap_oseen = oseen;
         mzapwand(mtmp, otmp, FALSE);
         gm.m_using = TRUE;
@@ -789,42 +895,55 @@ use_defensive(struct monst *mtmp)
         gm.m_using = FALSE;
         return 2;
     case MUSE_SCR_TELEPORTATION: {
-        int obj_is_cursed = otmp->cursed;
+        int obj_is_cursed;
 
+        if (!otmp)
+            panic(MissingDefensiveItem, "scroll of teleportation");
+        obj_is_cursed = otmp->cursed;
         if (mtmp->isshk || mtmp->isgd || mtmp->ispriest)
             return 2;
         m_flee(mtmp);
-        mreadmsg(mtmp, otmp);
-        m_useup(mtmp, otmp); /* otmp might be free'ed */
-        how = SCR_TELEPORTATION;
+        /* we want to be able to access otmp after the teleport but it
+           might get destroyed if still in mtmp's inventory (maybe mtmp
+           lands in lava or on a fire trap) so take it out in advance */
+        if (otmp->quan > 1L)
+            otmp = splitobj(otmp, 1L);
+        extract_from_minvent(mtmp, otmp, FALSE, FALSE);
+        /* 'last_msg' will be changed to PLNMSG_UNKNOWN if any messages
+           are issued by mreadmsg(), 'if (vismon) pline()', or m_tele() */
+        iflags.last_msg = PLNMSG_enum;
+        mreadmsg(mtmp, otmp); /* sets otmp->dknown if !Blind or !Deaf */
         if (obj_is_cursed || mtmp->mconf) {
             int nlev;
             d_level flev;
 
+            nlev = random_teleport_level();
             if (mon_has_amulet(mtmp) || In_endgame(&u.uz)) {
                 if (vismon)
-                    pline("%s seems very disoriented for a moment.",
+                    pline_mon(mtmp, "%s seems very disoriented for a moment.",
                           Monnam(mtmp));
-                return 2;
-            }
-            nlev = random_teleport_level();
-            if (nlev == depth(&u.uz)) {
+            } else if (nlev == depth(&u.uz)) {
                 if (vismon)
-                    pline("%s shudders for a moment.", Monnam(mtmp));
-                return 2;
+                    pline_mon(mtmp, "%s shudders for a moment.", Monnam(mtmp));
+            } else {
+                get_level(&flev, nlev);
+                migrate_to_level(mtmp, ledger_no(&flev), MIGR_RANDOM,
+                                 (coord *) 0);
             }
-            get_level(&flev, nlev);
-            migrate_to_level(mtmp, ledger_no(&flev), MIGR_RANDOM,
-                             (coord *) 0);
-            if (oseen)
-                makeknown(SCR_TELEPORTATION);
-        } else
-            goto mon_tele;
+        } else {
+            m_tele(mtmp, vismon, oseen, SCR_TELEPORTATION);
+        }
+        /* m_tele() handles makeknown(); trycall() will be a no-op when
+           otmp->otyp is already discovered */
+        if (otmp->dknown && iflags.last_msg != PLNMSG_enum)
+            trycall(otmp);
+        /* already removed from mtmp->minvent so not 'm_useup(mtmp, otmp)' */
+        obfree(otmp, (struct obj *) 0);
         return 2;
     }
-    case MUSE_WAN_DIGGING: {
-        struct trap *ttmp;
-
+    case MUSE_WAN_DIGGING:
+        if (!otmp)
+            panic(MissingDefensiveItem, "wand of digging");
         m_flee(mtmp);
         mzapwand(mtmp, otmp, FALSE);
         if (oseen)
@@ -840,7 +959,7 @@ use_defensive(struct monst *mtmp)
             /* can't dig further if there's already a pit (or other trap)
                here, or if pit creation fails for some reason */
             if (t_at(mtmp->mx, mtmp->my)
-                || !(ttmp = maketrap(mtmp->mx, mtmp->my, PIT))) {
+                || !(t = maketrap(mtmp->mx, mtmp->my, PIT))) {
                 if (vismon) {
                     pline_The("%s here is too hard to dig in.",
                               surface(mtmp->mx, mtmp->my));
@@ -849,32 +968,37 @@ use_defensive(struct monst *mtmp)
             }
             /* pit creation succeeded */
             if (vis) {
-                seetrap(ttmp);
-                pline("%s has made a pit in the %s.", Monnam(mtmp),
+                seetrap(t);
+                pline_mon(mtmp, "%s has made a pit in the %s.", Monnam(mtmp),
                       surface(mtmp->mx, mtmp->my));
             }
+            fill_pit(mtmp->mx, mtmp->my);
+            recalc_block_point(mtmp->mx, mtmp->my);
             return (mintrap(mtmp, FORCEBUNGLE) == Trap_Killed_Mon) ? 1 : 2;
         }
-        ttmp = maketrap(mtmp->mx, mtmp->my, HOLE);
-        if (!ttmp)
+        t = maketrap(mtmp->mx, mtmp->my, HOLE);
+        if (!t)
             return 2;
-        seetrap(ttmp);
+        recalc_block_point(mtmp->mx, mtmp->my);
+        seetrap(t);
         if (vis) {
-            pline("%s has made a hole in the %s.", Monnam(mtmp),
+            pline_mon(mtmp, "%s has made a hole in the %s.", Monnam(mtmp),
                   surface(mtmp->mx, mtmp->my));
-            pline("%s %s through...", Monnam(mtmp),
+            pline_mon(mtmp, "%s %s through...", Monnam(mtmp),
                   is_flyer(mtmp->data) ? "dives" : "falls");
         } else if (!Deaf) {
             Soundeffect(se_crash_through_floor, 100);
             You_hear("%s crash through the %s.", something,
                      surface(mtmp->mx, mtmp->my));
         }
+        fill_pit(mtmp->mx, mtmp->my);
         /* we made sure that there is a level for mtmp to go to */
         migrate_to_level(mtmp, ledger_no(&u.uz) + 1, MIGR_RANDOM,
                          (coord *) 0);
         return 2;
-    }
     case MUSE_WAN_UNDEAD_TURNING:
+        if (!otmp)
+            panic(MissingDefensiveItem, "wand of undead turning");
         gz.zap_oseen = oseen;
         mzapwand(mtmp, otmp, FALSE);
         gm.m_using = TRUE;
@@ -888,6 +1012,8 @@ use_defensive(struct monst *mtmp)
         struct permonst *pm = !is_pool(mtmp->mx, mtmp->my) ? 0
                             : &mons[u.uinwater ? PM_GIANT_EEL : PM_CROCODILE];
 
+        if (!otmp)
+            panic(MissingDefensiveItem, "wand of create monster");
         if (!enexto(&cc, mtmp->mx, mtmp->my, pm))
             return 0;
         mzapwand(mtmp, otmp, FALSE);
@@ -897,6 +1023,8 @@ use_defensive(struct monst *mtmp)
         return 2;
     }
     case MUSE_SCR_CREATE_MONSTER:
+        if (!otmp)
+            panic(MissingDefensiveItem, "scroll of create monster");
         /* FIXME: This logic should really be merged with the identical formula
          * in read.c. */
         mreadmsg(mtmp, otmp);
@@ -922,19 +1050,14 @@ use_defensive(struct monst *mtmp)
         if (Is_botlevel(&u.uz))
             return 0;
         m_flee(mtmp);
+        t = t_at(gt.trapx, gt.trapy);
         if (vis) {
-            struct trap *t = t_at(gt.trapx, gt.trapy);
-
-            Mnam = Monnam(mtmp);
-            pline("%s %s into a %s!", Mnam,
+            pline_mon(mtmp, "%s %s into a %s!", Monnam(mtmp),
                   vtense(fakename[0], locomotion(mtmp->data, "jump")),
-                  (t->ttyp == TRAPDOOR) ? "trap door" : "hole");
-            if (levl[gt.trapx][gt.trapy].typ == SCORR) {
-                levl[gt.trapx][gt.trapy].typ = CORR;
-                unblock_point(gt.trapx, gt.trapy);
-            }
-            seetrap(t_at(gt.trapx, gt.trapy));
+                  trapname(t->ttyp, FALSE));
         }
+        /* if trap was in a concealed niche, it's no longer concealed */
+        reveal_trap(t, vis);
 
         /*  don't use rloc_to() because worm tails must "move" */
         remove_monster(mtmp->mx, mtmp->my);
@@ -953,7 +1076,8 @@ use_defensive(struct monst *mtmp)
         if (!stway)
             return 0;
         if (ledger_no(&u.uz) == 1)
-            goto escape; /* impossible; level 1 upstairs are SSTAIRS */
+            /* impossible; level 1 upstairs are SSTAIRS */
+            return mon_escape(mtmp, vismon);
         if (vismon)
             pline("%s escapes upstairs!", Monnam(mtmp));
         migrate_to_level(mtmp, ledger_no(&(stway->tolev)), MIGR_STAIRS_DOWN,
@@ -965,7 +1089,7 @@ use_defensive(struct monst *mtmp)
         if (!stway)
             return 0;
         if (vismon)
-            pline("%s escapes downstairs!", Monnam(mtmp));
+            pline_mon(mtmp, "%s escapes downstairs!", Monnam(mtmp));
         migrate_to_level(mtmp, ledger_no(&(stway->tolev)), MIGR_STAIRS_UP,
                          (coord *) 0);
         return 2;
@@ -975,7 +1099,7 @@ use_defensive(struct monst *mtmp)
         if (!stway)
             return 0;
         if (vismon)
-            pline("%s escapes up the ladder!", Monnam(mtmp));
+            pline_mon(mtmp, "%s escapes up the ladder!", Monnam(mtmp));
         migrate_to_level(mtmp, ledger_no(&(stway->tolev)), MIGR_LADDER_DOWN,
                          (coord *) 0);
         return 2;
@@ -985,7 +1109,7 @@ use_defensive(struct monst *mtmp)
         if (!stway)
             return 0;
         if (vismon)
-            pline("%s escapes down the ladder!", Monnam(mtmp));
+            pline_mon(mtmp, "%s escapes down the ladder!", Monnam(mtmp));
         migrate_to_level(mtmp, ledger_no(&(stway->tolev)), MIGR_LADDER_UP,
                          (coord *) 0);
         return 2;
@@ -995,31 +1119,10 @@ use_defensive(struct monst *mtmp)
         if (!stway)
             return 0;
         if (ledger_no(&u.uz) == 1) {
- escape:
-            /* Monsters without the Amulet escape the dungeon and
-             * are gone for good when they leave up the up stairs.
-             * A monster with the Amulet would leave it behind
-             * (mongone -> mdrop_special_objs) but we force any
-             * monster who manages to acquire it or the invocation
-             * tools to stick around instead of letting it escape.
-             * Don't let the Wizard escape even when not carrying
-             * anything of interest unless there are more than 1
-             * of him.
-             */
-            if (mon_has_special(mtmp)
-                || (mtmp->iswiz && gc.context.no_of_wizards < 2))
-                return 0;
-            if (vismon)
-                pline("%s escapes the dungeon!", Monnam(mtmp));
-            mongone(mtmp);
-            if (is_archfiend(mtmp->data)) {
-                struct fiend_info *fiend = lookup_fiend(monsndx(mtmp->data));
-                fiend->escaped = TRUE;
-            }
-            return 2;
+            return mon_escape(mtmp, vismon);
         }
         if (vismon)
-            pline("%s escapes %sstairs!", Monnam(mtmp),
+            pline_mon(mtmp, "%s escapes %sstairs!", Monnam(mtmp),
                   stway->up ? "up" : "down");
         /* going from the Valley to Castle (Stronghold) has no sstairs
            to target, but having gs.sstairs.<sx,sy> == <0,0> will work the
@@ -1030,63 +1133,71 @@ use_defensive(struct monst *mtmp)
         return 2;
     case MUSE_TELEPORT_TRAP:
         m_flee(mtmp);
+        t = t_at(gt.trapx, gt.trapy);
         if (vis) {
-            Mnam = Monnam(mtmp);
-            pline("%s %s onto a teleport trap!", Mnam,
-                  vtense(fakename[0], locomotion(mtmp->data, "jump")));
-            seetrap(t_at(gt.trapx, gt.trapy));
+            pline_mon(mtmp, "%s %s onto a %s!", Monnam(mtmp),
+                  vtense(fakename[0], locomotion(mtmp->data, "jump")),
+                  trapname(t->ttyp, FALSE));
         }
+        /* if trap was in a concealed niche, it's no longer concealed */
+        reveal_trap(t, vis);
         /*  don't use rloc_to() because worm tails must "move" */
         remove_monster(mtmp->mx, mtmp->my);
         newsym(mtmp->mx, mtmp->my); /* update old location */
         place_monster(mtmp, gt.trapx, gt.trapy);
         if (mtmp->wormno)
             worm_move(mtmp);
+        maybe_unhide_at(mtmp->mx, mtmp->my);
         newsym(gt.trapx, gt.trapy);
-
-        goto mon_tele;
+        /* 0: 'no object' rather than STRANGE_OBJECT; FALSE: obj not seen */
+        m_tele(mtmp, vismon, FALSE, 0);
+        return 2;
     case MUSE_POT_HEALING:
+        if (!otmp)
+            panic(MissingDefensiveItem, "potioh of healing");
         mquaffmsg(mtmp, otmp);
         i = d(6 + 2 * bcsign(otmp), 4);
-        mtmp->mhp += i;
-        if (mtmp->mhp > mtmp->mhpmax)
-            mtmp->mhp = ++mtmp->mhpmax;
+        healmon(mtmp, i, 1);
         if (!otmp->cursed && !mtmp->mcansee)
             mcureblindness(mtmp, vismon);
         if (vismon)
-            pline("%s looks better.", Monnam(mtmp));
+            pline_mon(mtmp, "%s looks better.", Monnam(mtmp));
         if (oseen)
             makeknown(POT_HEALING);
         m_useup(mtmp, otmp);
         return 2;
     case MUSE_POT_EXTRA_HEALING:
+        if (!otmp)
+            panic(MissingDefensiveItem, "potioh of extra healing");
         mquaffmsg(mtmp, otmp);
         i = d(6 + 2 * bcsign(otmp), 8);
-        mtmp->mhp += i;
-        if (mtmp->mhp > mtmp->mhpmax)
-            mtmp->mhp = (mtmp->mhpmax += (otmp->blessed ? 5 : 2));
+        healmon(mtmp, i, otmp->blessed ? 5 : 2);
         if (!mtmp->mcansee)
             mcureblindness(mtmp, vismon);
         if (vismon)
-            pline("%s looks much better.", Monnam(mtmp));
+            pline_mon(mtmp, "%s looks much better.", Monnam(mtmp));
         if (oseen)
             makeknown(POT_EXTRA_HEALING);
         m_useup(mtmp, otmp);
         return 2;
     case MUSE_POT_FULL_HEALING:
+        if (!otmp)
+            panic(MissingDefensiveItem, "potioh of full healing");
         mquaffmsg(mtmp, otmp);
         if (otmp->otyp == POT_SICKNESS)
             unbless(otmp); /* Pestilence */
-        mtmp->mhp = (mtmp->mhpmax += (otmp->blessed ? 8 : 4));
+        healmon(mtmp, mtmp->mhpmax, otmp->blessed ? 8 : 4);
         if (!mtmp->mcansee && otmp->otyp != POT_SICKNESS)
             mcureblindness(mtmp, vismon);
         if (vismon)
-            pline("%s looks completely healed.", Monnam(mtmp));
+            pline_mon(mtmp, "%s looks completely healed.", Monnam(mtmp));
         if (oseen)
             makeknown(otmp->otyp);
         m_useup(mtmp, otmp);
         return 2;
     case MUSE_LIZARD_CORPSE:
+        if (!otmp)
+            panic(MissingDefensiveItem, "lizard corpse");
         /* not actually called for its unstoning effect */
         mon_consume_unstone(mtmp, otmp, FALSE, FALSE);
         return 2;
@@ -1119,6 +1230,7 @@ rnd_defensive_item(struct monst *mtmp)
             goto try_again;
         if (!rn2(3))
             return WAN_TELEPORTATION;
+        FALLTHROUGH;
         /*FALLTHRU*/
     case 0:
     case 1:
@@ -1127,6 +1239,7 @@ rnd_defensive_item(struct monst *mtmp)
     case 10:
         if (!rn2(3))
             return WAN_CREATE_MONSTER;
+        FALLTHROUGH;
         /*FALLTHRU*/
     case 2:
         return SCR_CREATE_MONSTER;
@@ -1173,13 +1286,13 @@ rnd_defensive_item(struct monst *mtmp)
 /*#define MUSE_WAN_UNDEAD_TURNING 20*/ /* also a defensive item so don't
                                      * redefine; nonconsecutive value is ok */
 
-static boolean
+staticfn boolean
 linedup_chk_corpse(coordxy x, coordxy y)
 {
     return (sobj_at(CORPSE, x, y) != 0);
 }
 
-static void
+staticfn void
 m_use_undead_turning(struct monst *mtmp, struct obj *obj)
 {
     coordxy ax = u.ux + sgn(mtmp->mux - mtmp->mx) * 3,
@@ -1195,9 +1308,9 @@ m_use_undead_turning(struct monst *mtmp, struct obj *obj)
        we don't check whether hero is poly'd into an undead--the
        wand's turning effect is too weak to be a useful direct
        attack--only whether hero is carrying at least one corpse */
-    if (carrying(CORPSE)) {
+    if (carrying(CORPSE)
         /*
-         * Hero is carrying one or more corpses but isn't wielding
+         * If hero is carrying one or more corpses but isn't wielding
          * a cockatrice corpse (unless being hit by one won't do
          * the monster much harm); otherwise we'd be using this wand
          * as a defensive item with higher priority.
@@ -1213,19 +1326,17 @@ m_use_undead_turning(struct monst *mtmp, struct obj *obj)
          * dropped; player might not choose to spend a wand charge
          * on that when/if hero acquires this wand).
          */
-        gm.m.offensive = obj;
-        gm.m.has_offense = MUSE_WAN_UNDEAD_TURNING;
-    } else if (linedup_callback(ax, ay, bx, by, linedup_chk_corpse)) {
-        /* There's a corpse on the ground in a direct line from the
-         * monster to the hero, and up to 3 steps beyond.
-         */
+        || linedup_callback(ax, ay, bx, by, linedup_chk_corpse)
+        /* or there's a corpse on the ground in a direct line from the
+           monster to the hero, and up to 3 steps beyond. */
+        ) {
         gm.m.offensive = obj;
         gm.m.has_offense = MUSE_WAN_UNDEAD_TURNING;
     }
 }
 
 /* from monster's point of view, is hero behind a chokepoint? */
-static boolean
+staticfn boolean
 hero_behind_chokepoint(struct monst *mtmp)
 {
     coordxy dx = sgn(mtmp->mx - mtmp->mux);
@@ -1252,7 +1363,7 @@ hero_behind_chokepoint(struct monst *mtmp)
 }
 
 /* hostile monster has another hostile next to it */
-static boolean
+staticfn boolean
 mon_has_friends(struct monst *mtmp)
 {
     coordxy dx, dy;
@@ -1281,10 +1392,8 @@ mon_has_friends(struct monst *mtmp)
 boolean
 find_offensive(struct monst *mtmp)
 {
-    register struct obj *obj;
-    boolean reflection_skip = m_seenres(mtmp, M_SEEN_REFL) != 0
-        || monnear(mtmp, mtmp->mux, mtmp->muy);
-    struct obj *helmet = which_armor(mtmp, W_ARMH);
+    struct obj *obj, *mtmp_helmet;
+    boolean reflection_skip;
 
     gm.m.offensive = (struct obj *) 0;
     gm.m.has_offense = 0;
@@ -1304,6 +1413,9 @@ find_offensive(struct monst *mtmp)
         return FALSE;
 
 #define nomore(x)       if (gm.m.has_offense == x) continue;
+    reflection_skip = (m_seenres(mtmp, M_SEEN_REFL) != 0
+                       || monnear(mtmp, mtmp->mux, mtmp->muy));
+    mtmp_helmet = which_armor(mtmp, W_ARMH);
     /* this picks the last viable item rather than prioritizing choices */
     for (obj = mtmp->minvent; obj; obj = obj->nobj) {
         if (!reflection_skip) {
@@ -1377,7 +1489,7 @@ find_offensive(struct monst *mtmp)
             /* do try to move hero to a more vulnerable spot */
             && (onscary(u.ux, u.uy, mtmp)
                 || (hero_behind_chokepoint(mtmp) && mon_has_friends(mtmp))
-                || (stairway_at(u.ux, u.uy)))) {
+                || stairway_at(u.ux, u.uy))) {
             gm.m.offensive = obj;
             gm.m.has_offense = MUSE_WAN_TELEPORTATION;
         }
@@ -1438,7 +1550,7 @@ find_offensive(struct monst *mtmp)
          */
         nomore(MUSE_SCR_EARTH);
         if (obj->otyp == SCR_EARTH
-            && ((helmet && is_hard(helmet)) || mtmp->mconf
+            && (hard_helmet(mtmp_helmet) || mtmp->mconf
                 || amorphous(mtmp->data) || passes_walls(mtmp->data)
                 || noncorporeal(mtmp->data) || unsolid(mtmp->data)
                 || !rn2(10))
@@ -1450,7 +1562,8 @@ find_offensive(struct monst *mtmp)
         }
         nomore(MUSE_CAMERA);
         if (obj->otyp == EXPENSIVE_CAMERA
-            && (!Blind || hates_light(gy.youmonst.data))
+            && ((!Blind && !resists_blnd(&gy.youmonst))
+                || hates_light(gy.youmonst.data))
             && dist2(mtmp->mx, mtmp->my, mtmp->mux, mtmp->muy) <= 2
             && obj->spe > 0 && !rn2(6)) {
             gm.m.offensive = obj;
@@ -1462,6 +1575,12 @@ find_offensive(struct monst *mtmp)
             && dist2(mtmp->mx, mtmp->my, mtmp->mux, mtmp->muy) <= 2
             && mtmp->mcansee && haseyes(mtmp->data)
             && !m_seenres(mtmp, M_SEEN_FIRE)) {
+            /*
+             * TODO?
+             *  Could choose scroll if <mux,muy> (where attacker thinks
+             *  hero is located) is ice and attacker either isn't also
+             *  on ice or is able to fly/float/swim.
+             */
             gm.m.offensive = obj;
             gm.m.has_offense = MUSE_SCR_FIRE;
         }
@@ -1471,11 +1590,12 @@ find_offensive(struct monst *mtmp)
 #undef nomore
 }
 
-static int
+staticfn int
 mbhitm(struct monst *mtmp, struct obj *otmp)
 {
     int tmp;
-    boolean reveal_invis = FALSE, hits_you = (mtmp == &gy.youmonst);
+    boolean reveal_invis = FALSE, learnit = FALSE,
+            hits_you = (mtmp == &gy.youmonst);
 
     if (!hits_you && otmp->otyp != WAN_UNDEAD_TURNING) {
         wakeup(mtmp, FALSE, TRUE);
@@ -1485,34 +1605,42 @@ mbhitm(struct monst *mtmp, struct obj *otmp)
         reveal_invis = TRUE;
         if (hits_you) {
             if (Antimagic) {
+                monstseesu(M_SEEN_MAGR); /* monsters notice hero resisting */
                 shieldeff(u.ux, u.uy);
                 Soundeffect(se_boing, 40);
                 pline("Boing!");
+                learnit = TRUE;
             } else if (rnd(20) < 10 + u.uac) {
+                monstunseesu(M_SEEN_MAGR); /* mons see hero not resisting */
                 pline_The("wand hits you!");
                 tmp = d(2, 12);
                 if (Half_spell_damage)
                     tmp = (tmp + 1) / 2;
                 losehp(tmp, "wand", KILLED_BY_AN);
-            } else
+                learnit = TRUE;
+            } else {
                 pline_The("wand misses you.");
+            }
             stop_occupation();
             nomul(0);
         } else if (resists_magm(mtmp)) {
             shieldeff(mtmp->mx, mtmp->my);
             Soundeffect(se_boing, 40);
             pline("Boing!");
+            learnit = TRUE;
         } else if (rnd(20) < 10 + find_mac(mtmp)) {
             tmp = d(2, 12);
             hit("wand", mtmp, exclam(tmp));
             (void) resist(mtmp, otmp->oclass, tmp, TELL);
-            if (cansee(mtmp->mx, mtmp->my) && gz.zap_oseen)
-                makeknown(WAN_STRIKING);
+            learnit = TRUE;
         } else {
             miss("wand", mtmp);
-            if (cansee(mtmp->mx, mtmp->my) && gz.zap_oseen)
-                makeknown(WAN_STRIKING);
         }
+        /* need to see the wand being zapped and also the spot where the
+           target is hit; don't have to see the target itself though */
+        if (learnit && gz.zap_oseen && (hits_you
+                                        || cansee(mtmp->mx, mtmp->my)))
+            makeknown(WAN_STRIKING);
         break;
     case WAN_TELEPORTATION:
         if (hits_you) {
@@ -1523,7 +1651,7 @@ mbhitm(struct monst *mtmp, struct obj *otmp)
             /* for consistency with zap.c, don't identify */
             if (mtmp->ispriest && *in_rooms(mtmp->mx, mtmp->my, TEMPLE)) {
                 if (cansee(mtmp->mx, mtmp->my))
-                    pline("%s resists the magic!", Monnam(mtmp));
+                    pline_mon(mtmp, "%s resists the magic!", Monnam(mtmp));
             } else if (!tele_restrict(mtmp))
                 (void) rloc(mtmp, RLOC_MSG);
         }
@@ -1532,9 +1660,7 @@ mbhitm(struct monst *mtmp, struct obj *otmp)
     case SPE_CANCELLATION:
         (void) cancel_monst(mtmp, otmp, FALSE, TRUE, FALSE);
         break;
-    case WAN_UNDEAD_TURNING: {
-        boolean learnit = FALSE;
-
+    case WAN_UNDEAD_TURNING:
         if (hits_you) {
             unturn_you();
             learnit = gz.zap_oseen;
@@ -1548,7 +1674,7 @@ mbhitm(struct monst *mtmp, struct obj *otmp)
                 /* context.bypasses=True: if resist() happens to be fatal,
                    make_corpse() will set obj->bypass on the new corpse
                    so that mbhito() will skip it instead of reviving it */
-                gc.context.bypasses = TRUE; /* for make_corpse() */
+                svc.context.bypasses = TRUE; /* for make_corpse() */
                 (void) resist(mtmp, WAND_CLASS, rnd(8), NOTELL);
             }
             if (wake) {
@@ -1560,7 +1686,6 @@ mbhitm(struct monst *mtmp, struct obj *otmp)
         if (learnit)
             makeknown(WAN_UNDEAD_TURNING);
         break;
-    }
     default:
         break;
     }
@@ -1571,23 +1696,45 @@ mbhitm(struct monst *mtmp, struct obj *otmp)
     return 0;
 }
 
+/* hit all objects at x,y with fhito function */
+staticfn boolean
+fhito_loc(struct obj *obj,
+          coordxy tx, coordxy ty,
+          int (*fhito)(OBJ_P, OBJ_P))
+{
+    struct obj *otmp, *next_obj;
+    int hitanything = 0;
+
+    if (!fhito || !OBJ_AT(tx, ty))
+        return FALSE;
+
+    for (otmp = svl.level.objects[tx][ty]; otmp; otmp = next_obj) {
+        next_obj = otmp->nexthere;
+
+        if (otmp->where != OBJ_FLOOR || otmp->ox != tx || otmp->oy != ty)
+            continue;
+        hitanything += (*fhito)(otmp, obj);
+    }
+
+    return hitanything ? TRUE : FALSE;
+}
+
 /* A modified bhit() for monsters.  Based on bhit() in zap.c.  Unlike
  * buzz(), bhit() doesn't take into account the possibility of a monster
  * zapping you, so we need a special function for it.  (Unless someone wants
  * to merge the two functions...)
  */
-static void
+staticfn void
 mbhit(
-    struct monst *mon,  /* monster shooting the wand */
-    register int range, /* direction and range */
-    int (*fhitm)(MONST_P, OBJ_P),
-    int (*fhito)(OBJ_P, OBJ_P), /* fns called when mon/obj hit */
-    struct obj *obj)                     /* 2nd arg to fhitm/fhito */
+    struct monst *mon,            /* monster shooting the wand */
+    int range,                    /* direction and range */
+    int (*fhitm)(MONST_P, OBJ_P), /* must be non-Null */
+    int (*fhito)(OBJ_P, OBJ_P),   /* fns called when mon/obj hit */
+    struct obj *obj)              /* 2nd arg to fhitm/fhito */
 {
-    register struct monst *mtmp;
-    register struct obj *otmp;
-    register uchar typ;
-    int ddx, ddy;
+    struct monst *mtmp;
+    uchar ltyp;
+    int ddx, ddy, otyp = obj->otyp;
 
     gb.bhitpos.x = mon->mx;
     gb.bhitpos.y = mon->my;
@@ -1595,7 +1742,7 @@ mbhit(
     ddy = sgn(mon->muy - mon->my);
 
     while (range-- > 0) {
-        coordxy x, y;
+        coordxy x, y, dbx, dby;
 
         gb.bhitpos.x += ddx;
         gb.bhitpos.y += ddy;
@@ -1607,11 +1754,6 @@ mbhit(
             gb.bhitpos.y -= ddy;
             break;
         }
-        if (find_drawbridge(&x, &y))
-            switch (obj->otyp) {
-            case WAN_STRIKING:
-                destroy_drawbridge(x, y);
-            }
         if (u_at(gb.bhitpos.x, gb.bhitpos.y)) {
             (*fhitm)(&gy.youmonst, obj);
             range -= 3;
@@ -1621,23 +1763,21 @@ mbhit(
             (*fhitm)(mtmp, obj);
             range -= 3;
         }
-        /* modified by GAN to hit all objects */
-        if (fhito) {
-            int hitanything = 0;
-            register struct obj *next_obj;
-
-            for (otmp = gl.level.objects[gb.bhitpos.x][gb.bhitpos.y]; otmp;
-                 otmp = next_obj) {
-                /* Fix for polymorph bug, Tim Wright */
-                next_obj = otmp->nexthere;
-                hitanything += (*fhito)(otmp, obj);
-            }
-            if (hitanything)
-                range--;
-        }
-        typ = levl[gb.bhitpos.x][gb.bhitpos.y].typ;
-        if (IS_DOOR(typ) || typ == SDOOR) {
-            switch (obj->otyp) {
+        if (fhito_loc(obj, gb.bhitpos.x, gb.bhitpos.y, fhito))
+            range--;
+        ltyp = levl[gb.bhitpos.x][gb.bhitpos.y].typ;
+        dbx = x, dby = y;
+        if (otyp == WAN_STRIKING
+            /* if levl[x][y].typ is DRAWBRIDGE_UP then the zap is passing
+               over the moat in front of a closed drawbridge and doesn't
+               hit any part of the bridge's mechanism (yet; it might be
+               about to hit the closed portcullis on the next iteration) */
+            && ltyp != DRAWBRIDGE_UP && find_drawbridge(&dbx, &dby)) {
+            /* this might kill mon and destroy obj but they'll remain
+               accessible; (*fhitm)() and (*fhito)() use obj for zap type */
+            destroy_drawbridge(dbx, dby);
+        } else if (IS_DOOR(ltyp) || ltyp == SDOOR) {
+            switch (otyp) {
             /* note: monsters don't use opening or locking magic
                at present, but keep these as placeholders */
             case WAN_OPENING:
@@ -1645,7 +1785,7 @@ mbhit(
             case WAN_STRIKING:
                 if (doorlock(obj, mon, gb.bhitpos.x, gb.bhitpos.y)) {
                     if (gz.zap_oseen)
-                        makeknown(obj->otyp);
+                        makeknown(otyp);
                     /* if a shop door gets broken, add it to
                        the shk's fix list (no cost to player) */
                     if (doorstate(&levl[gb.bhitpos.x][gb.bhitpos.y]) == D_BROKEN
@@ -1655,8 +1795,8 @@ mbhit(
                 break;
             }
         }
-        if (!ZAP_POS(typ)
-            || (IS_DOOR(typ)
+        if (!ZAP_POS(ltyp)
+            || (IS_DOOR(ltyp)
                 && door_is_closed(&levl[gb.bhitpos.x][gb.bhitpos.y]))) {
             gb.bhitpos.x -= ddx;
             gb.bhitpos.y -= ddy;
@@ -1679,7 +1819,7 @@ use_offensive(struct monst *mtmp)
     /* offensive potions are not drunk, they're thrown */
     if (otmp->oclass != POTION_CLASS && (i = precheck(mtmp, otmp)) != 0)
         return i;
-    oseen = otmp && canseemon(mtmp);
+    oseen = canseemon(mtmp);
 
     /* total up the possible damage for just swinging */
     for (i = 0; i < NATTK; i++) {
@@ -1763,6 +1903,7 @@ use_offensive(struct monst *mtmp)
         mzapwand(mtmp, otmp, FALSE);
         gm.m_using = TRUE;
         mbhit(mtmp, rn1(8, 6), mbhitm, bhito, otmp);
+        /* note: 'otmp' might have been destroyed (drawbridge destruction) */
         gm.m_using = FALSE;
         return 2;
     case MUSE_SCR_EARTH: {
@@ -1798,7 +1939,7 @@ use_offensive(struct monst *mtmp)
             for (y = mmy - 1; y <= mmy + 1; y++) {
                 /* Is this a suitable spot? */
                 if (isok(x, y) && !closed_door(x, y)
-                    && !IS_ROCK(levl[x][y].typ) && !IS_AIR(levl[x][y].typ)
+                    && !IS_OBSTRUCTED(levl[x][y].typ) && !IS_AIR(levl[x][y].typ)
                     && (((x == mmx) && (y == mmy)) ? !is_blessed : !is_cursed)
                     && (x != u.ux || y != u.uy)) {
                     (void) drop_boulder_on_monster(x, y, confused, FALSE);
@@ -1816,12 +1957,12 @@ use_offensive(struct monst *mtmp)
         if (Hallucination) {
             SetVoice(mtmp, 0, 80, 0);
             verbalize("Say cheese!");
-        } else {
+        } else if (!Blind) {
             pline("%s takes a picture of you with %s!",
                   Monnam(mtmp), an(xname(otmp)));
         }
         gm.m_using = TRUE;
-        if (!Blind) {
+        if (!Blind && !resists_blnd(&gy.youmonst)) {
             You("are blinded by the flash of light!");
             make_blinded(BlindedTimeout + (long) rnd(1 + 50), FALSE);
         }
@@ -1845,7 +1986,7 @@ use_offensive(struct monst *mtmp)
             if (vis)
                 pline_The("scroll erupts in a tower of flame!");
             shieldeff(mtmp->mx, mtmp->my);
-            pline("%s is uninjured.", Monnam(mtmp));
+            pline_mon(mtmp, "%s is uninjured.", Monnam(mtmp));
             (void) destroy_mitem(mtmp, SCROLL_CLASS, AD_FIRE);
             (void) destroy_mitem(mtmp, SPBOOK_CLASS, AD_FIRE);
             (void) destroy_mitem(mtmp, POTION_CLASS, AD_FIRE);
@@ -1895,7 +2036,8 @@ use_offensive(struct monst *mtmp)
         struct obj *minvptr;
         if (cansee(mtmp->mx, mtmp->my)) {
             otmp->dknown = 1;
-            pline("%s hurls %s!", Monnam(mtmp), singular(otmp, doname));
+            pline_mon(mtmp, "%s hurls %s!",
+                      Monnam(mtmp), singular(otmp, doname));
         }
         if (isoil && !otmp->lamplit && (!mtmp->mconf || rn2(3))) {
             /* A monster throwing oil probably wants it to explode; assume they
@@ -1944,12 +2086,14 @@ rnd_offensive_item(struct monst *mtmp)
         return WAN_DEATH;
     switch (rn2(9 - (difficulty < 4) + 4 * (difficulty > 6))) {
     case 0: {
-        struct obj *helmet = which_armor(mtmp, W_ARMH);
+        struct obj *mtmp_helmet = which_armor(mtmp, W_ARMH);
 
-        if ((helmet && is_hard(helmet)) || amorphous(pm)
+        if (hard_helmet(mtmp_helmet) || amorphous(pm)
             || passes_walls(pm) || noncorporeal(pm) || unsolid(pm))
             return SCR_EARTH;
-    } /* fall through */
+    }
+    FALLTHROUGH;
+    /* FALLTHRU */
     case 1:
         return WAN_STRIKING;
     case 2:
@@ -1993,7 +2137,7 @@ rnd_offensive_item(struct monst *mtmp)
 boolean
 find_misc(struct monst *mtmp)
 {
-    register struct obj *obj;
+    struct obj *obj;
     struct permonst *mdat = mtmp->data;
     coordxy x = mtmp->mx, y = mtmp->my;
     struct trap *t;
@@ -2026,7 +2170,7 @@ find_misc(struct monst *mtmp)
             for (yy = y - 1; yy <= y + 1; yy++)
                 if (isok(xx, yy) && !u_at(xx, yy)
                     && (diag_ok || xx == x || yy == y)
-                    && ((xx == x && yy == y) || !gl.level.monsters[xx][yy]))
+                    && ((xx == x && yy == y) || !svl.level.monsters[xx][yy]))
                     if ((t = t_at(xx, yy)) != 0
                         && (ignore_boulders || !sobj_at(BOULDER, xx, yy))
                         && !onscary(xx, yy, mtmp)) {
@@ -2078,7 +2222,7 @@ find_misc(struct monst *mtmp)
             && uwep && !rn2(5) && obj == MON_WEP(mtmp)
             /* hero's location must be known and adjacent */
             && u_at(mtmp->mux, mtmp->muy)
-            && next2u(mtmp->mx, mtmp->my)
+            && m_next2u(mtmp)
             /* don't bother if it can't work (this doesn't
                prevent cursed weapons from being targeted) */
             && !u.uswallow
@@ -2136,7 +2280,7 @@ find_misc(struct monst *mtmp)
             gm.m.has_misc = MUSE_BAG;
         }
         nomore(MUSE_ITLACHIAYAQUE);
-        if (obj->oartifact == ART_ITLACHIAYAQUE && obj->age <= gm.moves
+        if (obj->oartifact == ART_ITLACHIAYAQUE && obj->age <= svm.moves
             && !mtmp->mpeaceful && !mtmp->mblinded && m_canseeu(mtmp)) {
             gm.m.misc = obj;
             gm.m.has_misc = MUSE_ITLACHIAYAQUE;
@@ -2148,7 +2292,7 @@ find_misc(struct monst *mtmp)
 
 /* type of monster to polymorph into; defaults to one suitable for the
    current level rather than the totally arbitrary choice of newcham() */
-static struct permonst *
+staticfn struct permonst *
 muse_newcham_mon(struct monst *mon)
 {
     int pm = armor_to_dragon(mon);
@@ -2159,7 +2303,7 @@ muse_newcham_mon(struct monst *mon)
     return rndmonst();
 }
 
-static int
+staticfn int
 mloot_container(
     struct monst *mon,
     struct obj *container,
@@ -2217,8 +2361,10 @@ mloot_container(
         if (!rn2(nitems + 1))
             break;
         nitems = rn2(nitems);
-        for (xobj = container->cobj; nitems > 0; xobj = xobj->nobj)
-            --nitems;
+        for (xobj = container->cobj; xobj != 0; xobj = xobj->nobj)
+            if (--nitems < 0)
+                break;
+        assert(xobj != NULL);
 
         container->cknown = 0; /* hero no longer knows container's contents
                                 * even if [attempted] removal is observed */
@@ -2242,7 +2388,7 @@ mloot_container(
                 if (howfar > 2) /* not adjacent */
                     Norep("%s rummages through %s.", Monnam(mon), contnr_nam);
                 else if (takeout_indx == 0) /* adjacent, first item */
-                    pline("%s removes %s from %s.", Monnam(mon),
+                    pline_mon(mon, "%s removes %s from %s.", Monnam(mon),
                           doname(xobj), contnr_nam);
                 else /* adjacent, additional items */
                     pline("%s removes %s.", upstart(mpronounbuf),
@@ -2279,6 +2425,7 @@ DISABLE_WARNING_UNREACHABLE_CODE
 int
 use_misc(struct monst *mtmp)
 {
+    static const char MissingMiscellaneousItem[] = "use_misc: no %s";
     char nambuf[BUFSZ];
     boolean vis, vismon, vistrapspot, oseen;
     int i;
@@ -2293,10 +2440,12 @@ use_misc(struct monst *mtmp)
 
     switch (gm.m.has_misc) {
     case MUSE_POT_GAIN_LEVEL:
+        if (!otmp)
+            panic(MissingMiscellaneousItem, "potion of gain level");
         mquaffmsg(mtmp, otmp);
         if (otmp->cursed) {
             if (Can_rise_up(mtmp->mx, mtmp->my, &u.uz)) {
-                register int tolev = depth(&u.uz) - 1;
+                int tolev = depth(&u.uz) - 1;
                 d_level tolevel;
 
                 get_level(&tolevel, tolev);
@@ -2304,8 +2453,9 @@ use_misc(struct monst *mtmp)
                 if (on_level(&tolevel, &u.uz))
                     goto skipmsg;
                 if (vismon) {
-                    pline("%s rises up, through the %s!", Monnam(mtmp),
-                          ceiling(mtmp->mx, mtmp->my));
+                    pline_mon(mtmp, "%s rises up, through the %s!",
+                              Monnam(mtmp),
+                              ceiling(mtmp->mx, mtmp->my));
                     trycall(otmp);
                 }
                 m_useup(mtmp, otmp);
@@ -2315,7 +2465,7 @@ use_misc(struct monst *mtmp)
             } else {
  skipmsg:
                 if (vismon) {
-                    pline("%s looks uneasy.", Monnam(mtmp));
+                    pline_mon(mtmp, "%s looks uneasy.", Monnam(mtmp));
                     trycall(otmp);
                 }
                 m_useup(mtmp, otmp);
@@ -2323,7 +2473,7 @@ use_misc(struct monst *mtmp)
             }
         }
         if (vismon)
-            pline("%s seems more experienced.", Monnam(mtmp));
+            pline_mon(mtmp, "%s seems more experienced.", Monnam(mtmp));
         if (oseen)
             makeknown(POT_GAIN_LEVEL);
         m_useup(mtmp, otmp);
@@ -2333,6 +2483,8 @@ use_misc(struct monst *mtmp)
         return 2;
     case MUSE_WAN_MAKE_INVISIBLE:
     case MUSE_POT_INVISIBILITY:
+        if (!otmp)
+            panic(MissingMiscellaneousItem, "potion of invisibility");
         if (otmp->otyp == WAN_MAKE_INVISIBLE) {
             mzapwand(mtmp, otmp, TRUE);
         } else
@@ -2360,10 +2512,14 @@ use_misc(struct monst *mtmp)
         }
         return 2;
     case MUSE_WAN_SPEED_MONSTER:
+        if (!otmp)
+            panic(MissingMiscellaneousItem, "wand of speed monster");
         mzapwand(mtmp, otmp, TRUE);
         mon_adjust_speed(mtmp, 1, otmp);
         return 2;
     case MUSE_POT_SPEED:
+        if (!otmp)
+            panic(MissingMiscellaneousItem, "potion of speed");
         mquaffmsg(mtmp, otmp);
         /* note difference in potion effect due to substantially
            different methods of maintaining speed ratings:
@@ -2373,6 +2529,8 @@ use_misc(struct monst *mtmp)
         m_useup(mtmp, otmp);
         return 2;
     case MUSE_WAN_POLYMORPH:
+        if (!otmp)
+            panic(MissingMiscellaneousItem, "wand of polymorph");
         mzapwand(mtmp, otmp, TRUE);
         (void) newcham(mtmp, muse_newcham_mon(mtmp),
                        NC_VIA_WAND_OR_SPELL | NC_SHOW_MSG);
@@ -2380,10 +2538,12 @@ use_misc(struct monst *mtmp)
             makeknown(WAN_POLYMORPH);
         return 2;
     case MUSE_POT_POLYMORPH:
+        if (!otmp)
+            panic(MissingMiscellaneousItem, "potion of polymorph");
         mquaffmsg(mtmp, otmp);
         m_useup(mtmp, otmp);
         if (vismon)
-            pline("%s suddenly mutates!", Monnam(mtmp));
+            pline_mon(mtmp, "%s suddenly mutates!", Monnam(mtmp));
         (void) newcham(mtmp, muse_newcham_mon(mtmp), NC_SHOW_MSG);
         if (oseen)
             makeknown(POT_POLYMORPH);
@@ -2394,9 +2554,9 @@ use_misc(struct monst *mtmp)
         if (vis || vistrapspot)
             seetrap(t);
         if (vismon || vistrapspot) {
-            pline("%s deliberately %s onto a %s trap!", Some_Monnam(mtmp),
+            pline_mon(mtmp, "%s deliberately %s onto a %s!", Some_Monnam(mtmp),
                   vtense(fakename[0], locomotion(mtmp->data, "jump")),
-                  t->tseen ? "polymorph" : "hidden");
+                  t->tseen ? trapname(t->ttyp, FALSE) : "hidden trap");
             /* note: if mtmp is unseen because it is invisible, its new
                shape will also be invisible and could produce "Its armor
                falls off" messages during the transformation; those make
@@ -2408,12 +2568,15 @@ use_misc(struct monst *mtmp)
         remove_monster(mtmp->mx, mtmp->my);
         newsym(mtmp->mx, mtmp->my);
         place_monster(mtmp, gt.trapx, gt.trapy);
+        maybe_unhide_at(gt.trapx, gt.trapy);
         if (mtmp->wormno)
             worm_move(mtmp);
         newsym(gt.trapx, gt.trapy);
         (void) newcham(mtmp, muse_newcham_mon(mtmp), NC_SHOW_MSG);
         return 2;
     case MUSE_BAG:
+        if (!otmp)
+            panic(MissingMiscellaneousItem, "container");
         return mloot_container(mtmp, otmp, vismon);
     case MUSE_BULLWHIP:
         /* attempt to disarm hero */
@@ -2436,8 +2599,8 @@ use_misc(struct monst *mtmp)
                 hand = makeplural(hand);
 
             if (vismon)
-                pline("%s flicks a bullwhip towards your %s!", Monnam(mtmp),
-                      hand);
+                pline_mon(mtmp, "%s flicks a bullwhip towards your %s!",
+                          Monnam(mtmp), hand);
             if (obj->otyp == HEAVY_IRON_BALL) {
                 pline("%s fails to wrap around %s.", The_whip, the_weapon);
                 return 1;
@@ -2464,17 +2627,17 @@ use_misc(struct monst *mtmp)
             freeinv(obj);
             switch (where_to) {
             case 1: /* onto floor beneath mon */
-                pline("%s yanks %s from your %s!", Monnam(mtmp), the_weapon,
-                      hand);
+                pline_mon(mtmp, "%s yanks %s from your %s!", Monnam(mtmp),
+                          the_weapon, hand);
                 place_object(obj, mtmp->mx, mtmp->my);
                 break;
             case 2: /* onto floor beneath you */
-                pline("%s yanks %s to the %s!", Monnam(mtmp), the_weapon,
-                      surface(u.ux, u.uy));
+                pline_mon(mtmp, "%s yanks %s to the %s!", Monnam(mtmp),
+                          the_weapon, surface(u.ux, u.uy));
                 dropy(obj);
                 break;
             case 3: /* into mon's inventory */
-                pline("%s snatches %s!", Monnam(mtmp), the_weapon);
+                pline_mon(mtmp, "%s snatches %s!", Monnam(mtmp), the_weapon);
                 (void) mpickobj(mtmp, obj);
                 break;
             }
@@ -2484,7 +2647,7 @@ use_misc(struct monst *mtmp)
         return 0;
     case MUSE_ITLACHIAYAQUE:
         /* invoke timeout; allow quest nemesis to use it more often */
-        otmp->age = gm.moves + (mtmp->data == &mons[PM_SCHLIEMANN]
+        otmp->age = svm.moves + (mtmp->data == &mons[PM_SCHLIEMANN]
                                       ? rn1(20,10) : rnz(100));
         if (cansee(mtmp->mx, mtmp->my)) {
             pline("%s brandishes Itlachiayaque!", Monnam(mtmp));
@@ -2511,7 +2674,7 @@ use_misc(struct monst *mtmp)
 
 RESTORE_WARNINGS
 
-static void
+staticfn void
 you_aggravate(struct monst *mtmp)
 {
     pline("For some reason, %s presence is known to you.",
@@ -2571,7 +2734,7 @@ rnd_misc_item(struct monst *mtmp)
 
 #if 0
 /* check whether hero is carrying a corpse or contained petrifier corpse */
-static boolean
+staticfn boolean
 necrophiliac(struct obj *objlist, boolean any_corpse)
 {
     while (objlist) {
@@ -2672,7 +2835,7 @@ searches_for_item(struct monst *mon, struct obj *obj)
             return (boolean) (mcould_eat_tin(mon)
                               && (!resists_ston(mon)
                                   && cures_stoning(mon, obj, TRUE)));
-        if (typ == EGG)
+        if (typ == EGG && ismnum(obj->corpsenm))
             return (boolean) touch_petrifies(&mons[obj->corpsenm]);
         break;
     default:
@@ -2780,7 +2943,7 @@ mcureblindness(struct monst *mon, boolean verbos)
         mon->mcansee = 1;
         mon->mblinded = 0;
         if (verbos && haseyes(mon->data))
-            pline("%s can see again.", Monnam(mon));
+            pline_mon(mon, "%s can see again.", Monnam(mon));
     }
 }
 
@@ -2807,7 +2970,7 @@ munstone(struct monst *mon, boolean by_you)
     return FALSE;
 }
 
-static void
+staticfn void
 mon_consume_unstone(
     struct monst *mon,
     struct obj *obj,
@@ -2830,7 +2993,7 @@ mon_consume_unstone(
         long save_quan = obj->quan;
 
         obj->quan = 1L;
-        pline("%s %s %s.", Monnam(mon),
+        pline_mon(mon, "%s %s %s.", Monnam(mon),
               ((obj->oclass == POTION_CLASS) ? "quaffs"
                : (obj->otyp == TIN) ? "opens and eats the contents of"
                  : "eats"),
@@ -2846,9 +3009,9 @@ mon_consume_unstone(
     if (acid && !tinned && !resists_acid(mon)) {
         mon->mhp -= rnd(15);
         if (vis)
-            pline("%s has a very bad case of stomach acid.", Monnam(mon));
+            pline_mon(mon, "%s has a very bad case of stomach acid.", Monnam(mon));
         if (DEADMONSTER(mon)) {
-            pline("%s dies!", Monnam(mon));
+            pline_mon(mon, "%s dies!", Monnam(mon));
             if (by_you)
                 /* hero gets credit (experience) and blame (possible loss
                    of alignment and/or luck and/or telepathy depending on
@@ -2864,29 +3027,29 @@ mon_consume_unstone(
             pline("What a pity - %s just ruined a future piece of art!",
                   mon_nam(mon));
         else
-            pline("%s seems limber!", Monnam(mon));
+            pline_mon(mon, "%s seems limber!", Monnam(mon));
     }
     if (lizard && (mon->mconf || mon->mstun)) {
         mon->mconf = 0;
         mon->mstun = 0;
         if (vis && !is_bat(mon->data) && mon->data != &mons[PM_STALKER])
-            pline("%s seems steadier now.", Monnam(mon));
+            pline_mon(mon, "%s seems steadier now.", Monnam(mon));
     }
     if (mon->mtame && !mon->isminion && nutrit > 0) {
         struct edog *edog = EDOG(mon);
 
-        if (edog->hungrytime < gm.moves)
-            edog->hungrytime = gm.moves;
+        if (edog->hungrytime < svm.moves)
+            edog->hungrytime = svm.moves;
         edog->hungrytime += nutrit;
         mon->mconf = 0;
     }
     /* use up monster's next move */
     mon->movement -= NORMAL_SPEED;
-    mon->mlstmv = gm.moves;
+    mon->mlstmv = svm.moves;
 }
 
 /* decide whether obj can cure petrification; also used when picking up */
-static boolean
+staticfn boolean
 cures_stoning(struct monst *mon, struct obj *obj, boolean tinok)
 {
     if (obj->otyp == POT_ACID)
@@ -2902,7 +3065,7 @@ cures_stoning(struct monst *mon, struct obj *obj, boolean tinok)
                       || acidic(&mons[obj->corpsenm]));
 }
 
-static boolean
+staticfn boolean
 mcould_eat_tin(struct monst *mon)
 {
     struct obj *obj, *mwep;
@@ -2997,7 +3160,7 @@ munslime(struct monst *mon, boolean by_you)
             }
         }
         if (t && t->ttyp == FIRE_TRAP)
-            return muse_unslime(mon, (struct obj *) &cg.zeroobj, t, by_you);
+            return muse_unslime(mon, &hands_obj, t, by_you);
 
     } /* MUSE */
 
@@ -3005,7 +3168,7 @@ munslime(struct monst *mon, boolean by_you)
 }
 
 /* mon uses an item--selected by caller--to burn away incipient slime */
-static boolean
+staticfn boolean
 muse_unslime(
     struct monst *mon,
     struct obj *obj,
@@ -3017,7 +3180,7 @@ muse_unslime(
     boolean vis = canseemon(mon), res = TRUE;
 
     if (vis)
-        pline("%s starts turning %s.", Monnam(mon),
+        pline_mon(mon, "%s starts turning %s.", Monnam(mon),
               green_mon(mon) ? "into ooze" : hcolor(NH_GREEN));
     /* -4 => sliming, causes quiet loss of enhanced speed */
     mon_adjust_speed(mon, -4, (struct obj *) 0);
@@ -3046,7 +3209,8 @@ muse_unslime(
     } else if (otyp == STRANGE_OBJECT) {
         /* monster is using fire breath on self */
         if (vis)
-            pline("%s.", monverbself(mon, Monnam(mon), "breath", "fire on"));
+            pline_mon(mon, "%s.",
+                      monverbself(mon, Monnam(mon), "breath", "fire on"));
         if (!rn2(3))
             mon->mspec_used = rn1(10, 5);
         /* -21 => monster's fire breath; 1 => # of damage dice */
@@ -3087,7 +3251,7 @@ muse_unslime(
         if (obj->quan > 1L)
             obj = splitobj(obj, 1L);
         if (vis && !was_lit) {
-            pline("%s ignites %s.", Monnam(mon), ansimpleoname(obj));
+            pline_mon(mon, "%s ignites %s.", Monnam(mon), ansimpleoname(obj));
             saw_lit = TRUE;
         }
         begin_burn(obj, was_lit);
@@ -3122,7 +3286,7 @@ muse_unslime(
                    for pacifist conduct); xkilled()'s message would say
                    "You killed/destroyed <mon>" so give our own message */
                 if (vis)
-                    pline("%s is %s by the fire!", Monnam(mon),
+                    pline_mon(mon, "%s is %s by the fire!", Monnam(mon),
                           nonliving(mon->data) ? "destroyed" : "killed");
                 xkilled(mon, XKILL_NOMSG | XKILL_NOCONDUCT);
             } else
@@ -3130,23 +3294,23 @@ muse_unslime(
         } else {
             /* non-fatal damage occurred */
             if (vis)
-                pline("%s is burned%s", Monnam(mon), exclam(dmg));
+                pline_mon(mon, "%s is burned%s", Monnam(mon), exclam(dmg));
         }
     }
     if (vis) {
         if (res && !DEADMONSTER(mon))
-            pline("%s slime is burned away!", s_suffix(Monnam(mon)));
+            pline_mon(mon, "%s slime is burned away!", s_suffix(Monnam(mon)));
         if (otyp != STRANGE_OBJECT)
             makeknown(otyp);
     }
     /* use up monster's next move */
     mon->movement -= NORMAL_SPEED;
-    mon->mlstmv = gm.moves;
+    mon->mlstmv = svm.moves;
     return res;
 }
 
 /* decide whether obj can be used to cure green slime */
-static int
+staticfn int
 cures_sliming(struct monst *mon, struct obj *obj)
 {
     /* scroll of fire */
@@ -3164,50 +3328,56 @@ cures_sliming(struct monst *mon, struct obj *obj)
             && obj->spe > 0);
 }
 
-/* TRUE if monster appears to be green; for active TEXTCOLOR, we go by
-   the display color, otherwise we just pick things that seem plausibly
-   green (which doesn't necessarily match the TEXTCOLOR categorization) */
-static boolean
+/* TRUE if monster appears to be green; we go by the display color.
+   The alternative was to just pick things that
+   seem plausibly green (which didn't necessarily match the categorization
+   by the color of the text).
+   iflags.use_color is not meant for game behavior decisions */
+staticfn boolean
 green_mon(struct monst *mon)
 {
     struct permonst *ptr = mon->data;
 
     if (Hallucination)
         return FALSE;
-#ifdef TEXTCOLOR
+    return (ptr->mcolor == CLR_GREEN || ptr->mcolor == CLR_BRIGHT_GREEN);
+#if 0
     if (iflags.use_color)
         return (ptr->mcolor == CLR_GREEN || ptr->mcolor == CLR_BRIGHT_GREEN);
-#endif
-    /* approximation */
-    if (strstri(ptr->pmnames[NEUTRAL], "green")
-        || (ptr->pmnames[MALE] && strstri(ptr->pmnames[MALE], "green"))
-        || (ptr->pmnames[FEMALE] && strstri(ptr->pmnames[FEMALE], "green")))
-        return TRUE;
-    switch (monsndx(ptr)) {
-    case PM_FOREST_CENTAUR:
-    case PM_GARTER_SNAKE:
-    case PM_GECKO:
-    case PM_GREMLIN:
-    case PM_HOMUNCULUS:
-    case PM_JUIBLEX:
-    case PM_LEPRECHAUN:
-    case PM_LICHEN:
-    case PM_LIZARD:
-    case PM_WOOD_NYMPH:
-        return TRUE;
-    default:
-        if (is_elf(ptr) && !is_prince(ptr) && !is_lord(ptr)
-            && ptr != &mons[PM_GREY_ELF])
+    else {
+        /* approximation */
+        if (strstri(ptr->pmnames[NEUTRAL], "green")
+            || (ptr->pmnames[MALE] && strstri(ptr->pmnames[MALE], "green"))
+            || (ptr->pmnames[FEMALE]
+                && strstri(ptr->pmnames[FEMALE], "green")))
             return TRUE;
-        break;
+        switch (monsndx(ptr)) {
+        case PM_FOREST_CENTAUR:
+        case PM_GARTER_SNAKE:
+        case PM_GECKO:
+        case PM_GREMLIN:
+        case PM_HOMUNCULUS:
+        case PM_JUIBLEX:
+        case PM_LEPRECHAUN:
+        case PM_LICHEN:
+        case PM_LIZARD:
+        case PM_WOOD_NYMPH:
+            return TRUE;
+        default:
+            if (is_elf(ptr) && !is_prince(ptr) && !is_lord(ptr)
+                && ptr != &mons[PM_GREY_ELF])
+                return TRUE;
+            break;
+        }
     }
     return FALSE;
+#endif
 }
 
 /* mtmp, for whatever reason, does not want to leave the current level, even if
  * fleeing, so it should not consider MUSE_* options that would make it leave
  * the level. */
-static boolean
+staticfn boolean
 wont_leave_level(struct monst *mtmp)
 {
     if (mtmp->data == &mons[PM_GERYON] && geryon_bonus() > 0)

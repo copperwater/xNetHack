@@ -1,11 +1,11 @@
-/* NetHack 3.7	write.c	$NHDT-Date: 1596498232 2020/08/03 23:43:52 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.26 $ */
+/* NetHack 3.7	write.c	$NHDT-Date: 1702023275 2023/12/08 08:14:35 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.41 $ */
 /* NetHack may be freely redistributed.  See license for details. */
 
 #include "hack.h"
 
-static boolean label_known(int, struct obj *);
-static int write_ok(struct obj *);
-static char *new_book_description(int, char *);
+staticfn boolean label_known(int, struct obj *) NO_NNARGS;
+staticfn int write_ok(struct obj *) NO_NNARGS;
+staticfn char *new_book_description(int, char *) NONNULL NONNULLPTRS;
 
 /*
  * returns basecost of a scroll or a spellbook
@@ -61,7 +61,7 @@ ink_cost(short otyp)
    unfortunately, we can't track things that haven't been added to
    the discoveries list and aren't present in current inventory,
    so some scrolls with ought to yield True will end up False */
-static boolean
+staticfn boolean
 label_known(int scrolltype, struct obj *objlist)
 {
     struct obj *otmp;
@@ -86,7 +86,7 @@ label_known(int scrolltype, struct obj *objlist)
 }
 
 /* getobj callback for object to write on */
-static int
+staticfn int
 write_ok(struct obj *obj)
 {
     if (!obj || (obj->oclass != SCROLL_CLASS && obj->oclass != SPBOOK_CLASS))
@@ -102,15 +102,16 @@ write_ok(struct obj *obj)
 int
 dowrite(struct obj *pen)
 {
-    register struct obj *paper;
+    struct obj *paper;
     char namebuf[BUFSZ] = DUMMY, *nm, *bp;
-    register struct obj *new_obj;
+    struct obj *new_obj;
     int basecost, actualcost;
     int curseval;
     char qbuf[QBUFSZ];
     int first, last, i, deferred, deferralchance, real;
     boolean by_descr = FALSE;
     const char *typeword;
+    int spell_knowledge;
     /* Orcus interferes with writing if you've got the Amulet */
     boolean interference = fiend_adversity(PM_ORCUS);
 
@@ -172,8 +173,8 @@ dowrite(struct obj *pen)
 
     deferred = real = 0; /* not any scroll or book */
     deferralchance = 0;  /* incremented for each oc_uname match */
-    first = gb.bases[(int) paper->oclass];
-    last = gb.bases[(int) paper->oclass + 1] - 1;
+    first = svb.bases[(int) paper->oclass];
+    last = svb.bases[(int) paper->oclass + 1] - 1;
     /* first loop: look for match with name/description */
     for (i = first; i <= last; i++) {
         /* extra shufflable descr not representing a real object */
@@ -314,8 +315,12 @@ dowrite(struct obj *pen)
     /*
      * Writing by name requires that the hero knows the scroll or
      * book type.  One has previously been read (and its effect
-     * was evident) or been ID'd via scroll/spell/throne and it
-     * will be on the discoveries list.
+     * was evident) or been ID'd via scroll/spell/throne (or skill
+     * for Wizards) and it will be on the discoveries list.
+     * Unknown spellbooks can also be written by name if the hero
+     * has fresh knowledge of the spell, or if the spell is almost
+     * forgotten and the hero is Lucky (with a greater chance than
+     * if the spell is unknown or forgotten).
      * (Previous versions allowed scrolls and books to be written
      * by type name if they were on the discoveries list via being
      * given a user-assigned name, even though doing the latter
@@ -334,13 +339,22 @@ dowrite(struct obj *pen)
      * Normal requirements can be overridden if hero is Lucky.
      */
 
+    if (paper->oclass == SPBOOK_CLASS) {
+        spell_knowledge = known_spell(new_obj->otyp);
+    } else {
+        spell_knowledge = spe_Unknown;
+    }
     /* if known, then either by-name or by-descr works */
     if ((interference && percent(35))
         || (!objects[new_obj->otyp].oc_name_known
             /* else if named, then only by-descr works */
             && !(by_descr && label_known(new_obj->otyp, gi.invent))
-            /* and Luck might override after both checks have failed */
-            && (rnl(Role_if(PM_WIZARD) ? 5 : 15)))) {
+            /* else fresh knowledge of the spell works */
+            && spell_knowledge != spe_Fresh
+            /* and Luck might override after previous checks have failed */
+            && rnl(((Role_if(PM_WIZARD) && paper->oclass != SPBOOK_CLASS)
+                    || spell_knowledge == spe_GoingStale)
+                   ? 5 : 15))) {
         You("%s to write that.",
             interference && objects[new_obj->otyp].oc_name_known
                 ? "temporarily forget how"
@@ -355,7 +369,7 @@ dowrite(struct obj *pen)
                 Strcpy(namebuf, OBJ_DESCR(objects[new_obj->otyp]));
                 wipeout_text(namebuf, (6 + MAXULEV - u.ulevel) / 6, 0);
             } else
-                Sprintf(namebuf, "%s was here!", gp.plname);
+                Sprintf(namebuf, "%s was here!", svp.plname);
             You("write \"%s\" and the scroll disappears.", namebuf);
             useup(paper);
         }
@@ -413,7 +427,7 @@ dowrite(struct obj *pen)
    looks funny, so we want to insert "into " prior to such descriptions;
    even that's rather iffy, indicating that such descriptions probably
    ought to be eliminated (especially "cloth"!) */
-static char *
+staticfn char *
 new_book_description(int booktype, char *outbuf)
 {
     /* subset of description strings from objects.c; if it grows

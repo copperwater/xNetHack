@@ -1,4 +1,4 @@
-/* NetHack 3.7	pline.c	$NHDT-Date: 1646255375 2022/03/02 21:09:35 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.109 $ */
+/* NetHack 3.7	pline.c	$NHDT-Date: 1719819280 2024/07/01 07:34:40 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.130 $ */
 /* Copyright (c) Stichting Mathematisch Centrum, Amsterdam, 1985. */
 /*-Copyright (c) Robert Patrick Rankin, 2018. */
 /* NetHack may be freely redistributed.  See license for details. */
@@ -9,17 +9,13 @@
                               * config file parsing) with modest decoration;
                               * result will then be truncated to BUFSZ-1 */
 
-static void putmesg(const char *);
-static char *You_buf(int);
-#if defined(MSGHANDLER)
-static void execplinehandler(const char *);
-#endif
-
+staticfn void putmesg(const char *);
+staticfn char *You_buf(int);
+staticfn void execplinehandler(const char *);
 #ifdef USER_SOUNDS
 extern void maybe_play_sound(const char *);
 #endif
-
-#if defined(DUMPLOG) || defined(DUMPHTML)
+#ifdef DUMPLOG_CORE
 
 /* keep the most recent DUMPLOG_MSG_COUNT messages */
 void
@@ -65,7 +61,7 @@ dumplogfreemessages(void)
 #endif
 
 /* keeps windowprocs usage out of pline() */
-static void
+staticfn void
 putmesg(const char *line)
 {
     int attr = ATR_NONE;
@@ -80,7 +76,24 @@ putmesg(const char *line)
     SoundSpeak(line);
 }
 
-static void vpline(const char *, va_list);
+/* set the direction where next message happens */
+void
+set_msg_dir(int dir)
+{
+    dtoxy(&a11y.msg_loc, dir);
+    a11y.msg_loc.x += u.ux;
+    a11y.msg_loc.y += u.uy;
+}
+
+/* set the coordinate where next message happens */
+void
+set_msg_xy(coordxy x, coordxy y)
+{
+    a11y.msg_loc.x = x;
+    a11y.msg_loc.y = y;
+}
+
+staticfn void vpline(const char *, va_list);
 
 DISABLE_WARNING_FORMAT_NONLITERAL
 
@@ -94,7 +107,43 @@ pline(const char *line, ...)
     va_end(the_args);
 }
 
-static void
+void
+pline_dir(int dir, const char *line, ...)
+{
+    va_list the_args;
+
+    set_msg_dir(dir);
+
+    va_start(the_args, line);
+    vpline(line, the_args);
+    va_end(the_args);
+}
+
+void
+pline_xy(coordxy x, coordxy y, const char *line, ...)
+{
+    va_list the_args;
+
+    set_msg_xy(x, y);
+
+    va_start(the_args, line);
+    vpline(line, the_args);
+    va_end(the_args);
+}
+
+void
+pline_mon(struct monst *mtmp, const char *line, ...)
+{
+    va_list the_args;
+
+    set_msg_xy(mtmp->mx, mtmp->my);
+
+    va_start(the_args, line);
+    vpline(line, the_args);
+    va_end(the_args);
+}
+
+staticfn void
 vpline(const char *line, va_list the_args)
 {
     static int in_pline = 0;
@@ -102,15 +151,37 @@ vpline(const char *line, va_list the_args)
     int ln;
     int msgtyp;
     boolean no_repeat;
+    coord a11y_mesgxy;
+
+    a11y_mesgxy = a11y.msg_loc; /* save a11y.msg_loc before reseting it */
+    /* always reset a11y.msg_loc whether we end up using it or not */
+    a11y.msg_loc.x = a11y.msg_loc.y = 0;
 
     if (!line || !*line)
         return;
 #ifdef HANGUPHANDLING
-    if (gp.program_state.done_hup)
+    if (program_state.done_hup)
         return;
 #endif
-    if (gp.program_state.wizkit_wishing)
+    if (program_state.wizkit_wishing)
         return;
+
+    /* when accessiblemsg is set and a11y.msg_loc is nonzero, use the latter
+       to insert a location prefix in front of current message */
+    if (a11y.accessiblemsg && isok(a11y_mesgxy.x, a11y_mesgxy.y)) {
+        char *tmp, *dirstr, dirstrbuf[QBUFSZ];
+
+        dirstr = coord_desc(a11y_mesgxy.x, a11y_mesgxy.y, dirstrbuf,
+                            ((iflags.getpos_coords == GPCOORDS_NONE)
+                             ? GPCOORDS_COMFULL : iflags.getpos_coords));
+        tmp = (char *) alloc(strlen(line) + sizeof ": " + strlen(dirstr));
+        Strcpy(tmp, dirstr);
+        Strcat(tmp, ": ");
+        Strcat(tmp, line);
+        vpline(tmp, the_args);
+        free((genericptr_t) tmp);
+        return;
+    }
 
     if (!strchr(line, '%')) {
         /* format does not specify any substitutions; use it as-is */
@@ -148,7 +219,7 @@ vpline(const char *line, va_list the_args)
     }
     msgtyp = MSGTYP_NORMAL;
 
-#if defined(DUMPLOG) || defined(DUMPHTML)
+#ifdef DUMPLOG_CORE
     /* We hook here early to have options-agnostic output.
      * Unfortunately, that means Norep() isn't honored (general issue) and
      * that short lines aren't combined into one longer one (tty behavior).
@@ -189,16 +260,19 @@ vpline(const char *line, va_list the_args)
             goto pline_done;
     }
 
-    if (gv.vision_full_recalc)
+    if (gv.vision_full_recalc) {
+        int tmp_in_pline = in_pline;
+
+        in_pline = 0;
         vision_recalc(0);
+        in_pline = tmp_in_pline;
+    }
     if (u.ux)
         flush_screen((gp.pline_flags & NO_CURS_ON_U) ? 0 : 1); /* %% */
 
     putmesg(line);
 
-#if defined(MSGHANDLER)
     execplinehandler(line);
-#endif
 
     /* this gets cleared after every pline message */
     iflags.last_msg = PLNMSG_UNKNOWN;
@@ -265,7 +339,7 @@ Norep(const char *line, ...)
     va_end(the_args);
 }
 
-static char *
+staticfn char *
 You_buf(int siz)
 {
     if (siz > gy.you_buf_siz) {
@@ -450,7 +524,7 @@ livelog_printf(long ll_type, const char *line, ...)
     (void) vsnprintf(gamelogbuf, sizeof gamelogbuf, line, the_args);
     va_end(the_args);
 
-    gamelog_add(ll_type, gm.moves, gamelogbuf);
+    gamelog_add(ll_type, svm.moves, gamelogbuf);
     strNsubst(gamelogbuf, "\t", "_", 0);
     livelog_add(ll_type, gamelogbuf);
 }
@@ -473,7 +547,7 @@ livelog_printf(
 
 #endif /* !CHRONICLE */
 
-static void vraw_printf(const char *, va_list);
+staticfn void vraw_printf(const char *, va_list);
 
 void
 raw_printf(const char *line, ...)
@@ -483,13 +557,13 @@ raw_printf(const char *line, ...)
     va_start(the_args, line);
     vraw_printf(line, the_args);
     va_end(the_args);
-    if (!gp.program_state.beyond_savefile_load)
+    if (!program_state.beyond_savefile_load)
         ge.early_raw_messages++;
 }
 
 DISABLE_WARNING_FORMAT_NONLITERAL
 
-static void
+staticfn void
 vraw_printf(const char *line, va_list the_args)
 {
     char pbuf[BIGBUFSZ]; /* will be chopped down to BUFSZ-1 if longer */
@@ -505,10 +579,8 @@ vraw_printf(const char *line, va_list the_args)
         pbuf[BUFSZ - 1] = '\0'; /* terminate strncpy or truncate vsprintf */
     }
     raw_print(line);
-#if defined(MSGHANDLER)
     execplinehandler(line);
-#endif
-    if (!gp.program_state.beyond_savefile_load)
+    if (!program_state.beyond_savefile_load)
         ge.early_raw_messages++;
 }
 
@@ -517,68 +589,80 @@ impossible(const char *s, ...)
 {
     va_list the_args;
     char pbuf[BIGBUFSZ]; /* will be chopped down to BUFSZ-1 if longer */
+    char pbuf2[BUFSZ];
 
     va_start(the_args, s);
-    if (gp.program_state.in_impossible)
+    if (program_state.in_impossible)
         panic("impossible called impossible");
 
-    gp.program_state.in_impossible = 1;
+    program_state.in_impossible = 1;
     (void) vsnprintf(pbuf, sizeof pbuf, s, the_args);
     va_end(the_args);
     pbuf[BUFSZ - 1] = '\0'; /* sanity */
     paniclog("impossible", pbuf);
-    if (iflags.debug_fuzzer)
+    if (iflags.debug_fuzzer == fuzzer_impossible_panic)
         panic("%s", pbuf);
 
     gp.pline_flags = URGENT_MESSAGE;
     pline("%s", pbuf);
     gp.pline_flags = 0;
-    /* reuse pbuf[] */
-    Strcpy(pbuf, "Program in disorder!");
-    if (gp.program_state.something_worth_saving)
-        Strcat(pbuf, "  (Saving and reloading may fix this problem.)");
-    pline("%s", pbuf);
+
+    if (program_state.in_sanity_check) {
+        /* skip rest of multi-line feedback */
+        program_state.in_impossible = 0;
+        return;
+    }
+
+    Strcpy(pbuf2, "Program in disorder!");
+    if (program_state.something_worth_saving)
+        Strcat(pbuf2, "  (Saving and reloading may fix this problem.)");
+    pline("%s", pbuf2);
     pline("Please report these messages to %s.", DEVTEAM_EMAIL);
     if (sysopt.support) {
         pline("Alternatively, contact local support: %s", sysopt.support);
     }
 
-    gp.program_state.in_impossible = 0;
+#ifdef CRASHREPORT
+    if (sysopt.crashreporturl) {
+        boolean report = ('y' == yn_function("Report now?", ynchars,
+                                             'n', FALSE));
+
+        raw_print(""); /* prove to the user the character was accepted */
+        if (report) {
+            submit_web_report(1, "Impossible", pbuf);
+        }
+    }
+#endif
+
+    program_state.in_impossible = 0;
 }
 
 RESTORE_WARNING_FORMAT_NONLITERAL
 
-#if defined(MSGHANDLER)
 static boolean use_pline_handler = TRUE;
 
-static void
+staticfn void
 execplinehandler(const char *line)
 {
-#if defined(POSIX_TYPES) || defined(__GNUC__)
+#if defined(UNIX) && (defined(POSIX_TYPES) || defined(__GNUC__))
     int f;
 #endif
     const char *args[3];
-    char *env;
 
-    if (!use_pline_handler)
+    if (!use_pline_handler || !sysopt.msghandler)
         return;
 
-    if (!(env = nh_getenv("NETHACK_MSGHANDLER"))) {
-        use_pline_handler = FALSE;
-        return;
-    }
-
-#if defined(POSIX_TYPES) || defined(__GNUC__)
+#if defined(UNIX) && (defined(POSIX_TYPES) || defined(__GNUC__))
     f = fork();
     if (f == 0) { /* child */
-        args[0] = env;
+        args[0] = sysopt.msghandler;
         args[1] = line;
         args[2] = NULL;
         (void) setgid(getgid());
         (void) setuid(getuid());
         (void) execv(args[0], (char *const *) args);
         perror((char *) 0);
-        (void) fprintf(stderr, "Exec to message handler %s failed.\n", env);
+        (void) fprintf(stderr, "Exec to message handler %s failed.\n", sysopt.msghandler);
         nh_terminate(EXIT_FAILURE);
     } else if (f > 0) {
         int status;
@@ -592,21 +676,23 @@ execplinehandler(const char *line)
 #elif defined(WIN32)
     {
         intptr_t ret;
-        args[0] = env;
+        args[0] = sysopt.msghandler;
         args[1] = line;
         args[2] = NULL;
-        ret = _spawnv(_P_NOWAIT, env, args);
+        ret = _spawnv(_P_NOWAIT, sysopt.msghandler, args);
+        nhUse(ret);  /* -Wunused-but-set-variable */
     }
 #else
-#error MSGHANDLER is not implemented on this sysytem.
+    use_pline_handler = FALSE;
+    nhUse(args);
+    nhUse(line);
 #endif
 }
-#endif /* MSGHANDLER */
 
 /*
  * varargs handling for files.c
  */
-static void vconfig_error_add(const char *, va_list);
+staticfn void vconfig_error_add(const char *, va_list);
 
 DISABLE_WARNING_FORMAT_NONLITERAL
 
@@ -620,7 +706,7 @@ config_error_add(const char *str, ...)
     va_end(the_args);
 }
 
-static void
+staticfn void
 vconfig_error_add(const char *str, va_list the_args)
 {       /* start of vconf...() or of nested block in USE_OLDARG's conf...() */
     int vlen = 0;

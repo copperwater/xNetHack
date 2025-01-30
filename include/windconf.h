@@ -7,8 +7,6 @@
 
 /* #define SHELL */    /* nt use of pcsys routines caused a hang */
 
-#define TEXTCOLOR /* Color text */
-
 #define EXEPATH              /* Allow .exe location to be used as HACKDIR */
 #define TRADITIONAL_GLYPHMAP /* Store glyph mappings at level change time */
 
@@ -82,7 +80,7 @@
                      */
 
 #define CONFIG_FILE ".xnethackrc"
-#define CONFIG_TEMPLATE ".xnethackrc.template"
+#define CONFIG_TEMPLATE "xnethackrc.template"
 #define SYSCF_TEMPLATE "sysconf.template"
 #define SYMBOLS_TEMPLATE "symbols.template"
 #define GUIDEBOOK_FILE "Guidebook.txt"
@@ -100,13 +98,8 @@ extern char *windows_exepath(void);
  *===============================================
  */
 
-#ifdef __MINGW32__
-#if 0
+#ifdef __GNUC__
 #define MD_USE_TMPFILE_S
-#if !defined(__cplusplus)
-extern errno_t tmpfile_s(FILE * restrict * restrict streamptr);
-#endif
-#endif
 #
 #ifdef strncasecmp
 #undef strncasecmp
@@ -114,13 +107,9 @@ extern errno_t tmpfile_s(FILE * restrict * restrict streamptr);
 #ifdef strcasecmp
 #undef strcasecmp
 /* https://sourceforge.net/p/mingw-w64/wiki2/gnu%20printf/ */
-#ifdef __USE_MINGW_ANSI_STDIO
-#undef __USE_MINGW_ANSI_STDIO
-#endif
-#define __USE_MINGW_ANSI_STDIO 1
 #endif
 /* extern int getlock(void); */
-#endif   /* __MINGW32__ */
+#endif   /* __GNUC__ */
 
 #ifdef _MSC_VER
 #define MD_USE_TMPFILE_S
@@ -176,8 +165,6 @@ typedef SSIZE_T ssize_t;
 
 
 #include <sys/types.h>
-#include <stdlib.h>
-#include <stdio.h>
 #ifdef __BORLANDC__
 #undef randomize
 #undef random
@@ -196,10 +183,6 @@ typedef SSIZE_T ssize_t;
 #endif
 
 #define NO_SIGNAL
-
-/* Time stuff */
-#include <time.h>
-
 #define USE_STDARG
 
 /* Use the high quality random number routines. */
@@ -264,9 +247,6 @@ open(const char _FAR *__path, int __access, ... /*unsigned mode*/);
 long _RTLENTRY _EXPFUNC lseek(int __handle, long __offset, int __fromwhere);
 int _RTLENTRY _EXPFUNC read(int __handle, void _FAR *__buf, unsigned __len);
 #endif
-#ifndef CURSES_GRAPHICS
-#include <conio.h>      /* conflicting definitions with curses.h */
-#endif
 #undef kbhit /* Use our special NT kbhit */
 #define kbhit (*nt_kbhit)
 
@@ -288,7 +268,6 @@ extern int alternative_palette(char *);
 #endif
 
 #define nethack_enter(argc, argv) nethack_enter_windows()
-ATTRNORETURN extern void nethack_exit(int) NORETURN;
 extern boolean file_exists(const char *);
 extern boolean file_newer(const char *, const char *);
 #ifndef SYSTEM_H

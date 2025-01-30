@@ -1,4 +1,4 @@
-/* NetHack 3.7	questpgr.c	$NHDT-Date: 1655065145 2022/06/12 20:19:05 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.79 $ */
+/* NetHack 3.7	questpgr.c	$NHDT-Date: 1704043695 2023/12/31 17:28:15 $  $NHDT-Branch: keni-luabits2 $:$NHDT-Revision: 1.87 $ */
 /*      Copyright 1991, M. Stephenson                             */
 /* NetHack may be freely redistributed.  See license for details. */
 
@@ -13,17 +13,18 @@
 #include "wintty.h"
 #endif
 
-static const char *intermed(void);
-static struct obj *find_qarti(struct obj *);
-static const char *neminame(void);
-static const char *guardname(void);
-static const char *homebase(void);
-static void qtext_pronoun(char, char);
-static void convert_arg(char);
-static void deliver_by_pline(const char *);
-static void deliver_by_window(const char *, int);
-static boolean skip_pager(boolean);
-static boolean com_pager_core(const char *, const char *, boolean, char **);
+staticfn const char *intermed(void);
+/* sometimes find_qarti(gi.invent), and gi.invent can be null */
+staticfn struct obj *find_qarti(struct obj *) NO_NNARGS;
+staticfn const char *neminame(void);
+staticfn const char *guardname(void);
+staticfn const char *homebase(void);
+staticfn void qtext_pronoun(char, char);
+staticfn void convert_arg(char);
+staticfn void deliver_by_pline(const char *);
+staticfn void deliver_by_window(const char *, int);
+staticfn boolean skip_pager(boolean);
+staticfn boolean com_pager_core(const char *, const char *, boolean, char **);
 
 short
 quest_info(int typ)
@@ -55,7 +56,7 @@ ldrname(void)
 }
 
 /* return your intermediate target string */
-static const char *
+staticfn const char *
 intermed(void)
 {
     return gu.urole.intermed;
@@ -67,7 +68,7 @@ is_quest_artifact(struct obj *otmp)
     return (boolean) (otmp->oartifact == gu.urole.questarti);
 }
 
-static struct obj *
+staticfn struct obj *
 find_qarti(struct obj *ochain)
 {
     struct obj *otmp, *qarti;
@@ -112,13 +113,13 @@ find_quest_artifact(unsigned whichchains)
             qarti = find_qarti(gm.migrating_objs);
     }
     if (!qarti && (whichchains & (1 << OBJ_BURIED)) != 0)
-        qarti = find_qarti(gl.level.buriedobjlist);
+        qarti = find_qarti(svl.level.buriedobjlist);
 
     return qarti;
 }
 
 /* return your role nemesis' name */
-static const char *
+staticfn const char *
 neminame(void)
 {
     int i = gu.urole.neminum;
@@ -128,7 +129,7 @@ neminame(void)
     return gn.nambuf;
 }
 
-static const char *
+staticfn const char *
 guardname(void) /* return your role leader's guard monster name */
 {
     int i = gu.urole.guardnum;
@@ -136,7 +137,7 @@ guardname(void) /* return your role leader's guard monster name */
     return mons[i].pmnames[NEUTRAL];
 }
 
-static const char *
+staticfn const char *
 homebase(void) /* return your role leader's location */
 {
     return gu.urole.homebase;
@@ -170,8 +171,8 @@ stinky_nemesis(struct monst *mon)
     (void) com_pager_core(gu.urole.filecode, "killed_nemesis", FALSE, &mesg);
 #endif
 
-    /* this is somewhat fragile; it assumes that when both (noxious or
-       poisonous or toxic) and (gas or fumes) are present, the latter
+    /* this is somewhat fragile; it assumes that when both {noxious or
+       poisonous or toxic} and {gas or fumes} are present, the latter
        refers to the former rather than to something unrelated; it does
        make sure that fumes occurs after noxious rather than before */
     if (mesg) {
@@ -193,7 +194,7 @@ stinky_nemesis(struct monst *mon)
 
 /* replace deity, leader, nemesis, or artifact name with pronoun;
    overwrites cvt_buf[] */
-static void
+staticfn void
 qtext_pronoun(
     char who,   /* 'd' => deity, 'l' => leader, 'n' => nemesis, 'o' => arti */
     char which) /* 'h'|'H'|'i'|'I'|'j'|'J' */
@@ -215,9 +216,9 @@ qtext_pronoun(
                 : (lwhich == 'i') ? "them"
                 : (lwhich == 'j') ? "their" : "?";
     } else {
-        godgend = (who == 'd') ? gq.quest_status.godgend
-            : (who == 'l') ? gq.quest_status.ldrgend
-            : (who == 'n') ? gq.quest_status.nemgend
+        godgend = (who == 'd') ? svq.quest_status.godgend
+            : (who == 'l') ? svq.quest_status.ldrgend
+            : (who == 'n') ? svq.quest_status.nemgend
             : 2; /* default to neuter */
         pnoun = (lwhich == 'h') ? genders[godgend].he
                 : (lwhich == 'i') ? genders[godgend].him
@@ -230,14 +231,14 @@ qtext_pronoun(
     return;
 }
 
-static void
+staticfn void
 convert_arg(char c)
 {
-    register const char *str;
+    const char *str;
 
     switch (c) {
     case 'p':
-        str = gp.plname;
+        str = svp.plname;
         break;
     case 'c':
         str = (flags.female && gu.urole.name.f) ? gu.urole.name.f
@@ -310,7 +311,7 @@ convert_arg(char c)
         str = Blind ? "sense" : "see";
         break;
     case 'Z':
-        str = gd.dungeons[0].dname;
+        str = svd.dungeons[0].dname;
         break;
     case '%':
         str = "%";
@@ -373,6 +374,7 @@ convert_line(const char *in_line, char *out_line)
                 /* pluralize */
                 case 'P':
                     gc.cvt_buf[0] = highc(gc.cvt_buf[0]);
+                    FALLTHROUGH;
                     /*FALLTHRU*/
                 case 'p':
                     Strcpy(gc.cvt_buf, makeplural(gc.cvt_buf));
@@ -381,6 +383,7 @@ convert_line(const char *in_line, char *out_line)
                 /* append possessive suffix */
                 case 'S':
                     gc.cvt_buf[0] = highc(gc.cvt_buf[0]);
+                    FALLTHROUGH;
                     /*FALLTHRU*/
                 case 's':
                     Strcpy(gc.cvt_buf, s_suffix(gc.cvt_buf));
@@ -402,8 +405,9 @@ convert_line(const char *in_line, char *out_line)
                 Strcat(cc, gc.cvt_buf);
                 cc += strlen(gc.cvt_buf);
                 break;
-            } /* else fall through */
-
+            }
+            FALLTHROUGH;
+            /* FALLTHRU */
         default:
             *cc++ = *c;
             break;
@@ -415,7 +419,7 @@ convert_line(const char *in_line, char *out_line)
     return;
 }
 
-static void
+staticfn void
 deliver_by_pline(const char *str)
 {
     char in_line[BUFSZ], out_line[BUFSZ];
@@ -431,7 +435,7 @@ deliver_by_pline(const char *str)
     }
 }
 
-static void
+staticfn void
 deliver_by_window(const char *msg, int how)
 {
     char in_line[BUFSZ], out_line[BUFSZ];
@@ -451,16 +455,16 @@ deliver_by_window(const char *msg, int how)
     destroy_nhwindow(datawin);
 }
 
-static boolean
+staticfn boolean
 skip_pager(boolean common UNUSED)
 {
     /* WIZKIT: suppress plot feedback if starting with quest artifact */
-    if (gp.program_state.wizkit_wishing)
+    if (program_state.wizkit_wishing)
         return TRUE;
     return FALSE;
 }
 
-static boolean
+staticfn boolean
 com_pager_core(
     const char *section,
     const char *msgid,
@@ -475,7 +479,7 @@ com_pager_core(
     lua_State *L;
     char *text = NULL, *synopsis = NULL, *fallback_msgid = NULL;
     boolean res = FALSE;
-    nhl_sandbox_info sbi = {NHL_SB_SAFE, 0, 0, 0};
+    nhl_sandbox_info sbi = {NHL_SB_SAFE, 1*1024*1024, 0, 1*1024*1024};
 
     if (skip_pager(TRUE))
         return FALSE;
@@ -636,12 +640,12 @@ qt_montype(void)
 
     if (rn2(5)) {
         qpm = gu.urole.enemy1num;
-        if (qpm != NON_PM && rn2(5) && !(gm.mvitals[qpm].mvflags & G_GENOD))
+        if (qpm != NON_PM && rn2(5) && !(svm.mvitals[qpm].mvflags & G_GENOD))
             return &mons[qpm];
         return mkclass(gu.urole.enemy1sym, 0);
     }
     qpm = gu.urole.enemy2num;
-    if (qpm != NON_PM && rn2(5) && !(gm.mvitals[qpm].mvflags & G_GENOD))
+    if (qpm != NON_PM && rn2(5) && !(svm.mvitals[qpm].mvflags & G_GENOD))
         return &mons[qpm];
     return mkclass(gu.urole.enemy2sym, 0);
 }
@@ -658,5 +662,7 @@ deliver_splev_message(void)
         gl.lev_message = NULL;
     }
 }
+
+#undef QTEXT_FILE
 
 /*questpgr.c*/

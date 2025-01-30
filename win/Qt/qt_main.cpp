@@ -764,7 +764,11 @@ NetHackQtMainWindow::NetHackQtMainWindow(NetHackQtKeyBuffer& ks) :
                 if (actchar[0]) {
                     QString name = menuitem;
                     QAction *action = item[i].menu->addAction(name);
-                    action->setData(actchar);
+#if QT_VERSION < 0x060000
+		    action->setData(actchar);
+#else
+		    action->setData(QString(actchar));
+#endif
                 }
 	    } else {
 		item[i].menu->addSeparator();
@@ -877,17 +881,14 @@ NetHackQtMainWindow::NetHackQtMainWindow(NetHackQtKeyBuffer& ks) :
     int w=screensize.width()-10; // XXX arbitrary extra space for frame
     int h=screensize.height()-50;
 
-    int maxwn;
-    int maxhn;
-    if (qt_tilewidth != NULL) {
-	maxwn = atoi(qt_tilewidth) * COLNO + 10;
-    } else {
-	maxwn = 1400;
-    }
-    if (qt_tileheight != NULL) {
-	maxhn = atoi(qt_tileheight) * ROWNO * 6/4;
-    } else {
-	maxhn = 1024;
+    int maxwn = 1400;
+    int maxhn = 1024;
+    if (qt_settings != NULL) {
+        auto glyphs = &qt_settings->glyphs();
+        if (glyphs != NULL) {
+            maxwn = glyphs->width() * (COLNO + 1);
+            maxhn = glyphs->height() * ROWNO * 6/4 + glyphs->height() * 10;
+        }
     }
 
     // Be exactly the size we want to be - full map...
@@ -1014,7 +1015,7 @@ bool NetHackQtMainWindow::ok_for_command()
      * FIXME: it would be much better to gray-out inapplicable entries
      * when popping up a command menu instead of needing this.
      */
-    if (::gp.program_state.input_state != commandInp) {
+    if (::program_state.input_state != commandInp) {
         NetHackQtBind::qt_nhbell();
         // possibly call doKeys("\033"); here?
         return false;
@@ -1058,7 +1059,7 @@ void NetHackQtMainWindow::doQuit(bool)
     // in case someone wants to change that
 #ifdef MACOS
     QString info = nh_qsprintf("This will end your xNetHack session.%s",
-                 !gp.program_state.something_worth_saving ? ""
+                 !program_state.something_worth_saving ? ""
                  : "\n(Cancel quitting and use the Save command"
                    "\nto save your current game.)");
     /* this is similar to closeEvent but the details are different;
@@ -1076,7 +1077,7 @@ void NetHackQtMainWindow::doQuit(bool)
         break; // return to game
     case 1:
         // quit -- bypass the prompting preformed by done2()
-        gp.program_state.stopprint++;
+        program_state.stopprint++;
         ::done(QUIT);
         /*NOTREACHED*/
         break;
@@ -1405,7 +1406,7 @@ void NetHackQtMainWindow::keyPressEvent(QKeyEvent* event)
 void NetHackQtMainWindow::closeEvent(QCloseEvent *e UNUSED)
 {
     int ok = 0;
-    if ( gp.program_state.something_worth_saving ) {
+    if ( program_state.something_worth_saving ) {
         /* this used to offer "Save" and "Cancel"
            but cancel (ignoring the close attempt) won't work
            if user has clicked on the window's Close button */
@@ -1420,7 +1421,7 @@ void NetHackQtMainWindow::closeEvent(QCloseEvent *e UNUSED)
         case 1:
             // quit -- bypass the prompting preformed by done2()
             ok = 1;
-            gp.program_state.stopprint++;
+            program_state.stopprint++;
             ::done(QUIT);
             /*NOTREACHED*/
             break;
@@ -1455,7 +1456,7 @@ void NetHackQtMainWindow::ShowIfReady()
 	} else {
 	    layout();
 	}
-	showMaximized();
+	showNormal();
     } else if (isVisible()) {
 	hide();
     }

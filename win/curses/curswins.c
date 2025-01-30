@@ -9,7 +9,10 @@
 #include "curses.h"
 #include "hack.h"
 #include "wincurs.h"
+#include "cursinit.h"
+#include "cursmisc.h"
 #include "curswins.h"
+#include "cursstat.h"
 
 /* Window handling for curses interface */
 
@@ -21,8 +24,11 @@ typedef struct nhw {
     int width;                  /* Usable width not counting border */
     int height;                 /* Usable height not counting border */
     int x;                      /* start of window on terminal (left) */
-    int y;                      /* start of window on termial (top) */
+    int y;                      /* start of window on terminal (top) */
     int orientation;            /* Placement of window relative to map */
+    boolean clr_inited;         /* fg/bg/colorpair inited? */
+    int fg, bg;                 /* foreground, background color index */
+    int colorpair;              /* color pair of fg, bg */
     boolean border;             /* Whether window has a visible border */
 } nethack_window;
 
@@ -52,7 +58,7 @@ static void clear_map(void);
 /* Create a window with the specified size and orientation */
 
 WINDOW *
-curses_create_window(int width, int height, orient orientation)
+curses_create_window(int wid, int width, int height, orient orientation)
 {
     int mapx = 0, mapy = 0, maph = 0, mapw = 0;
     int startx = 0;
@@ -63,7 +69,7 @@ curses_create_window(int width, int height, orient orientation)
 
     if ((orientation == UP) || (orientation == DOWN) ||
         (orientation == LEFT) || (orientation == RIGHT)) {
-        if (gi.invent || (gm.moves > 1)) {
+        if (svm.moves > 0) {
             map_border = curses_window_has_border(MAP_WIN);
             curses_get_window_xy(MAP_WIN, &mapx, &mapy);
             curses_get_window_size(MAP_WIN, &maph, &mapw);
@@ -92,13 +98,14 @@ curses_create_window(int width, int height, orient orientation)
     switch (orientation) {
     default:
         impossible("curses_create_window: Bad orientation");
+        FALLTHROUGH;
         /*FALLTHRU*/
     case CENTER:
         startx = (term_cols / 2) - (width / 2);
         starty = (term_rows / 2) - (height / 2);
         break;
     case UP:
-        if (gi.invent || (gm.moves > 1)) {
+        if (svm.moves > 0) {
             startx = (mapw / 2) - (width / 2) + mapx + mapb_offset;
         } else {
             startx = 0;
@@ -107,7 +114,7 @@ curses_create_window(int width, int height, orient orientation)
         starty = mapy + mapb_offset;
         break;
     case DOWN:
-        if (gi.invent || (gm.moves > 1)) {
+        if (svm.moves > 0) {
             startx = (mapw / 2) - (width / 2) + mapx + mapb_offset;
         } else {
             startx = 0;
@@ -123,7 +130,7 @@ curses_create_window(int width, int height, orient orientation)
         starty = term_rows - height;
         break;
     case RIGHT:
-        if (gi.invent || (gm.moves > 1)) {
+        if (svm.moves > 0) {
             startx = (mapw + mapx + (mapb_offset * 2)) - width;
         } else {
             startx = term_cols - width;
@@ -142,24 +149,83 @@ curses_create_window(int width, int height, orient orientation)
     }
 
     win = newwin(height, width, starty, startx);
-    curses_toggle_color_attr(win, DIALOG_BORDER_COLOR, NONE, ON);
+
+    if (curses_is_text(wid))
+        wid = TEXT_WIN;
+    else if (curses_is_menu(wid))
+        wid = MENU_WIN;
+
+    if (nhwins[wid].clr_inited < 1)
+        curses_toggle_color_attr(win, DIALOG_BORDER_COLOR, NONE, ON);
     box(win, 0, 0);
-    curses_toggle_color_attr(win, DIALOG_BORDER_COLOR, NONE, OFF);
+    if (nhwins[wid].clr_inited < 1)
+        curses_toggle_color_attr(win, DIALOG_BORDER_COLOR, NONE, OFF);
     return win;
 }
 
+int
+curses_win_clr_inited(int wid)
+{
+    if (curses_is_text(wid)) {
+        wid = TEXT_WIN;
+    } else if (curses_is_menu(wid)) {
+        wid = MENU_WIN;
+    }
+    return nhwins[wid].clr_inited;
+}
+
+void
+curses_set_wid_colors(int wid, WINDOW *win)
+{
+    if (wid == TEXT_WIN || curses_is_text(wid)) {
+        wid = TEXT_WIN;
+        if (!nhwins[wid].clr_inited)
+            curses_parse_wid_colors(wid, iflags.wcolors[wcolor_text].fg,
+                                    iflags.wcolors[wcolor_text].bg);
+    } else if (wid == MENU_WIN || curses_is_menu(wid)) {
+        wid = MENU_WIN;
+        if (!nhwins[wid].clr_inited)
+            curses_parse_wid_colors(wid, iflags.wcolors[wcolor_menu].fg,
+                                    iflags.wcolors[wcolor_menu].bg);
+    }
+    /* FIXME: colors and nhwins[] entry for perm invent window */
+    if (nhwins[wid].clr_inited > 0) {
+        wbkgd(win ? win : nhwins[wid].curwin,
+              COLOR_PAIR(nhwins[wid].colorpair));
+    }
+}
 
 /* Erase and delete curses window, and refresh standard windows */
 
 void
 curses_destroy_win(WINDOW *win)
 {
-    werase(win);
-    wrefresh(win);
+    int mapwidth = 0, winwidth, dummyht;
+
+    /*
+     * In case map is narrower than the space alloted for it, if we
+     * are destroying a popup window and it is wider than the map,
+     * erase the popup first.  It probably has overwritten some of
+     * the next-to-map empty space.  If we don't clear that now, the
+     * base window will remember it and redisplay it during refreshes.
+     *
+     * Note: since we almost never destroy non-popups, we don't really
+     * need to determine whether 'win' is one.  Overhead for unnecessary
+     * erasure is negligible.
+     */
+    getmaxyx(win, dummyht, winwidth); /* macro, assigns to its args */
+    if (mapwin)
+        getmaxyx(mapwin, dummyht, mapwidth);
+    if (winwidth > mapwidth) {
+        werase(win);
+        wnoutrefresh(win);
+    }
+
     delwin(win);
     if (win == activemenu)
         activemenu = NULL;
     curses_refresh_nethack_windows();
+    nhUse(dummyht);
 }
 
 
@@ -175,12 +241,17 @@ curses_refresh_nethack_windows(void)
     map_window = curses_get_nhwin(MAP_WIN);
     inv_window = curses_get_nhwin(INV_WIN);
 
-    if ((gm.moves <= 1) && !gi.invent) {
+    if (!iflags.window_inited) {
+        return;
+    }
+
+    if (svm.moves == 0) {
         /* Main windows not yet displayed; refresh base window instead */
         touchwin(stdscr);
         refresh();
     } else {
         if (status_window != NULL) {
+            curses_set_wid_colors(STATUS_WIN, NULL);
             touchwin(status_window);
             wnoutrefresh(status_window);
         }
@@ -189,6 +260,7 @@ curses_refresh_nethack_windows(void)
             wnoutrefresh(map_window);
         }
         if (message_window != NULL) {
+            curses_set_wid_colors(MESSAGE_WIN, NULL);
             touchwin(message_window);
             wnoutrefresh(message_window);
         }
@@ -215,12 +287,74 @@ curses_get_nhwin(winid wid)
     return nhwins[wid].curwin;
 }
 
+boolean
+parse_hexstr(char *colorbuf, int *red, int *green, int *blue)
+{
+    int len = colorbuf ? strlen(colorbuf) : 0;
+
+    if (len == 7 && colorbuf[0] == '#') {
+        char tmpbuf[16];
+
+        Sprintf(tmpbuf, "0x%c%c", colorbuf[1], colorbuf[2]);
+        *red = strtol(tmpbuf, NULL, 0);
+        Sprintf(tmpbuf, "0x%c%c", colorbuf[3], colorbuf[4]);
+        *green = strtol(tmpbuf, NULL, 0);
+        Sprintf(tmpbuf, "0x%c%c", colorbuf[5], colorbuf[6]);
+        *blue = strtol(tmpbuf, NULL, 0);
+        return TRUE;
+    }
+    return FALSE;
+}
+
+void
+curses_parse_wid_colors(int wid, char *fg, char *bg)
+{
+
+    if (curses_is_text(wid)) {
+        wid = TEXT_WIN;
+    } else if (curses_is_menu(wid)) {
+        wid = MENU_WIN;
+    }
+
+    if (nhwins[wid].clr_inited)
+        return;
+
+    int nh_fg = fg ? match_str2clr(fg, TRUE) : CLR_MAX;
+    int nh_bg = bg ? match_str2clr(bg, TRUE) : CLR_MAX;
+    int r, g, b;
+
+    if (nh_fg == CLR_MAX) {
+        if (fg && parse_hexstr(fg, &r, &g, &b)) {
+            nh_fg = curses_init_rgb(r, g, b);
+        } else {
+            nh_fg = -1;
+        }
+    }
+    if (nh_bg == CLR_MAX) {
+        if (bg && parse_hexstr(bg, &r, &g, &b)) {
+            nh_bg = curses_init_rgb(r, g, b);
+        } else {
+            nh_bg = -1;
+        }
+    }
+
+    nhwins[wid].fg = nh_fg;
+    nhwins[wid].bg = nh_bg;
+    if (nh_fg == -1 || nh_bg == -1) {
+        nhwins[wid].clr_inited = -1;
+    } else {
+        nhwins[wid].colorpair = curses_init_pair(nh_fg, nh_bg);
+        nhwins[wid].clr_inited = 1;
+    }
+}
+
 
 /* Add curses window pointer and window info to list for given NetHack winid */
 
 void
-curses_add_nhwin(winid wid, int height, int width, int y, int x,
-                 orient orientation, boolean border)
+curses_add_nhwin(
+    winid wid, int height, int width, int y, int x,
+    orient orientation, boolean border)
 {
     WINDOW *win;
     int real_width = width;
@@ -239,6 +373,9 @@ curses_add_nhwin(winid wid, int height, int width, int y, int x,
     nhwins[wid].x = x;
     nhwins[wid].y = y;
     nhwins[wid].orientation = orientation;
+    nhwins[wid].fg = nhwins[wid].bg = 0;
+    nhwins[wid].colorpair = -1;
+    nhwins[wid].clr_inited = 0;
 
     if (border) {
         real_width += 2;        /* leave room for bounding box */
@@ -246,13 +383,20 @@ curses_add_nhwin(winid wid, int height, int width, int y, int x,
     }
 
     win = newwin(real_height, real_width, y, x);
+    nhwins[wid].curwin = win;
 
     switch (wid) {
     case MESSAGE_WIN:
         messagewin = win;
+        curses_parse_wid_colors(wid, iflags.wcolors[wcolor_message].fg,
+                                iflags.wcolors[wcolor_message].bg);
+        curses_set_wid_colors(wid, NULL);
         break;
     case STATUS_WIN:
         statuswin = win;
+        curses_parse_wid_colors(wid, iflags.wcolors[wcolor_status].fg,
+                                iflags.wcolors[wcolor_status].bg);
+        curses_set_wid_colors(wid, NULL);
         break;
     case MAP_WIN:
         mapwin = win;
@@ -264,7 +408,6 @@ curses_add_nhwin(winid wid, int height, int width, int y, int x,
         box(win, 0, 0);
     }
 
-    nhwins[wid].curwin = win;
 }
 
 
@@ -299,6 +442,7 @@ curses_add_wid(winid wid)
 void
 curses_refresh_nhwin(winid wid)
 {
+    curses_set_wid_colors(wid, NULL);
     wnoutrefresh(curses_get_nhwin(wid));
     doupdate();
 }
@@ -322,8 +466,10 @@ curses_del_nhwin(winid wid)
                    wid);
         return;
     }
-    delwin(nhwins[wid].curwin);
-    nhwins[wid].curwin = NULL;
+    if (nhwins[wid].curwin != NULL) {
+        delwin(nhwins[wid].curwin);
+        nhwins[wid].curwin = NULL;
+    }
     nhwins[wid].nhwin = -1;
 }
 
@@ -455,6 +601,10 @@ curses_get_window_size(winid wid, int *height, int *width)
 boolean
 curses_window_has_border(winid wid)
 {
+    if (curses_is_menu(wid))
+        wid = MENU_WIN;
+    else if (curses_is_text(wid))
+        wid = TEXT_WIN;
     return nhwins[wid].border;
 }
 
@@ -528,8 +678,9 @@ curses_puts(winid wid, int attr, const char *text)
         }
         Id = cg.zeroany;
         curses_add_nhmenu_item(wid, &nul_glyphinfo, &Id, 0, 0,
-                               attr, text, MENU_ITEMFLAGS_NONE);
+                               attr, NO_COLOR, text, MENU_ITEMFLAGS_NONE);
     } else {
+        curses_set_wid_colors(wid, NULL);
         waddstr(win, text);
         wnoutrefresh(win);
     }
@@ -549,6 +700,7 @@ curses_clear_nhwin(winid wid)
         clear_map();
     }
 
+    curses_set_wid_colors(wid, NULL);
     werase(win);
 
     if (border) {
@@ -564,6 +716,7 @@ curses_alert_win_border(winid wid, boolean onoff)
 
     if (!win || !curses_window_has_border(wid))
         return;
+    curses_set_wid_colors(wid, NULL);
     if (onoff)
         curses_toggle_color_attr(win, ALERT_BORDER_COLOR, NONE, ON);
     box(win, 0, 0);
@@ -598,26 +751,12 @@ is_main_window(winid wid)
 /* Unconditionally write a single character to a window at the given
 coordinates without a refresh.  Currently only used for the map. */
 
-static int
+/* convert nhcolor (fg) and framecolor (bg) to curses colorpair */
+int
 get_framecolor(int nhcolor, int framecolor)
 {
-    boolean hicolor = (COLORS >= 16), adj_framecolor = framecolor;
-    static int framecolors[16][8] = {
-        { 0, 16, 8, 32, 17, 40, 48, 0 },    { 1, 18, 9, 33, 19, 41, 49, 1 },
-        { 2, 20, 10, 34, 21, 42, 50, 2 },   { 3, 22, 11, 35, 23, 43, 51, 3 },
-        { 4, 24, 12, 36, 25, 44, 52, 4 },   { 5, 26, 13, 37, 27, 45, 53, 5 },
-        { 6, 28, 14, 38, 29, 46, 54, 6 },   { 0, 30, 15, 72, 31, 88, 56, 0 },
-        { 0, 30, 15, 39, 31, 47, 55, 0 },   { 1, 18, 9, 73, 19, 89, 57, 121 },
-        { 2, 20, 10, 74, 21, 90, 58, 122 }, { 2, 22, 11, 75, 23, 91, 59, 123 },
-        { 4, 24, 12, 76, 25, 44, 60, 124 }, { 5, 26, 13, 77, 27, 93, 61, 125 },
-        { 6, 28, 14, 78, 29, 94, 62, 126 }, { 0, 30, 15, 79, 31, 95, 63, 127 },
-    };
-
-    if (framecolor < 16 && framecolor >= 8)
-        adj_framecolor = framecolor - 8;
-    return ((nhcolor < (hicolor ? 16 : 8) && adj_framecolor < 8)
-                ? framecolors[nhcolor][adj_framecolor]
-                : nhcolor);
+    /* curses_toggle_color_attr() adds the +1 and takes care of COLORS < 16 */
+    return (16 * (framecolor % 8)) + (nhcolor % 16);
 }
 
 static void

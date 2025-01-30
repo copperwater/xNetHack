@@ -1,4 +1,4 @@
-/* NetHack 3.7	dungeon.h	$NHDT-Date: 1596498535 2020/08/03 23:48:55 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.39 $ */
+/* NetHack 3.7	dungeon.h	$NHDT-Date: 1685863327 2023/06/04 07:22:07 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.47 $ */
 /* Copyright (c) Stichting Mathematisch Centrum, Amsterdam, 1985. */
 /*-Copyright (c) Michael Allison, 2006. */
 /* NetHack may be freely redistributed.  See license for details. */
@@ -30,15 +30,6 @@ typedef struct s_level { /* special dungeon level element */
     d_flags flags;  /* type flags */
 } s_level;
 
-typedef struct stairway { /* basic stairway identifier */
-    coordxy sx, sy;         /* x / y location of the stair */
-    d_level tolev;        /* where does it go */
-    boolean up;           /* up or down? */
-    boolean isladder;     /* ladder or stairway? */
-    boolean u_traversed;  /* hero has traversed this stair */
-    struct stairway *next;
-} stairway;
-
 /* level region types */
 enum level_region_types {
     LR_DOWNSTAIR = 0,
@@ -47,7 +38,8 @@ enum level_region_types {
     LR_BRANCH,
     LR_TELE,
     LR_UPTELE,
-    LR_DOWNTELE
+    LR_DOWNTELE,
+    LR_MONGEN,
 };
 
 typedef struct dest_area { /* non-stairway level change identifier */
@@ -56,6 +48,14 @@ typedef struct dest_area { /* non-stairway level change identifier */
     coordxy nlx, nly;        /* outline of invalid area */
     coordxy nhx, nhy;        /* opposite corner of invalid area */
 } dest_area;
+
+/* teleportation exclusion zones in the level */
+typedef struct exclusion_zone {
+    xint16 zonetype; /* level_region_types */
+    coordxy lx, ly;
+    coordxy hx, hy;
+    struct exclusion_zone *next;
+} exclusion_zone;
 
 typedef struct dungeon {   /* basic dungeon identifier */
     char dname[24];        /* name of the dungeon (eg. "Hell") */
@@ -155,6 +155,7 @@ typedef struct branch {
 #define Inhell In_hell(&u.uz) /* now gehennom */
 #define In_main_gehennom(x) ((x)->dnum == gehennom_dnum)
 #define In_endgame(x) ((x)->dnum == astral_level.dnum)
+#define In_tutorial(x) ((x)->dnum == tutorial_dnum)
 #define In_cocytus(x) ((x)->dnum == asmodeus_level.dnum)
 #define In_abyss(x) ((x)->dnum == abyss_dnum)
 /* fiery hell: Inhell && !In_cocytus; icy hell: Inhell && In_cocytus
@@ -236,7 +237,8 @@ typedef struct mapseen {
         Bitfield(shoptype, 5);
     } feat;
     struct mapseen_flags {
-        Bitfield(unreachable, 1); /* can't get back to this level */
+        Bitfield(notreachable, 1); /* can't get back to this level */
+        Bitfield(forgot, 1);      /* player has forgotten about this level */
         Bitfield(knownbones, 1);  /* player aware of bones */
         Bitfield(oracle, 1);
         Bitfield(sokosolved, 1);
@@ -266,7 +268,7 @@ typedef struct mapseen {
     struct mapseen_rooms {
         Bitfield(seen, 1);
         Bitfield(untended, 1);         /* flag for shop without shk */
-    } msrooms[(MAXNROFROOMS + 1) * 2]; /* same size as gr.rooms[] */
+    } msrooms[(MAXNROFROOMS + 1) * 2]; /* same size as svr.rooms[] */
     /* dead heroes; might not have graves or ghosts */
     struct cemetery *final_resting_place; /* same as level.bonesinfo */
 } mapseen;

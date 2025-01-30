@@ -1,11 +1,11 @@
-# NetHack 3.7	Makefile.mingw32
+# NetHack 3.7	GNUmakefile
 # Copyright (c) 2022 by Feiyun Wang
 #-Copyright (c) 2022 by Michael Allison
 # NetHack may be freely redistributed.  See license for details.
 #
 #==============================================================================
 #
-#   Win32 Compilers Tested with this Makefile.mingw32:
+#   Win32 Compilers Tested with this GNUmakefile:
 #       mingw-w64
 #   from:
 #       https://sourceforge.net/p/mingw-w64/wiki2/GeneralUsageInstructions/
@@ -28,7 +28,7 @@
 # The default make target (so just typing 'mingw32-make').
 #
 
-default: install
+default: package
 
 #---------------------------------------------------------------
 # Where do you want the game to be built (which folder)?
@@ -54,15 +54,21 @@ SOUND_LIBRARIES = windsound
 # Do you want debug information in the executable?
 #
 
-DEBUGINFO = N
+DEBUGINFO = Y
+
+#
+#---------------------------------------------------------------
+# Required for CRASHREPORT (but doesn't work yet, so off).
+
+CRASHREPORT = N
 
 #
 #---------------------------------------------------------------
 # Do you have a connection to the internet available that you want
-# to utilize for obtaining prerequisite Lua source code and pdcurses source code
-#
+# to utilize for obtaining prerequisite Lua source code and pdcursesmod
+# source code. Defaults to Y.
 
-INTERNET_AVAILABLE = N
+INTERNET_AVAILABLE = Y
 
 #
 #---------------------------------------------------------------
@@ -91,12 +97,14 @@ GCC_EXTRA_WARNINGS = N
 #
 #==============================================================================
 
+$(info Using $(lastword $(MAKEFILE_LIST)))
+
 SKIP_NETHACKW = N
 USE_LUADLL = Y
 WANT_LUAC = N
 
 ifndef LUA_VERSION
-LUAVER=5.4.4
+LUAVER=5.4.6
 else
 LUAVER=$(LUA_VERSION)
 endif
@@ -110,6 +118,9 @@ ifeq "$(git)" "1"
 INTERNET_AVAILABLE=Y
 GIT_AVAILABLE=Y
 endif
+
+PDCURSES=pdcursesmod
+PDCURSESFLAGS = -DPDC_WIDE -DPDC_RGB
 
 #
 #==============================================================================
@@ -167,29 +178,29 @@ endif  # LUA_MAY_PROCEED
 # Now, pdcurses
 ifeq "$(INTERNET_AVAILABLE)" "Y"
 ifeq "$(GIT_AVAILABLE)" "Y"
-PDCURSES_TOP=../submodules/pdcurses
+PDCURSES_TOP=../submodules/$(PDCURSES)
 ADD_CURSES=Y
 else  # GIT_AVAILABLE
-PDCURSES_TOP=../lib/pdcurses
+PDCURSES_TOP=../lib/$(PDCURSES)
 ADD_CURSES=Y
 endif  # GIT_AVAILABLE
 else   # INTERNET_AVAILABLE is not Y below
-# Your Makefile settings to not allow pdcurses to be obtained by
+# Your Makefile settings to not allow $(PDCURSES) to be obtained by
 # git or by download). Check to see if it is available at one of
 # the expected locations already, with precedence given to ../submodules,
 # then ../lib.
 #
-ifneq ("$(wildcard ../submodules/pdcurses/curses.h)", "")
-PDCURSES_TOP=../submodules/pdcurses
+ifneq ("$(wildcard ../submodules/$(PDCURSES)/curses.h)", "")
+PDCURSES_TOP=../submodules/$(PDCURSES)
 ADD_CURSES=Y
-else ifneq ("$(wildcard ../lib/pdcurses/curses.h)", "")
-PDCURSES_TOP=../lib/pdcurses
+else ifneq ("$(wildcard ../lib/$(PDCURSES)/curses.h)", "")
+PDCURSES_TOP=../lib/$(PDCURSES)
 ADD_CURSES=Y
-endif  # pdcurses sources available somewhere
+endif  # $(PDCURSES) sources available somewhere
 
 ifeq "$(ADD_CURSES)" "Y"
-$(info Your Makefile settings do not allow pdcurses to be obtained by)
-$(info git or by download, but a copy of pdcurses was found in $(PDCURSES_TOP),)
+$(info Your Makefile settings do not allow $(PDCURSES) to be obtained by)
+$(info git or by download, but a copy of $(PDCURSES) was found in $(PDCURSES_TOP),)
 $(info so that will be used.)
 endif  # ADD_CURSES == Y
 endif  # INTERNET_AVAILABLE
@@ -202,11 +213,15 @@ ifeq "$(INTERNET_AVAILABLE)" "Y"
 ifeq "$(GIT_AVAILABLE)" "Y"
 GIT_HASH := $(shell echo `git rev-parse --verify HEAD` 2>&1)
 GIT_BRANCH := $(shell echo `git rev-parse --abbrev-ref HEAD` 2>&1)
+GIT_PREFIX := $(shell echo `git config nethack.substprefix` 2>&1)
 ifdef GIT_HASH
 GITHASH = -DNETHACK_GIT_SHA=\"$(GIT_HASH)\"
 endif
 ifdef GIT_BRANCH
 GITBRANCH = -DNETHACK_GIT_BRANCH=\"$(GIT_BRANCH)\"
+endif
+ifdef GIT_PREFIX
+GITPREFIX = -DNETHACK_GIT_PREFIX=\"$(GIT_PREFIX)\"
 endif
 endif
 endif
@@ -234,8 +249,9 @@ NHV=$(subst ",,$(NHV1))
 # TTY     - window port files (tty)
 # MSWIN   - window port files (win32)
 # WCURSES - window port files (curses)
+# WCHAIN  - window port files (chain)
 # WSHR    - Tile support files
-# SNDSYS  - sound suppport files for win32
+# SNDSYS  - sound support files for win32
 # QT      - QT window support files
 
 INCL    =../include
@@ -248,10 +264,13 @@ SNDSYS  =../sound/windsound
 MSWSYS  =../sys/windows
 TTY     =../win/tty
 MSWIN   =../win/win32
+WCHAIN  =../win/chain
 WCURSES =../win/curses
 WSHR    =../win/share
 QT      =../win/Qt
 SNDWAVDIR = ../sound/wav
+BinDir = ../binary
+PkgDir = ../package
 
 #
 #  Object directory.
@@ -317,15 +336,20 @@ else
 DLBFLG =
 endif
 
+
 ifeq "$(GCC_EXTRA_WARNINGS)" "Y"
 #
 # These match the warnings enabled on the linux.370 and macOS.370 hints builds
 #
-CFLAGSXTRA = -Wall -Wextra -Wno-missing-field-initializers -Wreturn-type \
-		-Wunused -Wformat -Wswitch -Wshadow -Wwrite-strings -pedantic \
-		-Wmissing-declarations -Wformat-nonliteral -Wunreachable-code \
-		-Wimplicit -Wimplicit-function-declaration -Wimplicit-int \
-		-Wmissing-prototypes -Wold-style-definition -Wstrict-prototypes
+CFLAGSXTRA = -Wall -Wextra -Wreturn-type -Wunused -Wswitch -Wshadow \
+	     -Wwrite-strings -pedantic -Wmissing-declarations \
+	     -Wunreachable-code -Wimplicit \
+	     -Wimplicit-function-declaration -Wimplicit-int \
+	     -Wmissing-prototypes -Wold-style-definition \
+	     -Wstrict-prototypes -Wnonnull -Wformat-overflow \
+	     -Wmissing-parameter-type -Wimplicit-fallthrough \
+	     -Wno-cast-function-type -Wno-format
+
 CPPFLAGSXTRA = -Wall -Wextra -Wno-missing-field-initializers -Wreturn-type \
 		-Wunused -Wformat -Wswitch -Wshadow -Wwrite-strings -pedantic \
 		-Wmissing-declarations -Wformat-nonliteral -Wunreachable-code
@@ -348,9 +372,9 @@ $(OBJ):
 
 CLEAN_DIR = $(GAMEDIR) $(OBJ)
 
-#===============-=================================================
+#=================================================================
 # LUA library
-# Source from http://www.lua.org/ftp/lua-5.4.4.tar.gz
+# Source from http://www.lua.org/ftp/lua-5.4.6.tar.gz
 #=================================================================
 
 OLUA = $(O)lua
@@ -409,7 +433,7 @@ CLEAN_FILE += $(LUATARGETS) $(LUAOBJS) $(OLUA)/lua.o $(OLUA)/luac.o
 NHLUAH = $(INCL)/nhlua.h
 
 $(NHLUAH):
-	echo "/* nhlua.h - generated by Makefile.mingw32 */" > $@
+	echo "/* nhlua.h - generated by GNUmakefile */" > $@
 	@echo "#include \"$(LUASRC)/lua.h\"" >> $@
 	@echo "LUA_API int (lua_error) (lua_State *L) NORETURN;" >>$@
 	@echo "#include \"$(LUASRC)/lualib.h\"" >> $@
@@ -425,6 +449,7 @@ CLEAN_FILE += $(NHLUAH)
 LUALIST = air Arc-fila Arc-filb Arc-goal Arc-loca Arc-strt \
 	asmodeus astral baalz Bar-fila Bar-filb Bar-goal \
 	Bar-loca Bar-strt bigrm-1 bigrm-10 bigrm-11 bigrm-2 \
+	bigrm-12 \
 	bigrm-3 bigrm-4 bigrm-5 bigrm-6 bigrm-7 bigrm-8 \
 	bigrm-9 castle Cav-fila Cav-filb Cav-goal Cav-loca \
 	Cav-strt dungeon earth fakewiz1 fakewiz2 fire \
@@ -448,6 +473,29 @@ LUALIST = air Arc-fila Arc-filb Arc-goal Arc-loca Arc-strt \
 LUAFILES = $(addprefix $(DAT)/, $(addsuffix .lua, $(LUALIST)))
 
 #==========================================
+# Hacklib
+#==========================================
+HACKLIBLIST = hacklib
+HACKLIBSRC = $(addprefix ../src/,$(addsuffix .c, $(HACKLIBLIST)))
+HL = $(O)hacklib
+HLHACKLIB = $(HL)/hacklib.a
+HLHACKLIBOBJS = $(addprefix $(HL)/, $(addsuffix .o, $(HACKLIBLIST)))
+HLTARGETS = $(HLHACKLIB) $(HLHACKLIBOBJS)
+
+$(HL)/hacklib.a: $(HLHACKLIBOBJS)
+	ar rcs $@ $^
+
+$(HL)/hacklib.o: $(HACKLIBSRC) | $(HL)	
+
+$(HL)/%.o: $(SRC)/%.c | $(HL)
+	$(cc) $(CFLAGSU) $< -o$@
+$(HL):
+	@mkdir -p $@
+
+CLEAN_DIR += $(HL)
+CLEAN_FILE += $(HLTARGETS)
+
+#==========================================
 # Makedefs
 #==========================================
 OM = $(O)makedefs
@@ -456,7 +504,7 @@ MTARGETS = $(U)makedefs.exe
 
 makedefs: $(MTARGETS)
 
-$(U)makedefs.exe: $(MOBJS)
+$(U)makedefs.exe: $(MOBJS) $(HLHACKLIB)
 	$(ld) $(LDFLAGS) $^ -o$@
 
 $(OM)/%.o: $(SRC)/%.c $(NHLUAH) | $(OM)
@@ -483,7 +531,7 @@ recover: $(RTARGETS)
 $(GAMEDIR)/recover.txt: $(DOC)/recover.txt | $(GAMEDIR)
 	cp $< $@
 
-$(GAMEDIR)/recover.exe: $(ROBJS) | $(GAMEDIR)
+$(GAMEDIR)/recover.exe: $(ROBJS) $(HLHACKLIB) | $(GAMEDIR)
 	$(ld) $(LDFLAGS) $^ -o$@
 
 $(OR)/recover.o: $(U)recover.c | $(OR)
@@ -498,35 +546,65 @@ CLEAN_FILE += $(RTARGETS) $(ROBJS)
 # PDCurses
 #==========================================
 ifeq "$(ADD_CURSES)" "Y"
-OP = $(O)pdcurses
-PDCOBJS = $(addprefix $(OP)/, addch.o addchstr.o addstr.o attr.o beep.o bkgd.o border.o \
-	  clear.o color.o debug.o delch.o deleteln.o getch.o getstr.o getyx.o \
-	  inch.o inchstr.o initscr.o inopts.o insch.o insstr.o \
-	  kernel.o keyname.o mouse.o move.o outopts.o overlay.o \
-	  pad.o panel.o pdcclip.o pdcdisp.o pdcgetsc.o pdckbd.o pdcscrn.o pdcsetsc.o pdcutil.o printw.o \
-	  refresh.o scanw.o scr_dump.o scroll.o slk.o termattr.o touch.o util.o window.o)
+PDCCOMMONSRC = addch addchstr addstr attr beep bkgd border clear \
+	color debug delch deleteln getch getstr getyx inch \
+	inchstr initscr inopts insch insstr kernel keyname \
+	mouse move outopts overlay pad panel printw refresh \
+	scanw scr_dump scroll slk termattr touch util window
+PDCCOMMONOBJS = $(addsuffix .o, $(PDCCOMMONSRC))
+
+OP = $(O)$(PDCURSES)
+PDCOBJS = $(addprefix $(OP)/, $(PDCCOMMONOBJS) \
+	  pdcclip.o pdcdisp.o pdcgetsc.o pdckbd.o pdcscrn.o pdcsetsc.o pdcutil.o)
 PDCSRC = $(PDCURSES_TOP)/pdcurses
 PDCWINCON = $(PDCURSES_TOP)/wincon
-PDCINCL = -I$(PDCURSES_TOP) -I$(PDCSRC) -I$(PDCWINCON)
-PDCLIB = $(O)pdcurses.a
+PDCINCL = -I$(PDCURSES_TOP) -I$(PDCSRC)
+PDCLIB = $(O)$(PDCURSES).a
 PDCDEP = $(PDCURSES_TOP)/curses.h
 
-pdcurses: $(PDCLIB)
+$(PDCURSES): $(PDCLIB)
 
 $(PDCLIB): $(PDCOBJS)
 	ar rcs $@ $^
 
 $(OP)/%.o: $(PDCSRC)/%.c | $(OP)
-	$(cc) $(CFLAGS) $(PDCINCL) -D_LIB $< -o$@
+	$(cc) $(CFLAGS) $(PDCURSESFLAGS) $(PDCINCL) -D_LIB $< -o$@
 
 $(OP)/%.o: $(PDCWINCON)/%.c | $(OP)
-	$(cc) $(CFLAGS) $(PDCINCL) -D_LIB $< -o$@
+	$(cc) $(CFLAGS) $(PDCURSESFLAGS) $(PDCINCL) -I$(PDCWINCON) -D_LIB $< -o$@
 
 $(OP):
 	@mkdir -p $@
 
 CLEAN_DIR += $(OP)
 CLEAN_FILE += $(PDCLIB) $(PDCOBJS)
+
+ifneq ("$(wildcard $(PDCURSES_TOP)/wingui/pdcwin.h)", "")
+# $(PDCURSES) in use; enable Curses graphics on NetHackW
+OPW = $(O)$(PDCURSES)w
+PDCWOBJS = $(addprefix $(OPW)/, $(PDCCOMMONOBJS) \
+	  pdcclip.o pdcdisp.o pdcgetsc.o pdckbd.o pdcscrn.o pdcsetsc.o pdcutil.o)
+PDCWINGUI = $(PDCURSES_TOP)/wingui
+PDCWLIB = $(O)$(PDCURSES)w.a
+
+$(PDCURSES)w: $(PDCWLIB)
+
+$(PDCWLIB): $(PDCWOBJS)
+	ar rcs $@ $^
+
+$(OPW)/%.o: $(PDCSRC)/%.c | $(OPW)
+	$(cc) $(CFLAGS) $(PDCURSESFLAGS) $(PDCINCL) -D_LIB $< -o$@
+
+$(OPW)/%.o: $(PDCWINGUI)/%.c | $(OPW)
+	$(cc) $(CFLAGS) $(PDCURSESFLAGS) $(PDCINCL) -I$(PDCWINGUI) -D_LIB $< -o$@
+
+$(OPW):
+	@mkdir -p $@
+
+CLEAN_DIR += $(OPW)
+CLEAN_FILE += $(PDCWLIB) $(PDCWOBJS)
+endif
+
 endif
 
 #==========================================
@@ -538,8 +616,8 @@ TTARGETS = $(U)tile2bmp.exe
 
 tile2bmp: $(TTARGETS)
 
-$(U)tile2bmp.exe: $(TOBJS)
-	$(ld) $(LDFLAGS) $^ -o$@
+$(U)tile2bmp.exe: $(TOBJS) $(HLHACKLIB)
+	$(ld) $(LDFLAGS) $(HLHACKLIB) $^ -o$@
 
 $(OT)/tiletxt.o: $(WSHR)/tilemap.c $(NHLUAH) | $(OT)
 	$(cc) $(CFLAGSU) -DTILETEXT $< -o$@
@@ -621,8 +699,8 @@ tilemap: $(SRC)/tile.c
 $(SRC)/tile.c: $(U)tilemap.exe
 	$<
 
-$(U)tilemap.exe: $(TMOBJS)
-	$(ld) $(LDFLAGS) $^ -o$@
+$(U)tilemap.exe: $(TMOBJS) $(HLHACKLIB)
+	$(ld) $(LDFLAGS) $(HLHACKLIB) $^ -o$@
 
 $(OTM)/tilemap.o: $(WSHR)/tilemap.c $(NHLUAH) | $(OTM)
 	$(cc) $(CFLAGSU) $< -o$@
@@ -675,8 +753,8 @@ DTARGETS = $(U)dlb.exe $(DAT_CLEAN) $(DLBLST) $(DLB)
 
 dlb: $(DTARGETS)
 
-$(U)dlb.exe: $(DLBOBJS)
-	$(ld) $(LDFLAGS) $^ -o$@
+$(U)dlb.exe: $(DLBOBJS) $(HLHACKLIB)
+	$(ld) $(LDFLAGS) $(HLHACKLIB) $^ -o$@
 
 $(ODLB)/%.o: $(SRC)/%.c $(NHLUAH) | $(ODLB)
 	$(cc) $(CFLAGSU) $< -o$@
@@ -749,17 +827,19 @@ ifeq "$(GIT_AVAILABLE)" "Y"
 fetchlua:
 	@if [ ! -f $(LUASRC)/lua.h ] ; then \
 	git submodule init ../submodules/lua && \
-	git submodule update --remote ../submodules/lua ; fi
+	git submodule update ../submodules/lua ; fi
+#	git submodule update --remote ../submodules/lua ; fi
 fetchpdcurses:
 	@if [ ! -f $(PDCURSES_TOP)/curses.h ] ; then \
-	git submodule init ../submodules/pdcurses && \
-	git submodule update --remote ../submodules/pdcurses ; fi
+	git submodule init ../submodules/$(PDCURSES) && \
+	git submodule update ../submodules/$(PDCURSES) ; fi
+#	git submodule update --remote ../submodules/$(PDCURSES) ; fi
 else  # GIT_AVAILABLE no
-CURLLUASRC=http://www.lua.org/ftp/lua-5.4.4.tar.gz
-CURLLUADST=lua-5.4.4.tar.gz
+CURLLUASRC=http://www.lua.org/ftp/lua-5.4.6.tar.gz
+CURLLUADST=lua-5.4.6.tar.gz
 
-CURLPDCSRC=https://github.com/wmcbrine/PDCurses/archive/refs/tags/3.9.zip
-CURLPDCDST=pdcurses.zip
+CURLPDCSRC=https://github.com/Bill-Gray/PDCursesMod/archive/refs/tags/v4.4.0.zip
+CURLPDCDST=$(PDCURSES).zip
 
 fetchlua:
 	@if [ ! -f $(LUASRC)/lua.h ] ; then \
@@ -774,8 +854,8 @@ fetchpdcurses:
 	@if [ ! -f $(PDCURSES_TOP)/curses.h ] ; then \
 	cd ../lib ; \
 	curl -L $(CURLPDCSRC) -o $(CURLPDCDST) ; \
-	mkdir -p pdcurses ; \
-	/c/Windows/System32/tar -C pdcurses --strip-components=1 -xvf $(CURLPDCDST) ; \
+	mkdir -p $(PDCURSES) ; \
+	/c/Windows/System32/tar -C $(PDCURSES) --strip-components=1 -xvf $(CURLPDCDST) ; \
 	cd ../src ; \
 	fi
 endif  # GIT_AVAILABLE
@@ -917,20 +997,22 @@ endif   # HAVE_SOUNDLIB
 #==========================================
 # nethackw
 #==========================================
-COREOBJS = $(addsuffix .o, allmain alloc apply artifact attrib ball bones botl cmd cppregex \
+COREOBJS = $(addsuffix .o, allmain alloc apply artifact attrib ball bones botl \
+	   calendar cmd coloratt cppregex \
 	   dbridge decl detect dig display dlb do do_name do_wear \
 	   dog dogmove dokick dothrow drawing dungeon \
 	   eat end engrave exper explode extralev files fountain \
-	   hack hacklib insight invent isaac64 light lock \
+	   getpos glyphs hack insight invent isaac64 light lock \
 	   mail makemon mcastu mdlib mhitm mhitu minion mklev mkmap mkmaze mkobj mkroom \
 	   mon mondata monmove monst mplayer mthrowu muse music \
 	   nhlobj nhlsel nhlua windsound o_init objects objnam options \
 	   pager pickup pline polyself potion pray priest quest questpgr \
-	   random read rect region restore rip rnd role rumors \
-	   safeproc save sfstruct shk shknam sit sounds sp_lev spell steal steed \
+	   random read rect region report restore rip rnd role rumors \
+	   safeproc save sfstruct shk shknam sit selvar sounds sp_lev \
+	   spell stairs steal steed strutil \
 	   symbols sys teleport timeout topten track trap u_init uhitm utf8map \
 	   vault version vision weapon were wield windmain windows windsys wizard \
-	   worm worn write zap $(SOUNDLIBOBJS))
+	   wizcmds worm worn write zap $(SOUNDLIBOBJS))
 
 CFLAGSW = $(CFLAGS) $(CFLAGSXTRA) $(SOUNDLIBINCL) $(COMMONDEF) $(DLBFLG) -DTILES -D_WINDOWS -DMSWIN_GRAPHICS -DSAFEPROCS -DNOTTYGRAPHICS $(SOUNDLIBDEFS)
 CPPFLAGSW = $(CFLAGS) $(CPPFLAGSXTRA) $(COMMONDEF) $(DLBFLG) -DTILES -D_WINDOWS -DMSWIN_GRAPHICS -DSAFEPROCS -DNOTTYGRAPHICS $(SOUNDLIBDEFS)
@@ -945,10 +1027,26 @@ BMPS = $(addprefix $(MSWIN)/, $(addsuffix .bmp, mnsel mnselcnt mnunsel petmark p
 NHWRES = $(ONHW)/winres.o
 NHWTARGETS = $(GAMEDIR)/NetHackW.exe
 
+ifneq "$(PDCWINGUI)" ""
+CFLAGSW += $(NHCURSESFLAGS)
+NHWONLY += $(addsuffix .o, cursdial cursinit cursinvt cursmain cursmesg cursmisc cursstat curswins guitty)
+endif
+
+# uncomment for WINCHAIN
+#COREOBJS += $(addsuffix .o, wc_chainin wc_chainout wc_trace)
+
+# XXX mess for testing libbacktrace
+ifeq "$(CRASHREPORT)" "Y"
+CFLAGS += -I/mingw64/include -g -static -gdwarf
+LIBS += -L/mingw64/lib -lbacktrace
+endif
+
 nethackw: $(NHWTARGETS)
 
-$(GAMEDIR)/NetHackW.exe: $(NHWOBJS) $(NHWRES) $(DATEW_O) $(LUALIB) | $(GAMEDIR)
-	$(ld) $(LDFLAGS) -mwindows $^ $(LIBS) -static -lstdc++ $(SOUNDLIBLIBS) -o$@
+$(GAMEDIR)/NetHackW.exe: $(NHWOBJS) $(NHWRES) $(DATEW_O) \
+			 $(LUALIB) $(HLHACKLIB) $(PDCWLIB) | $(GAMEDIR)
+	$(ld) $(LDFLAGS) -mwindows $^ $(HLHACKLIB) $(LIBS) -static -lstdc++ \
+		$(SOUNDLIBLIBS) -o$@
 
 $(ONHW)/%.o: $(SRC)/%.c $(NHLUAH) | $(ONHW)
 	$(cc) $(CFLAGSW) $< -o$@
@@ -962,7 +1060,7 @@ $(ONHW)/%.o: $(SRC)/%.c $(NHLUAH) | $(ONHW)
 #       was just recompiled. date.h is not used in the build of NetHack 3.7.
 #
 $(ONHW)/date.o: $(SRC)/date.c $(NHWOBJS) | $(ONHW)
-	$(cc) $(CFLAGSW) $(GITHASH) $(GITBRANCH) $< -o$@
+	$(cc) $(CFLAGSW) $(GITHASH) $(GITBRANCH) $(GITPREFIX) $< -o$@
 
 $(ONHW)/cppregex.o: $(SSYS)/cppregex.cpp $(NHLUAH) | $(ONHW)
 	$(cc) $(CPPFLAGSW) $< -o$@
@@ -986,11 +1084,18 @@ $(ONHW)/%.o: $(MSWSYS)/%.c $(NHLUAH) | $(ONHW)
 $(ONHW)/%.o: $(MSWIN)/%.c $(NHLUAH) | $(ONHW)
 	$(cc) $(CFLAGSW) $< -o$@
 
+$(ONHW)/%.o: $(WCHAIN)/%.c $(NHLUAH) | $(ONHW)
+	$(cc) $(CFLAGSW) $< -o$@
+
 $(ONHW)/%.o: $(WSHR)/%.c $(NHLUAH) | $(ONHW)
 	$(cc) $(CFLAGSW) $< -o$@
 
-$(NHWRES): $(MSWIN)/NetHackW.rc $(BMPS) $(WAV) $(MSWIN)/NetHack.ico | $(ONHW)
-	$(rc) --include-dir=$(MSWIN) $(RCFLAGS) --input=$< -o$@
+$(ONHW)/%.o: $(WCURSES)/%.c $(NHLUAH) | $(ONHW)
+	$(cc) $(CFLAGSW) $(PDCINCL) $< -o$@
+
+$(NHWRES): $(MSWIN)/NetHackW.rc $(MSWIN)/NetHackW.exe.manifest \
+		$(BMPS) $(WAV) $(MSWIN)/NetHack.ico | $(ONHW)
+	$(rc) --include-dir=$(MSWIN) $(RCFLAGS) -DVIA_MAKE --input=$< -o$@
 
 $(MSWIN)/tiles.bmp: $(U)tile2bmp.exe $(TILEFILES)
 	$< $@
@@ -1019,9 +1124,11 @@ ONH = $(O)nethack
 
 NHONLY = consoletty.o getline.o topl.o wintty.o
 ifeq "$(ADD_CURSES)" "Y"
-CFLAGSNH += -DCURSES_GRAPHICS -DCHTYPE_32 -DPDC_NCMOUSE
+NHCURSESFLAGS = -DCURSES_GRAPHICS -DCURSES_UNICODE $(PDCURSESFLAGS) -DPDC_NCMOUSE
+CFLAGSNH += $(NHCURSESFLAGS)
 NHONLY += $(addsuffix .o, cursdial cursinit cursinvt cursmain cursmesg cursmisc cursstat curswins)
 endif
+
 DATE_O  = $(addsuffix .o, $(addprefix $(ONH)/, date))
 
 NHOBJS = $(addprefix $(ONH)/, $(COREOBJS) $(NHONLY))
@@ -1030,11 +1137,35 @@ NHTARGET = $(GAMEDIR)/NetHack.exe
 
 nethack: $(NHTARGET)
 
-$(GAMEDIR)/NetHack.exe: $(NHOBJS) $(NHRES) $(DATE_O) $(LUALIB) $(PDCLIB) $(SOUNDLIBLIBS) | $(GAMEDIR)
-	$(ld) $(LDFLAGS) -mconsole $^ $(LIBS) -static -lstdc++ -o$@
+$(GAMEDIR)/NetHack.exe: $(NHOBJS) $(NHRES) $(DATE_O) $(LUALIB) $(PDCLIB) $(HLHACKLIB) \
+	$(SOUNDLIBLIBS) | $(GAMEDIR)
+	$(ld) $(LDFLAGS) -mconsole $^ $(HLHACKLIB) $(LIBS) -static -lstdc++ -o$@
 
 $(ONH)/%.o: $(SRC)/%.c $(NHLUAH) | $(ONH)
 	$(cc) $(CFLAGSNH) $< -o$@
+
+#==========================================
+# package
+#==========================================
+TARGET_CPU = x64
+NHV=370
+PKGFILES = nethackrc.template Guidebook.txt license NetHack.exe NetHack.txt \
+        NetHackW.exe opthelp nhdat370 record symbols sysconf.template
+FILESTOZIP = $(addprefix $(GAMEDIR)/, $(PKGFILES))
+MAINZIP = $(PkgDir)/nethack-$(NHV)-win-$(TARGET_CPU)-msys2.zip
+
+package: binary $(FILESTOZIP) $(MAINZIP)
+       @echo NetHack Windows package created: $(MAINZIP)
+
+$(MAINZIP): $(FILESTOZIP) | $(PkgDir)
+	/c/Windows/System32/tar -a -cf $(MAINZIP) -C $(GAMEDIR) $(PKGFILES)
+	@echo NetHack Windows package created: $(MAINZIP)
+
+$(PkgDir):
+	@mkdir -p $@
+
+CLEAN_DIR += $(PkgDir)
+CLEAN_FILE += $(MAINZIP)
 
 #       In NetHack 3.7, date.c must be recompiled after any other file is compiled,
 #       otherwise the game internal build timestamp (and potentially git hash)
@@ -1045,7 +1176,7 @@ $(ONH)/%.o: $(SRC)/%.c $(NHLUAH) | $(ONH)
 #       was just recompiled. date.h is not used in the build of NetHack 3.7.
 #
 $(ONH)/date.o: $(SRC)/date.c $(NHOBJS) $(NHRES) | $(ONH)
-	$(cc) $(CFLAGSNH) $(GITHASH) $(GITBRANCH) $< -o$@
+	$(cc) $(CFLAGSNH) $(GITHASH) $(GITBRANCH) $(GITPREFIX) $< -o$@
 
 $(ONH)/cppregex.o: $(SSYS)/cppregex.cpp $(NHLUAH) | $(ONH)
 	$(cc) $(CPPFLAGSNH) $< -o$@
@@ -1067,6 +1198,9 @@ $(ONH)/%.o: $(MSWSYS)/%.c $(NHLUAH) | $(ONH)
 	$(cc) $(CFLAGSNH) $< -o$@
 
 $(ONH)/%.o: $(MSWIN)/%.c $(NHLUAH) | $(ONH)
+	$(cc) $(CFLAGSNH) $< -o$@
+
+$(ONH)/%.o: $(WCHAIN)/%.c $(NHLUAH) | $(ONH)
 	$(cc) $(CFLAGSNH) $< -o$@
 
 $(ONH)/%.o: $(WSHR)/%.c $(NHLUAH) | $(ONH)
@@ -1091,7 +1225,7 @@ CLEAN_FILE += $(NHTARGET) $(NHOBJS) $(NHRES)
 #=============== TARGETS ==================
 #==========================================
 
-.PHONY: all clean default install lua makedefs recover pdcurses \
+.PHONY: all clean default binary lua makedefs recover $(PDCURSES) $(PDCURSES)w \
 	tile2bmp tilemap uudecode dlb nethackw nethack tileutil \
 	fetchlua fetchpdcurses
 
@@ -1099,29 +1233,30 @@ CLEAN_FILE += $(NHTARGET) $(NHOBJS) $(NHRES)
 #  Everything
 #
 
-all: install
+all: package
 
-TO_INSTALL = $(GAMEDIR)/NetHack.exe $(RTARGETS) $(GAMEDIRDLLS) \
-	     $(addprefix $(GAMEDIR)/, $(addsuffix .template, sysconf .nethackrc) \
-	     Guidebook.txt NetHack.txt license opthelp record symbols)
+TO_BINARY = $(GAMEDIR)/NetHack.exe $(RTARGETS) $(GAMEDIRDLLS) \
+	     $(addprefix $(GAMEDIR)/, \
+	     $(addsuffix .template, sysconf nethackrc symbols) \
+	     Guidebook.txt NetHack.txt license opthelp record)
 
 ifeq "$(HAVE_SOUNDLIB)" "Y"
-TO_INSTALL += $(addprefix $(GAMEDIR)/, $(addsuffix .wav, $(WAVLIST)))
+TO_BINARY += $(addprefix $(GAMEDIR)/, $(addsuffix .wav, $(WAVLIST)))
 endif
 
 ifeq "$(USE_LUADLL)" "Y"
-TO_INSTALL += $(LUADLL)
+TO_BINARY += $(LUADLL)
 endif
 
 ifneq "$(SKIP_NETHACKW)" "Y"
-TO_INSTALL += $(GAMEDIR)/NetHackW.exe
+TO_BINARY += $(GAMEDIR)/NetHackW.exe
 endif
 
 ifeq "$(USE_DLB)" "Y"
-TO_INSTALL += $(DLB)
+TO_BINARY += $(DLB)
 endif
 
-install: fetchlua fetchpdcurses $(TO_INSTALL)
+binary: fetchlua fetchpdcurses $(TO_BINARY)
 ifdef CI_COMPILER
 	ls -l $(SRC)
 	ls -l $(DAT)
@@ -1137,7 +1272,7 @@ $(GAMEDIR)/$(FMODLIBDLL): $(FMODLIBDIR)/$(FMODLIBDLL)
         cp $< $@
 endif
 
-$(GAMEDIR)/symbols: $(DAT)/symbols
+$(GAMEDIR)/symbols.template: $(DAT)/symbols
 	cp $< $@
 
 $(GAMEDIR)/NetHack.txt: $(DOC)/nethack.txt
@@ -1158,13 +1293,13 @@ $(GAMEDIR)/%: $(MSWSYS)/%
 $(GAMEDIR)/%: $(SNDWAVDIR)/%
 	cp $< $@
 
-CLEAN_FILE += $(TO_INSTALL)
+CLEAN_FILE += $(TO_BINARY)
 
 clean:
 	@-rm -f $(CLEAN_FILE)
 	@$(foreach dir, $(CLEAN_DIR), \
 		if [ -d $(dir) ] ; then rmdir -p --ignore $(dir) ; fi ; )
 
--include Makefile.mingw32.depend
+-include GNUmakefile.depend
 -include .depend
 # end of file

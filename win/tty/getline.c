@@ -1,4 +1,4 @@
-/* NetHack 3.7	getline.c	$NHDT-Date: 1596498343 2020/08/03 23:45:43 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.44 $ */
+/* NetHack 3.7	getline.c	$NHDT-Date: 1701285885 2023/11/29 19:24:45 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.59 $ */
 /* Copyright (c) Stichting Mathematisch Centrum, Amsterdam, 1985. */
 /*-Copyright (c) Michael Allison, 2006. */
 /* NetHack may be freely redistributed.  See license for details. */
@@ -28,23 +28,27 @@ extern char erase_char, kill_char; /* from appropriate tty.c file */
 /*
  * Read a line closed with '\n' into the array char bufp[BUFSZ].
  * (The '\n' is not stored. The string is closed with a '\0'.)
- * Reading can be interrupted by an escape ('\033') - now the
- * resulting string is "\033".
+ * Reading can be interrupted by an escape ('\033').  If there is already
+ * some text, it is removed and prompting continues as if from the start.
+ * However, if there is no text yet (or anymore) then "\033" is returned.
  */
 void
-tty_getlin(const char *query, register char *bufp)
+tty_getlin(const char *query, char *bufp)
 {
     suppress_history = FALSE;
     hooked_tty_getlin(query, bufp, (getlin_hook_proc) 0);
 }
 
 static void
-hooked_tty_getlin(const char *query, register char *bufp, getlin_hook_proc hook)
+hooked_tty_getlin(
+    const char *query,
+    char *bufp,
+    getlin_hook_proc hook)
 {
-    register char *obufp = bufp;
-    register int c;
+    char *obufp = bufp;
+    int c;
     struct WinDesc *cw = wins[WIN_MESSAGE];
-    boolean doprev = 0;
+    boolean doprev = FALSE;
 
     if (ttyDisplay->toplin == TOPLINE_NEED_MORE && !(cw->flags & WIN_STOP))
         more();
@@ -52,8 +56,16 @@ hooked_tty_getlin(const char *query, register char *bufp, getlin_hook_proc hook)
     ttyDisplay->toplin = TOPLINE_SPECIAL_PROMPT;
     ttyDisplay->inread++;
 
-    /* issue the prompt */
+    /*
+     * Issue the prompt.
+     *
+     * custompline() will call vpline() which calls flush_screen() which
+     * calls bot(). The core now disables bot() processing while inside
+     * getlin, so the screen won't be modified during whatever this prompt
+     * is for.
+     */
     custompline(OVERRIDE_MSGTYPE | SUPPRESS_HISTORY, "%s ", query);
+
 #ifdef EDIT_GETLIN
     /* bufp is input/output; treat current contents (presumed to be from
        previous getlin()) as default input */
@@ -67,7 +79,9 @@ hooked_tty_getlin(const char *query, register char *bufp, getlin_hook_proc hook)
     for (;;) {
         (void) fflush(stdout);
         Strcat(strcat(strcpy(gt.toplines, query), " "), obufp);
+        term_curs_set(1);
         c = pgetchar();
+        term_curs_set(0);
         if (c == '\033' || c == EOF) {
             if (c == '\033' && obufp[0] != '\0') {
                 obufp[0] = '\0';
@@ -87,30 +101,37 @@ hooked_tty_getlin(const char *query, register char *bufp, getlin_hook_proc hook)
             ttyDisplay->intr--;
             *bufp = 0;
         }
-        if (c == '\020') { /* ctrl-P */
-            if (iflags.prevmsg_window != 's') {
-                int sav = ttyDisplay->inread;
+        if (c == C('p')) { /* ctrl-P, doesn't honor rebinding #prevmsg cmd */
+            int sav = ttyDisplay->inread;
 
-                ttyDisplay->inread = 0;
+            ttyDisplay->inread = 0;
+            if (iflags.prevmsg_window == 's'
+                || (iflags.prevmsg_window == 'c' && !doprev)) {
+                /* msg_window:single, or msg_window:combination while it's
+                   behaving like msg_window:single */
+                if (!doprev)
+                    (void) tty_doprev_message(); /* need two initially */
                 (void) tty_doprev_message();
                 ttyDisplay->inread = sav;
+                doprev = TRUE;
+                continue;
+            } else {
+                /* msg_window:full or reverse, or msg_window:combination while
+                   it's behaving like msg_window:full */
+                (void) tty_doprev_message();
+                ttyDisplay->inread = sav;
+                doprev = FALSE;
                 tty_clear_nhwindow(WIN_MESSAGE);
                 cw->maxcol = cw->maxrow;
                 addtopl(query);
                 addtopl(" ");
                 *bufp = 0;
                 addtopl(obufp);
-            } else {
-                if (!doprev)
-                    (void) tty_doprev_message(); /* need two initially */
-                (void) tty_doprev_message();
-                doprev = 1;
-                continue;
             }
-        } else if (doprev && iflags.prevmsg_window == 's') {
+        } else if (doprev) {
             tty_clear_nhwindow(WIN_MESSAGE);
             cw->maxcol = cw->maxrow;
-            doprev = 0;
+            doprev = FALSE;
             addtopl(query);
             addtopl(" ");
             *bufp = 0;
@@ -195,7 +216,7 @@ hooked_tty_getlin(const char *query, register char *bufp, getlin_hook_proc hook)
         /* prevent next message from pushing current query+answer into
            tty message history */
         *gt.toplines = '\0';
-#ifdef DUMPLOG
+#ifdef DUMPLOG_CORE
     } else {
         /* needed because we've bypassed pline() */
         dumplogmsg(gt.toplines);
@@ -204,14 +225,14 @@ hooked_tty_getlin(const char *query, register char *bufp, getlin_hook_proc hook)
 }
 
 void
-xwaitforspace(register const char *s) /* chars allowed besides return */
+xwaitforspace(const char *s) /* chars allowed besides return */
 {
-    register int c, x = ttyDisplay ? (int) ttyDisplay->dismiss_more : '\n';
+    int c, x = ttyDisplay ? (int) ttyDisplay->dismiss_more : '\n';
 
     morc = 0;
     while (
 #ifdef HANGUPHANDLING
-        !gp.program_state.done_hup &&
+        !program_state.done_hup &&
 #endif
         (c = tty_nhgetch()) != EOF) {
         if ((c == '\n' || c == '\r') && !iflags.msg_is_alert)

@@ -1,4 +1,4 @@
-/* NetHack 3.7	pcmain.c	$NHDT-Date: 1596498282 2020/08/03 23:44:42 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.121 $ */
+/* NetHack 3.7	pcmain.c	$NHDT-Date: 1693359605 2023/08/30 01:40:05 $  $NHDT-Branch: keni-crashweb2 $:$NHDT-Revision: 1.133 $ */
 /* Copyright (c) Stichting Mathematisch Centrum, Amsterdam, 1985. */
 /*-Copyright (c) Derek S. Ray, 2015. */
 /* NetHack may be freely redistributed.  See license for details. */
@@ -12,8 +12,6 @@
 #include <signal.h>
 #endif
 
-#include <ctype.h>
-
 #if !defined(AMIGA) && !defined(__DJGPP__)
 #include <sys\stat.h>
 #else
@@ -22,12 +20,6 @@
 
 #ifdef __DJGPP__
 #include <unistd.h> /* for getcwd() prototype */
-#endif
-
-#if defined(MICRO) || defined(OS2)
-ATTRNORETURN void nethack_exit(int) NORETURN;
-#else
-#define nethack_exit exit
 #endif
 
 char *exepath(char *);
@@ -76,7 +68,7 @@ mingw_main(int argc, char *argv[])
 {
     boolean resuming;
 
-    early_init();
+    early_init(argc, argv);
     resuming = pcmain(argc, argv);
     moveloop(resuming);
     nethack_exit(EXIT_SUCCESS);
@@ -88,7 +80,7 @@ boolean
 pcmain(int argc, char *argv[])
 {
     NHFILE *nhfp;
-    register char *dir;
+    char *dir;
 #if defined(MSDOS)
     char *envp = NULL;
     char *sptr = NULL;
@@ -209,7 +201,7 @@ _CrtSetReportFile(_CRT_ASSERT, _CRTDBG_FILE_STDERR);*/
                 }
             }
 
-            /* okay so we have the overriding and definitive locaton
+            /* okay so we have the overriding and definitive location
             for sysconf, but only in the event that there is not a
             sysconf file there (for whatever reason), check a secondary
             location rather than abort. */
@@ -279,7 +271,7 @@ _CrtSetReportFile(_CRT_ASSERT, _CRTDBG_FILE_STDERR);*/
     }
 #endif
 
-#if defined(TOS) && defined(TEXTCOLOR)
+#if defined(TOS)
     if (iflags.BIOS && iflags.use_color)
         set_colors();
 #endif
@@ -411,19 +403,19 @@ _CrtSetReportFile(_CRT_ASSERT, _CRTDBG_FILE_STDERR);*/
  * overwritten without confirmation when a user starts up
  * another game with the same player name.
  */
-    Strcpy(gl.lock, gp.plname);
+    Strcpy(gl.lock, svp.plname);
     regularize(gl.lock);
     getlock();
 #else        /* What follows is !PC_LOCKING */
 #ifdef AMIGA /* We'll put the bones & levels in the user specified directory \
                 -jhsa */
-    Strcat(gl.lock, gp.plname);
+    Strcat(gl.lock, svp.plname);
     Strcat(gl.lock, ".99");
 #else
     /* I'm not sure what, if anything, is left here, but old MFLOPPY had
      * conflicts with set_lock_and_bones() in files.c.
      */
-    Strcpy(gl.lock, gp.plname);
+    Strcpy(gl.lock, svp.plname);
     Strcat(gl.lock, ".99");
     regularize(gl.lock); /* is this necessary? */
                       /* not compatible with full path a la AMIGA */
@@ -436,9 +428,9 @@ _CrtSetReportFile(_CRT_ASSERT, _CRTDBG_FILE_STDERR);*/
     if (!nhfp) {
         raw_print("Cannot create lock file");
     } else {
-        gh.hackpid = 1;
+        svh.hackpid = 1;
         if (nhfp->structlevel)
-            write(nhfp->fd, (genericptr_t) &gh.hackpid, sizeof(gh.hackpid));
+            write(nhfp->fd, (genericptr_t) &svh.hackpid, sizeof(svh.hackpid));
         close_nhfile(nhfp);
     }
 
@@ -549,11 +541,11 @@ process_options(int argc, char *argv[])
 #endif
         case 'u':
             if (argv[0][2])
-                (void) strncpy(gp.plname, argv[0] + 2, sizeof(gp.plname) - 1);
+                (void) strncpy(svp.plname, argv[0] + 2, sizeof(svp.plname) - 1);
             else if (argc > 1) {
                 argc--;
                 argv++;
-                (void) strncpy(gp.plname, argv[0], sizeof(gp.plname) - 1);
+                (void) strncpy(svp.plname, argv[0], sizeof(svp.plname) - 1);
             } else
                 raw_print("Player name expected after -u");
             break;
@@ -714,9 +706,16 @@ port_help(void)
 boolean
 authorize_wizard_mode(void)
 {
-    if (!strcmp(gp.plname, WIZARD_NAME))
+    if (!strcmp(svp.plname, WIZARD_NAME))
         return TRUE;
     return FALSE;
+}
+
+/* similar to above, validate explore mode access */
+boolean
+authorize_explore_mode(void)
+{
+    return TRUE; /* no restrictions on explore mode */
 }
 
 #ifdef EXEPATH

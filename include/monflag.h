@@ -68,6 +68,9 @@ enum ms_sounds {
 #define MR_POISON       0x20 /* resists poison */
 #define MR_ACID         0x40 /* resists acid */
 #define MR_STONE        0x80 /* resists petrification */
+/* NB: the above resistances correspond to the first 8 hero properties in
+   prop_types (FIRE_RES through STONE_RES), which can be converted to their
+   MR_foo equivalents with the macro res_to_mr() defined in prop.h */
 /* other resistances: magic, sickness */
 /* other conveyances: teleport, teleport control, telepathy */
 
@@ -204,7 +207,7 @@ enum ms_sounds {
    passed to mkclass() as if it dealt with mons[].geno bits */
 #define G_IGNORE        0x8000 /* for mkclass(), ignore G_GENOD|G_EXTINCT */
 
-/* for gm.mvitals[].mvflags (variant during game), along with G_NOCORPSE */
+/* for svm.mvitals[].mvflags (variant during game), along with G_NOCORPSE */
 #define G_KNOWN         0x04 /* have been encountered */
 #define G_GENOD         0x02 /* have been genocided */
 #define G_EXTINCT       0x01 /* population control; create no more */

@@ -22,6 +22,7 @@ static void curs_show_invt(WINDOW *);
 struct pi_line {
     char *invtxt;  /* class header or inventory item without letter prefix */
     attr_t c_attr; /* attribute for class headers */
+    int color;
     char letter;   /* inventory letter; accelerator if this was really a menu;
                     * used to distinguish item lines from header lines and for
                     * display (no selection possible) */
@@ -85,7 +86,10 @@ curs_update_invt(int arg)
     werase(win);
 
     if (!arg) {
-
+        /*
+         * 'arg'==0 means basic inventory_update():  [re-]populate and
+         * [re-]display the persistent inventory window.
+         */
         if (pi.array) /* previous data is obsolete */
             curs_purge_perminv_data(FALSE);
 
@@ -95,7 +99,13 @@ curs_update_invt(int arg)
         display_inventory(NULL, FALSE);
         curs_invt_updated(win);
 
-    } else { /* 'arg' is non-zero but otherwise unused */
+    } else {
+        /*
+         * 'arg'!=0 means #perminv command is providing the player
+         * with opportunity to scroll the already displayed persistent
+         * inventory window.  Aside from being non-zero, the value of
+         * 'arg' is ignored.
+         */
         int scrollingdone;
 
         /* previous data is still valid; let player interactively scroll it */
@@ -177,6 +187,7 @@ curs_scroll_invt(WINDOW *win UNUSED)
             res = 1;
             break;
         }
+        FALLTHROUGH;
         /*FALLTHRU*/
     case KEY_RIGHT:
     case KEY_NPAGE:
@@ -281,6 +292,7 @@ curs_add_invt(
     int linenum,      /* line index; 1..n rather than 0..n-1 */
     char accelerator, /* selector letter for items, 0 for class headers */
     attr_t attr,      /* curses attribute for headers, 0 for items */
+    int clr,          /* NetHack color for headers, NO_COLOR for items */
     const char *str)  /* formatted inventory item, without invlet prefix,
                        * or class header text */
 {
@@ -300,6 +312,7 @@ curs_add_invt(
     newelement.invtxt = dupstr(str);
     newelement.c_attr = attr; /* note: caller has already converted 'attr'
                                * from tty-style attribute to curses one */
+    newelement.color = clr;
     newelement.letter = accelerator;
     aptr[pi.inuseindx++] = newelement;
 
@@ -323,9 +336,12 @@ curs_show_invt(WINDOW *win)
     char accelerator, tmpbuf[BUFSZ];
     int attr, color;
     unsigned lineno, stroffset, widest, left_col, right_col,
-        first_shown = 0, last_shown = 0, item_count = 0;
+        first_shown = 0, last_shown = 0, item_count = 0, xtra_line = 0;
     int x, y, width, height, available_width,
-        border = curses_window_has_border(INV_WIN) ? 1 : 0;
+        border = curses_window_has_border(INV_WIN) ? 1 : 0,
+        /* we actually care about the topmost of message, map, or status
+           but either they all have borders or none do so just check map */
+        otherborder = curses_window_has_border(MAP_WIN) ? 1 : 0;
 
     x = border; /* same for every line; 1 if border, 0 otherwise */
 
@@ -334,6 +350,25 @@ curs_show_invt(WINDOW *win)
     left_col = pi.coloffset + 1;
     right_col = left_col + (unsigned) width - 1;
 
+    /*
+     * If there will be any blank lines left at the bottom, sometimes
+     * insert one blank line at the top.  If the first line is an item
+     * (via !sortpack) which will be obscured by the column indicator,
+     * or there is only one line (such as "not carrying anything") if
+     * that line would be at the very top aligned with the top border
+     * of another window (windowborders=3,4) because that looks odd.
+     * This only handles the single page case [because scrolling always
+     * fills pages beyond the first rather than just continuing from
+     * last line of preceding page, hence no blank line(s) at bottom].
+     */
+    if ((pi.array[0].letter && pi.inuseindx < (unsigned) height
+         && widest > (unsigned) width)
+        || (pi.inuseindx == 1 && otherborder && !border)) {
+        wmove(win, 1, x);
+        wprintw(win, "%.*s", width - 2 * border, "");
+        xtra_line = 1;
+    }
+
     for (lineno = 0; lineno < pi.rowoffset; ++lineno)
         if (pi.array[lineno].letter)
             ++item_count;
@@ -341,14 +376,16 @@ curs_show_invt(WINDOW *win)
     for (lineno = pi.rowoffset; lineno < pi.inuseindx; ++lineno) {
         str = pi.array[lineno].invtxt;
         accelerator = pi.array[lineno].letter;
-        attr = pi.array[lineno].c_attr;
-        color = NO_COLOR;
+        attr = pi.array[lineno].c_attr; /* already converted when stored */
+        color = pi.array[lineno].color;
+        if (color == NO_COLOR)
+            color = NONE;
 
         if (accelerator)
             ++item_count;
 
         /* Figure out where to draw the line */
-        y = (int) (lineno - pi.rowoffset) + border;
+        y = (int) (lineno + xtra_line - pi.rowoffset) + border;
         if (y - border >= height) { /* height already -2 for Top+Btm border */
             /* 'y' has grown too big; there are too many lines to fit */
             continue; /* skip, but still loop to update 'item_count' */
@@ -379,18 +416,9 @@ curs_show_invt(WINDOW *win)
             stroffset = pi_article_skip(str); /* to skip "a "/"an "/"the " */
             /* if/when scrolled right, invtxt for item lines gets shifted */
             stroffset += pi.coloffset;
-
-            /* only perform menu coloring on item entries, not subtitles */
-            if (iflags.use_menu_color) {
-                attr = 0;
-                get_menu_coloring(str, &color, (int *) &attr);
-                attr = curses_convert_attr(attr);
-            }
         }
 
         if (stroffset < strlen(str)) {
-            if (color == NO_COLOR)
-                color = NONE;
             curses_menu_color_attr(win, color, attr, ON);
             wprintw(win, "%.*s", available_width, str + stroffset);
             curses_menu_color_attr(win, color, attr, OFF);
@@ -400,10 +428,14 @@ curs_show_invt(WINDOW *win)
     } /* lineno loop */
 
     if (pi.inuseindx > (unsigned) height) {
-        /* some lines aren't shown; overwrite rightmost portion of
-           last line with something like "[1-24 of 30>"; right justified
-           so that the line might still show something useful; could be on
-           line of its own, in which case we need to erase that first */
+        /*
+         * More lines than will fit at one time so some lines aren't shown.
+         * Overwrite the rightmost portion of last line with something
+         * like "[1-24 of 30>" or "<7-30 of 30]" if we've already scrolled
+         * forward.  Right justified so that the line might still show
+         * something useful. It could be on a line of its own, in which
+         * case we need to erase that first.
+         */
         y = height - (1 - border);
         if ((unsigned) y == pi.inuseindx - pi.rowoffset) {
             wmove(win, y, x);
@@ -416,8 +448,14 @@ curs_show_invt(WINDOW *win)
         mvwaddstr(win, y, x + (width - (int) strlen(tmpbuf)), tmpbuf);
     }
     if (widest > (unsigned) width) {
-        /* some columns aren't shown; overwrite rightmost portion of
-           first line with something like "[1-25 of 40}" */
+        /*
+         * More columns than the persistent inventory window can fit so
+         * some columns aren't shown.  Overwrite the rightmost portion of
+         * first line with something like "[1-25 of 40}" or "{16-40 of 40]".
+         * For the usual case, that line will be an object class header
+         * so we won't be obscuring an item, but that might not be the
+         * situation on page 2 and definitely won't be if 'sortpack' is Off.
+         */
         Sprintf(tmpbuf, "%c%u-%u of %u%c",
                 (left_col > 1) ? '{' : '[',
                 left_col, right_col, widest,

@@ -3,15 +3,16 @@
 /* Copyright (c) Sean Hunt  2015.                                 */
 /* NetHack may be freely redistributed.  See license for details. */
 
-extern "C" {
-#include "config.h"
-#define CPPREGEX_C
-#include "extern.h"
-} // extern "C"
-
 #include <regex>
 #include <memory>
 #include <cstring>
+
+extern "C" {
+#include "config.h"
+#define CPPREGEX_C
+#include "nhregex.h"
+} // extern "C"
+
 
 extern "C" { // rest of file
 

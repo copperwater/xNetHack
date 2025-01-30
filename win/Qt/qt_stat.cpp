@@ -20,6 +20,7 @@
 //      varying number of icons (one or more, each paired with...)
 //      corresponding text (Alignment plus zero or more status conditions
 //        including Hunger if not "normal" and encumbrance if not "normal")
+//      and version description (text only) right justified (when enabled)
 //
 // The hitpoint bar spans the width of the status window when enabled.
 // Title and location are centered.
@@ -47,7 +48,7 @@
 //   with a separator between Cha:NN and it.  Time, when active, is
 //   placed after Gold.  Score, if enabled and active, is shown in the
 //   filler slot before Gold.  When there are no Conditions to display,
-//   there is an an invisible fake one (blank icon over blank text)
+//   there is an invisible fake one (blank icon over blank text)
 //   rendered in order to preserve the vertical space they need.
 //
 // FIXME:
@@ -59,11 +60,15 @@
 //  There are separate icons for Satiated and Hungry, but Weak, Fainting,
 //    and Fainted all share the Hungry one.  Weak should have its own,
 //    Fainting+Fainted should have another.  The current two depict
-//    plates with cutlery which is a bit of an anachronism.  Statiated
+//    plates with cutlery which is a bit of an anachronism.  Satiated
 //    could be replaced by a figure in profile with a bulging belly,
 //    Hungry similar but with a slightly concave belly, Weak either a
 //    collapsing figure or a much larger concavity or both, Fainting/
 //    Fainted a fully collapsed figure.
+//  If 'version' is being shown but gets squeezed by the cumulative width
+//    of conditions, the default clipping shows the center portion of the
+//    text string with beginning and end omitted.  We want to force the
+//    end of the string to be shown with only the beginning omitted.
 //
 // TODO:
 //  If/when status conditions become too wide for the status window, scale
@@ -138,6 +143,7 @@ NetHackQtStatusWindow::NetHackQtStatusWindow() :
     lev(this,"Lev"),          // 'other' conditions
     fly(this,"Fly"),
     ride(this,"Ride"),
+    vers(this,""),            // optional, right justified after 'conditions'
     hline1(this),             // separators
     hline2(this),
     hline3(this),
@@ -149,7 +155,8 @@ NetHackQtStatusWindow::NetHackQtStatusWindow() :
     alreadyfullhp(false),
     was_polyd(false),
     had_exp(false),
-    had_score(false)
+    had_score(false),
+    prev_versinfo(0U)
 {
     if (!qt_compact_mode) {
         int w = NetHackQtBind::mainWidget()->width();
@@ -195,6 +202,8 @@ NetHackQtStatusWindow::NetHackQtStatusWindow() :
     p_fly = QPixmap(fly_xpm);
     p_ride = QPixmap(ride_xpm);
 
+    p_vers = QPixmap(blank_xpm); // same all-background pixmap as blank2
+
     str.setIcon(p_str, "strength");
     dex.setIcon(p_dex, "dexterity");
     con.setIcon(p_con, "constitution");
@@ -220,6 +229,8 @@ NetHackQtStatusWindow::NetHackQtStatusWindow() :
     lev.setIcon(p_lev, "levitating");
     fly.setIcon(p_fly, "flying");
     ride.setIcon(p_ride, "riding");
+
+    vers.setIcon(p_vers); // used to align text-only version with conditions
 
     // separator lines
 #if __cplusplus >= 202002L
@@ -251,7 +262,7 @@ NetHackQtStatusWindow::NetHackQtStatusWindow() :
     vline2.setLineWidth(1);
     vline2.hide(); // padding to keep row 2 aligned with row 1, never shown
 
-    // set up last but shown first (above name) via layout below */
+    // when 'hitpointbar' is On, the bar gets drawn above name/title
     QHBoxLayout *hpbar = InitHitpointBar();
 
     // 'statuslines' takes a value of 2 or 3; we use 3 as a request to put
@@ -304,7 +315,7 @@ NetHackQtStatusWindow::NetHackQtStatusWindow() :
             statbox->addWidget(&time);
         }
     vbox->addLayout(statbox);
-    vbox->addWidget(&hline3); // separtor before Time+Score or Conditions
+    vbox->addWidget(&hline3); // separator before Time+Score or Conditions
     if (spreadout) {
         // when not condensed, put Time and Score on an extra row; since
         // they're both optionally displayed, their row might be empty
@@ -342,7 +353,15 @@ NetHackQtStatusWindow::NetHackQtStatusWindow() :
         condbox->addWidget(&lev);
         condbox->addWidget(&fly);
         condbox->addWidget(&ride);
-    condbox->setAlignment(Qt::AlignLeft | Qt::AlignVCenter);
+        condbox->setAlignment(Qt::AlignLeft | Qt::AlignVCenter);
+        // left justify conditions, whether 'vers' is present or absent
+        int stretch = 0;
+        condbox->addStretch(++stretch);       // stretch==1
+        // to right justify 'vers', use bigger stretch than condbox separator
+        condbox->addWidget(&vers, ++stretch,  // stretch==2
+                // text is below a blank icon, so bottom-aligned with the rest
+                // of the line with its text centered within that bottom area
+                           Qt::AlignRight | Qt::AlignVCenter);
     vbox->addLayout(condbox);
     setLayout(vbox);
 #endif
@@ -396,6 +415,7 @@ void NetHackQtStatusWindow::doUpdate()
     lev.setFont(normal);
     fly.setFont(normal);
     ride.setFont(normal);
+    vers.setFont(normal); // shouldn't need small font
 
     updateStats();
 }
@@ -496,6 +516,11 @@ void NetHackQtStatusWindow::resizeEvent(QResizeEvent*)
     lev.setGeometry(x,y,iw,lh); x+=iw;
     fly.setGeometry(x,y,iw,lh); x+=iw;
     ride.setGeometry(x,y,iw,lh); x+=iw;
+#if 0
+    // [not fully implemented; this big chunk of code is no longer used]
+    //X = [get version, set font, measure width of version string]
+    vers.setGeometry(width() - X, y, width(), lh); x=width();
+#endif
     x=0; y+=lh;
 #else
     // This is clumsy.  But QLayout objects are proving balky.
@@ -540,6 +565,7 @@ void NetHackQtStatusWindow::fadeHighlighting()
 
     //time.dissipateHighlight();
     score.dissipateHighlight();
+    //vers.dissipateHighlight(); // never gets highlighted
 
     hunger.dissipateHighlight();
     encumber.dissipateHighlight();
@@ -813,21 +839,36 @@ void NetHackQtStatusWindow::updateStats()
     if (Flying) ++k, fly.show(); else fly.hide();
     if (u.usteed) ++k, ride.show(); else ride.hide();
 
+    // version is optional; displayed to the right of conditions when present
+    if (::flags.showvers) {
+        // the value only changes if user modifies the 'versinfo' option
+        if (::flags.versinfo != prev_versinfo) {
+            char vbuf[80], *cvers = status_version(vbuf, sizeof vbuf, FALSE);
+            vers.setLabel(QString(cvers));
+            // FIXME: this shouldn't be necessary but without hide() before
+            // forthcoming show(), the new value isn't appearing
+            if (!vers.isHidden()) vers.hide();
+            prev_versinfo = ::flags.versinfo;
+        }
+        ++k, vers.show();
+    } else
+        vers.hide();
+
     if (Upolyd) {
 	buf = nh_capitalize_words(pmname(&mons[u.umonnum],
                                   ::flags.female ? FEMALE : MALE));
     } else {
-	buf = rank_of(u.ulevel, gp.pl_character[0], ::flags.female);
+	buf = rank_of(u.ulevel, svp.pl_character[0], ::flags.female);
     }
     QString buf2;
     char buf3[BUFSZ];
-    buf2 = nh_qsprintf("%s the %s", upstart(strcpy(buf3, gp.plname)),
+    buf2 = nh_qsprintf("%s the %s", upstart(strcpy(buf3, svp.plname)),
                        buf.toLatin1().constData());
     name.setLabel(buf2, NetHackQtLabelledIcon::NoNum, u.ulevel);
 
     if (!describe_level(buf3, 0)) {
 	Sprintf(buf3, "%s, level %d",
-                gd.dungeons[u.uz.dnum].dname, ::depth(&u.uz));
+                svd.dungeons[u.uz.dnum].dname, ::depth(&u.uz));
     }
     dlevel.setLabel(buf3);
 
@@ -925,10 +966,11 @@ void NetHackQtStatusWindow::updateStats()
     if (::flags.time) {
         // hypothetically Time could grow to enough digits to have trouble
         // fitting, but it's not worth worrying about
-        time.setLabel("Time:", (long) gm.moves);
+        time.setLabel("Time:", (long) svm.moves);
     } else {
         time.setLabel("");
     }
+
 #ifdef SCORE_ON_BOTL
     int score_toggled = !had_score ^ !::flags.showscore;
     if (::flags.showscore) {
@@ -1023,6 +1065,9 @@ void NetHackQtStatusWindow::updateStats()
             fly.setCompareMode(NeitherIsBetter);
 	ride.highlightWhenChanging();
             ride.setCompareMode(NeitherIsBetter);
+        // not a true status condition; doesn't change (unless 'showvers'
+        // gets toggled or 'versinfo' is modified) so doesn't get highlighted
+        vers.setCompareMode(NoCompare);
     }
 }
 

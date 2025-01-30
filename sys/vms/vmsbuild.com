@@ -1,12 +1,8 @@
 $ ! vms/vmsbuild.com -- compile and link NetHack 3.7.*			[pr]
 $	version_number = "3.7.0"
-$ ! $NHDT-Date: 1609347486 2020/12/30 16:58:06 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.35 $
+$ ! $NHDT-Date: 1687541093 2023/06/23 17:24:53 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.39 $
 $ ! Copyright (c) 2018 by Robert Patrick Rankin
 $ ! NetHack may be freely redistributed.  See license for details.
-$
-$ luaver = "546"
-$ luadotver = "5.4.6"
-$ luaunderver = "5_4_6"
 $ !
 $ ! usage:
 $ !   $ set default [.src]	!or [-.-.src] if starting from [.sys.vms]
@@ -17,7 +13,7 @@ $ !     compiler-option :  either "VSIC", "VAXC", "DECC",
 $ !                        "GNUC" or "" or "fetchlua" !default in 3.7 is VSIC
 $ !	link-option	:  either "SHARE[able]" or "LIB[rary]"	!default SHARE
 $ !	cc-switches	:  optional qualifiers for CC (such as "/noOpt/Debug")
-$ !     linker-switches :  optional qualifers for LINK (/Debug or /noTraceback)
+$ !     linker-switches :  optional qualifiers for LINK (/Debug or /noTraceback)
 $ !     interface	:  "TTY" or "CURSES" or "TTY+CURSES" or "CURSES+TTY"
 $ ! notes:
 $ !	If the symbol "CC" is defined, compiler-option is not used (unless it
@@ -30,6 +26,11 @@ $ !	  to re-link with GNUC library, 'CC' must begin with "G" (or "g").
 $ !	All options are positional; to specify a later one without an earlier
 $ !	  one, use "" in the earlier one's position, such as
 $ !	$ @[-.sys.vms]vmsbuild "" "" "" "" "TTY+CURSES"
+$ !
+$ ! Lua Version
+$ luaver = "546"
+$ luadotver = "5.4.6"
+$ luaunderver = "5_4_6"
 $
 $	  decc_dflt = f$trnlnm("DECC$CC_DEFAULT")
 $	  j = (decc_dflt.nes."") .and. 1
@@ -41,7 +42,7 @@ $     if f$type(gcc).eqs."STRING" then  gnuc_ = gcc
 $	gnulib = "gnu_cc:[000000]gcclib/Library"    !(not used w/ vaxc)
 $ ! common CC options (/obj=file doesn't work for GCC 1.36, use rename instead)
 $	c_c_  = "/INCLUDE=([-.INCLUDE],[-.LIB.lua''luaver'.SRC])" -
-		+ "/DEFINE=(""LUA_USE_C89"")"
+		+ "/DEFINE=(""LUA_USE_C89"",USE_FCNTL)"
 $       cxx_c_ = "/INCLUDE=([-.INCLUDE],[-.LIB.LUA''luaver'.SRC])"
 $	veryold_vms = f$extract(1,1,f$getsyi("VERSION")).eqs."4" -
 		.and. f$extract(3,3,f$getsyi("VERSION")).lts."6"
@@ -76,7 +77,7 @@ $	copy sys$input: sys$error:	!p1 usage
    or  "GNUC"      -- use GNU C to compile everything
    or  "LINK"      -- skip compilation, just relink nethack.exe
    or  "SPEC[IAL]" -- just compile and link dlb.exe and recover.exe
-   or  "FETCHLUA"  -- skip compilaton, just fetch lua from lua.org
+   or  "FETCHLUA"  -- skip compilation, just fetch lua from lua.org
    or  "BUILDLUA"  -- build [-.lib.lua]lua'LUAVER'.olb
    or  ""          -- carry out default operation (VAXC unless 'CC' is defined)
 
@@ -353,8 +354,6 @@ $!
 $! default to using cppregex
 $ if f$search("regex.c").eqs."" then -
 	copy [-.sys.share]cppregex.cpp []regex.cpp
-$ if f$search("regex.c").eqs."" then -
-	copy [-.sys.share]pmatchregex.c []regex.c
 $! if f$search("random.c").eqs."" then  copy [-.sys.share]random.c []*.*
 $ if f$search("tclib.c") .eqs."" then -
 	copy [-.sys.share]tclib.c  []*.*
@@ -421,10 +420,10 @@ $ c_list = "decl,version,[-.sys.vms]vmsunix" -
 $ gosub compile_list
 $ c_list = interface !ttysrc or cursessrc or both
 $ gosub compile_list
-$ c_list = "allmain,apply,artifact,attrib,ball,bones,botl,cmd,dbridge" -
-	+ ",dothrow,drawing,detect,dig,display,do,do_name,do_wear,dog" -
-	+ ",dogmove,dokick,dungeon,eat,end,engrave,exper,explode" -
-	+ ",files,fountain"
+$ c_list = "allmain,apply,artifact,attrib,ball,bones,botl,calendar,cmd" -
+	+ ",coloratt,dbridge,dothrow,drawing,detect,dig,display,do,do_name" -
+	+ ",do_wear,dog,dogmove,dokick,dungeon,eat,end,engrave,exper,explode" -
+	+ ",extralev,files,fountain,getpos,glyphs"
 $ gosub compile_list
 $ c_list = "hack,hacklib,insight,invent,light,lock,mail,makemon" -
 	+ ",mcastu,mdlib,mhitm,mhitu,minion,mklev,mkmap,mkmaze" -
@@ -438,12 +437,13 @@ $ c_list = "nhlua,nhlobj,nhlsel"
 $ gosub compile_list
 $ c_list = "o_init,objnam,options,pager,pickup" -
 	+ ",pline,polyself,potion,pray,priest,quest,questpgr,read" -
-	+ ",rect,region,restore,rip,rnd,role,rumors,save,sfstruct,shk" -
-	+ ",shknam,sit,sounds,sp_lev,spell,steal,steed,symbols" -
-	+ ",sys,teleport,timeout,topten,track,trap,utf8map,u_init"
+	+ ",rect,region,report,restore,rip,rnd,role,rumors,save,selvar" -
+	+ ",sfstruct,shk,shknam,sit,sounds,sp_lev,spell,stairs,steal" -
+	+ ",steed,strutil,symbols,sys,teleport,timeout,topten,track" -
+	+ ",trap,u_init,utf8map"
 $ gosub compile_list
 $ c_list = "uhitm,vault,vision,weapon,were,wield,windows" -
-	+ ",wizard,worm,worn,write,zap"
+	+ ",wizard,wizcmds,worm,worn,write,zap"
 $ gosub compile_list
 $!
 $link:

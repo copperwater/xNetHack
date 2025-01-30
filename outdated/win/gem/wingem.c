@@ -69,8 +69,7 @@ struct window_procs Gem_procs = {
     Gem_get_color_string,
 #endif
 
-    /* other defs that really should go away (they're tty specific) */
-    Gem_start_screen, Gem_end_screen, Gem_outrip, Gem_preference_update,
+    Gem_outrip, Gem_preference_update,
     genl_getmsghistory, genl_putmsghistory
                             genl_status_init,
     genl_status_finish, genl_status_enablefield, genl_status_update,
@@ -501,7 +500,7 @@ Gem_player_selection()
 void
 Gem_askname()
 {
-    strncpy(gp.plname, mar_ask_name(), PL_NSIZ);
+    strncpy(svp.plname, mar_ask_name(), PL_NSIZ);
 }
 
 void
@@ -520,16 +519,6 @@ const char *str;
 
 void
 Gem_resume_nhwindows()
-{
-}
-
-void
-Gem_end_screen()
-{
-}
-
-void
-Gem_start_screen()
 {
 }
 
@@ -891,7 +880,7 @@ int x, y;
  *  position and glyph are always correct (checked there)!
  */
 
-void mar_print_gl_char(winid, xchar, xchar, int);
+void mar_print_gl_char(winid, coordxy, coordxy, int);
 
 extern int mar_set_rogue(int);
 
@@ -900,7 +889,7 @@ extern void mar_add_pet_sign(winid, int, int);
 void
 Gem_print_glyph(window, x, y, glyph, bkglyph)
 winid window;
-xchar x, y;
+coordxy x, y;
 int glyph, bkglyph;
 {
     /* Move the cursor. */
@@ -912,21 +901,19 @@ int glyph, bkglyph;
     if (mar_set_tile_mode(-1)) {
         mar_print_glyph(window, x, y, glyph2tile[glyph], glyph2tile[bkglyph]);
         if (
-#ifdef TEXTCOLOR
             iflags.hilite_pet &&
-#endif
             glyph_is_pet(glyph))
             mar_add_pet_sign(window, x, y);
     } else
         mar_print_gl_char(window, x, y, glyph);
 }
 
-void mar_print_char(winid, xchar, xchar, char, int);
+void mar_print_char(winid, coordxy, coordxy, char, int);
 
 void
 mar_print_gl_char(window, x, y, glyph)
 winid window;
-xchar x, y;
+coordxy x, y;
 int glyph;
 {
     int ch;
@@ -1072,7 +1059,7 @@ time_t when;
     }
     /* Follows same algorithm as genl_outrip() */
     /* Put name on stone */
-    Sprintf(rip_line[NAME_LINE], "%s", gp.plname);
+    Sprintf(rip_line[NAME_LINE], "%s", svp.plname);
     /* Put $ on stone */
     Sprintf(rip_line[GOLD_LINE], "%ld Au", done_money);
     /* Put together death description */

@@ -34,50 +34,12 @@ static struct stat hbuf;
 static int eraseoldlocks(void);
 #endif
 
-#if 0
-int
-uptodate(int fd)
-{
-#ifdef WANT_GETHDATE
-    if(fstat(fd, &buf)) {
-        pline("Cannot get status of saved level? ");
-        return(0);
-    }
-    if(buf.st_mtime < hbuf.st_mtime) {
-        pline("Saved level is out of date. ");
-        return(0);
-    }
-#else
-#if (defined(MICRO)) && !defined(NO_FSTAT)
-    if(fstat(fd, &buf)) {
-        if(gm.moves > 1) pline("Cannot get status of saved level? ");
-        else pline("Cannot get status of saved game.");
-        return(0);
-    } 
-    if(comp_times(buf.st_mtime)) { 
-        if(gm.moves > 1) pline("Saved level is out of date.");
-        else pline("Saved game is out of date. ");
-        /* This problem occurs enough times we need to give the player
-         * some more information about what causes it, and how to fix.
-         */
-#ifdef MSDOS
-        pline("Make sure that your system's date and time are correct.");
-        pline("They must be more current than NetHack.EXE's date/time stamp.");
-#endif /* MSDOS */
-        return(0);
-    }
-#endif /* MICRO */
-#endif /* WANT_GETHDATE */
-    return(1);
-}
-#endif
-
 #if defined(PC_LOCKING)
 #if !defined(SELF_RECOVER)
 static int
 eraseoldlocks(void)
 {
-    register int i;
+    int i;
 
     /* cannot use maxledgerno() here, because we need to find a lock name
      * before starting everything (including the dungeon initialization
@@ -101,7 +63,7 @@ eraseoldlocks(void)
 void
 getlock(void)
 {
-    register int fd, c, ci, ct;
+    int fd, c, ci, ct;
     int fcmask = FCMASK;
     char tbuf[BUFSZ];
     const char *fq_lock;
@@ -217,8 +179,8 @@ gotlock:
 #endif
         error("cannot creat file (%s.)", fq_lock);
     } else {
-        if (write(fd, (char *) &gh.hackpid, sizeof(gh.hackpid))
-            != sizeof(gh.hackpid)) {
+        if (write(fd, (char *) &svh.hackpid, sizeof(svh.hackpid))
+            != sizeof(svh.hackpid)) {
 #if defined(CHDIR) && !defined(NOCWD_ASSUMPTIONS)
             chdirx(orgdir, 0);
 #endif
@@ -239,13 +201,13 @@ gotlock:
 #endif /* PC_LOCKING */
 
 void
-regularize(register char *s)
+regularize(char *s)
 /*
  * normalize file name - we don't like .'s, /'s, spaces, and
  * lots of other things
  */
 {
-    register char *lp;
+    char *lp;
 
     for (lp = s; *lp; lp++)
         if (*lp <= ' ' || *lp == '"' || (*lp >= '*' && *lp <= ',')

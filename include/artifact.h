@@ -50,6 +50,8 @@ struct artifact {
     aligntyp alignment; /* alignment of bequeathing gods */
     short role;         /* character role associated with */
     short race;         /* character race associated with */
+    schar gen_spe;      /* bias to spe when gifted or randomly generated */
+    uchar gift_value;   /* minimum sacrifice value to be gifted this */
     long cost;          /* price when sold to hero (default 100 x base cost) */
     char acolor;        /* color to use if artifact 'glows' */
     short material;     /* material it's made of (0 = base type's default) */
@@ -67,6 +69,7 @@ enum invoke_prop_types {
     ENLIGHTENING,
     CREATE_AMMO,
     BANISH,
+    BLINDING_RAY,
     /* xNetHack specific ones: */
     LIGHTNING_BOLT,
     SMOKE_CLOUD

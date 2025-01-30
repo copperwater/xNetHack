@@ -43,8 +43,19 @@
 #define MAXWINDOWS 15
 #endif
 
-#define NHW_RIP 32
-#define NHW_INVEN 33
+struct window_tracking_data {
+    genericptr_t address;
+    int isstatic;
+};
+
+/* these are only in MSWIN_GRAPHICS, not the core */
+enum mswin_window_types {
+    NHW_MAIN = (NHW_LAST_TYPE + 1),
+    NHW_INVEN,
+    NHW_RIP,
+    NHW_SPLASH
+};
+extern struct window_tracking_data windowdata[MAXWINDOWS];
 
 #ifndef TILE_X
 #define TILE_X 16
@@ -131,12 +142,9 @@ typedef struct mswin_nhwindow_app {
     LPTRANSPARENTBLT lpfnTransparentBlt; /* transparent blt function */
 } NHWinApp, *PNHWinApp;
 
-#define E extern
-
-E PNHWinApp GetNHApp(void);
-E struct window_procs mswin_procs;
-
-#undef E
+extern PNHWinApp GetNHApp(void);
+extern struct window_procs mswin_procs;
+extern void free_winmain_stuff(void);
 
 /* Some prototypes */
 void mswin_init_nhwindows(int *argc, char **argv);
@@ -168,7 +176,7 @@ void mswin_print_glyph(winid wid, coordxy x, coordxy y,
                        const glyph_info *glyph, const glyph_info *bkglyph);
 void mswin_raw_print(const char *str);
 void mswin_raw_print_bold(const char *str);
-void mswin_raw_print_flush();
+void mswin_raw_print_flush(void);
 int mswin_nhgetch(void);
 int mswin_nh_poskey(coordxy *x, coordxy *y, int *mod);
 void mswin_nhbell(void);
@@ -178,10 +186,8 @@ void mswin_getlin(const char *question, char *input);
 int mswin_get_ext_cmd(void);
 void mswin_number_pad(int state);
 void mswin_delay_output(void);
-void mswin_change_color(void);
+void mswin_change_color(int color, long rgb, int reverse);
 char *mswin_get_color_string(void);
-void mswin_start_screen(void);
-void mswin_end_screen(void);
 void mswin_outrip(winid wid, int how, time_t when);
 void mswin_preference_update(const char *pref);
 char *mswin_getmsghistory(boolean init);
@@ -213,6 +219,8 @@ void mswin_get_window_placement(int type, LPRECT rt);
 void mswin_update_window_placement(int type, LPRECT rt);
 void mswin_apply_window_style(HWND hwnd);
 
+//boolean mswin_player_selection_window(void);
+
 int NHMessageBox(HWND hWnd, LPCTSTR text, UINT type);
 
 extern HBRUSH menu_bg_brush;
@@ -238,12 +246,14 @@ extern COLORREF message_fg_color;
 /* unicode stuff */
 #define NH_CODEPAGE (SYMHANDLING(H_IBM) ? GetOEMCP() : GetACP())
 #ifdef _UNICODE
+#define nh_stprintf swprintf
 #define NH_W2A(w, a, cb) \
     (WideCharToMultiByte(NH_CODEPAGE, 0, (w), -1, (a), (cb), NULL, NULL), (a))
 
 #define NH_A2W(a, w, cb) \
     (MultiByteToWideChar(NH_CODEPAGE, 0, (a), -1, (w), (cb)), (w))
 #else
+#define nh_stprintf snprintf
 #define NH_W2A(w, a, cb) (strncpy((a), (w), (cb)))
 
 #define NH_A2W(a, w, cb) (strncpy((w), (a), (cb)))

@@ -12,14 +12,14 @@
  * from this software without specific prior written permission.
  * THIS SOFTWARE IS PROVIDED ``AS IS'' AND WITHOUT ANY EXPRESS OR
  * IMPLIED WARRANTIES, INCLUDING, WITHOUT LIMITATION, THE IMPLIED
- * WARRANTIES OF MERCHANTIBILITY AND FITNESS FOR A PARTICULAR PURPOSE.
+ * WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE.
  */
 
 /*
  * Modified 12 April 1990 by Mark Adler for use on MSDOS systems with
  * Microsoft C and Turbo C.
  *
- * Modifed 13 February 1991 by Greg Roelofs for use on VMS systems.  As
+ * Modified 13 February 1991 by Greg Roelofs for use on VMS systems.  As
  * with the MS-DOS version, the setting of the file mode has been disabled.
  * Compile and link normally (but note that the shared-image link option
  * produces a binary only 6 blocks long, as opposed to the 137-block one
@@ -40,6 +40,8 @@
  *
  * Modified 08 July 2006 to cast strlen() result to int to suppress a
  * warning on platforms where size_t > sizeof(int).
+ *
+ * Modified 05 Jan 2024 to avoid K&R function declarations, marked KR_PROTO.
  *
  * $NHDT-Date: 1432512787 2015/05/25 00:13:07 $  $NHDT-Branch: master $:$NHDT-Revision: 1.7 $
  */
@@ -132,9 +134,12 @@ main(int argc, char **argv)
     /* handle ~user/file format */
     if (dest[0] == '~') {
         char *sl;
-        struct passwd *getpwnam();
         struct passwd *user;
-        char dnbuf[100], *strchr(), *strcat(), *strcpy();
+        char dnbuf[100];
+#ifdef KR_PROTO
+        struct passwd *getpwnam();
+        char *strchr(), *strcat(), *strcpy();
+#endif
 
         sl = strchr(dest, '/');
         if (sl == NULL) {
@@ -153,6 +158,7 @@ main(int argc, char **argv)
         strcpy(dest, dnbuf);
     }
 #endif /* !MSDOS && !VMS && !WIN32 && !__APPLE__  */
+    dest[sizeof dest - 1] = '\0';
 
 /* create output file */
 #if defined(MSDOS) || defined(WIN32)
@@ -237,8 +243,7 @@ outdec(char *p, FILE *f, int n)
         putc(c3, f);
 }
 
-#if !defined(MSDOS) && !defined(VMS) && !defined(WIN32) && !defined(__APPLE__)
-
+#if !defined(MSDOS) && !defined(VMS) && !defined(WIN32) && !defined(__APPLE__) && !defined(__linux__)
 /*
  * Return the ptr in sp at which the character c appears;
  * NULL if not found
@@ -250,7 +255,7 @@ outdec(char *p, FILE *f, int n)
 
 char *
 index(sp, c)
-register char *sp, c;
+char *sp, c;
 {
     do {
         if (*sp == c)

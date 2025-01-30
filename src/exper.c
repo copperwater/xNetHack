@@ -1,4 +1,4 @@
-/* NetHack 3.7	exper.c	$NHDT-Date: 1621380393 2021/05/18 23:26:33 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.46 $ */
+/* NetHack 3.7	exper.c	$NHDT-Date: 1706133782 2024/01/24 22:03:02 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.62 $ */
 /* Copyright (c) Stichting Mathematisch Centrum, Amsterdam, 1985. */
 /*-Copyright (c) Robert Patrick Rankin, 2007. */
 /* NetHack may be freely redistributed.  See license for details. */
@@ -109,9 +109,9 @@ newpw(void)
 
 /* return # of exp points for mtmp after nk killed */
 int
-experience(register struct monst *mtmp, register int nk)
+experience(struct monst *mtmp, int nk)
 {
-    register struct permonst *ptr = mtmp->data;
+    struct permonst *ptr = mtmp->data;
     int i, tmp, tmp2;
 
     tmp = 1 + mtmp->m_lev * mtmp->m_lev;
@@ -193,7 +193,7 @@ experience(register struct monst *mtmp, register int nk)
 }
 
 void
-more_experienced(register int exper, register int rexp)
+more_experienced(int exper, int rexp)
 {
     long oldexp = u.uexp,
          oldrexp = u.urexp,
@@ -210,23 +210,23 @@ more_experienced(register int exper, register int rexp)
     if (newexp != oldexp) {
         u.uexp = newexp;
         if (flags.showexp)
-            gc.context.botl = TRUE;
+            disp.botl = TRUE;
         /* even when experience points aren't being shown, experience level
            might be highlighted with a percentage highlight rule and that
            percentage depends upon experience points */
-        if (!gc.context.botl && exp_percent_changing())
-            gc.context.botl = TRUE;
+        if (!disp.botl && exp_percent_changing())
+            disp.botl = TRUE;
     }
     /* newrexp will always differ from oldrexp unless they're LONG_MAX */
     if (newrexp != oldrexp) {
         u.urexp = newrexp;
 #ifdef SCORE_ON_BOTL
         if (flags.showscore)
-            gc.context.botl = TRUE;
+            disp.botl = TRUE;
 #endif
     }
     if (u.urexp >= (Role_if(PM_WIZARD) ? 1000 : 2000))
-        flags.beginner = 0;
+        flags.beginner = FALSE;
 }
 
 /* e.g., hit by drain life attack */
@@ -249,37 +249,43 @@ losexp(
        in that situation */
     if (u.ulevel > 1 || drainer)
         pline("%s level %d.", Goodbye(), u.ulevel);
+
     if (u.ulevel > 1) {
         u.ulevel -= 1;
         /* remove intrinsic abilities */
         adjabil(u.ulevel + 1, u.ulevel);
         livelog_printf(LL_MINORAC, "lost experience level %d", u.ulevel + 1);
         SoundAchievement(0, sa2_xpleveldown, 0);
-    } else {
+    } else { /* u.ulevel==1 */
         if (drainer) {
-            gk.killer.format = KILLED_BY;
-            if (gk.killer.name != drainer)
-                Strcpy(gk.killer.name, drainer);
+            svk.killer.format = KILLED_BY;
+            if (svk.killer.name != drainer)
+                Strcpy(svk.killer.name, drainer);
             done(DIED);
         }
         /* no drainer or lifesaved */
+        if (u.ulevel > 1)
+            /* can happen during debug fuzzing if fuzzer_savelife() uses
+               a blessed potion of restore ability to restore lost levels */
+            return;
         u.uexp = 0;
         livelog_printf(LL_MINORAC, "lost all experience");
     }
+    assert(u.ulevel >= 0 && u.ulevel < MAXULEV); /* valid array index */
 
     olduhpmax = u.uhpmax;
     uhpmin = minuhpmax(10); /* same minimum as is used by life-saving */
     num = (int) u.uhpinc[u.ulevel];
     u.uhpmax -= num;
     if (u.uhpmax < uhpmin)
-        setuhpmax(uhpmin);
+        setuhpmax(uhpmin, TRUE);
     /* uhpmax might try to go up if it has previously been reduced by
        strength loss or by a fire trap or by an attack by Death which
        all use a different minimum than life-saving or experience loss;
        we don't allow it to go up because that contradicts assumptions
        elsewhere (such as healing wielder who drains with Stormbringer) */
     if (u.uhpmax > olduhpmax)
-        setuhpmax(olduhpmax);
+        setuhpmax(olduhpmax, TRUE);
 
     u.uhp -= num;
     if (u.uhp < 1)
@@ -306,13 +312,13 @@ losexp(
         u.mh -= num;
         if (u.mh <= 0) {
             /* in case we die here */
-            Strcpy(gk.killer.name, "fragility");
-            gk.killer.format = KILLED_BY;
+            Strcpy(svk.killer.name, "fragility");
+            svk.killer.format = KILLED_BY;
             rehumanize();
         }
     }
 
-    gc.context.botl = TRUE;
+    disp.botl = TRUE;
 }
 
 /*
@@ -331,7 +337,8 @@ newexplevel(void)
 void
 pluslvl(
     boolean incr) /* True: incremental experience growth;
-                   * False: potion of gain level or wraith corpse */
+                   * False: potion of gain level or wraith corpse
+                   *        or wizard mode #levelchange */
 {
     int hpinc, eninc;
 
@@ -342,12 +349,13 @@ pluslvl(
        in order to retain normal human/whatever increase for later) */
     if (Upolyd) {
         hpinc = monhp_per_lvl(&gy.youmonst);
-        u.mhmax += hpinc;
         u.mh += hpinc;
+        setuhpmax(u.mhmax, FALSE); /* acts as setmhmax() when Upolyd */
     }
     hpinc = newhp();
-    setuhpmax(u.uhpmax + hpinc);
     u.uhp += hpinc;
+    setuhpmax(u.uhpmax + hpinc, TRUE); /* will lower u.uhp if it exceeds
+                                        * u.uhpmax */
 
     /* increase spell power/energy points */
     eninc = newpw();
@@ -391,7 +399,7 @@ pluslvl(
         if (u.ulevel > u.ulevelpeak)
             u.ulevelpeak = u.ulevel;
     }
-    gc.context.botl = TRUE;
+    disp.botl = TRUE;
 }
 
 /* compute a random amount of experience points suitable for the hero's

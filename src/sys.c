@@ -1,4 +1,4 @@
-/* NetHack 3.7	sys.c	$NHDT-Date: 1596498215 2020/08/03 23:43:35 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.57 $ */
+/* NetHack 3.7	sys.c	$NHDT-Date: 1717449153 2024/06/03 21:12:33 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.64 $ */
 /* Copyright (c) Kenneth Lorber, Kensington, Maryland, 2008. */
 /* NetHack may be freely redistributed.  See license for details. */
 
@@ -15,28 +15,47 @@
    at runtime by setting up a value for "DEBUGFILES" in the environment */
 #endif
 
-struct sysopt sysopt;
+struct sysopt_s sysopt;
 
 void
 sys_early_init(void)
 {
+    const char *p;
+
+    /* Don't assume that these are not already set, and that it is
+     * safe to dupstr() without orphaning any pointers. Check them. */
+
     sysopt.support = (char *) 0;
     sysopt.recover = (char *) 0;
     sysopt.livelog = 0;
 #ifdef SYSCF
     sysopt.wizards = (char *) 0;
 #else
+    if (sysopt.wizards)
+        free((genericptr_t) sysopt.wizards);
     sysopt.wizards = dupstr(WIZARD_NAME);
  #ifdef LIVELOGFILE
     sysopt.livelog = LIVELOG_DETAIL;
     sysopt.ll_conduct_turns = 0;
  #endif
 #endif
+
+    if ((p = getenv("DEBUGFILES")) != 0) {
+        if (sysopt.debugfiles)
+            free((genericptr_t) sysopt.debugfiles);
+        sysopt.debugfiles = dupstr(p);
+        sysopt.env_dbgfl = 1; /* prevent sysconf processing from overriding */
+    } else {
 #if defined(SYSCF) || !defined(DEBUGFILES)
-    sysopt.debugfiles = (char *) 0;
+        sysopt.debugfiles = (char *) 0;
 #else
-    sysopt.debugfiles = dupstr(DEBUGFILES);
+        if (sysopt.debugfiles)
+            free((genericptr_t) sysopt.debugfiles);
+        sysopt.debugfiles = dupstr(DEBUGFILES);
 #endif
+        sysopt.env_dbgfl = 0;
+    }
+
 #ifdef DUMPLOG
     sysopt.dumplogfile = (char *) 0;
     sysopt.dumplogurl = (char *) 0;
@@ -47,10 +66,10 @@ sys_early_init(void)
 #ifdef DUMPHTML
     sysopt.dumphtmlfile = (char *) 0;
 #endif
-    sysopt.env_dbgfl = 0; /* haven't checked getenv("DEBUGFILES") yet */
     sysopt.shellers = (char *) 0;
     sysopt.explorers = (char *) 0;
     sysopt.genericusers = (char *) 0;
+    sysopt.msghandler = (char *) 0;
     sysopt.maxplayers = 0; /* XXX eventually replace MAX_NR_OF_PLAYERS */
     sysopt.bones_pools = 0;
     sysopt.livelog = LL_NONE;
@@ -68,7 +87,11 @@ sys_early_init(void)
 
 #ifdef PANICTRACE
     /* panic options */
+    if (sysopt.gdbpath)
+        free((genericptr_t) sysopt.gdbpath);
     sysopt.gdbpath = dupstr(GDBPATH);
+    if (sysopt.greppath)
+        free((genericptr_t) sysopt.greppath);
     sysopt.greppath = dupstr(GREPPATH);
 #if (NH_DEVEL_STATUS != NH_STATUS_RELEASED)
     sysopt.panictrace_gdb = 1;
@@ -82,6 +105,7 @@ sys_early_init(void)
 #endif
 #endif
 #endif
+    sysopt.crashreporturl = NULL;
 
     sysopt.check_save_uid = 1;
     sysopt.check_plname = 0;
@@ -117,9 +141,12 @@ sysopt_release(void)
     if (sysopt.debugfiles)
         free((genericptr_t) sysopt.debugfiles),
         sysopt.debugfiles = (char *) 0;
+    sysopt.env_dbgfl = 0;
+    if (sysopt.msghandler)
+        free((genericptr_t) sysopt.msghandler), sysopt.msghandler = (char *) 0;
 #ifdef DUMPLOG
     if (sysopt.dumplogfile)
-        free((genericptr_t)sysopt.dumplogfile), sysopt.dumplogfile=(char *)0;
+        free((genericptr_t) sysopt.dumplogfile), sysopt.dumplogfile=(char *) 0;
 #endif
 #ifdef DUMPHTML
     if (sysopt.dumphtmlfile)
@@ -127,7 +154,7 @@ sysopt_release(void)
 #endif
     if (sysopt.genericusers)
         free((genericptr_t) sysopt.genericusers),
-        sysopt.genericusers = (char *) 0;
+            sysopt.genericusers = (char *) 0;
     if (sysopt.gdbpath)
         free((genericptr_t) sysopt.gdbpath), sysopt.gdbpath = (char *) 0;
     if (sysopt.greppath)
@@ -137,7 +164,7 @@ sysopt_release(void)
        none of the preceding ones are likely to trigger a controlled panic */
     if (sysopt.fmtd_wizard_list)
         free((genericptr_t) sysopt.fmtd_wizard_list),
-        sysopt.fmtd_wizard_list = (char *) 0;
+            sysopt.fmtd_wizard_list = (char *) 0;
     return;
 }
 

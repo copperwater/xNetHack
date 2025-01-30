@@ -1,4 +1,4 @@
-/* NetHack 3.7	mkroom.h	$NHDT-Date: 1596498547 2020/08/03 23:49:07 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.22 $ */
+/* NetHack 3.7	mkroom.h	$NHDT-Date: 1725653011 2024/09/06 20:03:31 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.33 $ */
 /* Copyright (c) Stichting Mathematisch Centrum, Amsterdam, 1985. */
 /*-Copyright (c) Pasi Kallinen, 2016. */
 /* NetHack may be freely redistributed.  See license for details. */
@@ -26,7 +26,7 @@ struct mkroom {
 
 struct shclass {
     const char *name; /* name of the shop type */
-    const char *noun_name; /* shop type in #overview */
+    const char *annotation; /* simpler name for #overview; Null if same */
     char symb;        /* this identifies the shop type */
     int prob;         /* the shop type probability in % */
     schar shdist;     /* object placement type */
@@ -40,10 +40,10 @@ struct shclass {
     const char *const *shknms; /* list of shopkeeper names for this type */
 };
 
-/* the normal rooms on the current level are described in gr.rooms[0..n] for
+/* the normal rooms on the current level are described in svr.rooms[0..n] for
  * some n<MAXNROFROOMS
- * the vault, if any, is described by gr.rooms[n+1]
- * the next gr.rooms entry has hx -1 as a flag
+ * the vault, if any, is described by svr.rooms[n+1]
+ * the next svr.rooms entry has hx -1 as a flag
  * there is at most one non-vault special room on a level
  */
 
@@ -94,25 +94,28 @@ enum roomtype_types {
 #define SHARED      1 /* indicates normal shared boundary */
 #define SHARED_PLUS 2 /* indicates shared boundary - extra adjacent-square
                        * searching required */
-#define ROOMOFFSET  3 /* (levl[x][y].roomno - ROOMOFFSET) gives gr.rooms[] index,
-                       * for inside-squares and non-shared boundaries */
+#define ROOMOFFSET  3 /* (levl[x][y].roomno - ROOMOFFSET) gives svr.rooms[]
+                       * index, for inside-squares and non-shared boundaries */
 
 /* Values for needfill */
 #define FILL_NONE    0 /* do not fill this room with anything */
 #define FILL_NORMAL  1 /* fill the room normally (OROOM or THEMEROOM gets
-                          fill_ordinary_room; any other room type gets stocked
-                          with its usual monsters/objects/terrain) */
+                        * fill_ordinary_room; any other room type gets stocked
+                        * with its usual monsters/objects/terrain) */
 #define FILL_LVFLAGS 2 /* special rooms only; set the room's rtype and level
-                          flags as appropriate, but do not put anything in it */
+                        * flags as appropriate, but do not put anything in
+                        * it */
 
-#define IS_ROOM_PTR(x)      ((x) >= gr.rooms && (x) < gr.rooms + MAXNROFROOMS)
+#define IS_ROOM_PTR(x) \
+    ((x) >= svr.rooms && (x) < svr.rooms + MAXNROFROOMS)
 #define IS_ROOM_INDEX(x)    ((x) >= 0 && (x) < MAXNROFROOMS)
 #define IS_SUBROOM_PTR(x) \
     ((x) >= gs.subrooms && (x) < gs.subrooms + MAXNROFROOMS)
 #define IS_SUBROOM_INDEX(x) ((x) > MAXNROFROOMS && (x) <= (MAXNROFROOMS * 2))
-#define ROOM_INDEX(x)       ((x) - gr.rooms)
+#define ROOM_INDEX(x)       ((x) - svr.rooms)
 #define SUBROOM_INDEX(x)    ((x) - gs.subrooms)
-#define IS_LAST_ROOM_PTR(x) (ROOM_INDEX(x) == gn.nroom)
-#define IS_LAST_SUBROOM_PTR(x) (!gn.nsubroom || SUBROOM_INDEX(x) == gn.nsubroom)
+#define IS_LAST_ROOM_PTR(x) (ROOM_INDEX(x) == svn.nroom)
+#define IS_LAST_SUBROOM_PTR(x) \
+    (!gn.nsubroom || SUBROOM_INDEX(x) == gn.nsubroom)
 
 #endif /* MKROOM_H */

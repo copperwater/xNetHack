@@ -1,4 +1,4 @@
-/* NetHack 3.7	shknam.c	$NHDT-Date: 1596498209 2020/08/03 23:43:29 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.57 $ */
+/* NetHack 3.7	shknam.c	$NHDT-Date: 1736530208 2025/01/10 09:30:08 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.82 $ */
 /* Copyright (c) Stichting Mathematisch Centrum, Amsterdam, 1985. */
 /*-Copyright (c) Robert Patrick Rankin, 2011. */
 /* NetHack may be freely redistributed.  See license for details. */
@@ -7,14 +7,14 @@
 
 #include "hack.h"
 
-static boolean stock_room_goodpos(struct mkroom *, int, int, int, int);
-static boolean veggy_item(struct obj * obj, int);
-static int shkveg(void);
-static void mkveggy_at(int, int);
-static void mkshobj_at(const struct shclass *, int, int, boolean);
-static void nameshk(struct monst *, const char *const *);
-static int good_shopdoor(struct mkroom *, coordxy *, coordxy *);
-static int shkinit(const struct shclass *, struct mkroom *);
+staticfn boolean stock_room_goodpos(struct mkroom *, int, int, int, int);
+staticfn boolean veggy_item(struct obj * obj, int);
+staticfn int shkveg(void);
+staticfn void mkveggy_at(int, int);
+staticfn void mkshobj_at(const struct shclass *, int, int, boolean);
+staticfn void nameshk(struct monst *, const char *const *);
+staticfn int good_shopdoor(struct mkroom *, coordxy *, coordxy *);
+staticfn int shkinit(const struct shclass *, struct mkroom *);
 
 #define VEGETARIAN_CLASS (MAXOCLASSES + 1)
 
@@ -193,7 +193,7 @@ static const char *const shkhealthfoods[] = {
  * have to lower some or all of the probability fields in old entries to
  * free up some percentage for the new type.
  *
- * The placement type field is not yet used but will be in the near future.
+ * The placement type field is not yet used but might be someday.
  *
  * The iprobs array in each entry defines the probabilities for various kinds
  * of objects to be present in the given shop type.  You can associate with
@@ -201,10 +201,13 @@ static const char *const shkhealthfoods[] = {
  * *_CLASS enum value) or a specific object enum value.
  * In the latter case, prepend it with a unary minus so the code can know
  * (by testing the sign) whether to use mkobj() or mksobj().
+ * shtypes[] is externally referenced from mkroom.c, mon.c and shk.c.
+ *
+ * The second, usually shorter, store type name is used in automatically
+ * generated annotations for #overview.  If Null, the first name gets used.
  */
 const struct shclass shtypes[] = {
-    { "general store",
-      "general store",
+    { "general store", NULL,
       RANDOM_CLASS,
       42,
       D_SHOP,
@@ -215,8 +218,7 @@ const struct shclass shtypes[] = {
         { 0, 0 },
         { 0, 0 } },
       shkgeneral },
-    { "used armor dealership",
-      "armor shop",
+    { "used armor dealership", "armor shop",
       ARMOR_CLASS,
       14,
       D_SHOP,
@@ -227,8 +229,7 @@ const struct shclass shtypes[] = {
         { 0, 0 },
         { 0, 0 } },
       shkarmors },
-    { "second-hand bookstore",
-      "scroll shop",
+    { "second-hand bookstore", "scroll shop",
       SCROLL_CLASS,
       10,
       D_SHOP,
@@ -239,8 +240,7 @@ const struct shclass shtypes[] = {
         { 0, 0 },
         { 0, 0 } },
       shkbooks },
-    { "liquor emporium",
-      "potion shop",
+    { "liquor emporium", "potion shop",
       POTION_CLASS,
       10,
       D_SHOP,
@@ -251,8 +251,7 @@ const struct shclass shtypes[] = {
         { 0, 0 },
         { 0, 0 } },
       shkliquors },
-    { "antique weapons outlet",
-      "weapon shop",
+    { "antique weapons outlet", "weapon shop",
       WEAPON_CLASS,
       5,
       D_SHOP,
@@ -263,8 +262,7 @@ const struct shclass shtypes[] = {
         { 0, 0 },
         { 0, 0 } },
       shkweapons },
-    { "delicatessen",
-      "delicatessen",
+    { "delicatessen", "food shop",
       FOOD_CLASS,
       5,
       D_SHOP,
@@ -275,8 +273,7 @@ const struct shclass shtypes[] = {
         { 3, -ICE_BOX },
         { 0, 0 } },
       shkfoods },
-    { "jewelers",
-      "jewelry shop",
+    { "jewelers", "ring shop",
       RING_CLASS,
       3,
       D_SHOP,
@@ -287,8 +284,7 @@ const struct shclass shtypes[] = {
         { 0, 0 },
         { 0, 0 } },
       shkrings },
-    { "quality apparel and accessories",
-      "wand shop",
+    { "quality apparel and accessories", "wand shop",
       WAND_CLASS,
       3,
       D_SHOP,
@@ -297,8 +293,7 @@ const struct shclass shtypes[] = {
         { 5, -ELVEN_CLOAK },
         { 0, 0 } },
       shkwands },
-    { "hardware store",
-      "tool shop",
+    { "hardware store", "tool shop",
       TOOL_CLASS,
       3,
       D_SHOP,
@@ -309,8 +304,7 @@ const struct shclass shtypes[] = {
         { 0, 0 },
         { 0, 0 } },
       shktools },
-    { "rare books",
-      "bookstore",
+    { "rare books", "bookstore",
       SPBOOK_CLASS,
       3,
       D_SHOP,
@@ -321,8 +315,7 @@ const struct shclass shtypes[] = {
         { 0, 0 },
         { 0, 0 } },
       shkbooks },
-    { "health food store",
-      "health food store",
+    { "health food store", "vegetarian food shop",
       FOOD_CLASS,
       2,
       D_SHOP,
@@ -337,8 +330,7 @@ const struct shclass shtypes[] = {
      * probability of zero.  They are only created via the special level
      * loader.
      */
-    { "lighting store",
-      "lighting shop",
+    { "lighting store", "lighting shop",
       TOOL_CLASS,
       0,
       D_SHOP,
@@ -353,8 +345,7 @@ const struct shclass shtypes[] = {
         { 1, -SPE_LIGHT } },
       shklight },
     /* sentinel */
-    { (char *) 0,
-      (char *) 0,
+    { (char *) 0, NULL,
       0,
       0,
       0,
@@ -368,7 +359,7 @@ const struct shclass shtypes[] = {
 void
 init_shop_selection()
 {
-    register int i, j, item_prob, shop_prob;
+    int i, j, item_prob, shop_prob;
 
     for (shop_prob = 0, i = 0; i < SIZE(shtypes); i++) {
         shop_prob += shtypes[i].prob;
@@ -385,7 +376,7 @@ init_shop_selection()
 
 /* decide whether an object or object type is considered vegetarian;
    for types, items which might go either way are assumed to be veggy */
-static boolean
+staticfn boolean
 veggy_item(struct obj* obj, int otyp /* used iff obj is null */)
 {
     int corpsenm;
@@ -408,13 +399,12 @@ veggy_item(struct obj* obj, int otyp /* used iff obj is null */)
         if (otyp == TIN && corpsenm == NON_PM) /* implies obj is non-null */
             return (boolean) (obj->spe == 1); /* 0 = empty, 1 = spinach */
         if (otyp == TIN || otyp == CORPSE)
-            return (boolean) (corpsenm >= LOW_PM
-                              && vegetarian(&mons[corpsenm]));
+            return (boolean) (ismnum(corpsenm) && vegetarian(&mons[corpsenm]));
     }
     return FALSE;
 }
 
-static int
+staticfn int
 shkveg(void)
 {
     int i, j, maxprob, prob;
@@ -423,7 +413,7 @@ shkveg(void)
 
     j = maxprob = 0;
     ok[0] = 0; /* lint suppression */
-    for (i = gb.bases[(int) oclass]; i < NUM_OBJECTS; ++i) {
+    for (i = svb.bases[(int) oclass]; i < NUM_OBJECTS; ++i) {
         if (objects[i].oc_class != oclass)
             break;
 
@@ -449,7 +439,7 @@ shkveg(void)
 }
 
 /* make a random item for health food store */
-static void
+staticfn void
 mkveggy_at(int sx, int sy)
 {
     struct obj *obj = mksobj_at(shkveg(), sx, sy, TRUE, TRUE);
@@ -460,8 +450,8 @@ mkveggy_at(int sx, int sy)
 }
 
 /* make an object of the appropriate type for a shop square */
-static void
-mkshobj_at(const struct shclass* shp, int sx, int sy, boolean mkspecl)
+staticfn void
+mkshobj_at(const struct shclass *shp, int sx, int sy, boolean mkspecl)
 {
     struct monst *mtmp;
     struct permonst *ptr;
@@ -473,7 +463,7 @@ mkshobj_at(const struct shclass* shp, int sx, int sy, boolean mkspecl)
         struct obj *novel = mksobj_at(SPE_NOVEL, sx, sy, FALSE, FALSE);
 
         if (novel)
-            gc.context.tribute.bookstock = TRUE;
+            svc.context.tribute.bookstock = TRUE;
         return;
     }
 
@@ -493,8 +483,8 @@ mkshobj_at(const struct shclass* shp, int sx, int sy, boolean mkspecl)
 }
 
 /* extract a shopkeeper name for the given shop type */
-static void
-nameshk(struct monst* shk, const char* const* nlp)
+staticfn void
+nameshk(struct monst *shk, const char *const *nlp)
 {
     int i, trycnt;
     const char *shname = 0;
@@ -545,6 +535,7 @@ nameshk(struct monst* shk, const char* const* nlp)
             for (mtmp = fmon; mtmp; mtmp = mtmp->nmon) {
                 if (DEADMONSTER(mtmp) || (mtmp == shk) || !mtmp->isshk)
                     continue;
+                assert(has_eshk(mtmp));
                 if (strcmp(ESHK(mtmp)->shknam, shname))
                     continue;
                 name_wanted = names_avail; /* try a random name */
@@ -559,7 +550,7 @@ nameshk(struct monst* shk, const char* const* nlp)
 }
 
 void
-neweshk(struct monst* mtmp)
+neweshk(struct monst *mtmp)
 {
     if (!mtmp->mextra)
         mtmp->mextra = newmextra();
@@ -570,7 +561,7 @@ neweshk(struct monst* mtmp)
 }
 
 void
-free_eshk(struct monst* mtmp)
+free_eshk(struct monst *mtmp)
 {
     if (mtmp->mextra && ESHK(mtmp)) {
         free((genericptr_t) ESHK(mtmp));
@@ -580,9 +571,9 @@ free_eshk(struct monst* mtmp)
 }
 
 /* find a door in room sroom which is good for shop entrance.
-   returns -1 if no good door found, or the gd.doors index
+   returns -1 if no good door found, or the svd.doors index
    and the door coordinates in sx, sy */
-static int
+staticfn int
 good_shopdoor(struct mkroom *sroom, coordxy *sx, coordxy *sy)
 {
     int i;
@@ -590,12 +581,12 @@ good_shopdoor(struct mkroom *sroom, coordxy *sx, coordxy *sy)
     for (i = 0; i < sroom->doorct; i++) {
         int di = sroom->fdoor + i;
 
-        *sx = gd.doors[di].x;
-        *sy = gd.doors[di].y;
+        *sx = svd.doors[di].x;
+        *sy = svd.doors[di].y;
 
         /* check that the shopkeeper placement is sane */
         if (sroom->irregular) {
-            int rmno = (int) ((sroom - gr.rooms) + ROOMOFFSET);
+            int rmno = (int) ((sroom - svr.rooms) + ROOMOFFSET);
 
             if (isok(*sx - 1, *sy) && !levl[*sx - 1][*sy].edge
                 && (int) levl[*sx - 1][*sy].roomno == rmno)
@@ -628,8 +619,8 @@ good_shopdoor(struct mkroom *sroom, coordxy *sx, coordxy *sy)
 }
 
 /* create a new shopkeeper in the given room */
-static int
-shkinit(const struct shclass* shp, struct mkroom* sroom)
+staticfn int
+shkinit(const struct shclass *shp, struct mkroom *sroom)
 {
     int sh;
     coordxy sx, sy;
@@ -643,7 +634,7 @@ shkinit(const struct shclass* shp, struct mkroom* sroom)
         /* Said to happen sometimes, but I have never seen it. */
         /* Supposedly fixed by fdoor change in mklev.c */
         if (wizard) {
-            register int j = sroom->doorct;
+            int j = sroom->doorct;
 
             impossible("Where is shopdoor?");
             pline("Room at (%d,%d),(%d,%d).", sroom->lx, sroom->ly, sroom->hx,
@@ -651,7 +642,7 @@ shkinit(const struct shclass* shp, struct mkroom* sroom)
             pline("doormax=%d doorct=%d fdoor=%d", gd.doorindex, sroom->doorct,
                   sh);
             while (j--) {
-                pline("door [%d,%d]", gd.doors[sh].x, gd.doors[sh].y);
+                pline("door [%d,%d]", svd.doors[sh].x, svd.doors[sh].y);
                 sh++;
             }
             display_nhwindow(WIN_MESSAGE, FALSE);
@@ -671,11 +662,11 @@ shkinit(const struct shclass* shp, struct mkroom* sroom)
     set_malign(shk);
     shk->msleeping = 0;
     mon_learns_traps(shk, ALL_TRAPS); /* we know all the traps already */
-    eshkp->shoproom = (schar) ((sroom - gr.rooms) + ROOMOFFSET);
+    eshkp->shoproom = (schar) ((sroom - svr.rooms) + ROOMOFFSET);
     sroom->resident = shk;
     eshkp->shoptype = sroom->rtype;
     assign_level(&eshkp->shoplevel, &u.uz);
-    eshkp->shd = gd.doors[sh];
+    eshkp->shd = svd.doors[sh];
     eshkp->shk.x = sx;
     eshkp->shk.y = sy;
     eshkp->robbed = eshkp->credit = eshkp->debit = eshkp->loan = 0L;
@@ -691,18 +682,18 @@ shkinit(const struct shclass* shp, struct mkroom* sroom)
     return sh;
 }
 
-static boolean
-stock_room_goodpos(struct mkroom* sroom, int rmno, int sh, int sx, int sy)
+staticfn boolean
+stock_room_goodpos(struct mkroom *sroom, int rmno, int sh, int sx, int sy)
 {
     if (sroom->irregular) {
         if (levl[sx][sy].edge
             || (int) levl[sx][sy].roomno != rmno
-            || distmin(sx, sy, gd.doors[sh].x, gd.doors[sh].y) <= 1)
+            || distmin(sx, sy, svd.doors[sh].x, svd.doors[sh].y) <= 1)
             return FALSE;
-    } else if ((sx == sroom->lx && gd.doors[sh].x == sx - 1)
-               || (sx == sroom->hx && gd.doors[sh].x == sx + 1)
-               || (sy == sroom->ly && gd.doors[sh].y == sy - 1)
-               || (sy == sroom->hy && gd.doors[sh].y == sy + 1))
+    } else if ((sx == sroom->lx && svd.doors[sh].x == sx - 1)
+               || (sx == sroom->hx && svd.doors[sh].x == sx + 1)
+               || (sy == sroom->ly && svd.doors[sh].y == sy - 1)
+               || (sy == sroom->hy && svd.doors[sh].y == sy + 1))
         return FALSE;
 
     /* only generate items on solid floor squares */
@@ -715,7 +706,7 @@ stock_room_goodpos(struct mkroom* sroom, int rmno, int sh, int sx, int sy)
 
 /* stock a newly-created room with objects */
 void
-stock_room(int shp_indx, register struct mkroom* sroom)
+stock_room(int shp_indx, struct mkroom *sroom)
 {
     /*
      * Someday soon we'll dispatch on the shdist field of shclass to do
@@ -726,7 +717,7 @@ stock_room(int shp_indx, register struct mkroom* sroom)
     int sx, sy, sh;
     int stockcount = 0, specialspot = 0;
     char buf[BUFSZ];
-    int rmno = (int) ((sroom - gr.rooms) + ROOMOFFSET);
+    int rmno = (int) ((sroom - svr.rooms) + ROOMOFFSET);
     const struct shclass *shp = &shtypes[shp_indx];
 
     /* first, try to place a shopkeeper in the room */
@@ -734,8 +725,8 @@ stock_room(int shp_indx, register struct mkroom* sroom)
         return;
 
     /* make sure no doorways without doors, and no trapped doors, in shops */
-    sx = gd.doors[sroom->fdoor].x;
-    sy = gd.doors[sroom->fdoor].y;
+    sx = svd.doors[sroom->fdoor].x;
+    sy = svd.doors[sroom->fdoor].y;
     if (doorstate(&levl[sx][sy]) == D_NODOOR) {
         set_doorstate(&levl[sx][sy], D_ISOPEN);
         newsym(sx, sy);
@@ -751,7 +742,7 @@ stock_room(int shp_indx, register struct mkroom* sroom)
     }
 
     if (door_is_locked(&levl[sx][sy])) {
-        register int m = sx, n = sy;
+        int m = sx, n = sy;
 
         if (inside_shop(sx + 1, sy))
             m--;
@@ -768,7 +759,7 @@ stock_room(int shp_indx, register struct mkroom* sroom)
                               || *in_rooms(m, n, 0)) ? ROOM : CORR;
     }
 
-    if (gc.context.tribute.enabled && !gc.context.tribute.bookstock) {
+    if (svc.context.tribute.enabled && !svc.context.tribute.bookstock) {
         /*
          * Out of the number of spots where we're actually
          * going to put stuff, randomly single out one in particular.
@@ -796,16 +787,16 @@ stock_room(int shp_indx, register struct mkroom* sroom)
 
     /* Hack for Orcus's level: it's a ghost town, get rid of shopkeepers */
     if (on_level(&u.uz, &orcus_level)) {
-        struct monst* mtmp = shop_keeper(rmno);
+        struct monst *mtmp = shop_keeper(rmno);
         mongone(mtmp);
     }
 
-    gl.level.flags.has_shop = TRUE;
+    svl.level.flags.has_shop = TRUE;
 }
 
 /* does shkp's shop stock this item type? */
 boolean
-saleable(struct monst* shkp, struct obj* obj)
+saleable(struct monst *shkp, struct obj *obj)
 {
     int i, shp_indx = ESHK(shkp)->shoptype - SHOPBASE;
     const struct shclass *shp = &shtypes[shp_indx];
@@ -832,7 +823,7 @@ int
 get_shop_item(int type)
 {
     const struct shclass *shp = shtypes + type;
-    register int i, j;
+    int i, j;
 
     /* select an appropriate object type at random */
     for (j = rnd(100), i = 0; (j -= shp->iprobs[i].iprob) > 0; i++)
@@ -843,7 +834,7 @@ get_shop_item(int type)
 
 /* version of shkname() for beginning of sentence */
 char *
-Shknam(struct monst* mtmp)
+Shknam(struct monst *mtmp)
 {
     char *nam = shkname(mtmp);
 
@@ -856,7 +847,7 @@ Shknam(struct monst* mtmp)
    will yield some other shopkeeper's name (not necessarily one residing
    in the current game's dungeon, or who keeps same type of shop) */
 char *
-shkname(struct monst* mtmp)
+shkname(struct monst *mtmp)
 {
     char *nam;
     unsigned save_isshk = mtmp->isshk;
@@ -873,7 +864,7 @@ shkname(struct monst* mtmp)
     } else {
         const char *shknm = ESHK(mtmp)->shknam;
 
-        if (Hallucination && !gp.program_state.gameover) {
+        if (Hallucination && !program_state.gameover) {
             const char *const *nlp;
             int num;
 
@@ -900,7 +891,7 @@ shkname(struct monst* mtmp)
 }
 
 boolean
-shkname_is_pname(struct monst* mtmp)
+shkname_is_pname(struct monst *mtmp)
 {
     const char *shknm = ESHK(mtmp)->shknam;
 
@@ -908,7 +899,7 @@ shkname_is_pname(struct monst* mtmp)
 }
 
 boolean
-is_izchak(struct monst* shkp, boolean override_hallucination)
+is_izchak(struct monst *shkp, boolean override_hallucination)
 {
     const char *shknm;
 
@@ -926,15 +917,6 @@ is_izchak(struct monst* shkp, boolean override_hallucination)
     return (boolean) !strcmp(shknm, "Izchak");
 }
 
-/* Return a pointer to the appropriate shtype for the given room type. */
-const struct shclass*
-get_shtype(int rtype)
-{
-    if (rtype < SHOPBASE) {
-        impossible("get_shtype: given non-shop %d", rtype);
-        return &shtypes[0];
-    }
-    return &shtypes[rtype - SHOPBASE];
-}
+#undef VEGETARIAN_CLASS
 
 /*shknam.c*/

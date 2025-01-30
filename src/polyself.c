@@ -1,13 +1,13 @@
-/* NetHack 3.7	polyself.c	$NHDT-Date: 1681429658 2023/04/13 23:47:38 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.197 $ */
+/* NetHack 3.7	polyself.c	$NHDT-Date: 1703845752 2023/12/29 10:29:12 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.207 $ */
 /*      Copyright (C) 1987, 1988, 1989 by Ken Arromdee */
 /* NetHack may be freely redistributed.  See license for details. */
 
 /*
  * Polymorph self routine.
  *
- * Note:  the light source handling code assumes that both gy.youmonst.m_id
- * and gy.youmonst.mx will always remain 0 when it handles the case of the
- * player polymorphed into a light-emitting monster.
+ * Note:  the light source handling code assumes that gy.youmonst.m_id
+ * always remains 1 and gy.youmonst.mx will always remain 0 when it handles
+ * the case of the player polymorphed into a light-emitting monster.
  *
  * Transformation sequences:
  *              /-> polymon                 poly into monster form
@@ -21,13 +21,13 @@
 
 #include "hack.h"
 
-static void check_strangling(boolean, boolean);
-static void polyman(const char *, const char *);
-static void dropp(struct obj *);
-static void break_armor(boolean);
-static void drop_weapon(int, boolean);
-static void newman(void);
-static void polysense(void);
+staticfn void check_strangling(boolean, boolean);
+staticfn void polyman(const char *, const char *);
+staticfn void dropp(struct obj *);
+staticfn void break_armor(boolean);
+staticfn void drop_weapon(int, boolean);
+staticfn void newman(void);
+staticfn void polysense(void);
 
 static const char no_longer_petrify_resistant[] =
     "No longer petrify-resistant, you";
@@ -40,6 +40,7 @@ set_uasmon(void)
     boolean was_vampshifter = valid_vampshiftform(gy.youmonst.cham, u.umonnum);
 
     set_mon_data(&gy.youmonst, mdat);
+    gy.youmonst.m_id = 1;
 
     if (Protection_from_shape_changers)
         gy.youmonst.cham = NON_PM;
@@ -102,9 +103,16 @@ set_uasmon(void)
     PROPSET(REGENERATION, regenerates(mdat));
     PROPSET(REFLECTING, (mdat == &mons[PM_SILVER_DRAGON]));
     PROPSET(BLINDED, !haseyes(mdat));
+    PROPSET(BLND_RES, (dmgtype_fromattack(mdat, AD_BLND, AT_EXPL)
+                       || dmgtype_fromattack(mdat, AD_BLND, AT_GAZE)));
 #undef PROPSET
 
-    float_vs_flight(); /* maybe toggle (BFlying & I_SPECIAL) */
+    /* whether the player is flying/floating depends on their steed,
+       which won't be known during the restore process: but BFlying
+       and BStealth should be set correctly already in that case, so
+       there's nothing to do */
+    if (!program_state.restoring)
+        float_vs_flight(); /* maybe toggle (BFlying & I_SPECIAL) */
     polysense();
 
 #ifdef STATUS_HILITES
@@ -132,11 +140,26 @@ float_vs_flight(void)
         BLevitation |= I_SPECIAL;
     else
         BLevitation &= ~I_SPECIAL;
-    gc.context.botl = TRUE;
+
+    /* riding blocks stealth unless hero+steed fly, so a change in flying
+       might cause a change in stealth */
+    steed_vs_stealth();
+
+    disp.botl = TRUE;
+}
+
+/* riding blocks stealth unless hero+steed fly */
+void
+steed_vs_stealth(void)
+{
+    if (u.usteed && !Flying && !Levitation)
+        BStealth |= FROMOUTSIDE;
+    else
+        BStealth &= ~FROMOUTSIDE;
 }
 
 /* for changing into form that's immune to strangulation */
-static void
+staticfn void
 check_strangling(boolean on, boolean noisy)
 {
     /* on -- maybe resume strangling */
@@ -148,7 +171,7 @@ check_strangling(boolean on, boolean noisy)
         if (uamul && uamul->otyp == AMULET_OF_STRANGULATION
             && can_be_strangled(&gy.youmonst)) {
             Strangled = 6L;
-            gc.context.botl = TRUE;
+            disp.botl = TRUE;
             if (noisy)
                 Your("%s %s your %s!", simpleonames(uamul),
                      was_strangled ? "still constricts" : "begins constricting",
@@ -160,7 +183,7 @@ check_strangling(boolean on, boolean noisy)
     } else {
         if (Strangled && !can_be_strangled(&gy.youmonst)) {
             Strangled = 0L;
-            gc.context.botl = TRUE;
+            disp.botl = TRUE;
             if (noisy)
                 You("are no longer being strangled.");
         }
@@ -170,7 +193,7 @@ check_strangling(boolean on, boolean noisy)
 DISABLE_WARNING_FORMAT_NONLITERAL
 
 /* make a (new) human out of the player */
-static void
+staticfn void
 polyman(const char *fmt, const char *arg)
 {
     boolean sticking = (sticks(gy.youmonst.data) && u.ustuck && !u.uswallow),
@@ -209,11 +232,11 @@ polyman(const char *fmt, const char *arg)
         struct kinfo *kptr = find_delayed_killer(POLYMORPH);
 
         if (kptr != (struct kinfo *) 0 && kptr->name[0]) {
-            gk.killer.format = kptr->format;
-            Strcpy(gk.killer.name, kptr->name);
+            svk.killer.format = kptr->format;
+            Strcpy(svk.killer.name, kptr->name);
         } else {
-            gk.killer.format = KILLED_BY;
-            Strcpy(gk.killer.name, "self-genocide");
+            svk.killer.format = KILLED_BY;
+            Strcpy(svk.killer.name, "self-genocide");
         }
         dealloc_killer(kptr);
         done(GENOCIDED);
@@ -256,9 +279,9 @@ change_sex(void)
         u.mfemale = !u.mfemale;
     max_rank_sz(); /* [this appears to be superfluous] */
     if ((Upolyd ? u.mfemale : flags.female) && gu.urole.name.f)
-        Strcpy(gp.pl_character, gu.urole.name.f);
+        Strcpy(svp.pl_character, gu.urole.name.f);
     else
-        Strcpy(gp.pl_character, gu.urole.name.m);
+        Strcpy(svp.pl_character, gu.urole.name.m);
     if (!Upolyd) {
         u.umonnum = u.umonster;
     } else if (u.umonnum == PM_AMOROUS_DEMON) {
@@ -302,7 +325,7 @@ livelog_newform(boolean viapoly, int oldgend, int newgend)
     }
 }
 
-static void
+staticfn void
 newman(void)
 {
     const char *newform;
@@ -364,7 +387,7 @@ newman(void)
         hpmax = u.ulevel; /* min of 1 HP per level */
     /* retain same proportion for current HP; u.uhp * hpmax / u.uhpmax */
     u.uhp = rounddiv((long) u.uhp * (long) hpmax, u.uhpmax);
-    u.uhpmax = hpmax;
+    setuhpmax(hpmax, TRUE); /* might reduce u.uhp */
     /*
      * Do the same for spell power.
      */
@@ -394,8 +417,8 @@ newman(void)
  dead:      /* we come directly here if experience level went to 0 or less */
             urgent_pline(
                      "Your new form doesn't seem healthy enough to survive.");
-            gk.killer.format = KILLED_BY_AN;
-            Strcpy(gk.killer.name, "unsuccessful polymorph");
+            svk.killer.format = KILLED_BY_AN;
+            Strcpy(svk.killer.name, "unsuccessful polymorph");
             done(DIED);
             /* must have been life-saved to get here */
             newuhs(FALSE);
@@ -426,7 +449,7 @@ newman(void)
         make_slimed(10L, (const char *) 0);
     }
 
-    gc.context.botl = 1;
+    disp.botl = TRUE;
     see_monsters();
     (void) encumber_msg();
 
@@ -449,7 +472,7 @@ polyself(int psflags)
              * allow declining to become dragon, won't allow turning into
              * arbitrary monster */
             draconian_only = ((psflags & POLY_DRAGON_ONLY) != 0),
-            iswere = (u.ulycn >= LOW_PM),
+            iswere = (ismnum(u.ulycn)),
             isvamp = (is_vampire(gy.youmonst.data)
                       || is_vampshifter(&gy.youmonst)),
             controllable_poly = Polymorph_control && !(Stunned || Unaware);
@@ -489,6 +512,7 @@ polyself(int psflags)
     if (controllable_poly || forcecontrol) {
         buf[0] = '\0';
         tryct = 5;
+
         do {
             mntmp = NON_PM;
             getlin("Become what kind of monster? [type the name]", buf);
@@ -516,7 +540,28 @@ polyself(int psflags)
                     mntmp = (draconian && class == S_DRAGON)
                             ? armor_to_dragon(&gy.youmonst)
                             : mkclass_poly(class);
+
+            /* placeholder monsters are for corpses and all flagged
+               M2_NOPOLY but they are reasonable polymorph targets;
+               pick a suitable substitute (which might be geno'd) */
+            } else if (is_placeholder(&mons[mntmp])
+                       /* when your own race, fall to !polyok() case */
+                       && !your_race(&mons[mntmp])
+                       /* same for generic human, even if hero isn't human */
+                       && mntmp != PM_HUMAN) {
+                /* far less general than mkclass() */
+                if (mntmp == PM_ORC)
+                    mntmp = rn2(3) ? PM_HILL_ORC : PM_MORDOR_ORC;
+                else if (mntmp == PM_ELF)
+                    mntmp = rn2(3) ? PM_GREEN_ELF : PM_GREY_ELF;
+                else if (mntmp == PM_GIANT)
+                    mntmp = rn2(3) ? PM_STONE_GIANT : PM_HILL_GIANT;
+                /* note: PM_DWARF and PM_GNOME are ordinary monsters and
+                   no longer flagged no-poly so have no need for placeholder
+                   handling; PM_HUMAN is a placeholder without a suitable
+                   substitute so gets handled differently below */
             }
+
             if (mntmp < LOW_PM) {
                 if (!class)
                     pline("I've never heard of such monsters.");
@@ -569,6 +614,7 @@ polyself(int psflags)
             } else
                 break;
         } while (--tryct > 0);
+
         if (!tryct)
             pline1(thats_enough_tries);
         /* allow skin merging, even when polymorph is controlled */
@@ -592,7 +638,7 @@ polyself(int psflags)
                     return;
                 }
             }
-            if (!(gm.mvitals[mntmp].mvflags & G_GENOD)) {
+            if (!(svm.mvitals[mntmp].mvflags & G_GENOD)) {
                 struct obj **mergarm =
                     (uarm && Is_dragon_scaled_armor(uarm)) ? &uarm
                       : (uarmc && Is_dragon_scales(uarmc)) ? &uarmc
@@ -633,7 +679,7 @@ polyself(int psflags)
                          && !rn2(10)) ? PM_WOLF
                                       : !rn2(4) ? PM_FOG_CLOUD
                                                 : PM_VAMPIRE_BAT;
-                if (gy.youmonst.cham >= LOW_PM
+                if (ismnum(gy.youmonst.cham)
                     && !is_vampire(gy.youmonst.data) && !rn2(2))
                     mntmp = gy.youmonst.cham;
             }
@@ -697,13 +743,14 @@ polymon(int mntmp, int msgflags)
 {
     char buf[BUFSZ], ustuckNam[BUFSZ];
     boolean sticking = sticks(gy.youmonst.data) && u.ustuck && !u.uswallow,
-            was_blind = !!Blind, dochange = FALSE, was_expelled = FALSE;
+            was_blind = !!Blind, dochange = FALSE, was_expelled = FALSE,
+            was_hiding_under = u.uundetected && hides_under(gy.youmonst.data);
     int mlvl, newMaxStr;
 
-    if (gm.mvitals[mntmp].mvflags & G_GENOD) { /* allow G_EXTINCT */
+    if (svm.mvitals[mntmp].mvflags & G_GENOD) { /* allow G_EXTINCT */
         if (msgflags & POLYMON_TRANSFORM_MSG)
             You_feel("rather %s-ish.",
-                     pmname(&mons[mntmp], Ugender));
+                     pmname(&mons[mntmp], flags.female ? FEMALE : MALE));
         exercise(A_WIS, TRUE);
         return 0;
     }
@@ -846,7 +893,10 @@ polymon(int mntmp, int msgflags)
     break_armor((msgflags & POLYMON_GEAR_MSG));
     drop_weapon(1, (msgflags & POLYMON_GEAR_MSG));
     find_ac(); /* (repeated below) */
-    (void) hideunder(&gy.youmonst);
+    /* if hiding under something and can't hide anymore, unhide now;
+       but don't auto-hide when not already hiding-under */
+    if (was_hiding_under)
+        (void) hideunder(&gy.youmonst);
 
     if (u.utrap && u.utraptype == TT_PIT) {
         set_utrap(rn1(6, 2), TT_PIT); /* time to escape resets */
@@ -977,7 +1027,7 @@ polymon(int mntmp, int msgflags)
     }
     check_strangling(TRUE, (msgflags & POLYMON_STATUS_MSG));
 
-    gc.context.botl = 1;
+    disp.botl = TRUE;
     gv.vision_full_recalc = 1;
     see_monsters();
     if (msgflags & POLYMON_ENCUMBER_MSG)
@@ -993,7 +1043,7 @@ polymon(int mntmp, int msgflags)
 
     /* the explanation of '#monster' used to be shown sooner, but there are
        possible fatalities above and it isn't useful unless hero survives */
-    if (Verbose(2, polymon) && (msgflags & POLYMON_INFO_MSG)) {
+    if (flags.verbose && (msgflags & POLYMON_INFO_MSG)) {
         static const char use_thec[] = "Use the command #%s to %s.";
         static const char monsterc[] = "monster";
         struct permonst *uptr = gy.youmonst.data;
@@ -1049,7 +1099,7 @@ uasmon_maxStr(void)
     struct permonst *ptr = &mons[mndx];
 
     if (is_orc(ptr)) {
-        if (mndx != PM_URUK_HAI)
+        if (mndx != PM_URUK_HAI && mndx != PM_ORC_CAPTAIN)
             mndx = PM_ORC;
     } else if (is_elf(ptr)) {
         mndx = PM_ELF;
@@ -1073,11 +1123,11 @@ uasmon_maxStr(void)
            hero poly'd into an orc the same; goblins, orc shamans, and orc
            zombies don't have strongmonst() attribute so won't get here;
            hobgoblins and orc mummies do get here and are limited to 18/50
-           like normal orcs; however, Uruk-hai retain 18/100 strength;
-           hero gnomes are also limited to 18/50; hero elves are limited
-           to 18/00 regardless of whether they're strongmonst, but the two
-           strongmonst types (monarchs and nobles) have current strength
-           set to 18 [by polymon()], the others don't */
+           like normal orcs; however, orc captains and Uruk-hai retain 18/100
+           strength; hero gnomes are also limited to 18/50; hero elves are
+           limited to 18/00 regardless of whether they're strongmonst, but
+           the two strongmonst types (monarchs and nobles) have current
+           strength set to 18 [by polymon()], the others don't */
         newMaxStr = R ? R->attrmax[A_STR] : live_H ? STR19(19) : STR18(100);
     } else {
         newMaxStr = R ? R->attrmax[A_STR] : 18; /* 18 is same as STR18(0) */
@@ -1086,7 +1136,7 @@ uasmon_maxStr(void)
 }
 
 /* dropx() jacket for break_armor() */
-static void
+staticfn void
 dropp(struct obj *obj)
 {
     struct obj *otmp;
@@ -1106,15 +1156,24 @@ dropp(struct obj *obj)
     for (otmp = gi.invent; otmp; otmp = otmp->nobj) {
         if (otmp == obj) {
             dropx(obj);
+            /* Note that otmp->nobj is pointing at fobj now,
+             * as a result of:
+             * dropx() -> dropy() -> dropz() -> place_object(),
+             * and no longer pointing at the next obj in inventory.
+             * That would be an issue if this loop were allowed
+             * to continue, but the break statement that
+             * follows prevents the loop from continuing on with
+             * objects on the floor.
+             */
             break;
         }
     }
 }
 
-static void
+staticfn void
 break_armor(boolean noisy)
 {
-    register struct obj *otmp;
+    struct obj *otmp;
     struct permonst *uptr = gy.youmonst.data;
 
     if (breakarm(uptr)) {
@@ -1279,7 +1338,7 @@ break_armor(boolean noisy)
     /* rings stay worn even when no hands */
 }
 
-static void
+staticfn void
 drop_weapon(int alone, boolean noisy)
 {
     struct obj *otmp;
@@ -1354,10 +1413,10 @@ rehumanize(void)
          * xlogfile "while" field. */
         /* in case we happen to get caught without killer set, avoid "killed by
          * a died" */
-        if (gk.killer.name[0] == '\0') {
+        if (svk.killer.name[0] == '\0') {
             impossible("failed rehumanize with no killer set?");
-            Strcpy(gk.killer.name, "killed weirdly");
-            gk.killer.format = NO_KILLER_PREFIX;
+            Strcpy(svk.killer.name, "killed weirdly");
+            svk.killer.format = NO_KILLER_PREFIX;
         }
         You("die...");
         done(DIED);
@@ -1382,14 +1441,14 @@ rehumanize(void)
            instead of u.mh while poly'd */
         impossible("u.uhp was reduced while polyselfed?");
         Your("old form was not healthy enough to survive.");
-        Sprintf(gk.killer.name, "reverting to unhealthy %s form",
+        Sprintf(svk.killer.name, "reverting to unhealthy %s form",
                 gu.urace.adj);
-        gk.killer.format = KILLED_BY;
+        svk.killer.format = KILLED_BY;
         done(DIED);
     }
     nomul(0);
 
-    gc.context.botl = 1;
+    disp.botl = TRUE;
     gv.vision_full_recalc = 1;
     (void) encumber_msg();
     if (was_flying && !Flying && u.usteed)
@@ -1414,7 +1473,7 @@ dobreathe(void)
         return ECMD_OK;
     }
     u.uen -= 15;
-    gc.context.botl = 1;
+    disp.botl = TRUE;
 
     if (!getdir((char *) 0))
         return ECMD_CANCEL;
@@ -1448,6 +1507,7 @@ dospit(void)
             break;
         default:
             impossible("bad attack type in dospit");
+            FALLTHROUGH;
             /*FALLTHRU*/
         case AD_ACID:
             otmp = mksobj(ACID_VENOM, TRUE, FALSE);
@@ -1614,7 +1674,7 @@ dosummon(void)
         return ECMD_OK;
     }
     u.uen -= 10;
-    gc.context.botl = 1;
+    disp.botl = TRUE;
 
     You("call upon your brethren for help!");
     exercise(A_WIS, TRUE);
@@ -1626,7 +1686,7 @@ dosummon(void)
 int
 dogaze(void)
 {
-    register struct monst *mtmp;
+    struct monst *mtmp;
     int looked = 0;
     char qbuf[QBUFSZ];
     int i;
@@ -1655,7 +1715,7 @@ dogaze(void)
         return ECMD_OK;
     }
     u.uen -= 15;
-    gc.context.botl = 1;
+    disp.botl = TRUE;
 
     for (mtmp = fmon; mtmp; mtmp = mtmp->nmon) {
         if (DEADMONSTER(mtmp))
@@ -1767,8 +1827,8 @@ dogaze(void)
                           l_monnam(mtmp));
                     /* as if gazing at a sleeping anything is fruitful... */
                     urgent_pline("You turn to stone...");
-                    gk.killer.format = KILLED_BY;
-                    Strcpy(gk.killer.name,
+                    svk.killer.format = KILLED_BY;
+                    Strcpy(svk.killer.name,
                            "deliberately meeting Medusa's gaze");
                     done(STONING);
                 }
@@ -1780,6 +1840,7 @@ dogaze(void)
     return ECMD_TIME;
 }
 
+/* called by domonability() for #monster */
 int
 dohide(void)
 {
@@ -1796,15 +1857,14 @@ dohide(void)
                      : !sticks(gy.youmonst.data) ? "being held"
                        : (humanoid(u.ustuck->data) ? "holding someone"
                                                    : "holding that creature"));
-        if (u.uundetected
-            || (ismimic && U_AP_TYPE != M_AP_NOTHING)) {
+        if (u.uundetected || (ismimic && U_AP_TYPE != M_AP_NOTHING)) {
             u.uundetected = 0;
             gy.youmonst.m_ap_type = M_AP_NOTHING;
             newsym(u.ux, u.uy);
         }
         return ECMD_OK;
     }
-    /* note: the eel and hides_under cases are hypothetical;
+    /* note: hero-as-eel handling is incomplete but unnecessary;
        such critters aren't offered the option of hiding via #monster */
     if (gy.youmonst.data->mlet == S_EEL && !is_pool(u.ux, u.uy)) {
         if (IS_FOUNTAIN(levl[u.ux][u.uy].typ))
@@ -1816,7 +1876,7 @@ dohide(void)
     }
     if (hides_under(gy.youmonst.data)) {
         long ct = 0L;
-        struct obj *otmp, *otop = gl.level.objects[u.ux][u.uy];
+        struct obj *otmp, *otop = svl.level.objects[u.ux][u.uy];
         int concealflags = concealed_spot(u.ux, u.uy);
 
         if (concealflags == NOT_CONCEALABLE_SPOT) {
@@ -1913,7 +1973,7 @@ domindblast(void)
         return ECMD_OK;
     }
     u.uen -= 10;
-    gc.context.botl = 1;
+    disp.botl = TRUE;
 
     You("concentrate.");
     pline("A wave of psychic energy pours out.");
@@ -1998,72 +2058,67 @@ skinback(boolean noisy)
 const char *
 mbodypart(struct monst *mon, int part)
 {
-    if (part <= NO_PART) {
-        impossible("mbodypart: bad part %d", part);
-        return "strange body part";
-    }
-
     /* These arrays should otherwise be in the same order as the bodypart_types
      * defined in hack.h. */
     static NEARDATA const char
-        *humanoid_parts[] = { "", "arm",   "eye",  "face",         "finger",
+        *humanoid_parts[] = { "arm",       "eye",  "face",         "finger",
                               "fingertip", "foot", "hand",         "handed",
                               "head",      "leg",  "light headed", "neck",
                               "spine",     "toe",  "hair",         "blood",
                               "lung",      "nose", "stomach",      "torso" },
-        *jelly_parts[] = { "", "pseudopod", "dark spot", "front",
+        *jelly_parts[] = { "pseudopod", "dark spot", "front",
                            "pseudopod extension", "pseudopod extremity",
                            "pseudopod root", "grasp", "grasped",
                            "cerebral area", "lower pseudopod", "viscous",
                            "middle", "surface", "pseudopod extremity",
                            "ripples", "juices", "surface", "sensor",
                            "stomach", "central mass" },
-        *animal_parts[] = { "", "forelimb", "eye",           "face",
-                            "foreclaw",     "claw tip",      "rear claw",
-                            "foreclaw",     "clawed",        "head",
-                            "rear limb",    "light headed",  "neck",
-                            "spine",        "rear claw tip", "fur",
-                            "blood",        "lung",          "nose",
-                            "stomach",      "torso" },
-        *bird_parts[] = { "", "wing", "eye",  "face",         "wing",
+        *animal_parts[] = { "forelimb",  "eye",           "face",
+                            "foreclaw",  "claw tip",      "rear claw",
+                            "foreclaw",  "clawed",        "head",
+                            "rear limb", "light headed",  "neck",
+                            "spine",     "rear claw tip", "fur",
+                            "blood",     "lung",          "nose",
+                            "stomach",   "torso" },
+        *bird_parts[] = { "wing",     "eye",  "face",         "wing",
                           "wing tip", "foot", "wing",         "winged",
                           "head",     "leg",  "light headed", "neck",
                           "spine",    "toe",  "feathers",     "blood",
                           "lung",     "bill", "stomach",      "body" },
-        *horse_parts[] = { "", "foreleg", "eye",           "face",
-                           "forehoof",    "hoof tip",      "rear hoof",
-                           "forehoof",    "hooved",        "head",
-                           "rear leg",    "light headed",  "neck",
-                           "backbone",    "rear hoof tip", "mane",
-                           "blood",       "lung",          "nose",
-                           "stomach",     "torso" },
-        *sphere_parts[] = { "", "appendage", "optic nerve", "body", "tentacle",
+        *horse_parts[] = { "foreleg",  "eye",           "face",
+                           "forehoof", "hoof tip",      "rear hoof",
+                           "forehoof", "hooved",        "head",
+                           "rear leg", "light headed",  "neck",
+                           "backbone", "rear hoof tip", "mane",
+                           "blood",    "lung",          "nose",
+                           "stomach",  "torso" },
+        *sphere_parts[] = { "appendage", "optic nerve", "body", "tentacle",
                             "tentacle tip", "lower appendage", "tentacle",
                             "tentacled", "body", "lower tentacle",
                             "rotational", "equator", "body",
                             "lower tentacle tip", "cilia", "life force",
                             "retina", "olfactory nerve", "interior", "body" },
-        *fungus_parts[] = { "", "mycelium", "visual area", "front",
-                            "hypha",        "hypha",       "root",
-                            "strand",       "stranded",    "cap area",
-                            "rhizome",      "sporulated",  "stalk",
-                            "root",         "rhizome tip", "spores",
-                            "juices",       "gill",        "gill",
-                            "interior",     "body" },
-        *vortex_parts[] = { "", "region",    "eye",           "front",
+        *fungus_parts[] = { "mycelium", "visual area", "front",
+                            "hypha",    "hypha",       "root",
+                            "strand",   "stranded",    "cap area",
+                            "rhizome",  "sporulated",  "stalk",
+                            "root",     "rhizome tip", "spores",
+                            "juices",   "gill",        "gill",
+                            "interior", "body" },
+        *vortex_parts[] = { "region",        "eye",           "front",
                             "minor current", "minor current", "lower current",
                             "swirl",         "swirled",       "central core",
                             "lower current", "addled",        "center",
                             "currents",      "edge",          "currents",
                             "life force",    "center",        "leading edge",
                             "interior",      "central core" },
-        *snake_parts[] = { "", "vestigial limb", "eye", "face", "large scale",
+        *snake_parts[] = { "vestigial limb", "eye", "face", "large scale",
                            "large scale tip", "rear region", "scale gap",
                            "scale gapped", "head", "rear region",
                            "light headed", "neck", "length", "rear scale",
                            "scales", "blood", "lung", "forked tongue",
                            "stomach", "midsection" },
-        *worm_parts[] = { "", "anterior segment", "light sensitive cell",
+        *worm_parts[] = { "anterior segment", "light sensitive cell",
                           "clitellum", "setae", "setae", "posterior segment",
                           "segment", "segmented", "anterior segment",
                           "posterior", "over stretched", "clitellum",
@@ -2087,6 +2142,11 @@ mbodypart(struct monst *mon, int part)
         '\0' /* string terminator; assert( S_xxx != 0 ); */
     };
     struct permonst *mptr = mon->data;
+
+    if (part <= NO_PART) {
+        impossible("mbodypart: bad part %d", part);
+        return "mystery part";
+    }
 
     /* some special cases */
     if (mptr->mlet == S_DOG || mptr->mlet == S_FELINE
@@ -2212,7 +2272,7 @@ ugolemeffects(int damtype, int dam)
         u.mh += heal;
         if (u.mh > u.mhmax)
             u.mh = u.mhmax;
-        gc.context.botl = 1;
+        disp.botl = TRUE;
         pline("Strangely, you feel better than before.");
         exercise(A_STR, TRUE);
     }
@@ -2246,14 +2306,14 @@ armor_to_dragon(struct monst *mon)
 }
 
 /* some species have awareness of other species */
-static void
+staticfn void
 polysense(void)
 {
     short warnidx = NON_PM;
 
-    gc.context.warntype.speciesidx = NON_PM;
-    gc.context.warntype.species = 0;
-    gc.context.warntype.polyd = 0;
+    svc.context.warntype.speciesidx = NON_PM;
+    svc.context.warntype.species = 0;
+    svc.context.warntype.polyd = 0;
     HWarn_of_mon &= ~FROMRACE;
 
     switch (u.umonnum) {
@@ -2263,13 +2323,13 @@ polysense(void)
         break;
     case PM_VAMPIRE:
     case PM_VAMPIRE_LEADER:
-        gc.context.warntype.polyd = M2_HUMAN | M2_ELF;
+        svc.context.warntype.polyd = M2_HUMAN | M2_ELF;
         HWarn_of_mon |= FROMRACE;
         return;
     }
-    if (warnidx >= LOW_PM) {
-        gc.context.warntype.speciesidx = warnidx;
-        gc.context.warntype.species = &mons[warnidx];
+    if (ismnum(warnidx)) {
+        svc.context.warntype.speciesidx = warnidx;
+        svc.context.warntype.species = &mons[warnidx];
         HWarn_of_mon |= FROMRACE;
     }
 }
@@ -2278,8 +2338,8 @@ polysense(void)
 boolean
 ugenocided(void)
 {
-    return ((gm.mvitals[gu.urole.mnum].mvflags & G_GENOD)
-            || (gm.mvitals[gu.urace.mnum].mvflags & G_GENOD));
+    return ((svm.mvitals[gu.urole.mnum].mvflags & G_GENOD)
+            || (svm.mvitals[gu.urace.mnum].mvflags & G_GENOD));
 }
 
 /* how hero feels "inside" after self-genocide of role or race */

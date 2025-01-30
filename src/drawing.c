@@ -9,17 +9,12 @@
 #include "wintype.h"
 #include "sym.h"
 
+extern const struct symparse loadsyms[];
+extern const struct class_sym def_oc_syms[MAXOCLASSES];
+extern const struct class_sym def_monsyms[MAXMCLASSES];
+extern const uchar def_r_oc_syms[MAXOCLASSES];
+
 /* Relevant header information in rm.h, objclass.h, sym.h, defsym.h. */
-
-#ifdef C
-#undef C
-#endif
-
-#ifdef TEXTCOLOR
-#define C(n) n
-#else
-#define C(n)
-#endif
 
 /* Default object class symbols.  See objclass.h.
  * {symbol, name, explain}
@@ -43,17 +38,17 @@ const struct class_sym def_monsyms[MAXMCLASSES] = {
 
 const struct symdef def_warnsyms[WARNCOUNT] = {
     /* white warning  */
-    { '0', "unknown creature causing you worry",    C(CLR_WHITE) },
+    { '0', "unknown creature causing you worry",    CLR_WHITE },
     /* pink warning   */
-    { '1', "unknown creature causing you concern",  C(CLR_RED) },
+    { '1', "unknown creature causing you concern",  CLR_RED },
     /* red warning    */
-    { '2', "unknown creature causing you anxiety",  C(CLR_RED) },
+    { '2', "unknown creature causing you anxiety",  CLR_RED },
     /* ruby warning   */
-    { '3', "unknown creature causing you disquiet", C(CLR_RED) },
+    { '3', "unknown creature causing you disquiet", CLR_RED },
     /* purple warning */
-    { '4', "unknown creature causing you alarm",    C(CLR_MAGENTA) },
+    { '4', "unknown creature causing you alarm",    CLR_MAGENTA },
     /* black warning  */
-    { '5', "unknown creature causing you dread",    C(CLR_BRIGHT_MAGENTA) },
+    { '5', "unknown creature causing you dread",    CLR_BRIGHT_MAGENTA },
 };
 
 /*
@@ -70,14 +65,8 @@ const struct symdef defsyms[MAXPCHARS + 1] = {
 #define PCHAR_DRAWING
 #include "defsym.h"
 #undef PCHAR_DRAWING
-    { 0, NULL
-#ifdef TEXTCOLOR
-              , NO_COLOR
-#endif
-    }
+    { 0, NULL, NO_COLOR }
 };
-
-#undef C
 
 /*
  * Convert the given character to an object class.  If the character is not
@@ -97,7 +86,7 @@ def_char_to_objclass(char ch)
 
 /*
  * Convert a character into a monster class.  This returns the _first_
- * match made.  If there are are no matches, return MAXMCLASSES.
+ * match made.  If there are no matches, return MAXMCLASSES.
  * Used in detect.c, options.c, read.c, sp_lev.c, and lev_main.c
  */
 int

@@ -55,14 +55,13 @@ windsound_init_nhsound(void)
 }
 
 static void
-windsound_exit_nhsound(const char *reason)
+windsound_exit_nhsound(const char *reason UNUSED)
 {
 }
 
 static void
-windsound_achievement(schar ach1, schar ach2, int32_t repeat)
+windsound_achievement(schar ach1, schar ach2, int32_t repeat UNUSED)
 {
-    int reslt = 0;
     const char *filename;
     char resourcename[120], buf[PATHLEN];
     int findsound_approach = sff_base_only;
@@ -108,27 +107,27 @@ windsound_achievement(schar ach1, schar ach2, int32_t repeat)
     filename = base_soundname_to_filename(resourcename,
                                           buf, sizeof buf, findsound_approach);
     if (filename) {
-        reslt = PlaySound(filename, NULL, fdwsound);
+        (void) PlaySound(filename, NULL, fdwsound);
     }
 }
 
 static void
-windsound_ambience(int32_t ambienceid, int32_t ambience_action,
-                   int32_t hero_proximity)
+windsound_ambience(int32_t ambienceid UNUSED, int32_t ambience_action UNUSED,
+                   int32_t hero_proximity UNUSED)
 {
 }
 
 static void
-windsound_verbal(char *text, int32_t gender, int32_t tone,
-                 int32_t vol, int32_t moreinfo)
+windsound_verbal(char *text UNUSED, int32_t gender UNUSED, int32_t tone UNUSED,
+                 int32_t vol UNUSED, int32_t moreinfo UNUSED)
 {
 }
 
 static void
-windsound_soundeffect(char *desc, int32_t seid, int32_t volume)
+windsound_soundeffect(char *desc UNUSED, int32_t seid, int32_t volume UNUSED)
 {
 #ifdef SND_SOUNDEFFECTS_AUTOMAP
-    int reslt = 0;
+/*    int reslt = 0; */
     int32_t findsound_approach = sff_base_only;
     char buf[PATHLEN];
     const char *filename;
@@ -147,7 +146,7 @@ windsound_soundeffect(char *desc, int32_t seid, int32_t volume)
     }
 
     if (filename) {
-        reslt = PlaySound(filename, NULL, fdwsound);
+        (void) PlaySound(filename, NULL, fdwsound);
     }
 #endif
 }
@@ -155,7 +154,7 @@ windsound_soundeffect(char *desc, int32_t seid, int32_t volume)
 #define WAVEMUSIC_SOUNDS
 
 static void
-windsound_hero_playnotes(int32_t instrument, const char *str, int32_t volume)
+windsound_hero_playnotes(int32_t instrument, const char *str, int32_t volume UNUSED)
 {
 #ifdef WAVEMUSIC_SOUNDS
     int reslt = 0;
@@ -239,6 +238,8 @@ windsound_hero_playnotes(int32_t instrument, const char *str, int32_t volume)
     /* the final, or only, one is played ASYNC */
     maybe_preinsert_directory(findsound_approach, exedir, buf, sizeof buf);
     reslt = PlaySound(buf, NULL, fdwsound);
+    nhUse(filename);
+    nhUse(reslt);
 #endif
 }
 
@@ -301,7 +302,7 @@ maybe_preinsert_directory(int32_t findsound_approach, char *exedir, char *buf, s
     int largest_basename = 35;
 
     /* findsound_approach = sff_havdir_append_rest means a directory name will be
-     * inserted into the begining of buf and the remaining parts of the
+     * inserted into the beginning of buf and the remaining parts of the
      * resource/file name will be appended by
      * get_sound_effect_filename(seid, buf, sizeof buf, findsound_approach)
      * when it sees the sff_havedir_append_rest indicator.

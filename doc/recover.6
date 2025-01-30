@@ -1,7 +1,7 @@
-.\"DO NOT REMOVE NH_DATESUB .TH RECOVER 6 "DATE(%-d %B %Y)" NETHACK
-.TH RECOVER 6 "8 February 2022" NETHACK
-.\"DO NOT REMOVE NH_DATESUB .ds Nd DATE(%Y)
-.ds Nd 2022
+.\"DO NOT REMOVE NH_DATESUB .TH RECOVER 6 "Date(%-d %B %Y)" Project(uc)
+.TH RECOVER 6 "25 December 2024" NETHACK
+.\"DO NOT REMOVE NH_DATESUB .ds Nd Date(%Y)
+.ds Nd 2024
 .de NB
 .ds Nb \\$2
 ..
@@ -10,6 +10,11 @@
 ..
 .NB $NHDT-Branch: NetHack-3.7 $
 .NR $NHDT-Revision: 1.12 $
+.\" groff and AT&T-descended troffs use different hyphenation patterns. 
+.\" Don't hyphenate the last word on a page or column, or
+.\" before/after last/first 2 characters of a word.
+.ie \n(.g .hy 12
+.el       .hy 14
 .ds Na Kenneth Lorber
 .SH NAME
 recover \- recover a NetHack game interrupted by disaster
@@ -43,6 +48,7 @@ supplies a directory which is the NetHack playground.
 It overrides the value from NETHACKDIR, HACKDIR, or the directory
 specified by the game administrator during compilation
 (usually /usr/games/lib/nethackdir).
+.ig
 .PP
 ^?ALLDOCS
 For recovery to be possible,
@@ -64,6 +70,7 @@ This configuration of
 was created without support for recovery.
 ^.
 ^.
+..
 NetHack normally writes out files for levels as the player leaves them,
 so they will be ready for return visits.
 When checkpointing, NetHack also writes out the level entered and

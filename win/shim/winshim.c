@@ -115,7 +115,7 @@ void name fn_args { \
 #endif /* __EMSCRIPTEN__ */
 
 VDECLCB(shim_init_nhwindows,(int *argcp, char **argv), "vpp", P2V argcp, P2V argv)
-VDECLCB(shim_player_selection,(void), "v")
+DECLCB(boolean, shim_player_selection_or_tty,(void), "b")
 VDECLCB(shim_askname,(void), "v")
 VDECLCB(shim_get_nh_event,(void), "v")
 VDECLCB(shim_exit_nhwindows,(const char *str), "vs", P2V str)
@@ -123,33 +123,33 @@ VDECLCB(shim_suspend_nhwindows,(const char *str), "vs", P2V str)
 VDECLCB(shim_resume_nhwindows,(void), "v")
 DECLCB(winid, shim_create_nhwindow, (int type), "ii", A2P type)
 VDECLCB(shim_clear_nhwindow,(winid window), "vi", A2P window)
-VDECLCB(shim_display_nhwindow,(winid window, boolean blocking), "vii", A2P window, A2P blocking)
+VDECLCB(shim_display_nhwindow,(winid window, boolean blocking), "vib", A2P window, A2P blocking)
 VDECLCB(shim_destroy_nhwindow,(winid window), "vi", A2P window)
 VDECLCB(shim_curs,(winid a, int x, int y), "viii", A2P a, A2P x, A2P y)
 VDECLCB(shim_putstr,(winid w, int attr, const char *str), "viis", A2P w, A2P attr, P2V str)
-VDECLCB(shim_display_file,(const char *name, boolean complain), "vsi", P2V name, A2P complain)
+VDECLCB(shim_display_file,(const char *name, boolean complain), "vsb", P2V name, A2P complain)
 VDECLCB(shim_start_menu,(winid window, unsigned long mbehavior), "vii", A2P window, A2P mbehavior)
 VDECLCB(shim_add_menu,
     (winid window, const glyph_info *glyphinfo, const ANY_P *identifier, char ch, char gch, int attr, int clr, const char *str, unsigned int itemflags),
-    "vippiiisi",
+    "vipi00iisi",
     A2P window, P2V glyphinfo, P2V identifier, A2P ch, A2P gch, A2P attr, A2P clr, P2V str, A2P itemflags)
 VDECLCB(shim_end_menu,(winid window, const char *prompt), "vis", A2P window, P2V prompt)
 /* XXX: shim_select_menu menu_list is an output */
-DECLCB(int, shim_select_menu,(winid window, int how, MENU_ITEM_P **menu_list), "iiio", A2P window, A2P how, P2V menu_list)
+DECLCB(int, shim_select_menu,(winid window, int how, MENU_ITEM_P **menu_list), "iiip", A2P window, A2P how, P2V menu_list)
 DECLCB(char, shim_message_menu,(char let, int how, const char *mesg), "ciis", A2P let, A2P how, P2V mesg)
 VDECLCB(shim_mark_synch,(void), "v")
 VDECLCB(shim_wait_synch,(void), "v")
 VDECLCB(shim_cliparound,(int x, int y), "vii", A2P x, A2P y)
-VDECLCB(shim_update_positionbar,(char *posbar), "vp", P2V posbar)
-VDECLCB(shim_print_glyph,(winid w, coordxy x, coordxy y, const glyph_info *glyphinfo, const glyph_info *bkglyphinfo), "viiipp", A2P w, A2P x, A2P y, P2V glyphinfo, P2V bkglyphinfo)
+VDECLCB(shim_update_positionbar,(char *posbar), "vs", P2V posbar)
+VDECLCB(shim_print_glyph,(winid w, coordxy x, coordxy y, const glyph_info *glyphinfo, const glyph_info *bkglyphinfo), "vi11pp", A2P w, A2P x, A2P y, P2V glyphinfo, P2V bkglyphinfo)
 VDECLCB(shim_raw_print,(const char *str), "vs", P2V str)
 VDECLCB(shim_raw_print_bold,(const char *str), "vs", P2V str)
 DECLCB(int, shim_nhgetch,(void), "i")
-DECLCB(int, shim_nh_poskey,(coordxy *x, coordxy *y, int *mod), "iooo", P2V x, P2V y, P2V mod)
+DECLCB(int, shim_nh_poskey,(coordxy *x, coordxy *y, int *mod), "ippp", P2V x, P2V y, P2V mod)
 VDECLCB(shim_nhbell,(void), "v")
 DECLCB(int, shim_doprev_message,(void),"iv")
-DECLCB(char, shim_yn_function,(const char *query, const char *resp, char def), "cssi", P2V query, P2V resp, A2P def)
-VDECLCB(shim_getlin,(const char *query, char *bufp), "vso", P2V query, P2V bufp)
+DECLCB(char, shim_yn_function,(const char *query, const char *resp, char def), "css0", P2V query, P2V resp, A2P def)
+VDECLCB(shim_getlin,(const char *query, char *bufp), "vsp", P2V query, P2V bufp)
 DECLCB(int,shim_get_ext_cmd,(void),"iv")
 VDECLCB(shim_number_pad,(int state), "vi", A2P state)
 VDECLCB(shim_delay_output,(void), "v")
@@ -158,21 +158,18 @@ VDECLCB(shim_change_background,(int white_or_black), "vi", A2P white_or_black)
 DECLCB(short, set_shim_font_name,(winid window_type, char *font_name),"2is", A2P window_type, P2V font_name)
 DECLCB(char *,shim_get_color_string,(void),"sv")
 
-/* other defs that really should go away (they're tty specific) */
-VDECLCB(shim_start_screen, (void), "v")
-VDECLCB(shim_end_screen, (void), "v")
 VDECLCB(shim_preference_update, (const char *pref), "vp", P2V pref)
-DECLCB(char *,shim_getmsghistory, (boolean init), "si", A2P init)
-VDECLCB(shim_putmsghistory, (const char *msg, boolean restoring_msghist), "vsi", P2V msg, A2P restoring_msghist)
+DECLCB(char *,shim_getmsghistory, (boolean init), "sb", A2P init)
+VDECLCB(shim_putmsghistory, (const char *msg, boolean restoring_msghist), "vsb", P2V msg, A2P restoring_msghist)
 VDECLCB(shim_status_init, (void), "v")
 VDECLCB(shim_status_enablefield,
     (int fieldidx, const char *nm, const char *fmt, boolean enable),
-    "vippi",
+    "vippb",
     A2P fieldidx, P2V nm, P2V fmt, A2P enable)
 /* XXX: the second argument to shim_status_update is sometimes an integer and sometimes a pointer */
 VDECLCB(shim_status_update,
     (int fldidx, genericptr_t ptr, int chg, int percent, int color, unsigned long *colormasks),
-    "vioiiip",
+    "vipiiip",
     A2P fldidx, P2V ptr, A2P chg, A2P percent, A2P color, P2V colormasks)
 
 #ifdef __EMSCRIPTEN__
@@ -183,10 +180,18 @@ void shim_update_inventory(int a1 UNUSED) {
         display_inventory(NULL, FALSE);
     }
 }
+
+void shim_player_selection() {
+    boolean do_genl_player_setup = shim_player_selection_or_tty();
+    if (do_genl_player_setup) {
+        genl_player_setup(80);
+    }
+}
+
 win_request_info *
 shim_ctrl_nhwindow(
     winid window UNUSED,
-    int request,
+    int request UNUSED,
     win_request_info *wri UNUSED) {
     return (win_request_info *) 0;
 }
@@ -203,6 +208,7 @@ struct window_procs shim_procs = {
     WPID(shim),
     (0
      | WC_ASCII_MAP
+     | WC_MOUSE_SUPPORT
      | WC_COLOR | WC_HILITE_PET | WC_INVERSE | WC_EIGHT_BIT_IN),
     (0
 #if defined(SELECTSAVED)
@@ -213,11 +219,7 @@ struct window_procs shim_procs = {
      | WC2_RESET_STATUS
 #endif
      | WC2_DARKGRAY | WC2_SUPPRESS_HIST | WC2_STATUSLINES),
-#ifdef TEXTCOLOR
     {1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1},   /* color availability */
-#else
-    {1, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 1},
-#endif
     shim_init_nhwindows, shim_player_selection, shim_askname, shim_get_nh_event,
     shim_exit_nhwindows, shim_suspend_nhwindows, shim_resume_nhwindows,
     shim_create_nhwindow, shim_clear_nhwindow, shim_display_nhwindow,
@@ -242,8 +244,7 @@ struct window_procs shim_procs = {
     shim_get_color_string,
 #endif
 
-    /* other defs that really should go away (they're tty specific) */
-    shim_start_screen, shim_end_screen, genl_outrip,
+    genl_outrip,
     shim_preference_update,
     shim_getmsghistory, shim_putmsghistory,
     shim_status_init,
@@ -266,7 +267,7 @@ EM_JS(void, local_callback, (const char *cb_name, const char *shim_name, void *r
     // unrolling and it crashes. Thus we use Asyncify.handleSleep() and wakeUp() to make sure that async doesn't break
     // Asyncify. For details, see: https://emscripten.org/docs/porting/asyncify.html#optimizing
     Asyncify.handleSleep(wakeUp => {
-        // convert callback arguments to proper JavaScript varaidic arguments
+        // convert callback arguments to proper JavaScript variadic arguments
         let name = UTF8ToString(shim_name);
         let fmt = UTF8ToString(fmt_str);
         let cbName = UTF8ToString(cb_name);
@@ -291,40 +292,25 @@ EM_JS(void, local_callback, (const char *cb_name, const char *shim_name, void *r
 
         // do the callback
         let userCallback = globalThis[cbName];
-        runJsEventLoop(() => userCallback.call(this, name, ... jsArgs)).then((retVal) => {
+        userCallback.call(this, name, ... jsArgs).then((retVal) => {
             // save the return value
             setPointerValue(name, ret_ptr, retType, retVal);
-            // return
-            setTimeout(() => {
-                reentryMutexUnlock();
+            reentryMutexUnlock();
+            try {
                 wakeUp();
-            }, 0);
+            } catch (e) {
+                
+            }
         });
 
         function getArg(name, ptr, type) {
-            return (type === "o")?ptr:getPointerValue(name, getValue(ptr, "*"), type);
-        }
-
-        // setTimeout() with value of '0' is similar to setImmediate() (but setImmediate isn't standard)
-        // this lets the JS loop run for a tick so that other events can occur
-        // XXX: I also tried replacing the for(;;) in allmain.c:moveloop() with emscripten_set_main_loop()
-        // unfortunately that won't work -- if the simulate_infinite_loop arg is false, it falls through
-        // and the program ends;
-        // if is true, it throws an exception to break out of main(), but doesn't get caught because
-        // the stack isn't running under main() anymore...
-        // I think this is suboptimal, but we will have to live with it (for now?)
-        async function runJsEventLoop(cb) {
-            return new Promise((resolve) => {
-                setTimeout(() => {
-                    resolve(cb());
-                }, 0);
-            });
+            return (type === "p") ? getValue(ptr, "*") : getPointerValue(name, getValue(ptr, "*"), type);
         }
 
         function reentryMutexLock(name) {
             globalThis.nethackGlobal = globalThis.nethackGlobal || {};
             if(globalThis.nethackGlobal.shimFunctionRunning) {
-                throw new Error(`'${name}' attempting second call to 'local_callback' before '${globalThis.nethackGlobal.shimFunctionRunning}' has finished, will crash emscripten Asyncify. For details see: emscripten.org/docs/porting/asyncify.html#reentrancy`);
+                console.error(`'${name}' attempting second call to 'local_callback' before '${globalThis.nethackGlobal.shimFunctionRunning}' has finished, will crash emscripten Asyncify. For details see: emscripten.org/docs/porting/asyncify.html#reentrancy`);
             }
             globalThis.nethackGlobal.shimFunctionRunning = name;
         }

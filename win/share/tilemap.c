@@ -1,4 +1,4 @@
-/* NetHack 3.7	tilemap.c	$NHDT-Date: 1640987372 2021/12/31 21:49:32 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.64 $ */
+/* NetHack 3.7	tilemap.c	$NHDT-Date: 1736530790 2025/01/10 09:39:50 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.86 $ */
 /*      Copyright (c) 2016 by Michael Allison                     */
 /* NetHack may be freely redistributed.  See license for details. */
 
@@ -18,9 +18,13 @@
 #include "rm.h"
 #else
 #include "hack.h"
-#include "display.h"
-#include <stdarg.h>
 #endif
+
+#ifdef Snprintf
+#undef Snprintf
+#endif
+#define Snprintf(str, size, ...) \
+    nh_snprintf(__func__, __LINE__, str, size, __VA_ARGS__)
 
 #ifdef MONITOR_HEAP
 /* with heap monitoring enabled, free(ptr) is a macro which expands to
@@ -30,10 +34,6 @@
 #endif
 
 #define Fprintf (void) fprintf
-#define Snprintf(str, size, ...) \
-    nh_snprintf(__func__, __LINE__, str, size, __VA_ARGS__)
-void nh_snprintf(const char *func, int line, char *str, size_t size,
-                 const char *fmt, ...);
 
 /*
  * Defining OBTAIN_TILEMAP to get a listing of the tile-mappings
@@ -52,10 +52,6 @@ FILE *tilemap_file;
 #if !defined(MSDOS) && !defined(WIN32)
 extern void exit(int);
 #endif
-#endif
-
-#if defined(CROSSCOMPILE) && defined(ENHANCED_SYMBOLS)
-#undef ENHANCED_SYMBOLS
 #endif
 
 struct {
@@ -79,7 +75,7 @@ const char *engraving_text[] = {
     "graffiti 2", "graffiti 3", "blood engraving",
 };
 const char *magicplatform_text[] = {
-    "default", "red", "orange", "yellow", "green", "blue", "violet",
+    "red", "orange", "yellow", "green", "blue", "violet",
 };
 enum wall_levels { main_dungeon, mines, gehennom, knox, sokoban };
 
@@ -125,14 +121,14 @@ struct tilemap_t {
 #endif
 } tilemap[MAX_GLYPH];
 
-#define MAX_TILENAM 30
+#define MAX_TILENAM 256
     /* List of tiles encountered and their usage */
 struct tiles_used {
     int tilenum;
     enum tilesrc src;
     int file_entry;
     char tilenam[MAX_TILENAM];
-    char references[120];
+    char references[1024];
 };
 struct tiles_used *tilelist[2500] = { 0 };
 
@@ -369,46 +365,6 @@ tilename(int set, const int file_entry, int gend UNUSED)
             }
         }
 
-        /* Engravings */
-        cmap = S_engraving;
-        for (k = engr_dust; k <= engr_blood; k++) {
-            /* Since defsyms only has one engraving symbol,
-               it isn't much help in identifying details
-               these. Roll our own name. */
-            if (tilenum == file_entry) {
-                Strcpy(buf, engraving_text[k]);
-                return buf;
-            }
-            tilenum++;
-        }
-        for (condnum = 0; conditionals[condnum].sequence != -1; ++condnum) {
-            if (conditionals[condnum].sequence == OTH_GLYPH
-                && conditionals[condnum].predecessor == cmap) {
-                tilenum++;
-                if (tilenum == file_entry)
-                    return conditionals[condnum].name;
-            }
-        }
-
-        /* Magic platforms */
-        cmap = S_magicplatform;
-        for (k = platform_default; k <= platform_violet; k++) {
-            /* Ditto as with engravings and altars; roll our own name. */
-            if (tilenum == file_entry) {
-                Sprintf(buf, "%s magic platform", magicplatform_text[k]);
-                return buf;
-            }
-            tilenum++;
-        }
-        for (condnum = 0; conditionals[condnum].sequence != -1; ++condnum) {
-            if (conditionals[condnum].sequence == OTH_GLYPH
-                && conditionals[condnum].predecessor == cmap) {
-                tilenum++;
-                if (tilenum == file_entry)
-                    return conditionals[condnum].name;
-            }
-        }
-
         /* cmap B */
         for (cmap = S_grave; cmap < S_arrow_trap + MAXTCHARS; cmap++) {
             i = cmap - S_grave;
@@ -532,6 +488,51 @@ tilename(int set, const int file_entry, int gend UNUSED)
                     }
                 }
                 tilenum++;
+            }
+        }
+
+        /* Engravings */
+        for (i = 0; i <= 1; i++) {
+            cmap = (i == 0) ? S_engroom : S_engrcorr;
+            for (k = engr_dust; k < max_engraving_glyphtypes; k++) {
+                /* 2 separate sets of engraving tiles for in rooms and in
+                 * corridors - "dust engraving in a room", etc.
+                 * note that defsyms[].explanation is just "engraving" for both
+                 * defsyms in this file. */
+                if (tilenum == file_entry) {
+                    Sprintf(buf, "%s in a %s",
+                            engraving_text[k],
+                            cmap == S_engroom ? "room" : "corridor");
+                    return buf;
+                }
+                tilenum++;
+            }
+        }
+        for (condnum = 0; conditionals[condnum].sequence != -1; ++condnum) {
+            if (conditionals[condnum].sequence == OTH_GLYPH
+                && conditionals[condnum].predecessor == cmap) {
+                tilenum++;
+                if (tilenum == file_entry)
+                    return conditionals[condnum].name;
+            }
+        }
+
+        /* Extra magic platform colors */
+        cmap = S_magicplatform;
+        for (k = platform_red; k <= platform_violet; k++) {
+            /* Ditto as with engravings and altars; roll our own name. */
+            if (tilenum == file_entry) {
+                Sprintf(buf, "%s magic platform", magicplatform_text[k]);
+                return buf;
+            }
+            tilenum++;
+        }
+        for (condnum = 0; conditionals[condnum].sequence != -1; ++condnum) {
+            if (conditionals[condnum].sequence == OTH_GLYPH
+                && conditionals[condnum].predecessor == cmap) {
+                tilenum++;
+                if (tilenum == file_entry)
+                    return conditionals[condnum].name;
             }
         }
 
@@ -721,8 +722,6 @@ init_tilemap(void)
                 + ((S_trwall - S_vwall) + 1)               /* main walls */
                 + ((S_brdnladder - S_ndoor) + 1)           /* cmap A */
                 + (4 + 1)                                  /* 5 altar tiles */
-                + 7                                        /* 7 engraving tiles */
-                + 7                                        /* 7 magic platform tiles */
                 + (S_arrow_trap + MAXTCHARS - S_grave)     /* cmap B */
                 + (NUM_ZAP << 2)                           /* zaps */
                 + ((S_goodpos - S_digbeam) + 1);           /* cmap C */
@@ -1012,70 +1011,6 @@ init_tilemap(void)
         file_entry++;
     }
 
-    /* Engravings */
-    cmap = S_engraving;
-    j = 0;
-    for (k = engr_dust; k <= engr_blood; k++) {
-        offset = GLYPH_ENGRAVING_OFF + j;
-        precheck((offset), "engraving");
-        tilemap[offset].tilenum = tilenum;
-#if defined(OBTAIN_TILEMAP)
-        Snprintf(tilemap[offset].name,
-                 sizeof tilemap[0].name,
-                "%s %s (cmap=%d)",
-                engraving_text[j], tilename(OTH_GLYPH, file_entry, 0), cmap);
-        add_tileref(tilenum, offset, other_file, file_entry,
-                    tilemap[offset].name, "");
-#endif
-        for (condnum = 0; conditionals[condnum].sequence != -1; condnum++) {
-            if (conditionals[condnum].sequence == OTH_GLYPH
-                && conditionals[condnum].predecessor == cmap) {
-#if defined(OBTAIN_TILEMAP)
-                Fprintf(tilemap_file, "skipping %s %s (%d)\n",
-                        engraving_text[j],
-                        tilename(OTH_GLYPH, file_entry, 0), cmap);
-#endif
-                tilenum++;
-                file_entry++;
-            }
-        }
-        j++;
-        tilenum++;
-        file_entry++;
-    }
-
-    /* Magic platforms */
-    cmap = S_magicplatform;
-    j = 0;
-    for (k = platform_default; k <= platform_violet; k++) {
-        offset = GLYPH_MAGICPLATFORM_OFF + j;
-        precheck((offset), "magic platform");
-        tilemap[offset].tilenum = tilenum;
-#if defined(OBTAIN_TILEMAP)
-        Snprintf(tilemap[offset].name,
-                 sizeof tilemap[0].name,
-                "%s %s (cmap=%d)",
-                magicplatform_text[j], tilename(OTH_GLYPH, file_entry, 0), cmap);
-        add_tileref(tilenum, offset, other_file, file_entry,
-                    tilemap[offset].name, "");
-#endif
-        for (condnum = 0; conditionals[condnum].sequence != -1; condnum++) {
-            if (conditionals[condnum].sequence == OTH_GLYPH
-                && conditionals[condnum].predecessor == cmap) {
-#if defined(OBTAIN_TILEMAP)
-                Fprintf(tilemap_file, "skipping %s %s (%d)\n",
-                        magicplatform_text[j],
-                        tilename(OTH_GLYPH, file_entry, 0), cmap);
-#endif
-                tilenum++;
-                file_entry++;
-            }
-        }
-        j++;
-        tilenum++;
-        file_entry++;
-    }
-
     /* cmap B */
     for (cmap = S_grave; cmap < S_arrow_trap + MAXTCHARS; cmap++) {
         i = cmap - S_grave;
@@ -1256,6 +1191,74 @@ init_tilemap(void)
             tilenum++;
             file_entry++;
         }
+    }
+
+    /* Engravings */
+    j = 0;
+    for (i = 0; i <= 1; i++) {
+        cmap = (i == 0) ? S_engroom : S_engrcorr;
+        for (k = engr_dust; k < max_engraving_glyphtypes; k++) {
+            offset = GLYPH_ENGRAVING_OFF + j;
+            precheck((offset), "engraving");
+            tilemap[offset].tilenum = tilenum;
+#if defined(OBTAIN_TILEMAP)
+            Snprintf(tilemap[offset].name,
+                    sizeof tilemap[0].name,
+                    "%s in a %s %s (cmap=%d)",
+                    engraving_text[k],
+                    cmap == S_engroom ? "room" : "corridor",
+                    tilename(OTH_GLYPH, file_entry, 0), cmap);
+            add_tileref(tilenum, offset, other_file, file_entry,
+                        tilemap[offset].name, "");
+#endif
+            for (condnum = 0; conditionals[condnum].sequence != -1; condnum++) {
+                if (conditionals[condnum].sequence == OTH_GLYPH
+                    && conditionals[condnum].predecessor == cmap) {
+#if defined(OBTAIN_TILEMAP)
+                    Fprintf(tilemap_file, "skipping %s %s (%d)\n",
+                            engraving_text[k],
+                            tilename(OTH_GLYPH, file_entry, 0), cmap);
+#endif
+                    tilenum++;
+                    file_entry++;
+                }
+            }
+            j++;
+            tilenum++;
+            file_entry++;
+        }
+    }
+
+    /* Magic platforms */
+    cmap = S_magicplatform;
+    j = 0;
+    for (k = platform_red; k <= platform_violet; k++) {
+        offset = GLYPH_MAGICPLATFORM_OFF + j;
+        precheck((offset), "magic platform");
+        tilemap[offset].tilenum = tilenum;
+#if defined(OBTAIN_TILEMAP)
+        Snprintf(tilemap[offset].name,
+                 sizeof tilemap[0].name,
+                "%s %s (cmap=%d)",
+                magicplatform_text[j], tilename(OTH_GLYPH, file_entry, 0), cmap);
+        add_tileref(tilenum, offset, other_file, file_entry,
+                    tilemap[offset].name, "");
+#endif
+        for (condnum = 0; conditionals[condnum].sequence != -1; condnum++) {
+            if (conditionals[condnum].sequence == OTH_GLYPH
+                && conditionals[condnum].predecessor == cmap) {
+#if defined(OBTAIN_TILEMAP)
+                Fprintf(tilemap_file, "skipping %s %s (%d)\n",
+                        magicplatform_text[j],
+                        tilename(OTH_GLYPH, file_entry, 0), cmap);
+#endif
+                tilenum++;
+                file_entry++;
+            }
+        }
+        j++;
+        tilenum++;
+        file_entry++;
     }
 
     for (i = 0; i < WARNCOUNT; i++) {
@@ -1475,8 +1478,8 @@ main(int argc UNUSED, char *argv[] UNUSED)
     Fprintf(ofp, "\n#ifndef TILES_IN_GLYPHMAP\n");
     Fprintf(ofp, "\n#else /* ?TILES_IN_GLYPHMAP */\n");
     Fprintf(ofp, "\nenum special_tiles {\n");
-    Fprintf(ofp, "    TILE_CORR = %d,\n", TILE_corr); 
-    Fprintf(ofp, "    TILE_STONE = %d,\n", TILE_stone); 
+    Fprintf(ofp, "    TILE_CORR = %d,\n", TILE_corr);
+    Fprintf(ofp, "    TILE_STONE = %d,\n", TILE_stone);
     Fprintf(ofp, "    TILE_UNEXPLORED = %d\n", TILE_unexplored);
     Fprintf(ofp, "};\n");
     Fprintf(ofp, "\nint total_tiles_used = %d,\n", laststatuetile + 1);
@@ -1486,16 +1489,17 @@ main(int argc UNUSED, char *argv[] UNUSED)
     Fprintf(ofp, "%smaxmontile = %d,\n", indent, lastmontile);
     Fprintf(ofp, "%smaxobjtile = %d,\n", indent, lastobjtile);
     Fprintf(ofp, "%smaxothtile = %d;\n\n", indent, lastothtile);
+    Fprintf(ofp, "#define NO_CUSTOMCOLOR (0U)\n\n");
     Fprintf(ofp, "/* glyph, ttychar, { %s%s } */\n",
-            "glyphflags, {color, symidx}, ovidx, tileidx", enhanced);
+            "glyphflags, { NO_COLOR, symidx }, NO_CUSTOMCOLOR, NO_CUSTOMCOLOR, ovidx, tileidx", enhanced);
 #ifdef ENHANCED_SYMBOLS
     enhanced = ", 0"; /* replace ", utf8rep" since we're done with that */
 #endif
-    Fprintf(ofp, "const glyph_info nul_glyphinfo = { \n");
+    Fprintf(ofp, "const glyph_info nul_glyphinfo = {\n");
     Fprintf(ofp, "%sNO_GLYPH, ' ', NO_COLOR,\n", indent);
     Fprintf(ofp, "%s%s/* glyph_map */\n", indent, indent);
     Fprintf(ofp, "%s%s{ %s, TILE_UNEXPLORED%s }\n", indent, indent,
-            "MG_UNEXPL, { NO_COLOR, SYM_UNEXPLORED + SYM_OFF_X }",
+            "MG_UNEXPL, { NO_COLOR, SYM_UNEXPLORED + SYM_OFF_X }, NO_CUSTOMCOLOR, NO_CUSTOMCOLOR",
             enhanced);
     Fprintf(ofp, "};\n");
     Fprintf(ofp, "\nglyph_map glyphmap[MAX_GLYPH] = {\n");
@@ -1510,7 +1514,7 @@ main(int argc UNUSED, char *argv[] UNUSED)
             /*NOTREACHED*/
         }
         Fprintf(ofp,
-                "    { 0U, { 0, 0 }, %4d%s },   /* [%04d] %s:%03d %s */\n",
+                "    { 0U, { NO_COLOR, 0 }, NO_CUSTOMCOLOR, NO_CUSTOMCOLOR, %4d%s },   /* [%04d] %s:%03d %s */\n",
                 tilenum, enhanced, i,
                 tilesrc_texts[tilelist[tilenum]->src],
                 tilelist[tilenum]->file_entry,
@@ -1610,7 +1614,8 @@ precheck(int offset, const char *glyphtype)
                 glyphtype);
 }
 
-void add_tileref(
+void
+add_tileref(
     int n,
     int glyphref,
     enum tilesrc src,
@@ -1623,14 +1628,19 @@ void add_tileref(
     char buf[BUFSZ];
 
     if (!tilelist[n]) {
-        tilelist[n] = malloc(sizeof temp);
-        tilelist[n]->tilenum = n;
-        tilelist[n]->src = src;
-        tilelist[n]->file_entry = entrynum;
-        /* leave room for trailing "...nnnn" */
-        Snprintf(tilelist[n]->tilenam, sizeof tilelist[n]->tilenam - 7,
-                 "%s%s", prefix, nam);
-        tilelist[n]->references[0] = '\0';
+        if ((tilelist[n] = malloc(sizeof temp)) != 0) {
+            tilelist[n]->tilenum = n;
+            tilelist[n]->src = src;
+            tilelist[n]->file_entry = entrynum;
+            /* leave room for trailing "...nnnn" */
+            Snprintf(tilelist[n]->tilenam, sizeof tilelist[n]->tilenam - 7,
+                     "%s%s", prefix, nam);
+            tilelist[n]->references[0] = '\0';
+        } else {
+            Fprintf(stderr, "tilemap malloc failure %zu bytes\n",
+                    sizeof temp);
+            exit(EXIT_FAILURE);
+        }
     }
     Snprintf(temp.references,
              sizeof temp.references - 7, /* room for "...nnnn" */
@@ -1673,29 +1683,5 @@ free_tilerefs(void)
 }
 
 #endif
-
-DISABLE_WARNING_FORMAT_NONLITERAL
-
-void
-nh_snprintf(
-    const char *func UNUSED,
-    int line UNUSED,
-    char *str, size_t size,
-    const char *fmt, ...)
-{
-    va_list ap;
-    int n;
-
-    va_start(ap, fmt);
-    n = vsnprintf(str, size, fmt, ap);
-    va_end(ap);
-
-    if (n < 0 || (size_t) n >= size) { /* is there a problem? */
-        str[size - 1] = 0;             /* make sure it is nul terminated */
-    }
-}
-
-RESTORE_WARNING_FORMAT_NONLITERAL
-
 
 /*tilemap.c*/

@@ -23,8 +23,10 @@ tile2img.ttp
 xpm2ppm.ttp
 nethack.tags
 readtags
+lua-*.dll
 # dev tool for analyzing data collected by nethack's #define MONITOR_HEAP
 heaputil
 heaputil.c
 tilemappings.lst
+clang_rt.asan*.dll
 

@@ -14,8 +14,8 @@ Porting              README               azure-pipelines.yml
 
 DEVEL:
 (files for people developing changes to NetHack)
-Developer.txt      code_features.txt  code_style.txt     git_recipes.txt
-gitinfo.pl         nhgitset.pl
+Developer.txt      VERSION            code_features.txt  code_style.txt
+git_recipes.txt    gitinfo.pl         nhgitset.pl
 
 DEVEL/DOTGIT:
 (file for people developing changes to NetHack)
@@ -25,11 +25,11 @@ DEVEL/hooksdir:
 (files for people developing changes to NetHack)
 NHadd               NHgithook.pm        NHsubst
 NHtext              TARGET              applypatch-msg
-commit-msg          nhsub               post-applypatch
-post-checkout       post-commit         post-merge
-post-rewrite        pre-applypatch      pre-auto-gc
-pre-commit          pre-push            pre-rebase
-prepare-commit-msg
+commit-msg          nhhelp              nhsub
+post-applypatch     post-checkout       post-commit
+post-merge          post-rewrite        pre-applypatch
+pre-auto-gc         pre-commit          pre-push
+pre-rebase          prepare-commit-msg
 
 dat:
 (files for all versions)
@@ -49,20 +49,21 @@ Val-strt.lua  Wiz-fila.lua  Wiz-filb.lua  Wiz-goal.lua  Wiz-loca.lua
 Wiz-strt.lua  air.lua       asmodeus.lua  astral.lua    baalz.lua
 bigrm-1.lua   bigrm-2.lua   bigrm-3.lua   bigrm-4.lua   bigrm-5.lua
 bigrm-6.lua   bigrm-7.lua   bigrm-8.lua   bigrm-9.lua   bigrm-10.lua
-bigrm-11.lua  bogusmon.txt  castle.lua    cmdhelp       data.base
-dungeon.lua   earth.lua     engrave.txt   epitaph.txt   fakewiz1.lua
-fakewiz2.lua  fire.lua      hellfill.lua  help          hh
-history       juiblex.lua   keyhelp       knox.lua      license
-medusa-1.lua  medusa-2.lua  medusa-3.lua  medusa-4.lua  minefill.lua
-minend-1.lua  minend-2.lua  minend-3.lua  minetn-1.lua  minetn-2.lua
-minetn-3.lua  minetn-4.lua  minetn-5.lua  minetn-6.lua  minetn-7.lua
-nhcore.lua    nhlib.lua     opthelp       optmenu       oracle.lua
-oracles.txt   orcus.lua     quest.lua     rumors.fal    rumors.tru
-sanctum.lua   soko1-1.lua   soko1-2.lua   soko2-1.lua   soko2-2.lua
-soko3-1.lua   soko3-2.lua   soko4-1.lua   soko4-2.lua   symbols
-themerms.lua  tower1.lua    tower2.lua    tower3.lua    tribute
-usagehlp      valley.lua    water.lua     wizard1.lua   wizard2.lua
-wizard3.lua   wizhelp
+bigrm-11.lua  bigrm-12.lua  bogusmon.txt  castle.lua    cmdhelp
+data.base     dungeon.lua   earth.lua     engrave.txt   epitaph.txt
+fakewiz1.lua  fakewiz2.lua  fire.lua      hellfill.lua  help
+hh            history       juiblex.lua   keyhelp       knox.lua
+license       luahelper     medusa-1.lua  medusa-2.lua  medusa-3.lua
+medusa-4.lua  minefill.lua  minend-1.lua  minend-2.lua  minend-3.lua
+minetn-1.lua  minetn-2.lua  minetn-3.lua  minetn-4.lua  minetn-5.lua
+minetn-6.lua  minetn-7.lua  nhcore.lua    nhlib.lua     opthelp
+optmenu       oracle.lua    oracles.txt   orcus.lua     quest.lua
+rumors.fal    rumors.tru    sanctum.lua   soko1-1.lua   soko1-2.lua
+soko2-1.lua   soko2-2.lua   soko3-1.lua   soko3-2.lua   soko4-1.lua
+soko4-2.lua   symbols       themerms.lua  tower1.lua    tower2.lua
+tower3.lua    tribute       tut-1.lua     tut-2.lua     usagehlp
+valley.lua    water.lua     wizard1.lua   wizard2.lua   wizard3.lua
+wizhelp
 
 doc:
 (files for all versions)
@@ -92,13 +93,14 @@ align.h       artifact.h    artilist.h    attrib.h      botl.h
 color.h       config.h      config1.h     context.h     coord.h
 cstd.h        decl.h        defsym.h      dgn_file.h    display.h
 dlb.h         dungeon.h     engrave.h     extern.h      flag.h
-fnamesiz.h    func_tab.h    global.h      hack.h        integer.h
-isaac64.h     lint.h        mail.h        mextra.h      mfndpos.h
-micro.h       mkroom.h      monattk.h     mondata.h     monflag.h
-monst.h       monsters.h    obj.h         objclass.h    objects.h
-optlist.h     patchlevel.h  pcconf.h      permonst.h    prop.h
-quest.h       rect.h        region.h      rm.h          seffects.h
-skills.h      sndprocs.h    sp_lev.h      spell.h       sym.h
+fnamesiz.h    func_tab.h    global.h      hack.h        hacklib.h
+integer.h     isaac64.h     lint.h        mail.h        mextra.h
+mfndpos.h     micro.h       mkroom.h      monattk.h     mondata.h
+monflag.h     monst.h       monsters.h    nhmd4.h       nhregex.h
+obj.h         objclass.h    objects.h     optlist.h     patchlevel.h
+pcconf.h      permonst.h    prop.h        quest.h       rect.h
+region.h      rm.h          seffects.h    selvar.h      skills.h
+sndprocs.h    sp_lev.h      spell.h       stairs.h      sym.h
 sys.h         tcap.h        tileset.h     timeout.h     tradstdc.h
 trap.h        unixconf.h    vision.h      vmsconf.h     warnings.h
 winami.h      wincurs.h     windconf.h    winprocs.h    wintype.h
@@ -181,6 +183,10 @@ outdated/sys/unix/hints/include:
 (files that are no longer maintained for current game code)
 cross-amiga-post  cross-amiga-pre
 
+outdated/sys/vms:
+(files that are no longer maintained for current game code)
+lev_lex.h
+
 outdated/sys/wince:
 (files for Windows CE and PocketPC - untested for 3.7)
 Install.ce    bootstrp.mak  celib.c       cesetup.bat   cesound.c
@@ -233,6 +239,10 @@ gnopts.h    gnplayer.c  gnplayer.h  gnsignal.c  gnsignal.h  gnstatus.c
 gnstatus.h  gntext.c    gntext.h    gnworn.c    gnworn.h    gnyesno.c
 gnyesno.h   mapbg.xpm
 
+sound/fmod:
+(file in top directory)
+fmod.c
+
 sound/macsound:
 (file in top directory)
 macsound.m
@@ -284,29 +294,30 @@ windsound.c
 src:
 (files for all versions)
 allmain.c   alloc.c     apply.c     artifact.c  attrib.c    ball.c
-bones.c     botl.c      cmd.c       date.c      dbridge.c   decl.c
-detect.c    dig.c       display.c   dlb.c       do.c        do_name.c
-do_wear.c   dog.c       dogmove.c   dokick.c    dothrow.c   drawing.c
-dungeon.c   eat.c       end.c       engrave.c   exper.c     explode.c
-extralev.c  files.c     fountain.c  hack.c      hacklib.c   insight.c
-invent.c    isaac64.c   light.c     lock.c      mail.c      makemon.c
-mcastu.c    mdlib.c     mhitm.c     mhitu.c     minion.c    mklev.c
-mkmap.c     mkmaze.c    mkobj.c     mkroom.c    mon.c       mondata.c
-monmove.c   monst.c     mplayer.c   mthrowu.c   muse.c      music.c
-nhlobj.c    nhlsel.c    nhlua.c     o_init.c    objects.c   objnam.c
-options.c   pager.c     pickup.c    pline.c     polyself.c  potion.c
-pray.c      priest.c    quest.c     questpgr.c  read.c      rect.c
-region.c    restore.c   rip.c       rnd.c       role.c      rumors.c
-save.c      sfstruct.c  shk.c       shknam.c    sit.c       sounds.c
-sp_lev.c    spell.c     steal.c     steed.c     symbols.c   sys.c
-teleport.c  timeout.c   topten.c    track.c     trap.c      u_init.c
-uhitm.c     utf8map.c   vault.c     version.c   vision.c    weapon.c
-were.c      wield.c     windows.c   wizard.c    worm.c      worn.c
-write.c     zap.c
+bones.c     botl.c      calendar.c  cmd.c       coloratt.c  date.c
+dbridge.c   decl.c      detect.c    dig.c       display.c   dlb.c
+do.c        do_name.c   do_wear.c   dog.c       dogmove.c   dokick.c
+dothrow.c   drawing.c   dungeon.c   eat.c       end.c       engrave.c
+exper.c     explode.c   extralev.c  files.c     fountain.c  getpos.c
+glyphs.c    hack.c      hacklib.c   insight.c   invent.c    isaac64.c
+light.c     lock.c      mail.c      makemon.c   mcastu.c    mdlib.c
+mhitm.c     mhitu.c     minion.c    mklev.c     mkmap.c     mkmaze.c
+mkobj.c     mkroom.c    mon.c       mondata.c   monmove.c   monst.c
+mplayer.c   mthrowu.c   muse.c      music.c     nhlobj.c    nhlsel.c
+nhlua.c     nhmd4.c     o_init.c    objects.c   objnam.c    options.c
+pager.c     pickup.c    pline.c     polyself.c  potion.c    pray.c
+priest.c    quest.c     questpgr.c  read.c      rect.c      region.c
+report.c    restore.c   rip.c       rnd.c       role.c      rumors.c
+save.c      selvar.c    sfstruct.c  shk.c       shknam.c    sit.c
+sounds.c    sp_lev.c    spell.c     stairs.c    steal.c     steed.c
+strutil.c   symbols.c   sys.c       teleport.c  timeout.c   topten.c
+track.c     trap.c      u_init.c    uhitm.c     utf8map.c   vault.c
+version.c   vision.c    weapon.c    were.c      wield.c     windows.c
+wizard.c    wizcmds.c   worm.c      worn.c      write.c     zap.c
 
 submodules:
 (files in top directory)
-lua          pdcurses     pdcursesmod
+CHKSUMS      lua          pdcurses     pdcursesmod
 
 sys/libnh:
 (files in top directory)
@@ -374,11 +385,11 @@ pmatchregex.c
 
 sys/unix:
 (files for UNIX versions)
-Install.unx     Makefile.dat    Makefile.doc    Makefile.src
-Makefile.top    Makefile.utl    NewInstall.unx  README.xcode
-XCode.xcconfig  depend.awk      gitinfo.sh      mkmkfile.sh
-nethack.sh      setup.sh        sysconf         unixmain.c
-unixres.c       unixunix.c
+Install.unx     Makefile.check  Makefile.dat    Makefile.doc
+Makefile.src    Makefile.top    Makefile.utl    NewInstall.unx
+README-hints    README.xcode    XCode.xcconfig  depend.awk
+gitinfo.sh      mkmkfile.sh     nethack.sh      setup.sh
+sysconf         unixmain.c      unixres.c       unixunix.c
 
 sys/unix/NetHack.xcodeproj:
 (file for macOS Xcode)
@@ -404,28 +415,33 @@ unix
 
 sys/unix/hints/include:
 (files for configuring UNIX NetHack versions)
-compiler.370       cross-post.370     cross-pre.370      gbdates-post.370
-gbdates-pre.370    multisnd-post.370  multisnd1-pre.370  multisnd2-pre.370
-multiw-1.370       multiw-2.370       multiw-3.370
+compiler.370       cross-post.370     cross-pre1.370     cross-pre2.370
+gbdates-post.370   gbdates-pre.370    misc.370           multisnd-post.370
+multisnd1-pre.370  multisnd2-pre.370  multiw-1.370       multiw-2.370
 
 sys/vms:
 (files for VMS version)
-Install.vms   Makefile.dat  Makefile.doc  Makefile.src  Makefile.top
-Makefile.utl  install.com   lev_lex.h     nethack.com   oldcrtl.c
-spec_lev.com  sysconf       vmsbuild.com  vmsfiles.c    vmsmail.c
-vmsmain.c     vmsmisc.c     vmstty.c      vmsunix.c
+Install.vms       Install370.vms    Makefile.dat      Makefile.doc
+Makefile.src      Makefile.top      Makefile.utl      Makefile_dat.vms
+Makefile_doc.vms  Makefile_src.vms  Makefile_top.vms  Makefile_utl.vms
+install.com       nethack.com       oldcrtl.c         spec_lev.com
+sysconf           vmsbuild.com      vmsfiles.c        vmsmail.c
+vmsmain.c         vmsmisc.c         vmssetup.com      vmstty.c
+vmsunix.c
 
 sys/windows:
 (files for Windows 7/8.x/10/11 version)
-.nethackrc.template      Install.windows          Makefile.mingw32
-Makefile.mingw32.depend  Makefile.nmake           console.rc
-consoletty.c             nethack.def              nhico.uu
-nhsetup.bat              porthelp                 sysconf.template
-win10.c                  win10.h                  win32api.h
-windmain.c               windsys.c                winos.h
+GNUmakefile         GNUmakefile.depend  Install.windows
+Makefile.nmake      build-msys2.txt     build-nmake.txt
+build-vs.txt        console.rc          consoletty.c
+fetch.cmd           guitty.c            nethack.def
+nethackrc.template  nhico.uu            nhsetup.bat
+porthelp            sysconf.template    win10.c
+win10.h             win32api.h          windmain.c
+windsys.c           winos.h
 
 sys/windows/vs:
-(files for Visual Studio 2017 or 2019 or 2022 Community Edition builds)
+(files for Visual Studio 2019 or 2022 Community Edition builds)
 NetHack.sln                   NetHackPackage.appxmanifest
 NetHackPackage.wapproj        NetHackProperties.props
 Package.StoreAssociation.xml  ScreenShot.PNG
@@ -436,8 +452,12 @@ default_dll.props             default_lib.props
 dirs.props                    dll.props
 files.props
 
+sys/windows/vs/FetchPrereq:
+(files for Visual Studio 2019 or 2022 Community Edition builds)
+fetchprereq.nmake    fetchprereq.vcxproj
+
 sys/windows/vs/Images:
-(files for Visual Studio 2017 or 2019 or 2022 Community Edition builds)
+(files for Visual Studio 2019 or 2022 Community Edition builds)
 BadgeLogo.scale-100.png
 BadgeLogo.scale-125.png
 BadgeLogo.scale-150.png
@@ -492,43 +512,59 @@ Wide310x150Logo.scale-200.png
 Wide310x150Logo.scale-400.png
 
 sys/windows/vs/NetHack:
-(files for Visual Studio 2017 or 2019 or 2022 Community Edition builds)
+(files for Visual Studio 2019 or 2022 Community Edition builds)
 NetHack.vcxproj    afternethack.proj
 
 sys/windows/vs/NetHackW:
-(file for Visual Studio 2017 or 2019 or 2022 Community Edition builds)
+(file for Visual Studio 2019 or 2022 Community Edition builds)
 NetHackW.vcxproj
 
 sys/windows/vs/PDCurses:
-(file for Visual Studio 2017 or 2019 or 2022 Community Edition builds)
+(file for Visual Studio 2019 or 2022 Community Edition builds)
 PDCurses.vcxproj
 
+sys/windows/vs/PDCursesGui:
+(file for Visual Studio 2019 or 2022 Community Edition builds)
+pdcursesgui.vcxproj
+
 sys/windows/vs/dlb:
-(files for Visual Studio 2017 or 2019 or 2022 Community Edition builds)
+(files for Visual Studio 2019 or 2022 Community Edition builds)
 afterdlb.proj  dlb.vcxproj
 
+sys/windows/vs/hacklib:
+(file for Visual Studio 2019 or 2022 Community Edition builds)
+hacklib.vcxproj
+
+sys/windows/vs/lualib:
+(file for Visual Studio 2019 or 2022 Community Edition builds)
+lualib.vcxproj
+
 sys/windows/vs/makedefs:
-(files for Visual Studio 2017 or 2019 or 2022 Community Edition builds)
+(files for Visual Studio 2019 or 2022 Community Edition builds)
 aftermakedefs.proj  makedefs.vcxproj
 
+sys/windows/vs/package:
+(files for Visual Studio 2019 or 2022 Community Edition builds)
+package.nmake    package.vcxproj
+
 sys/windows/vs/recover:
-(files for Visual Studio 2017 or 2019 or 2022 Community Edition builds)
+(files for Visual Studio 2019 or 2022 Community Edition builds)
 afterrecover.proj  recover.vcxproj
 
 sys/windows/vs/tile2bmp:
-(files for Visual Studio 2017 or 2019 or 2022 Community Edition builds)
+(files for Visual Studio 2019 or 2022 Community Edition builds)
 aftertile2bmp.proj  tile2bmp.vcxproj
 
 sys/windows/vs/tilemap:
-(files for Visual Studio 2017 or 2019 or 2022 Community Edition builds)
+(files for Visual Studio 2019 or 2022 Community Edition builds)
 aftertilemap.proj  tilemap.vcxproj
 
 sys/windows/vs/tiles:
-(file for Visual Studio 2017 or 2019 or 2022 Community Edition builds)
+(file for Visual Studio 2019 or 2022 Community Edition builds)
 tiles.vcxproj
 
 sys/windows/vs/uudecode:
-(files for Visual Studio 2017 or 2019 or 2022 Community Edition builds)
+(files for Visual Studio 2019 or 2022 Community Edition builds)
 afteruudecode.proj  uudecode.vcxproj
 
 test:
@@ -635,7 +671,7 @@ pet_mark.xbm  rip.xpm       x11tiles
 
 src:
 (files for win32 that are moved into src at compile time)
-Makefile          Makefile.mingw32
+GNUmakefile  Makefile
 
 (files generated by 'moc' for Qt interface at compile time)
 qt_kde0.moc   qt_main.moc   qt_map.moc    qt_menu.moc   qt_msg.moc

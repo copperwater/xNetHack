@@ -36,7 +36,7 @@ mswin_init_text_window(void)
         mswin_get_window_placement(NHW_TEXT, &rt);
     }
 
-    /* create text widnow object */
+    /* create text window object */
     ret = CreateDialog(GetNHApp()->hApp, MAKEINTRESOURCE(IDD_NHTEXT),
                        GetNHApp()->hMainWnd, NHTextWndProc);
     if (!ret)
@@ -83,8 +83,10 @@ NHTextWndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
         data = (PNHTextWindow)malloc(sizeof(NHTextWindow));
         if (!data)
             panic("out of memory");
+
         ZeroMemory(data, sizeof(NHTextWindow));
         SetWindowLongPtr(hWnd, GWLP_USERDATA, (LONG_PTR)data);
+        windowdata[NHW_TEXT].address = (genericptr_t) data; // for cleanup at the end
 
         HWND control = GetDlgItem(hWnd, IDC_TEXT_CONTROL);
         HDC hdc = GetDC(control);
@@ -173,6 +175,7 @@ NHTextWndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
                 free(data->window_text);
             free(data);
             SetWindowLongPtr(hWnd, GWLP_USERDATA, (LONG_PTR) 0);
+            windowdata[NHW_TEXT].address = 0;
         }
         break;
 
@@ -198,13 +201,20 @@ onMSNHCommand(HWND hWnd, WPARAM wParam, LPARAM lParam)
             text_size = strlen(msg_data->text) + 4;
             data->window_text =
                 (TCHAR *) malloc(text_size * sizeof(data->window_text[0]));
-            ZeroMemory(data->window_text,
-                       text_size * sizeof(data->window_text[0]));
+            if (data->window_text) {
+                ZeroMemory(data->window_text,
+                           text_size * sizeof(data->window_text[0]));
+            }
         } else {
+            TCHAR *was = data->window_text;
+
             text_size =
                 _tcslen(data->window_text) + strlen(msg_data->text) + 4;
             data->window_text = (TCHAR *) realloc(
                 data->window_text, text_size * sizeof(data->window_text[0]));
+            if (!data->window_text) {
+                free(was);
+            }
         }
         if (!data->window_text)
             break;

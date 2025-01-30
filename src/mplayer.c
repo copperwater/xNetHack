@@ -4,9 +4,9 @@
 
 #include "hack.h"
 
-static const char *dev_name(void);
-static void get_mplname(struct monst *, char *);
-static void mk_mplayer_armor(struct monst *, short);
+staticfn const char *dev_name(void);
+staticfn void get_mplname(struct monst *, char *);
+staticfn void mk_mplayer_armor(struct monst *, short);
 
 /* These are the names of those who
  * contributed to the development of NetHack 3.2/3.3/3.4/3.6.
@@ -40,12 +40,12 @@ static const char *const developers[] = {
 };
 
 /* return a randomly chosen developer name */
-static const char *
+staticfn const char *
 dev_name(void)
 {
-    register int i, m = 0, n = SIZE(developers);
-    register struct monst *mtmp;
-    register boolean match;
+    int i, m = 0, n = SIZE(developers);
+    struct monst *mtmp;
+    boolean match;
 
     do {
         match = FALSE;
@@ -68,8 +68,8 @@ dev_name(void)
     return (developers[i]);
 }
 
-static void
-get_mplname(register struct monst* mtmp, char *nam)
+staticfn void
+get_mplname(struct monst* mtmp, char *nam)
 {
     boolean fmlkind = is_female(mtmp->data);
     const char *devnam;
@@ -91,8 +91,8 @@ get_mplname(register struct monst* mtmp, char *nam)
                         (boolean) mtmp->female));
 }
 
-static void
-mk_mplayer_armor(struct monst* mon, short typ)
+staticfn void
+mk_mplayer_armor(struct monst *mon, short typ)
 {
     struct obj *obj;
 
@@ -268,11 +268,12 @@ mk_mplayer(struct permonst *ptr, coordxy x, coordxy y, boolean special)
             else if (!rn2(2))
                 otmp->greased = 1;
             if (special && rn2(2))
-                otmp = mk_artifact(otmp, A_NONE);
+                otmp = mk_artifact(otmp, A_NONE, 99, FALSE);
             /* usually increase stack size if stackable weapon */
             if (objects[otmp->otyp].oc_merge && !otmp->oartifact
                 && monmightthrowwep(otmp))
                 otmp->quan += (long) rn2(is_spear(otmp) ? 4 : 8);
+            otmp->owt = weight(otmp);
             /* mplayers knew better than to overenchant Magicbane */
             if (is_art(otmp, ART_MAGICBANE))
                 otmp->spe = rnd(4);
@@ -328,7 +329,7 @@ mk_mplayer(struct permonst *ptr, coordxy x, coordxy y, boolean special)
  * fill up the overflow.
  */
 void
-create_mplayers(register int num, boolean special)
+create_mplayers(int num, boolean special)
 {
     int pm, x, y;
     struct monst fakemon;
@@ -357,7 +358,7 @@ create_mplayers(register int num, boolean special)
 }
 
 void
-mplayer_talk(register struct monst* mtmp)
+mplayer_talk(struct monst *mtmp)
 {
     static const char
         *same_class_msg[3] = {

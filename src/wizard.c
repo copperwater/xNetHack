@@ -1,4 +1,4 @@
-/* NetHack 3.7	wizard.c	$NHDT-Date: 1646688073 2022/03/07 21:21:13 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.85 $ */
+/* NetHack 3.7	wizard.c	$NHDT-Date: 1718303204 2024/06/13 18:26:44 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.110 $ */
 /* Copyright (c) Stichting Mathematisch Centrum, Amsterdam, 1985. */
 /*-Copyright (c) Robert Patrick Rankin, 2016. */
 /* NetHack may be freely redistributed.  See license for details. */
@@ -10,13 +10,16 @@
 
 #include "hack.h"
 
-static short which_arti(int);
-static boolean mon_has_arti(struct monst *, short);
-static struct monst *other_mon_has_arti(struct monst *, short);
-static struct obj *on_ground(short);
-static boolean you_have(int);
-static unsigned long target_on(int, struct monst *);
-static unsigned long strategy(struct monst *);
+staticfn short which_arti(int);
+staticfn boolean mon_has_arti(struct monst *, short) NONNULLARG1;
+/* other_mon_has_arti() won't blow up if passed a NULL monst,
+ * but its caller target_on() passes it a nonnull monst;
+ * it may return a NULL monst pointer */
+staticfn struct monst *other_mon_has_arti(struct monst *, short) NONNULLARG1;
+staticfn struct obj *on_ground(short);  /* might return NULL obj pointer */
+staticfn boolean you_have(int);
+staticfn unsigned long target_on(int, struct monst *) NONNULLARG2;
+staticfn unsigned long strategy(struct monst *) NONNULLARG1;
 
 /* adding more neutral creatures will tend to reduce the number of monsters
    summoned by nasty(); adding more lawful creatures will reduce the number
@@ -83,7 +86,7 @@ amulet(void)
         }
     }
 
-    if (!gc.context.no_of_wizards)
+    if (!svc.context.no_of_wizards)
         return;
     /* find Wizard, and wake him if necessary */
     for (mtmp = fmon; mtmp; mtmp = mtmp->nmon) {
@@ -91,7 +94,7 @@ amulet(void)
             continue;
         if (mtmp->iswiz && mtmp->msleeping && !rn2(40)) {
             wakeup(mtmp, FALSE, TRUE);
-            if (!next2u(mtmp->mx, mtmp->my))
+            if (!m_next2u(mtmp))
                 You(
       "get the creepy feeling that somebody noticed your taking the Amulet.");
             return;
@@ -102,7 +105,7 @@ amulet(void)
 int
 mon_has_amulet(struct monst *mtmp)
 {
-    register struct obj *otmp;
+    struct obj *otmp;
 
     for (otmp = mtmp->minvent; otmp; otmp = otmp->nobj)
         if (otmp->otyp == AMULET_OF_YENDOR)
@@ -113,7 +116,7 @@ mon_has_amulet(struct monst *mtmp)
 int
 mon_has_special(struct monst *mtmp)
 {
-    register struct obj *otmp;
+    struct obj *otmp;
 
     for (otmp = mtmp->minvent; otmp; otmp = otmp->nobj)
         if (otmp->otyp == AMULET_OF_YENDOR
@@ -138,7 +141,7 @@ mon_has_special(struct monst *mtmp)
 
 #define M_Wants(mask) (mtmp->data->mflags3 & (mask))
 
-static short
+staticfn short
 which_arti(int mask)
 {
     switch (mask) {
@@ -161,10 +164,10 @@ which_arti(int mask)
  *      since bell, book, candle, and amulet are all objects, not really
  *      artifacts right now.  [MRS]
  */
-static boolean
+staticfn boolean
 mon_has_arti(struct monst *mtmp, short otyp)
 {
-    register struct obj *otmp;
+    struct obj *otmp;
 
     for (otmp = mtmp->minvent; otmp; otmp = otmp->nobj) {
         if (otyp) {
@@ -176,10 +179,14 @@ mon_has_arti(struct monst *mtmp, short otyp)
     return 0;
 }
 
-static struct monst *
+/*
+ * Returns some monster other than mtmp that
+ * has artifact, or NULL monst pointer.
+ */
+staticfn struct monst *
 other_mon_has_arti(struct monst *mtmp, short otyp)
 {
-    register struct monst *mtmp2;
+    struct monst *mtmp2;
 
     for (mtmp2 = fmon; mtmp2; mtmp2 = mtmp2->nmon)
         /* no need for !DEADMONSTER check here since they have no inventory */
@@ -190,10 +197,14 @@ other_mon_has_arti(struct monst *mtmp, short otyp)
     return (struct monst *) 0;
 }
 
-static struct obj *
+/*
+ * Returns obj of type specified if there is one
+ * on the ground, otherwise returns NULL obj pointer.
+ */
+staticfn struct obj *
 on_ground(short otyp)
 {
-    register struct obj *otmp;
+    struct obj *otmp;
 
     for (otmp = fobj; otmp; otmp = otmp->nobj)
         if (otyp) {
@@ -204,7 +215,7 @@ on_ground(short otyp)
     return (struct obj *) 0;
 }
 
-static boolean
+staticfn boolean
 you_have(int mask)
 {
     switch (mask) {
@@ -224,12 +235,12 @@ you_have(int mask)
     return 0;
 }
 
-static unsigned long
+staticfn unsigned long
 target_on(int mask, struct monst *mtmp)
 {
-    register short otyp;
-    register struct obj *otmp;
-    register struct monst *mtmp2;
+    short otyp;
+    struct obj *otmp;
+    struct monst *mtmp2;
 
     if (!M_Wants(mask))
         return (unsigned long) STRAT_NONE;
@@ -250,7 +261,7 @@ target_on(int mask, struct monst *mtmp)
     return (unsigned long) STRAT_NONE;
 }
 
-static unsigned long
+staticfn unsigned long
 strategy(struct monst *mtmp)
 {
     unsigned long strat, dstrat;
@@ -281,8 +292,8 @@ strategy(struct monst *mtmp)
         case 1: /* the wiz is less cautious */
             if (mtmp->data != &mons[PM_WIZARD_OF_YENDOR])
                 return (unsigned long) STRAT_HEAL;
-        /* else fall through */
-
+            FALLTHROUGH;
+            /* FALLTHRU */
         case 2:
             dstrat = STRAT_HEAL;
             break;
@@ -293,7 +304,7 @@ strategy(struct monst *mtmp)
         }
     }
 
-    if (gc.context.made_amulet)
+    if (svc.context.made_amulet)
         if ((strat = target_on(M3_WANTSAMUL, mtmp)) != STRAT_NONE)
             return strat;
 
@@ -376,6 +387,10 @@ tactics(struct monst *mtmp)
     switch (strat) {
     case STRAT_HEAL: /* hide and recover */
         mx = mtmp->mx, my = mtmp->my;
+
+        if (u.uswallow && u.ustuck == mtmp)
+            expels(mtmp, mtmp->data, TRUE);
+
         /* if wounded, hole up on or near the stairs (to block them) */
         choose_stairs(&sx, &sy, (mtmp->m_id % 2));
         mtmp->mavenge = 1; /* covetous monsters attack while fleeing */
@@ -396,9 +411,10 @@ tactics(struct monst *mtmp)
         /* if you're not around, cast healing spells */
         if (distu(mx, my) > (BOLT_LIM * BOLT_LIM))
             if (mtmp->mhp <= mtmp->mhpmax - 8) {
-                mtmp->mhp += rnd(8);
+                healmon(mtmp, rnd(8), 0);
                 return 1;
             }
+        FALLTHROUGH;
         /*FALLTHRU*/
 
     case STRAT_NONE: /* harass */
@@ -418,7 +434,9 @@ tactics(struct monst *mtmp)
         }
         if (u_at(tx, ty) || where == STRAT_PLAYER) {
             /* player is standing on it (or has it) */
-            mnexto(mtmp, RLOC_MSG);
+            mx = mtmp->mx, my = mtmp->my;
+            if (!mnearto(mtmp, tx, ty, FALSE, RLOC_MSG))
+                rloc_to(mtmp, mx, my); /* no room? stay put */
             return 0;
         }
         if (where == STRAT_GROUND) {
@@ -475,7 +493,7 @@ has_aggravatables(struct monst *mon UNUSED)
 void
 aggravate(void)
 {
-    register struct monst *mtmp;
+    struct monst *mtmp;
 
     for (mtmp = fmon; mtmp; mtmp = mtmp->nmon) {
         if (DEADMONSTER(mtmp))
@@ -495,7 +513,7 @@ aggravate(void)
 void
 clonewiz(void)
 {
-    register struct monst *mtmp2;
+    struct monst *mtmp2;
 
     if ((mtmp2 = makemon(&mons[PM_WIZARD_OF_YENDOR], u.ux, u.uy, MM_NOWAIT))
         != 0) {
@@ -506,7 +524,7 @@ clonewiz(void)
         }
         if (!Protection_from_shape_changers) {
             mtmp2->m_ap_type = M_AP_MONSTER;
-            mtmp2->mappearance = wizapp[rn2(SIZE(wizapp))];
+            mtmp2->mappearance = ROLL_FROM(wizapp);
         }
         newsym(mtmp2->mx, mtmp2->my);
     }
@@ -517,7 +535,7 @@ int
 pick_nasty(
     int difcap) /* if non-zero, try to make difficulty be lower than this */
 {
-    int alt, res = nasties[rn2(SIZE(nasties))];
+    int alt, res = ROLL_FROM(nasties);
 
     /* To do?  Possibly should filter for appropriate forms when
      * in the elemental planes or surrounded by water or lava.
@@ -528,7 +546,7 @@ pick_nasty(
            master mind flayer -> mind flayer,
        but the substitutes are likely to be genocided too */
     alt = res;
-    if ((gm.mvitals[res].mvflags & G_GENOD) != 0
+    if ((svm.mvitals[res].mvflags & G_GENOD) != 0
         || (difcap > 0 && mons[res].difficulty >= difcap)
          /* note: nasty() -> makemon() ignores G_HELL|G_NOHELL;
             arch-lich and master lich are both flagged as hell-only;
@@ -536,7 +554,7 @@ pick_nasty(
             outside of Gehennom (unless the latter has been genocided) */
         || (mons[res].geno & (Inhell ? G_NOHELL : G_HELL)) != 0)
         alt = big_to_little(res);
-    if (alt != res && (gm.mvitals[alt].mvflags & G_GENOD) == 0) {
+    if (alt != res && (svm.mvitals[alt].mvflags & G_GENOD) == 0) {
         const char *mnam = mons[alt].pmnames[NEUTRAL],
                    *lastspace = strrchr(mnam, ' ');
 
@@ -594,7 +612,7 @@ nasty(struct monst *summoner)
              * and 20 are neutral.  [These numbers are up date for
              * 3.7.0; the ones in the next paragraph are not....]
              *
-             * Neutral caster, used for late-game harrassment,
+             * Neutral caster, used for late-game harassment,
              * has 18/42 chance to stop the inner loop on each
              * critter, 24/42 chance for another iteration.
              * Lawful caster has 28/42 chance to stop unless the
@@ -710,7 +728,7 @@ resurrect(void)
     long elapsed;
     const char *verb;
 
-    if (!gc.context.no_of_wizards) {
+    if (!svc.context.no_of_wizards) {
         /* make a new Wizard */
         verb = "kill";
         mtmp = makemon(&mons[PM_WIZARD_OF_YENDOR], u.ux, u.uy, MM_NOWAIT);
@@ -726,7 +744,7 @@ resurrect(void)
             if (mtmp->iswiz
                 /* if he has the Amulet, he won't bring it to you */
                 && !mon_has_amulet(mtmp)
-                && (elapsed = gm.moves - mtmp->mlstmv) > 0L) {
+                && (elapsed = svm.moves - mtmp->mlstmv) > 0L) {
                 mon_catchup_elapsed_time(mtmp, elapsed);
                 if (elapsed >= LARGEST_INT)
                     elapsed = LARGEST_INT - 1;
@@ -801,10 +819,12 @@ intervene(void)
     }
 }
 
+/* Wizard of Yendor is being removed from play (dead or escaped the dungeon);
+   keep the bookkeeping for him up to date */
 void
-wizdead(void)
+wizdeadorgone(void)
 {
-    gc.context.no_of_wizards--;
+    svc.context.no_of_wizards--;
     if (!u.uevent.udemigod) {
         u.uevent.udemigod = TRUE;
         u.udg_cnt = rn1(250, 50);
@@ -843,20 +863,20 @@ cuss(struct monst *mtmp)
         } else if (u.uhave.amulet && !rn2(SIZE(random_insult))) {
             SetVoice(mtmp, 0, 80, 0);
             verbalize("Relinquish the amulet, %s!",
-                      random_insult[rn2(SIZE(random_insult))]);
+                      ROLL_FROM(random_insult));
         } else if (u.uhp < 5 && !rn2(2)) { /* Panic */
             SetVoice(mtmp, 0, 80, 0);
             verbalize(rn2(2) ? "Even now thy life force ebbs, %s!"
                              : "Savor thy breath, %s, it be thy last!",
-                      random_insult[rn2(SIZE(random_insult))]);
+                      ROLL_FROM(random_insult));
         } else if (mtmp->mhp < 5 && !rn2(2)) { /* Parthian shot */
             SetVoice(mtmp, 0, 80, 0);
             verbalize(rn2(2) ? "I shall return." : "I'll be back.");
         } else {
             SetVoice(mtmp, 0, 80, 0);
             verbalize("%s %s!",
-                      random_malediction[rn2(SIZE(random_malediction))],
-                      random_insult[rn2(SIZE(random_insult))]);
+                      ROLL_FROM(random_malediction),
+                      ROLL_FROM(random_insult));
         }
     } else if (is_minion(mtmp->data)
                && !(mtmp->isminion && EMIN(mtmp)->renegade)) {
@@ -896,15 +916,15 @@ wizpuzzle_close_space(coordxy x, coordxy y,
 
     if (u_at(x, y)) {
         You("are crushed beneath the falling wall!");
-        gk.killer.format = KILLED_BY_AN;
-        Strcpy(gk.killer.name, "falling section of wall");
+        svk.killer.format = KILLED_BY_AN;
+        Strcpy(svk.killer.name, "falling section of wall");
         done(CRUSHING);
         /* life-saved */
         enexto(&cc, u.ux, u.uy, gy.youmonst.data);
         teleds(cc.x, cc.y, TELEDS_TELEPORT);
     }
     else if ((mtmp = m_at(x, y)) != (struct monst *) 0) {
-        if (!gc.context.mon_moving)
+        if (!svc.context.mon_moving)
             xkilled(mtmp, XKILL_GIVEMSG | XKILL_NOCORPSE);
         else
             /* AD_DGST prevents corpse creation */
@@ -975,8 +995,8 @@ wizpuzzle_give_clues(void)
          * instead of walls so you could see where the gap was now, but those
          * are trivially passable (with all carried gear) by polyselfing into a
          * whirly monster. */
-        for (x = gr.rooms[openroom].lx; x <= gr.rooms[openroom].hx; ++x) {
-            for (y = gr.rooms[openroom].ly; y <= gr.rooms[openroom].hy; ++y) {
+        for (x = svr.rooms[openroom].lx; x <= svr.rooms[openroom].hx; ++x) {
+            for (y = svr.rooms[openroom].ly; y <= svr.rooms[openroom].hy; ++y) {
                 struct obj *otmp;
                 if (levl[x][y].roomno - ROOMOFFSET != openroom)
                     continue; /* not part of this irregular room */
@@ -1124,8 +1144,10 @@ wizpuzzle_move_gap(int newc, xint8 ring)
             for (i = 0; i < SIZE(gap_spaces); ++i) {
                 if (gap_spaces[i].ring != ring)
                     continue;
-                x = gr.rooms[gap_spaces[i].roomno].lx + gap_spaces[i].lx_offset;
-                y = gr.rooms[gap_spaces[i].roomno].ly + gap_spaces[i].ly_offset;
+                x = svr.rooms[gap_spaces[i].roomno].lx
+                    + gap_spaces[i].lx_offset;
+                y = svr.rooms[gap_spaces[i].roomno].ly
+                    + gap_spaces[i].ly_offset;
 
                 if (round == 1 && gap_spaces[i].roomno != newc) {
                     wizpuzzle_close_space(x, y, gap_spaces[i].typ,

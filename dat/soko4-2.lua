@@ -6,7 +6,7 @@ des.level_init({ style = "solidfill", fg = " " });
 
 des.message("The floor here is covered in deep perpendicular grooves.")
 
-des.level_flags("mazelevel", "noteleport", "hardfloor", "premapped", "solidify", "noflip");
+des.level_flags("mazelevel", "noteleport", "hardfloor", "premapped", "sokoban", "solidify", "noflip");
 
 des.map([[
 -------- ------
@@ -43,6 +43,9 @@ des.object("boulder",08,08)
 des.object("boulder",09,08)
 des.object("boulder",10,08)
 
+-- prevent monster generation over the (filled) pits
+des.exclusion({ type = "monster-generation", region = { 01,01, 01,09 } });
+des.exclusion({ type = "monster-generation", region = { 01,08, 07,09 } });
 -- Traps
 des.trap("pit",01,02)
 des.trap("pit",01,03)

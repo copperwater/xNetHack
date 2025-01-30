@@ -324,7 +324,7 @@ mswin_map_layout(HWND hWnd, LPSIZE map_size)
     data->xFrontTile = max(data->xFrontTile, 1);
     data->yFrontTile = max(data->yFrontTile, 1);
 
-    /* calcuate ASCII cursor height */
+    /* calculate ASCII cursor height */
     data->yBlinkCursor = (int) ((double) CURSOR_HEIGHT * data->backScale);
     data->yNoBlinkCursor = data->yBackTile;
 
@@ -585,7 +585,7 @@ MapWndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
             size.cx = LOWORD(lParam);
             size.cy = HIWORD(lParam);
         } else {
-            /* mapping factor is unchaged we just need to adjust scroll bars
+            /* mapping factor is unchanged we just need to adjust scroll bars
              */
             size.cx = data->xFrontTile * COLNO;
             size.cy = data->yFrontTile * ROWNO;
@@ -640,6 +640,7 @@ MapWndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
             DeleteDC(data->backBufferDC);
         free(data);
         SetWindowLongPtr(hWnd, GWLP_USERDATA, (LONG_PTR) 0);
+        windowdata[NHW_MAP].address = 0;
         break;
 
     case WM_TIMER:
@@ -762,6 +763,7 @@ onMSNHCommand(HWND hWnd, WPARAM wParam, LPARAM lParam)
             msg_data->buffer[index++] = '\r';
             msg_data->buffer[index++] = '\n';
         }
+	nhUse(mgch);
     } break;
 
 #ifdef ENHANCED_SYMBOLS
@@ -833,6 +835,7 @@ onCreate(HWND hWnd, WPARAM wParam, LPARAM lParam)
     ReleaseDC(hWnd, hDC);
 
     SetWindowLongPtr(hWnd, GWLP_USERDATA, (LONG_PTR) data);
+    windowdata[NHW_MAP].address = (genericptr_t) data;
 
     clearAll(data);
 
@@ -976,17 +979,20 @@ paintGlyph(PNHMapWindow data, int i, int j, RECT * rect)
             && glyphinfo->gm.u
             && glyphinfo->gm.u->utf8str) {
             ch = glyphinfo->gm.u->utf32ch;
-            if (glyphinfo->gm.u->ucolor != 0) {
-                rgbcolor = RGB(
-                        (glyphinfo->gm.u->ucolor >> 16) & 0xFF,
-                        (glyphinfo->gm.u->ucolor >>  8) & 0xFF,
-                        (glyphinfo->gm.u->ucolor >>  0) & 0xFF);
-            }
         }
 #endif
+        if ((glyphinfo->gm.customcolor & NH_BASIC_COLOR) == 0) {
+            rgbcolor = RGB((glyphinfo->gm.customcolor >> 16) & 0xFF,
+                           (glyphinfo->gm.customcolor >>  8) & 0xFF,
+                           (glyphinfo->gm.customcolor >>  0) & 0xFF);
+        } else {
+            color = (int) COLORVAL(glyphinfo->gm.customcolor);
+            rgbcolor = nhcolor_to_RGB(color);
+        }
         if (((data->map[i][j].gm.glyphflags & MG_PET) && iflags.hilite_pet)
-            || ((data->map[i][j].gm.glyphflags & (MG_DETECT | MG_BW_LAVA))
-                && iflags.use_inverse)) {
+            || ((data->map[i][j].gm.glyphflags & (MG_DETECT | MG_BW_LAVA
+                                                  | MG_BW_ICE | MG_BW_SINK
+                                                  | MG_BW_ENGR)) != 0)) {
             back_brush =
                 CreateSolidBrush(nhcolor_to_RGB(CLR_GRAY));
             FillRect(data->backBufferDC, rect, back_brush);
@@ -1059,6 +1065,7 @@ static void setGlyph(PNHMapWindow data, int i, int j,
             || (data->bkmap[i][j].glyph != bg->glyph)
         || data->map[i][j].ttychar != fg->ttychar
         || data->map[i][j].gm.sym.color != fg->gm.sym.color
+        || data->map[i][j].gm.customcolor != fg->gm.customcolor
         || data->map[i][j].gm.glyphflags != fg->gm.glyphflags
         || data->map[i][j].gm.tileidx != fg->gm.tileidx) {
         data->map[i][j] = *fg;
@@ -1272,7 +1279,6 @@ void
 nhglyph2charcolor(short g, uchar *ch, int *color)
 {
     int offset;
-#ifdef TEXTCOLOR
 
 #define zap_color(n) *color = iflags.use_color ? zapcolors[n] : NO_COLOR
 #define cmap_color(n) *color = iflags.use_color ? defsyms[n].color : NO_COLOR
@@ -1282,17 +1288,6 @@ nhglyph2charcolor(short g, uchar *ch, int *color)
 #define pet_color(n) *color = iflags.use_color ? mons[n].mcolor : NO_COLOR
 #define warn_color(n) \
     *color = iflags.use_color ? def_warnsyms[n].color : NO_COLOR
-
-#else /* no text color */
-
-#define zap_color(n)
-#define cmap_color(n)
-#define obj_color(n)
-#define mon_color(n)
-#define pet_color(c)
-#define warn_color(c)
-    *color = CLR_WHITE;
-#endif
 
     if ((offset = (g - GLYPH_WARNING_OFF)) >= 0) { /* a warning flash */
         *ch = showsyms[offset + SYM_OFF_W];

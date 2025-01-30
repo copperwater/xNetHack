@@ -10,27 +10,28 @@ struct _lua_obj {
     struct obj *obj;
 };
 
-static struct _lua_obj *l_obj_check(lua_State *, int);
-static int l_obj_add_to_container(lua_State *);
-static int l_obj_gc(lua_State *);
-static int l_obj_getcontents(lua_State *);
-static int l_obj_isnull(lua_State *);
-static int l_obj_new_readobjnam(lua_State *);
-static int l_obj_nextobj(lua_State *);
-static int l_obj_objects_to_table(lua_State *);
-static int l_obj_placeobj(lua_State *);
-static int l_obj_to_table(lua_State *);
-static int l_obj_at(lua_State *);
-static int l_obj_container(lua_State *);
-static int l_obj_timer_has(lua_State *);
-static int l_obj_timer_peek(lua_State *);
-static int l_obj_timer_stop(lua_State *);
-static int l_obj_timer_start(lua_State *);
-static int l_obj_bury(lua_State *);
+staticfn struct _lua_obj *l_obj_check(lua_State *, int);
+staticfn int l_obj_add_to_container(lua_State *);
+staticfn int l_obj_gc(lua_State *);
+staticfn int l_obj_getcontents(lua_State *);
+staticfn int l_obj_isnull(lua_State *);
+staticfn int l_obj_new_readobjnam(lua_State *);
+staticfn int l_obj_nextobj(lua_State *);
+staticfn int l_obj_objects_to_table(lua_State *);
+staticfn int l_obj_placeobj(lua_State *);
+staticfn int l_obj_to_table(lua_State *);
+staticfn int l_obj_at(lua_State *);
+staticfn int l_obj_container(lua_State *);
+staticfn int l_obj_timer_has(lua_State *);
+staticfn int l_obj_timer_peek(lua_State *);
+staticfn int l_obj_timer_stop(lua_State *);
+staticfn int l_obj_timer_start(lua_State *);
+staticfn int l_obj_bury(lua_State *);
+staticfn struct _lua_obj *l_obj_push(lua_State *, struct obj *);
 
 #define lobj_is_ok(lo) ((lo) && (lo)->obj && (lo)->obj->where != OBJ_LUAFREE)
 
-static struct _lua_obj *
+staticfn struct _lua_obj *
 l_obj_check(lua_State *L, int indx)
 {
     struct _lua_obj *lo;
@@ -42,7 +43,7 @@ l_obj_check(lua_State *L, int indx)
     return lo;
 }
 
-static int
+staticfn int
 l_obj_gc(lua_State *L)
 {
     struct obj *obj, *otmp;
@@ -68,10 +69,11 @@ l_obj_gc(lua_State *L)
     return 0;
 }
 
-static struct _lua_obj *
+staticfn struct _lua_obj *
 l_obj_push(lua_State *L, struct obj *otmp)
 {
-    struct _lua_obj *lo = (struct _lua_obj *)lua_newuserdata(L, sizeof(struct _lua_obj));
+    struct _lua_obj *lo
+        = (struct _lua_obj *) lua_newuserdata(L, sizeof (struct _lua_obj));
     luaL_getmetatable(L, "obj");
     lua_setmetatable(L, -2);
 
@@ -91,7 +93,7 @@ nhl_push_obj(lua_State *L, struct obj *otmp)
 
 /* local o = obj.new("large chest");
    local cobj = o:contents(); */
-static int
+staticfn int
 l_obj_getcontents(lua_State *L)
 {
     struct _lua_obj *lo = l_obj_check(L, 1);
@@ -106,9 +108,9 @@ l_obj_getcontents(lua_State *L)
 
 /* Puts object inside another object. */
 /* local box = obj.new("large chest");
-   box.addcontent(obj.new("rock"));
+   box:addcontent(obj.new("rock"));
 */
-static int
+staticfn int
 l_obj_add_to_container(lua_State *L)
 {
     struct _lua_obj *lobox = l_obj_check(L, 1);
@@ -126,9 +128,10 @@ l_obj_add_to_container(lua_State *L)
 
     /* was lo->obj merged? */
     if (otmp != lo->obj) {
-        lo->obj->lua_ref_cnt += refs;
         lo->obj = otmp;
+        lo->obj->lua_ref_cnt += refs;
     }
+    lobox->obj->owt = weight(lobox->obj);
 
     return 0;
 }
@@ -164,7 +167,7 @@ DISABLE_WARNING_UNREACHABLE_CODE
 /* local odata = obj.class(otbl.otyp); */
 /* local odata = obj.class(obj.new("rock")); */
 /* local odata = o:class(); */
-static int
+staticfn int
 l_obj_objects_to_table(lua_State *L)
 {
     int argc = lua_gettop(L);
@@ -188,6 +191,7 @@ l_obj_objects_to_table(lua_State *L)
 
     if (otyp == -1) {
         nhl_error(L, "l_obj_objects_to_table: Wrong args");
+        /*NOTREACHED*/
         return 0;
     }
 
@@ -239,7 +243,7 @@ RESTORE_WARNING_UNREACHABLE_CODE
    object fields.
    local o = obj.new("rock");
    local otbl = o:totable(); */
-static int
+staticfn int
 l_obj_to_table(lua_State *L)
 {
     struct _lua_obj *lo = l_obj_check(L, 1);
@@ -291,6 +295,7 @@ l_obj_to_table(lua_State *L)
     nhl_add_table_entry_int(L, "dknown", obj->dknown);
     nhl_add_table_entry_int(L, "bknown", obj->bknown);
     nhl_add_table_entry_int(L, "rknown", obj->rknown);
+    nhl_add_table_entry_int(L, "tknown", obj->tknown);
     if (obj->oclass == POTION_CLASS)
         nhl_add_table_entry_int(L, "odiluted", obj->odiluted);
     else
@@ -311,7 +316,7 @@ l_obj_to_table(lua_State *L)
     nhl_add_table_entry_int(L, "globby", obj->globby);
     nhl_add_table_entry_int(L, "greased", obj->greased);
     nhl_add_table_entry_int(L, "nomerge", obj->nomerge);
-    nhl_add_table_entry_int(L, "was_thrown", obj->was_thrown);
+    nhl_add_table_entry_int(L, "how_lost", obj->how_lost);
     nhl_add_table_entry_int(L, "in_use", obj->in_use);
     nhl_add_table_entry_int(L, "bypass", obj->bypass);
     nhl_add_table_entry_int(L, "cknown", obj->cknown);
@@ -340,7 +345,7 @@ DISABLE_WARNING_UNREACHABLE_CODE
 
 /* create a new object via wishing routine */
 /* local o = obj.new("rock"); */
-static int
+staticfn int
 l_obj_new_readobjnam(lua_State *L)
 {
     int argc = lua_gettop(L);
@@ -348,9 +353,11 @@ l_obj_new_readobjnam(lua_State *L)
     if (argc == 1) {
         char buf[BUFSZ];
         struct obj *otmp;
+
         Sprintf(buf, "%s", luaL_checkstring(L, 1));
         lua_pop(L, 1);
-        otmp = readobjnam(buf, NULL);
+        if ((otmp = readobjnam(buf, NULL)) == &hands_obj)
+            otmp = NULL;
         (void) l_obj_push(L, otmp);
         return 1;
     } else
@@ -361,7 +368,7 @@ l_obj_new_readobjnam(lua_State *L)
 
 /* Get the topmost object on the map at x,y */
 /* local o = obj.at(x, y); */
-static int
+staticfn int
 l_obj_at(lua_State *L)
 {
     int argc = lua_gettop(L);
@@ -374,7 +381,7 @@ l_obj_at(lua_State *L)
         cvt_to_abscoord(&x, &y);
 
         lua_pop(L, 2);
-        (void) l_obj_push(L, gl.level.objects[x][y]);
+        (void) l_obj_push(L, svl.level.objects[x][y]);
         return 1;
     } else
         nhl_error(L, "l_obj_at: Wrong args");
@@ -385,7 +392,7 @@ l_obj_at(lua_State *L)
 /* Place an object on the map at (x,y).
    local o = obj.new("rock");
    o:placeobj(u.ux, u.uy); */
-static int
+staticfn int
 l_obj_placeobj(lua_State *L)
 {
     int argc = lua_gettop(L);
@@ -417,7 +424,7 @@ RESTORE_WARNING_UNREACHABLE_CODE
    local o2 = o:next(true);
    local firstobj = obj.next();
 */
-static int
+staticfn int
 l_obj_nextobj(lua_State *L)
 {
     int argc = lua_gettop(L);
@@ -441,7 +448,7 @@ l_obj_nextobj(lua_State *L)
 
 /* Get the container object is in */
 /* local box = o:container(); */
-static int
+staticfn int
 l_obj_container(lua_State *L)
 {
     struct _lua_obj *lo = l_obj_check(L, 1);
@@ -455,7 +462,7 @@ l_obj_container(lua_State *L)
 
 /* Is the object a null? */
 /* local badobj = o:isnull(); */
-static int
+staticfn int
 l_obj_isnull(lua_State *L)
 {
     struct _lua_obj *lo = l_obj_check(L, 1);
@@ -468,7 +475,7 @@ DISABLE_WARNING_UNREACHABLE_CODE
 
 /* does object have a timer of certain type? */
 /* local hastimer = o:has_timer("rot-organic"); */
-static int
+staticfn int
 l_obj_timer_has(lua_State *L)
 {
     int argc = lua_gettop(L);
@@ -489,11 +496,10 @@ l_obj_timer_has(lua_State *L)
     return 0;
 }
 
-
 /* peek at an object timer. return the turn when timer triggers.
    returns 0 if no such timer attached to the object. */
 /* local timeout = o:peek_timer("hatch-egg"); */
-static int
+staticfn int
 l_obj_timer_peek(lua_State *L)
 {
     int argc = lua_gettop(L);
@@ -520,7 +526,7 @@ l_obj_timer_peek(lua_State *L)
    without a timer type parameter, stops all timers for the object. */
 /* local timeout = o:stop_timer("rot-organic"); */
 /* o:stop_timer(); */
-static int
+staticfn int
 l_obj_timer_stop(lua_State *L)
 {
     int argc = lua_gettop(L);
@@ -552,7 +558,7 @@ RESTORE_WARNING_UNREACHABLE_CODE
 
 /* start an object timer. */
 /* o:start_timer("hatch-egg", 10); */
-static int
+staticfn int
 l_obj_timer_start(lua_State *L)
 {
     int argc = lua_gettop(L);
@@ -576,7 +582,7 @@ l_obj_timer_start(lua_State *L)
    false otherwise. */
 /* local ogone = o:bury(); */
 /* local ogone = o:bury(5,5); */
-static int
+staticfn int
 l_obj_bury(lua_State *L)
 {
     int argc = lua_gettop(L);

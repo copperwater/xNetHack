@@ -1,10 +1,10 @@
-/* NetHack 3.7	spell.c	$NHDT-Date: 1646838390 2022/03/09 15:06:30 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.131 $ */
+/* NetHack 3.7	spell.c	$NHDT-Date: 1725227807 2024/09/01 21:56:47 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.173 $ */
 /*      Copyright (c) M. Stephenson 1988                          */
 /* NetHack may be freely redistributed.  See license for details. */
 
 #include "hack.h"
 
-/* spellmenu arguments; 0 thru n-1 used as gs.spl_book[] index when swapping */
+/* spellmenu arguments; 0..n-1 used as svs.spl_book[] index when swapping */
 #define SPELLMENU_CAST (-2)
 #define SPELLMENU_VIEW (-1)
 #define SPELLMENU_SORT (MAXSPELL) /* special menu entry */
@@ -18,33 +18,43 @@
    initialization; spell memory is decremented at the end of each turn,
    including the turn on which the spellbook is read; without the extra
    increment, the hero used to get cheated out of 1 turn of retention */
-#define incrnknow(spell, x) (gs.spl_book[spell].sp_know = KEEN + (x))
+#define incrnknow(spell, x) (svs.spl_book[spell].sp_know = KEEN + (x))
 
-#define spellev(spell) gs.spl_book[spell].sp_lev
+#define spellev(spell) svs.spl_book[spell].sp_lev
 #define spellname(spell) OBJ_NAME(objects[spellid(spell)])
 #define spellet(spell) \
     ((char) ((spell < 26) ? ('a' + spell) : ('A' + spell - 26)))
 
-static int spell_let_to_idx(char);
-static boolean cursed_book(struct obj * bp);
-static boolean confused_book(struct obj *);
-static void deadbook(struct obj *);
-static int learn(void);
-static boolean rejectcasting(void);
-static boolean getspell(int *);
-static int QSORTCALLBACK spell_cmp(const genericptr, const genericptr);
-static void sortspells(void);
-static boolean spellsortmenu(void);
-static boolean dospellmenu(const char *, int, int *);
-static int percent_success(int);
-static int energy_cost(int);
-static int throwspell(void);
-static void cast_protection(void);
-static void spell_backfire(int);
-static int spell_hunger(int);
-static boolean spelleffects_check(int, int *, int *);
-static boolean can_center_spell_location(coordxy, coordxy);
-static boolean spell_aim_step(genericptr_t, coordxy, coordxy);
+struct chain_lightning_queue;
+struct chain_lightning_zap;
+
+staticfn int spell_let_to_idx(char);
+staticfn boolean cursed_book(struct obj * bp);
+staticfn boolean confused_book(struct obj *);
+staticfn void deadbook_pacify_undead(struct monst *);
+staticfn void deadbook(struct obj *);
+staticfn int learn(void);
+staticfn boolean rejectcasting(void);
+staticfn boolean getspell(int *);
+staticfn int QSORTCALLBACK spell_cmp(const genericptr, const genericptr);
+staticfn void sortspells(void);
+staticfn boolean spellsortmenu(void);
+staticfn boolean dospellmenu(const char *, int, int *);
+staticfn int percent_success(int);
+staticfn int energy_cost(int);
+staticfn char *spellretention(int, char *);
+staticfn int throwspell(void);
+staticfn void cast_protection(void);
+staticfn void cast_chain_lightning(void);
+staticfn void spell_backfire(int);
+staticfn int spell_hunger(int);
+staticfn boolean spelleffects_check(int, int *, int *);
+staticfn const char *spelltypemnemonic(int);
+staticfn boolean can_center_spell_location(coordxy, coordxy);
+staticfn void display_spell_target_positions(boolean);
+staticfn boolean spell_aim_step(genericptr_t, coordxy, coordxy);
+staticfn void propagate_chain_lightning(struct chain_lightning_queue *,
+            struct chain_lightning_zap);
 
 /* The roles[] table lists the role-specific values for tuning
  * percent_success().
@@ -75,7 +85,7 @@ static boolean spell_aim_step(genericptr_t, coordxy, coordxy);
 static const char explodes[] = "radiates explosive energy";
 
 /* convert a letter into a number in the range 0..51, or -1 if not a letter */
-static int
+staticfn int
 spell_let_to_idx(char ilet)
 {
     int indx;
@@ -90,8 +100,8 @@ spell_let_to_idx(char ilet)
 }
 
 /* TRUE: book should be destroyed by caller */
-static boolean
-cursed_book(struct obj* bp)
+staticfn boolean
+cursed_book(struct obj *bp)
 {
     boolean was_in_use;
     int lev = objects[bp->otyp].oc_level;
@@ -173,8 +183,8 @@ cursed_book(struct obj* bp)
 }
 
 /* study while confused: returns TRUE if the book is destroyed */
-static boolean
-confused_book(struct obj* spellbook)
+staticfn boolean
+confused_book(struct obj *spellbook)
 {
     if (!rn2(3) && spellbook->otyp != SPE_BOOK_OF_THE_DEAD) {
         spellbook->in_use = TRUE; /* in case called from learn */
@@ -187,17 +197,36 @@ confused_book(struct obj* spellbook)
         return TRUE;
     } else {
         You("find yourself reading the %s line over and over again.",
-            spellbook == gc.context.spbook.book ? "next" : "first");
+            spellbook == svc.context.spbook.book ? "next" : "first");
     }
     return FALSE;
 }
 
+/* pacify or tame an undead monster */
+staticfn void
+deadbook_pacify_undead(struct monst *mtmp)
+{
+    if ((is_undead(mtmp->data) || is_vampshifter(mtmp))
+        && cansee(mtmp->mx, mtmp->my)) {
+        mtmp->mpeaceful = TRUE;
+        if (sgn(mtmp->data->maligntyp) == sgn(u.ualign.type)
+            && mdistu(mtmp) < 4)
+            if (mtmp->mtame) {
+                if (mtmp->mtame < 20)
+                    mtmp->mtame++;
+            } else
+                (void) tamedog(mtmp, (struct obj *) 0, FALSE, TRUE);
+        else
+            monflee(mtmp, 0, FALSE, TRUE);
+    }
+}
+
 /* special effects for The Book of the Dead; reading it while blind is
    allowed so that needs to be taken into account too */
-static void
-deadbook(struct obj* book2)
+staticfn void
+deadbook(struct obj *book2)
 {
-    struct monst *mtmp, *mtmp2;
+    struct monst *mtmp;
     coord mm;
 
     You("turn the pages of the Book of the Dead...");
@@ -206,8 +235,8 @@ deadbook(struct obj* book2)
     /* KMH -- Need ->known to avoid "_a_ Book of the Dead" */
     book2->known = 1;
     if (invocation_pos(u.ux, u.uy) && !On_stairs(u.ux, u.uy)) {
-        register struct obj *otmp;
-        register boolean arti1_primed = FALSE, arti2_primed = FALSE,
+        struct obj *otmp;
+        boolean arti1_primed = FALSE, arti2_primed = FALSE,
                          arti_cursed = FALSE;
 
         if (book2->cursed) {
@@ -237,7 +266,7 @@ deadbook(struct obj* book2)
                     arti_cursed = TRUE;
             }
             if (otmp->otyp == BELL_OF_OPENING
-                && (gm.moves - otmp->age) < 5L) { /* you rang it recently */
+                && (svm.moves - otmp->age) < 5L) { /* you rang it recently */
                 if (!otmp->cursed)
                     arti2_primed = TRUE;
                 else
@@ -251,8 +280,7 @@ deadbook(struct obj* book2)
                are not artifacts */
             pline("At least one of your relics is cursed...");
         } else if (arti1_primed && arti2_primed) {
-            unsigned soon =
-                (unsigned) d(2, 6); /* time til next intervene() */
+            unsigned soon = (unsigned) d(2, 6); /* time til next intervene() */
 
             /* successful invocation */
             mkinvokearea();
@@ -260,7 +288,7 @@ deadbook(struct obj* book2)
             record_achievement(ACH_INVK);
             /* in case you haven't killed the Wizard yet, behave as if
                you just did */
-            u.uevent.udemigod = 1; /* wizdead() */
+            u.uevent.udemigod = 1; /* wizdeadorgone() */
             if (!u.udg_cnt || u.udg_cnt > soon)
                 u.udg_cnt = soon;
         } else { /* at least one relic not prepared properly */
@@ -290,25 +318,7 @@ deadbook(struct obj* book2)
         mm.y = u.uy;
         mkundead(&mm, TRUE, NO_MINVENT);
     } else if (book2->blessed) {
-        for (mtmp = fmon; mtmp; mtmp = mtmp2) {
-            mtmp2 = mtmp->nmon; /* tamedog() changes chain */
-            if (DEADMONSTER(mtmp))
-                continue;
-
-            if ((is_undead(mtmp->data) || is_vampshifter(mtmp))
-                && cansee(mtmp->mx, mtmp->my)) {
-                mtmp->mpeaceful = TRUE;
-                if (sgn(mtmp->data->maligntyp) == sgn(u.ualign.type)
-                    && mdistu(mtmp) < 4)
-                    if (mtmp->mtame) {
-                        if (mtmp->mtame < 20)
-                            mtmp->mtame++;
-                    } else
-                        (void) tamedog(mtmp, (struct obj *) 0, FALSE);
-                else
-                    monflee(mtmp, 0, FALSE, TRUE);
-            }
-        }
+        iter_mons(deadbook_pacify_undead);
     } else {
         switch (rn2(3)) {
         case 0:
@@ -329,7 +339,7 @@ void
 book_cursed(struct obj *book)
 {
     if (book->cursed && gm.multi >= 0
-        && go.occupation == learn && gc.context.spbook.book == book) {
+        && go.occupation == learn && svc.context.spbook.book == book) {
         pline("%s shut!", Tobjnam(book, "slam"));
         set_bknown(book, 1);
         stop_occupation();
@@ -338,30 +348,31 @@ book_cursed(struct obj *book)
 
 DISABLE_WARNING_FORMAT_NONLITERAL
 
-static int
+staticfn int
 learn(void)
 {
     int i;
     short booktype;
     char splname[BUFSZ];
-    boolean costly = TRUE;
-    struct obj *book = gc.context.spbook.book;
+    boolean costly = TRUE, faded_to_blank = FALSE;
+    struct obj *book = svc.context.spbook.book;
 
     /* JDS: lenses give 50% faster reading; 33% smaller read time */
-    if (gc.context.spbook.delay && ublindf && ublindf->otyp == LENSES && rn2(2))
-        gc.context.spbook.delay++;
+    if (svc.context.spbook.delay && ublindf
+        && ublindf->otyp == LENSES && rn2(2))
+        svc.context.spbook.delay++;
     if (Confusion) { /* became confused while learning */
         if (!confused_book(book)) {
             You("can no longer focus on the book.");
         }
-        gc.context.spbook.book = 0; /* no longer studying */
-        gc.context.spbook.o_id = 0;
-        gc.context.spbook.delay = 0;
+        svc.context.spbook.book = 0; /* no longer studying */
+        svc.context.spbook.o_id = 0;
+        svc.context.spbook.delay = 0;
         return 0;
     }
-    if (gc.context.spbook.delay) {
-        /* not if (gc.context.spbook.delay++), so at end delay == 0 */
-        gc.context.spbook.delay++;
+    if (svc.context.spbook.delay) {
+        /* not if (svc.context.spbook.delay++), so at end delay == 0 */
+        svc.context.spbook.delay++;
         return 1; /* still busy */
     }
     exercise(A_WIS, TRUE); /* you're studying. */
@@ -385,6 +396,7 @@ learn(void)
         if (book->spestudied > MAX_SPELL_STUDY) {
             pline("This spellbook is too faint to be read any more.");
             book->otyp = booktype = SPE_BLANK_PAPER;
+            faded_to_blank = TRUE;
             /* reset spestudied as if polymorph had taken place */
             book->spestudied = rn2(book->spestudied);
         } else {
@@ -394,7 +406,6 @@ learn(void)
             book->spestudied++;
             exercise(A_WIS, TRUE); /* extra study */
         }
-        makeknown((int) booktype);
     } else { /* (spellid(i) == NO_SPELL) */
         /* for a normal book, spestudied will be zero, but for
            a polymorphed one, spestudied will be non-zero and
@@ -403,11 +414,12 @@ learn(void)
             /* pre-used due to being the product of polymorph */
             pline("This spellbook is too faint to read even once.");
             book->otyp = booktype = SPE_BLANK_PAPER;
+            faded_to_blank = TRUE;
             /* reset spestudied as if polymorph had taken place */
             book->spestudied = rn2(book->spestudied);
         } else {
-            gs.spl_book[i].sp_id = booktype;
-            gs.spl_book[i].sp_lev = objects[booktype].oc_level;
+            svs.spl_book[i].sp_id = booktype;
+            svs.spl_book[i].sp_lev = objects[booktype].oc_level;
             incrnknow(i, 1);
             book->spestudied++;
             if (!i)
@@ -417,28 +429,38 @@ learn(void)
                 You("add %s to your repertoire, as '%c'.",
                     splname, spellet(i));
         }
+    }
+    if (i < MAXSPELL) {
+        /* might be learning a new spellbook type or spellbook of blank paper;
+           if so, persistent inventory will get updated */
         makeknown((int) booktype);
+        /* makeknown() calls update_inventory() when discovering something
+           new but is a no-op for something that's already known so wouldn't
+           update persistent inventory to reflect faded book if spellbook of
+           blank paper happens to already be discovered */
+        if (faded_to_blank)
+            update_inventory();
     }
 
     if (book->cursed) { /* maybe a demon cursed it */
         if (cursed_book(book)) {
             useup(book);
-            gc.context.spbook.book = 0;
-            gc.context.spbook.o_id = 0;
+            svc.context.spbook.book = 0;
+            svc.context.spbook.o_id = 0;
             return 0;
         }
     }
     if (costly)
         check_unpaid(book);
-    gc.context.spbook.book = 0;
-    gc.context.spbook.o_id = 0;
+    svc.context.spbook.book = 0;
+    svc.context.spbook.o_id = 0;
     return 0;
 }
 
 RESTORE_WARNING_FORMAT_NONLITERAL
 
 int
-study_book(register struct obj* spellbook)
+study_book(struct obj *spellbook)
 {
     int booktype = spellbook->otyp, i;
     boolean confused = (Confusion != 0);
@@ -451,7 +473,7 @@ study_book(register struct obj* spellbook)
         int dullbook = rnd(25) - ACURR(A_WIS);
 
         /* adjust chance if hero stayed awake, got interrupted, retries */
-        if (gc.context.spbook.delay && spellbook == gc.context.spbook.book)
+        if (svc.context.spbook.delay && spellbook == svc.context.spbook.book)
             dullbook -= rnd(objects[booktype].oc_level);
 
         if (dullbook > 0) {
@@ -471,17 +493,18 @@ study_book(register struct obj* spellbook)
         && olfaction(gy.youmonst.data)) {
         pline("The book's dust gets in your %s and makes you sneeze!",
               body_part(NOSE));
-        wake_nearby();
+        wake_nearby(FALSE);
         return 1;
     }
 
-    if (gc.context.spbook.delay && !confused
-        && spellbook == gc.context.spbook.book
+    if (svc.context.spbook.delay && !confused
+        && spellbook == svc.context.spbook.book
         /* handle the sequence: start reading, get interrupted, have
-           gc.context.spbook.book become erased somehow, resume reading it */
+           svc.context.spbook.book become erased somehow, resume reading it */
         && booktype != SPE_BLANK_PAPER) {
         You("continue your efforts to %s.",
-            (booktype == SPE_NOVEL) ? "read the novel" : "memorize the spell");
+            (booktype == SPE_NOVEL) ? "read the novel"
+                                    : "memorize the spell");
     } else {
         /* KMH -- Simplified this code */
         if (booktype == SPE_BLANK_PAPER) {
@@ -499,7 +522,8 @@ study_book(register struct obj* spellbook)
                              spellbook->o_id)) {
                 if (!u.uconduct.literate++)
                     livelog_printf(LL_CONDUCT,
-                                   "became literate by reading %s", tribtitle);
+                                   "became literate by reading %s",
+                                   tribtitle);
 
                 check_unpaid(spellbook);
                 makeknown(booktype);
@@ -521,7 +545,7 @@ study_book(register struct obj* spellbook)
         }
 
         /* currently level * 10 */
-        gc.context.spbook.delay = -objects[booktype].oc_delay;
+        svc.context.spbook.delay = -objects[booktype].oc_delay;
 
         /* check to see if we already know it and want to refresh our memory */
         for (i = 0; i < MAXSPELL; i++)
@@ -567,7 +591,7 @@ study_book(register struct obj* spellbook)
 
         if (too_hard) {
             You("can't comprehend the runes!");
-            make_confused(-gc.context.spbook.delay, FALSE); /* study time */
+            make_confused(-svc.context.spbook.delay, FALSE); /* study time */
             bot(); /* show Conf on status line before tele, crumbling, etc */
 
             boolean gone = cursed_book(spellbook);
@@ -592,9 +616,9 @@ study_book(register struct obj* spellbook)
             spellbook->otyp == SPE_BOOK_OF_THE_DEAD ? "recite" : "memorize");
     }
 
-    gc.context.spbook.book = spellbook;
-    if (gc.context.spbook.book)
-        gc.context.spbook.o_id = gc.context.spbook.book->o_id;
+    svc.context.spbook.book = spellbook;
+    if (svc.context.spbook.book)
+        svc.context.spbook.o_id = svc.context.spbook.book->o_id;
     set_occupation(learn, "studying", 0);
     return 1;
 }
@@ -602,11 +626,11 @@ study_book(register struct obj* spellbook)
 /* a spellbook has been destroyed or the character has changed levels;
    the stored address for the current book is no longer valid */
 void
-book_disappears(struct obj* obj)
+book_disappears(struct obj *obj)
 {
-    if (obj == gc.context.spbook.book) {
-        gc.context.spbook.book = (struct obj *) 0;
-        gc.context.spbook.o_id = 0;
+    if (obj == svc.context.spbook.book) {
+        svc.context.spbook.book = (struct obj *) 0;
+        svc.context.spbook.o_id = 0;
     }
 }
 
@@ -614,12 +638,12 @@ book_disappears(struct obj* obj)
    so the sequence start reading, get interrupted, name the book, resume
    reading would read the "new" book from scratch */
 void
-book_substitution(struct obj* old_obj, struct obj* new_obj)
+book_substitution(struct obj *old_obj, struct obj *new_obj)
 {
-    if (old_obj == gc.context.spbook.book) {
-        gc.context.spbook.book = new_obj;
-        if (gc.context.spbook.book)
-            gc.context.spbook.o_id = gc.context.spbook.book->o_id;
+    if (old_obj == svc.context.spbook.book) {
+        svc.context.spbook.book = new_obj;
+        if (svc.context.spbook.book)
+            svc.context.spbook.o_id = svc.context.spbook.book->o_id;
     }
 }
 
@@ -642,7 +666,7 @@ age_spells(void)
 
 /* return True if spellcasting is inhibited;
    only covers a small subset of reasons why casting won't work */
-static boolean
+staticfn boolean
 rejectcasting(void)
 {
     /* rejections which take place before selecting a particular spell */
@@ -670,11 +694,12 @@ rejectcasting(void)
  * Return TRUE if a spell was picked, with the spell index in the return
  * parameter.  Otherwise return FALSE.
  */
-static boolean
-getspell(int* spell_no)
+staticfn boolean
+getspell(int *spell_no)
 {
     int nspells, idx;
     char ilet, lets[BUFSZ], qbuf[QBUFSZ];
+    struct _cmd_queue cq, *cmdq;
 
     if (spellid(0) == NO_SPELL) {
         You("don't know any spells right now.");
@@ -682,6 +707,21 @@ getspell(int* spell_no)
     }
     if (rejectcasting())
         return FALSE; /* no spell chosen */
+
+    if ((cmdq = cmdq_pop()) != 0) {
+        cq = *cmdq;
+        free(cmdq);
+        if (cq.typ == CMDQ_KEY) {
+            nspells = num_spells();
+            idx = spell_let_to_idx(cq.key);
+            if (idx < 0 || idx >= nspells)
+                return FALSE;
+            *spell_no = idx;
+            return TRUE;
+        } else {
+            return FALSE;
+        }
+    }
 
     if (flags.menu_style == MENU_TRADITIONAL) {
         /* we know there is at least 1 known spell */
@@ -737,7 +777,8 @@ dowizcast(void)
         if (n >= SPE_BLANK_PAPER)
             break;
         any.a_int = n;
-        add_menu(win, &nul_glyphinfo, &any, 0, 0, ATR_NONE, 0, OBJ_NAME(objects[n]), MENU_ITEMFLAGS_NONE);
+        add_menu(win, &nul_glyphinfo, &any, 0, 0, ATR_NONE, NO_COLOR,
+                 OBJ_NAME(objects[n]), MENU_ITEMFLAGS_NONE);
     }
     end_menu(win, "Cast which spell?");
     n = select_menu(win, PICK_ONE, &selected);
@@ -757,9 +798,11 @@ docast(void)
 {
     int spell_no;
 
-    if (getspell(&spell_no))
-        return spelleffects(gs.spl_book[spell_no].sp_id, FALSE, FALSE);
-    return ECMD_OK;
+    if (getspell(&spell_no)) {
+        cmdq_add_key(CQ_REPEAT, spellet(spell_no));
+        return spelleffects(svs.spl_book[spell_no].sp_id, FALSE, FALSE);
+    }
+    return ECMD_FAIL;
 }
 
 const char *
@@ -792,7 +835,246 @@ spell_skilltype(int booktype)
     return objects[booktype].oc_skill;
 }
 
-static void
+/* Wizards learn what spellbooks look like based on their skill in the
+   spell's school */
+void
+skill_based_spellbook_id(void)
+{
+    if (!Role_if(PM_WIZARD))
+        return;
+
+    int booktype;
+    const uchar spbook_class = (uchar) SPBOOK_CLASS;
+
+    for (booktype = svb.bases[spbook_class];
+         booktype < svb.bases[spbook_class + 1];
+         booktype++) {
+        int known_up_to_level;
+        int skill = spell_skilltype(booktype);
+
+        if (skill == P_NONE)
+            continue;
+
+        switch (P_SKILL(skill)) {
+        case P_BASIC:
+            known_up_to_level = 3;
+            break;
+        case P_SKILLED:
+            known_up_to_level = 5;
+            break;
+        case P_EXPERT:
+        case P_MASTER:
+        case P_GRAND_MASTER:
+            known_up_to_level = 7;
+            break;
+        case P_UNSKILLED:
+        default:
+            known_up_to_level = 1;
+            break;
+        }
+
+        if (objects[booktype].oc_level <= known_up_to_level)
+            /* makeknown(booktype) but don't exercise Wisdom */
+            discover_object(booktype, TRUE, FALSE);
+    }
+}
+
+
+/* Limit the total area chain lightning can cover; this is both for
+   technical reasons (making it possible to limit the size of arrays
+   here and in the display code) and for gameplay balance reasons;
+   this value should be smaller than TMP_AT_MAX_GLYPHS (display.c) in
+   order for chain lightning to display properly */
+#define CHAIN_LIGHTNING_LIMIT 100
+/* Unlike most zaps, chain lightning can't hit solid terrain (it
+   doesn't have enough power), it only covers open space; this also
+   means that it can't hit monsters inside walls, which makes sense as
+   they would be earthed */
+#define CHAIN_LIGHTNING_TYP(typ) \
+    (SPACE_POS(typ) || (typ) == POOL || (typ) == MOAT /* not WATER */   \
+     || (typ) == DRAWBRIDGE_UP || (typ) == LAVAPOOL)  /* not LAVAWALL */
+#define CHAIN_LIGHTNING_POS(x, y) \
+    (isok(x, y) && (CHAIN_LIGHTNING_TYP(levl[x][y].typ)                 \
+                    || (IS_DOOR(levl[x][y].typ)                         \
+                        && !(levl[x][y].doormask & (D_CLOSED | D_LOCKED)))))
+
+struct chain_lightning_zap {
+    /* direction in which this zap is currently moving; this is an
+       enum movementdirs, clamped to the range 0 inclusive to N_DIRS
+       exclusive */
+    uchar dir;
+    /* current location of the zap */
+    coordxy x, y;
+    /* distance this zap can cover without chaining */
+    char strength;
+};
+
+struct chain_lightning_queue {
+    struct chain_lightning_zap q[CHAIN_LIGHTNING_LIMIT];
+    int head;
+    int tail;
+    int displayed_beam;
+};
+
+/* Given a potential chain lightning zap, moves it one square forward in
+   the given direction, then adds it to the queue unless it would hit an
+   invalid square or is out of power.
+
+   zap is passed by value, so the move-forward doesn't change the passed
+   argument. */
+staticfn void
+propagate_chain_lightning(
+    struct chain_lightning_queue *clq,
+    struct chain_lightning_zap zap)
+{
+    struct monst *mon;
+
+    zap.x += xdir[zap.dir];
+    zap.y += ydir[zap.dir];
+
+    if (clq->tail >= CHAIN_LIGHTNING_LIMIT)
+        return;    /* zap has covered too many squares */
+    if (!CHAIN_LIGHTNING_POS(zap.x, zap.y))
+        return;    /* zap can't go to this square */
+
+    mon = m_at(zap.x, zap.y);
+    if (mon && mon->mpeaceful)
+        return;    /* chain lightning avoids peaceful and tame monsters */
+
+    /* When hitting a monster that isn't electricity-resistant, a
+       particular chain lightning zap regains all its power, allowing it to
+       chain to other monsters; upon hitting a shock-resistant monster it
+       can't continue any further, but we let it hit the monster to show
+       the shield effect */
+    if (mon && !resists_elec(mon) && !defended(mon, AD_ELEC))
+        zap.strength = 3;
+    else if (mon)
+        zap.strength = 0;
+
+    /* Unless it hits a monster, the last square of a zap isn't drawn on
+       screen and can't propagate further, so it may as well be discarded
+       now */
+    if (!mon && !zap.strength)
+        return;
+
+    /* The same square can't be chained to twice. */
+    for (int i = 0; i < clq->tail; i++) {
+        if (clq->q[i].x == zap.x && clq->q[i].y == zap.y)
+            return;
+    }
+
+    /* This array access must be inbounds due to the CHAIN_LIGHTNING_LIMIT
+       check earlier. */
+    clq->q[clq->tail++] = zap;
+
+    /* Draw it. */
+    tmp_at(DISP_CHANGE, zapdir_to_glyph(xdir[zap.dir], ydir[zap.dir],
+                                        clq->displayed_beam));
+    tmp_at(zap.x, zap.y);
+}
+
+staticfn void
+cast_chain_lightning(void)
+{
+    struct chain_lightning_queue clq = {
+        {{0}}, 0, 0, Hallucination ? rn2_on_display_rng(6) : (AD_ELEC - 1)
+    };
+
+    if (u.uswallow) {
+        // TODO: damage the engulfer
+        return;
+    }
+
+    /* set the type of beam we're using; the direction here is arbitrary
+       because we change the beam direction just before drawing the beam
+       anyway */
+    tmp_at(DISP_BEAM, zapdir_to_glyph(0, 1, clq.displayed_beam));
+
+    /* start by propagating in all directions from the caster */
+    for (int dir = 0; dir < N_DIRS; dir++) {
+        struct chain_lightning_zap zap = { dir, u.ux, u.uy, 2 };
+
+        propagate_chain_lightning(&clq, zap);
+    }
+    nh_delay_output();
+
+    while (clq.head < clq.tail) {
+        int delay_tail = clq.tail;
+
+        while (clq.head < delay_tail) {
+            struct chain_lightning_zap zap = clq.q[clq.head++];
+            /* damage any monster that was hit */
+            struct monst *mon = m_at(zap.x, zap.y);
+
+            if (mon) {
+                struct obj *unused = 0; /* AD_ELEC can't destroy armor */
+                int dmg;
+
+                gn.notonhead = (mon->mx != gb.bhitpos.x
+                                || mon->my != gb.bhitpos.y);
+                dmg = zhitm(mon, BZ_U_SPELL(AD_ELEC - 1), 2, &unused);
+
+                if (dmg) {
+                    /* mon has been damaged, but we haven't yet printed the
+                       messages or given kill credit; assume the hero can
+                       sense their spell hitting monsters, because they can
+                       steer it away from peacefuls */
+                    if (DEADMONSTER(mon)) {
+                        xkilled(mon, XKILL_GIVEMSG);
+                    } else {
+                        pline("You shock %s%s", mon_nam(mon), exclam(dmg));
+                        /* if a long worm, only map 'I' for its head */
+                        if (!canseemon(mon) && !gn.notonhead)
+                            /* FIXME: this doesn't work, possibly because
+                               cleaning up tmp_at() restores old glyph? */
+                            map_invisible(zap.x, zap.y);
+                    }
+                } else if (canseemon(mon)) {
+                    pline("%s resists.", Monnam(mon));
+                }
+                if (!DEADMONSTER(mon)) {
+                    /* wakeup is via attack, but since mon is already
+                       hostile we pass via_attack==False rather than True,
+                       otherwise other monsters witnessing this would treat
+                       it as seeing hero attack a peaceful; mimic will be
+                       exposed; forcefight makes hider unhide */
+                    svc.context.forcefight++;
+                    wakeup(mon, FALSE, TRUE);
+                    svc.context.forcefight--;
+                }
+            }
+
+            /* each zap propagates forwards with 1 less strength, and
+               diagonally with 0 strength (thus the diagonal zaps aren't
+               drawn and don't spread unless they hit a monster);
+               exception: if the zap just hit a monster, the diagonals have
+               as much strength as the forwards zap */
+            if (!zap.strength)
+                continue; /* happens upon hitting a shock-resistant monster */
+            zap.strength--;
+
+            propagate_chain_lightning(&clq, zap);
+
+            if (zap.strength < 2)
+                zap.strength = 0;
+            else if (u.uen > 0)
+                u.uen--; /* propagating past mons increases Pw cost a bit */
+            zap.dir = DIR_LEFT(zap.dir);
+            propagate_chain_lightning(&clq, zap);
+
+            zap.dir = DIR_RIGHT2(zap.dir);
+            propagate_chain_lightning(&clq, zap);
+        }
+        nh_delay_output();
+    }
+    nh_delay_output();
+    nh_delay_output();
+
+    tmp_at(DISP_END, 0);
+}
+
+
+staticfn void
 cast_protection(void)
 {
     int l = u.ulevel, loglev = 0,
@@ -869,7 +1151,7 @@ cast_protection(void)
 }
 
 /* attempting to cast a forgotten spell will cause disorientation */
-static void
+staticfn void
 spell_backfire(int spell)
 {
     long duration = (long) ((spellev(spell) + 1) * 3), /* 6..24 */
@@ -911,7 +1193,7 @@ spell_backfire(int spell)
 /* Given an expected amount of hunger for a spell, return the amount it should
  * be reduced to. High-intelligence Wizards get to cast spells with less or no
  * hunger penalty. */
-static int
+staticfn int
 spell_hunger(int hungr)
 {
     /* If hero is a wizard, their current intelligence
@@ -942,7 +1224,7 @@ spell_hunger(int hungr)
 /* for using this function to test whether hunger would be eliminated */
 #define spell_would_hunger() (spell_hunger(100) > 0)
 
-static boolean
+staticfn boolean
 spelleffects_check(int spell, int *res, int *energy)
 {
     boolean confused = (Confusion != 0);
@@ -980,7 +1262,7 @@ spelleffects_check(int spell, int *res, int *energy)
         u.uen -= rnd(*energy);
         if (u.uen < 0)
             u.uen = 0;
-        gc.context.botl = 1;
+        disp.botl = TRUE;
         *res = ECMD_TIME;
         return TRUE;
     } else if (spellknow(spell) <= KEEN / 200) { /* 100 turns left */
@@ -1035,7 +1317,7 @@ spelleffects_check(int spell, int *res, int *energy)
         u.uen -= rnd(2 * *energy);
         if (u.uen < 0)
             u.uen = 0;
-        gc.context.botl = 1;
+        disp.botl = TRUE;
         *res = ECMD_TIME; /* time is used even if spell doesn't get cast */
     }
 
@@ -1073,7 +1355,7 @@ spelleffects_check(int spell, int *res, int *energy)
     if (confused) {
         You("fail to cast the spell correctly.");
         u.uen -= *energy / 2;
-        gc.context.botl = 1;
+        disp.botl = TRUE;
         *res = ECMD_TIME;
         return TRUE;
     }
@@ -1096,7 +1378,7 @@ spelleffects(int spell_otyp, boolean atme, boolean force)
         return res;
 
     u.uen -= energy;
-    gc.context.botl = 1;
+    disp.botl = TRUE;
     exercise(A_WIS, TRUE);
     /* pseudo is a temporary "false" object containing the spell stats */
     pseudo = mksobj(force ? spell : spellid(spell), FALSE, FALSE);
@@ -1155,12 +1437,14 @@ spelleffects(int spell_otyp, boolean atme, boolean force)
             /* player said not to cast advanced spell; return up to half of the
              * magical energy */
             u.uen += rnd(energy / 2);
-        }
+        } /* else */
+        FALLTHROUGH;
         /*FALLTHRU*/
 
     /* these spells are all duplicates of wand effects */
     case SPE_FORCE_BOLT:
         physical_damage = TRUE;
+        FALLTHROUGH;
     /*FALLTHRU*/
     case SPE_SLEEP:
     case SPE_MAGIC_MISSILE:
@@ -1224,8 +1508,8 @@ spelleffects(int spell_otyp, boolean atme, boolean force)
         /* high skill yields effect equivalent to blessed scroll */
         if (role_skill >= P_SKILLED)
             pseudo->blessed = 1;
+        FALLTHROUGH;
     /*FALLTHRU*/
-    case SPE_CHARM_MONSTER:
     case SPE_MAGIC_MAPPING:
     case SPE_CREATE_MONSTER:
         (void) seffects(pseudo);
@@ -1240,6 +1524,7 @@ spelleffects(int spell_otyp, boolean atme, boolean force)
         /* high skill yields effect equivalent to blessed potion */
         if (role_skill >= P_SKILLED)
             pseudo->blessed = 1;
+        FALLTHROUGH;
     /*FALLTHRU*/
     case SPE_INVISIBILITY:
         (void) peffects(pseudo);
@@ -1279,6 +1564,9 @@ spelleffects(int spell_otyp, boolean atme, boolean force)
         if (!(jump(max(role_skill, 1)) & ECMD_TIME))
             pline1(nothing_happens);
         break;
+    case SPE_CHAIN_LIGHTNING:
+        cast_chain_lightning();
+        break;
     default:
         impossible("Unknown spell %d attempted.", spell);
         obfree(pseudo, (struct obj *) 0);
@@ -1286,14 +1574,15 @@ spelleffects(int spell_otyp, boolean atme, boolean force)
     }
 
     /* gain skill for successful cast */
-    use_skill(skill, spellev(spell));
+    if (!force)
+        use_skill(skill, spellev(spell));
 
     obfree(pseudo, (struct obj *) 0); /* now, get rid of it */
     return ECMD_TIME;
 }
 
 /*ARGSUSED*/
-static boolean
+staticfn boolean
 spell_aim_step(genericptr_t arg UNUSED, coordxy x, coordxy y)
 {
     if (!isok(x,y))
@@ -1305,7 +1594,7 @@ spell_aim_step(genericptr_t arg UNUSED, coordxy x, coordxy y)
 }
 
 /* not quite the same as throwspell limits, but close enough */
-static boolean
+staticfn boolean
 can_center_spell_location(coordxy x, coordxy y)
 {
     if (distmin(u.ux, u.uy, x, y) > 10)
@@ -1313,8 +1602,35 @@ can_center_spell_location(coordxy x, coordxy y)
     return (isok(x, y) && cansee(x, y) && !(IS_STWALL(levl[x][y].typ)));
 }
 
+staticfn void
+display_spell_target_positions(boolean on_off)
+{
+    coordxy x, y, dx, dy;
+    int dist = 10;
+
+    if (on_off) {
+        /* on */
+        tmp_at(DISP_BEAM, cmap_to_glyph(S_goodpos));
+        for (dx = -dist; dx <= dist; dx++)
+            for (dy = -dist; dy <= dist; dy++) {
+                x = u.ux + dx;
+                y = u.uy + dy;
+                /* hero's location is allowed but highlighting the hero's
+                   spot makes map harder to read (if using '$' rather than
+                   by changing background color) */
+                if (u_at(x, y))
+                    continue;
+                if (can_center_spell_location(x, y))
+                    tmp_at(x, y);
+            }
+    } else {
+        /* off */
+        tmp_at(DISP_END, 0);
+    }
+}
+
 /* Choose location where spell takes effect. */
-static int
+staticfn int
 throwspell(void)
 {
     coord cc, uc;
@@ -1331,7 +1647,8 @@ throwspell(void)
     pline("Where do you want to cast the spell?");
     cc.x = u.ux;
     cc.y = u.uy;
-    getpos_sethilite(NULL, can_center_spell_location);
+    getpos_sethilite(display_spell_target_positions,
+                     can_center_spell_location);
     if (getpos(&cc, TRUE, "the desired position") < 0)
         return 0; /* user pressed ESC */
     clear_nhwindow(WIN_MESSAGE); /* discard any autodescribe feedback */
@@ -1391,14 +1708,14 @@ tport_spell(int what)
             save_tport.tport_indx = MAXSPELL;
         } else if (what == UNHIDESPELL) {
             /*assert( save_tport.savespell.sp_id == SPE_TELEPORT_AWAY );*/
-            gs.spl_book[save_tport.tport_indx] = save_tport.savespell;
+            svs.spl_book[save_tport.tport_indx] = save_tport.savespell;
             save_tport.tport_indx = MAXSPELL; /* burn bridge... */
         } else if (what == ADD_SPELL) {
-            save_tport.savespell = gs.spl_book[i];
+            save_tport.savespell = svs.spl_book[i];
             save_tport.tport_indx = i;
-            gs.spl_book[i].sp_id = SPE_TELEPORT_AWAY;
-            gs.spl_book[i].sp_lev = objects[SPE_TELEPORT_AWAY].oc_level;
-            gs.spl_book[i].sp_know = KEEN;
+            svs.spl_book[i].sp_id = SPE_TELEPORT_AWAY;
+            svs.spl_book[i].sp_lev = objects[SPE_TELEPORT_AWAY].oc_level;
+            svs.spl_book[i].sp_know = KEEN;
             return REMOVESPELL; /* operation needed to reverse */
         }
     } else { /* spellid(i) == SPE_TELEPORT_AWAY */
@@ -1406,12 +1723,12 @@ tport_spell(int what)
             save_tport.tport_indx = MAXSPELL;
         } else if (what == REMOVESPELL) {
             /*assert( i == save_tport.tport_indx );*/
-            gs.spl_book[i] = save_tport.savespell;
+            svs.spl_book[i] = save_tport.savespell;
             save_tport.tport_indx = MAXSPELL;
         } else if (what == HIDE_SPELL) {
-            save_tport.savespell = gs.spl_book[i];
+            save_tport.savespell = svs.spl_book[i];
             save_tport.tport_indx = i;
-            gs.spl_book[i].sp_id = NO_SPELL;
+            svs.spl_book[i].sp_id = NO_SPELL;
             return UNHIDESPELL; /* operation needed to reverse */
         }
     }
@@ -1427,8 +1744,8 @@ losespells(void)
     int n, nzap, i;
 
     /* in case reading has been interrupted earlier, discard context */
-    gc.context.spbook.book = 0;
-    gc.context.spbook.o_id = 0;
+    svc.context.spbook.book = 0;
+    svc.context.spbook.o_id = 0;
     /* count the number of known spells */
     for (n = 0; n < MAXSPELL; ++n)
         if (spellid(n) == NO_SPELL)
@@ -1528,19 +1845,19 @@ static const char *const spl_sortchoices[NUM_SPELL_SORTBY] = {
 };
 
 /* qsort callback routine */
-static int QSORTCALLBACK
+staticfn int QSORTCALLBACK
 spell_cmp(const genericptr vptr1, const genericptr vptr2)
 {
     /*
      * gather up all of the possible parameters except spell name
      * in advance, even though some might not be needed:
-     *  indx. = spl_orderindx[] index into gs.spl_book[];
-     *  otyp. = gs.spl_book[] index into objects[];
+     *  indx. = spl_orderindx[] index into svs.spl_book[];
+     *  otyp. = svs.spl_book[] index into objects[];
      *  levl. = spell level;
      *  skil. = skill group aka spell class.
      */
     int indx1 = *(int *) vptr1, indx2 = *(int *) vptr2,
-        otyp1 = gs.spl_book[indx1].sp_id, otyp2 = gs.spl_book[indx2].sp_id,
+        otyp1 = svs.spl_book[indx1].sp_id, otyp2 = svs.spl_book[indx2].sp_id,
         levl1 = objects[otyp1].oc_level, levl2 = objects[otyp2].oc_level,
         skil1 = objects[otyp1].oc_skill, skil2 = objects[otyp2].oc_skill;
 
@@ -1585,7 +1902,7 @@ spell_cmp(const genericptr vptr1, const genericptr vptr2)
 /* sort the index used for display order of the "view known spells"
    list (sortmode == SORTBY_xxx), or sort the spellbook itself to make
    the current display order stick (sortmode == SORTRETAINORDER) */
-static void
+staticfn void
 sortspells(void)
 {
     int i;
@@ -1616,13 +1933,13 @@ sortspells(void)
     if (gs.spl_sortmode == SORTRETAINORDER) {
         struct spell tmp_book[MAXSPELL];
 
-        /* sort gs.spl_book[] rather than spl_orderindx[];
+        /* sort svs.spl_book[] rather than spl_orderindx[];
            this also updates the index to reflect the new ordering (we
            could just free it since that ordering becomes the default) */
         for (i = 0; i < MAXSPELL; i++)
-            tmp_book[i] = gs.spl_book[gs.spl_orderindx[i]];
+            tmp_book[i] = svs.spl_book[gs.spl_orderindx[i]];
         for (i = 0; i < MAXSPELL; i++)
-            gs.spl_book[i] = tmp_book[i], gs.spl_orderindx[i] = i;
+            svs.spl_book[i] = tmp_book[i], gs.spl_orderindx[i] = i;
         gs.spl_sortmode = SORTBY_LETTER; /* reset */
         return;
     }
@@ -1634,7 +1951,7 @@ sortspells(void)
 }
 
 /* called if the [sort spells] entry in the view spells menu gets chosen */
-static boolean
+staticfn boolean
 spellsortmenu(void)
 {
     winid tmpwin;
@@ -1642,7 +1959,7 @@ spellsortmenu(void)
     anything any;
     char let;
     int i, n, choice;
-    int clr = 0;
+    int clr = NO_COLOR;
 
     tmpwin = create_nhwindow(NHW_MENU);
     start_menu(tmpwin, MENU_BEHAVE_STANDARD);
@@ -1652,9 +1969,7 @@ spellsortmenu(void)
         if (i == SORTRETAINORDER) {
             let = 'z'; /* assumes fewer than 26 sort choices... */
             /* separate final choice from others with a blank line */
-            any.a_int = 0;
-            add_menu(tmpwin, &nul_glyphinfo, &any, 0, 0,
-                     ATR_NONE, clr, "", MENU_ITEMFLAGS_NONE);
+            add_menu_str(tmpwin, "");
         } else {
             let = 'a' + i;
         }
@@ -1702,9 +2017,9 @@ dovspell(void)
                 if (!dospellmenu(qbuf, splnum, &othnum))
                     break;
 
-                spl_tmp = gs.spl_book[splnum];
-                gs.spl_book[splnum] = gs.spl_book[othnum];
-                gs.spl_book[othnum] = spl_tmp;
+                spl_tmp = svs.spl_book[splnum];
+                svs.spl_book[splnum] = svs.spl_book[othnum];
+                svs.spl_book[othnum] = spl_tmp;
             }
         }
     }
@@ -1721,10 +2036,11 @@ DISABLE_WARNING_FORMAT_NONLITERAL
 /* shows menu of known spells, with options to sort them.
    return FALSE on cancel, TRUE otherwise.
    spell_no is set to the internal spl_book index, if any selected */
-static boolean
+staticfn boolean
 dospellmenu(
     const char *prompt,
-    int splaction, /* SPELLMENU_CAST, SPELLMENU_VIEW, or gs.spl_book[] index */
+    int splaction, /* SPELLMENU_CAST, SPELLMENU_VIEW, or
+                    * svs.spl_book[] index */
     int *spell_no)
 {
     winid tmpwin;
@@ -1733,7 +2049,7 @@ dospellmenu(
     const char *fmt;
     menu_item *selected;
     anything any;
-    int clr = 0;
+    int clr = NO_COLOR;
 
     tmpwin = create_nhwindow(NHW_MENU);
     start_menu(tmpwin, MENU_BEHAVE_STANDARD);
@@ -1759,8 +2075,7 @@ dospellmenu(
     if (wizard)
         Sprintf(eos(buf), "%c%6s", sep, "turns");
 
-    add_menu(tmpwin, &nul_glyphinfo, &any, 0, 0,
-             iflags.menu_headings, clr, buf, MENU_ITEMFLAGS_NONE);
+    add_menu_heading(tmpwin, buf);
     for (i = 0; i < MAXSPELL && spellid(i) != NO_SPELL; i++) {
         splnum = !gs.spl_orderindx ? i : gs.spl_orderindx[i];
         if (energy_cost(splnum) < 0) {
@@ -1851,7 +2166,7 @@ static const struct spellwand wand_combos[] = {
  * In xNetHack this number isn't actually used directly, but rather influences
  * how much extra Pw a difficult spell will take to cast.
  * Original formula by FIQ, with some modifications. */
-static int
+staticfn int
 percent_success(int spell)
 {
     int chance, armor_penalty, cap;
@@ -1945,7 +2260,7 @@ percent_success(int spell)
     /* One of Orcus's negative effects during the ascension run is to apply a
      * fluctuating penalty to spellcasting. */
     if (fiend_adversity(PM_ORCUS)) {
-        chance = ((hash1(gm.moves / 20) % 10) + 10);
+        chance = ((hash1(svm.moves / 20) % 10) + 10);
     }
 
     /* The less skilled you are, the worse the cap on your spellcasting ability. */
@@ -1977,7 +2292,7 @@ percent_success(int spell)
    as much Pw.
    Return -1 if the success rate would be 0 and the spell cannot be cast.
 */
-static int
+staticfn int
 energy_cost(int spell)
 {
     int base_energy = (spellev(spell) * 5); /* 5 <= energy <= 35 */
@@ -2009,7 +2324,7 @@ energy_cost(int spell)
 
 /* Learn a spell during creation of the initial inventory */
 void
-initialspell(struct obj* obj)
+initialspell(struct obj *obj)
 {
     int i, otyp = obj->otyp;
 
@@ -2023,8 +2338,8 @@ initialspell(struct obj* obj)
         /* initial inventory shouldn't contain duplicate spellbooks */
         impossible("Spell %s already known.", OBJ_NAME(objects[otyp]));
     } else {
-        gs.spl_book[i].sp_id = otyp;
-        gs.spl_book[i].sp_lev = objects[otyp].oc_level;
+        svs.spl_book[i].sp_id = otyp;
+        svs.spl_book[i].sp_lev = objects[otyp].oc_level;
         incrnknow(i, 0);
     }
     return;
@@ -2077,8 +2392,8 @@ force_learn_spell(short otyp)
     }
     /* for a going-stale or forgotten spell the sp_id and sp_lev assignments
        are redundant but harmless; for an unknown spell, they're essential */
-    gs.spl_book[i].sp_id = otyp;
-    gs.spl_book[i].sp_lev = objects[otyp].oc_level;
+    svs.spl_book[i].sp_id = otyp;
+    svs.spl_book[i].sp_lev = objects[otyp].oc_level;
     incrnknow(i, 0); /* set spl_book[i].sp_know to KEEN; unlike when learning
                       * a spell by reading its book, we don't need to add 1 */
     return spellet(i);

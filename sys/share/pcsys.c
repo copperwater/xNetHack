@@ -10,7 +10,6 @@
 #include "hack.h"
 #include "wintty.h"
 
-#include <ctype.h>
 #include <fcntl.h>
 #if !defined(MSDOS) && !defined(WIN_CE) && !defined(CROSS_TO_AMIGA)
 #include <process.h>
@@ -28,11 +27,6 @@
 #define filesize filesize_nh
 #endif
 
-#if defined(MICRO) || defined(OS2)
-ATTRNORETURN void nethack_exit(int) NORETURN;
-#else
-#define nethack_exit exit
-#endif
 static void msexit(void);
 
 #ifdef MOVERLAY
@@ -273,12 +267,11 @@ msexit(void)
 #ifdef TOS
     if (run_from_desktop)
         getreturn("to continue"); /* so the user can read the score list */
-#ifdef TEXTCOLOR
     if (colors_changed)
         restore_colors();
 #endif
-#endif
     wait_synch();
+    term_curs_set(1);
     return;
 }
 #endif /* MICRO || OS2 */

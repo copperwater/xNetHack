@@ -62,8 +62,7 @@ struct window_procs amii_procs = {
 #ifdef CHANGE_COLOR /* only a Mac option currently */
     amii_change_color, amii_get_color_string,
 #endif
-    /* other defs that really should go away (they're tty specific) */
-    amii_delay_output, amii_delay_output, amii_outrip, genl_preference_update,
+    amii_outrip, genl_preference_update,
     genl_getmsghistory, genl_putmsghistory,
     genl_status_init, genl_status_finish, genl_status_enablefield,
     genl_status_update,
@@ -97,8 +96,7 @@ struct window_procs amiv_procs = {
 #ifdef CHANGE_COLOR /* only a Mac option currently */
     amii_change_color, amii_get_color_string,
 #endif
-    /* other defs that really should go away (they're tty specific) */
-    amii_delay_output, amii_delay_output, amii_outrip, genl_preference_update,
+    amii_outrip, genl_preference_update,
     genl_getmsghistory, genl_putmsghistory,
     genl_status_init, genl_status_finish, genl_status_enablefield,
     genl_status_update,
@@ -438,10 +436,10 @@ amii_askname()
         amii_getlin("Who are you?", plnametmp);
     } while (strlen(plnametmp) == 0);
 
-    strncpy(gp.plname, plnametmp, PL_NSIZ - 1); /* Avoid overflowing plname[] */
-    gp.plname[PL_NSIZ - 1] = 0;
+    strncpy(svp.plname, plnametmp, PL_NSIZ - 1); /* Avoid overflowing plname[] */
+    svp.plname[PL_NSIZ - 1] = 0;
 
-    if (*gp.plname == '\33') {
+    if (*svp.plname == '\33') {
         clearlocks();
         exit_nhwindows(NULL);
         nh_terminate(0);
@@ -475,9 +473,9 @@ amii_player_selection()
 #if 0 /* Don't query the user ... instead give random character -jhsa */
 
 #if 0 /* OBSOLETE */
-    if( *gp.pl_character ){
-	gp.pl_character[ 0 ] = toupper( gp.pl_character[ 0 ] );
-	if( strchr( pl_classes, gp.pl_character[ 0 ] ) )
+    if( *svp.pl_character ){
+	svp.pl_character[ 0 ] = toupper( svp.pl_character[ 0 ] );
+	if( strchr( pl_classes, svp.pl_character[ 0 ] ) )
 	    return;
     }
 #endif
@@ -531,19 +529,19 @@ amii_player_selection()
 	    case VANILLAKEY:
 		if( strchr( pl_classes, toupper( code ) ) )
 		{
-		    gp.pl_character[0] = toupper( code );
+		    svp.pl_character[0] = toupper( code );
 		    aredone = 1;
 		}
 		else if( code == ' ' || code == '\n' || code == '\r' )
 		{
 		    flags.initrole = randrole(FALSE);
 #if 0 /* OBSOLETE */
-		    strcpy( gp.pl_character, roles[ rnd( 11 ) ] );
+		    strcpy( svp.pl_character, roles[ rnd( 11 ) ] );
 #endif
 		    aredone = 1;
 		    amii_clear_nhwindow( WIN_BASE );
 		    CloseShWindow( cwin );
-		    RandomWindow( gp.pl_character );
+		    RandomWindow( svp.pl_character );
 		    return;
 		}
 		else if( code == 'q' || code == 'Q' )
@@ -563,15 +561,15 @@ amii_player_selection()
 		case 1: /* Random Character */
 		    flags.initrole = randrole(FALSE);
 #if 0 /* OBSOLETE */
-		    strcpy( gp.pl_character, roles[ rnd( 11 ) ] );
+		    strcpy( svp.pl_character, roles[ rnd( 11 ) ] );
 #endif
 		    amii_clear_nhwindow( WIN_BASE );
 		    CloseShWindow( cwin );
-		    RandomWindow( gp.pl_character );
+		    RandomWindow( svp.pl_character );
 		    return;
 
 		default:
-		    gp.pl_character[0] = gd->GadgetID;
+		    svp.pl_character[0] = gd->GadgetID;
 		    break;
 		}
 		aredone = 1;

@@ -14,7 +14,6 @@
 #include "font.h"
 
 #include <dos.h>
-#include <ctype.h>
 #include "wintty.h"
 
 #ifdef __GO32__
@@ -138,6 +137,7 @@ extern boolean clipping;    /* clipping on? from wintty.c */
 extern int savevmode;       /* store the original video mode */
 extern int curcol, currow;  /* current column and row        */
 extern int g_attribute;
+extern int inversed;
 extern int attrib_text_normal;  /* text mode normal attribute */
 extern int attrib_gr_normal;    /* graphics mode normal attribute */
 extern int attrib_text_intense; /* text mode intense attribute */
@@ -290,14 +290,14 @@ void vga_cl_eos(int cy)
 }
 
 void
-vga_tty_end_screen(void)
+vga_term_end_screen(void)
 {
     vga_clear_screen(BACKGROUND_VGA_COLOR);
     vga_SwitchMode(MODETEXT);
 }
 
 void
-vga_tty_startup(int *wid, int *hgt)
+vga_term_startup(int *wid, int *hgt)
 {
     /* code to sense display adapter is required here - MJA */
 
@@ -414,6 +414,16 @@ vga_xputg(const glyph_info *glyphinfo,
             if (map[ry][col].special)
                 decal_planar(&planecell, special);
             vga_DisplayCell(&planecell, col - clipx, row);
+            if (bkglyphinfo->framecolor != NO_COLOR) {
+                int curtypbak = cursor_type;
+                int cclr = cursor_color;
+
+                cursor_type = CURSOR_FRAME;
+                cursor_color = bkglyphinfo->framecolor;
+                vga_DrawCursor();
+                cursor_type = curtypbak;
+                cursor_color = cclr;
+            }
         }
     } else {
         read_planar_tile_O(glyphnum, &planecell_O);
@@ -461,7 +471,7 @@ vga_cliparound(int x, int y UNUSED)
         clipx = clipxmax - (viewport_size - 1);
     }
     if (clipx != oldx) {
-        if (on_level(&u.uz0, &u.uz) && !gp.program_state.restoring)
+        if (on_level(&u.uz0, &u.uz) && !program_state.restoring)
             /* (void) doredraw(); */
             vga_redrawmap(1);
     }
@@ -906,7 +916,7 @@ vga_FontPtrs(void)
 }
 
 /*
- * This will verify the existance of a VGA adapter on the machine.
+ * This will verify the existence of a VGA adapter on the machine.
  * Video function call 0x1a returns 0x1a in AL if successful, and
  * returns the following values in BL for the active display:
  *
@@ -964,6 +974,12 @@ vga_WriteChar(uint32 chr, int col, int row, int colour)
         bgcolor = vgacmap[curframecolor];
     else
         bgcolor = BACKGROUND_VGA_COLOR;
+
+    if (inversed) {
+        int tmpc = actual_colour;
+        actual_colour = bgcolor;
+        bgcolor = tmpc;
+    }
 
     x = min(col, (CO - 1));         /* min() used protection from callers */
     pixy = min(row, (LI - 1)) * 16; /* assumes 8 x 16 char set */
@@ -1141,6 +1157,16 @@ vga_SetPalette(const struct Pixel *p)
         (void) int86(VIDEO_BIOS, &regs, &regs);
         regs.x.bx += 0x0101;
     }
+}
+
+void
+vga_hide_cursor(void)
+{
+}
+
+void
+vga_show_cursor(void)
+{
 }
 
 /*static unsigned char colorbits[]={0x01,0x02,0x04,0x08}; */ /* wrong */

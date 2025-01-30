@@ -12,7 +12,10 @@
 #include "mhdlg.h"
 
 #include <assert.h>
-
+int list_view_height(HWND hWnd, int count);
+void get_rect_size(RECT *rect, SIZE *size);
+void center_dialog(HWND dialog);
+void size_dialog(HWND dialog, SIZE new_client_size);
 
 /*---------------------------------------------------------------*/
 /* data for getlin dialog */
@@ -38,7 +41,7 @@ mswin_getlin_window(const char *question, char *result, size_t result_size)
     INT_PTR ret;
     struct getlin_data data;
 
-    /* initilize dialog data */
+    /* initialize dialog data */
     ZeroMemory(&data, sizeof(data));
     data.question = question;
     data.result = result;
@@ -136,6 +139,7 @@ GetlinDlgProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
     case WM_COMMAND: {
         TCHAR wbuf2[BUFSZ];
 
+        wbuf2[BUFSZ - 1] = '\0';
         switch (LOWORD(wParam)) {
         /* OK button was pressed */
         case IDOK:
@@ -145,7 +149,8 @@ GetlinDlgProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
                                (WPARAM) sizeof(wbuf2), (LPARAM) wbuf2);
             NH_W2A(wbuf2, data->result, data->result_size);
 
-        /* Fall through. */
+        FALLTHROUGH;
+        /* FALLTHRU */
 
         /* cancel button was pressed */
         case IDCANCEL:
@@ -245,7 +250,8 @@ ExtCmdDlgProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
                 hWnd, IDC_EXTCMD_LIST, LB_GETCURSEL, (WPARAM) 0, (LPARAM) 0);
             if (*data->selection == LB_ERR)
                 *data->selection = -1;
-        /* Fall through. */
+            FALLTHROUGH;
+            /* FALLTHRU */
 
         /* CANCEL button ws clicked */
         case IDCANCEL:
@@ -343,6 +349,11 @@ INT_PTR CALLBACK PlayerSelectorDlgProc(HWND, UINT, WPARAM, LPARAM);
 static void plselAdjustSelections(HWND hWnd);
 static boolean plselRandomize(plsel_data_t * data);
 static BOOL plselDrawItem(HWND hWnd, WPARAM wParam, LPARAM lParam);
+void  calculate_player_selector_layout(plsel_data_t * data);
+void move_controls(control_t * controls, int count);
+void do_player_selector_layout(plsel_data_t * data);
+void plselInitDialog(struct plsel_data * data);
+int plselFinalSelection(HWND hWnd);
 
 boolean
 mswin_player_selection_window(void)
@@ -401,7 +412,7 @@ calculate_player_selector_layout(plsel_data_t * data)
     name_box->size.cy = (int) (24 * scale);
 
     control_t * role_list = &data->controls[psc_role_list];
-    /* NOTE: we dont' scale the list view reported height as it appears these
+    /* NOTE: we don't scale the list view reported height as it appears these
              values are the actual size the control will be drawn at using the
              existing DPI value */
     role_list->size.cy = list_view_height(role_list->hWnd, data->role_count);
@@ -647,7 +658,7 @@ plselInitDialog(struct plsel_data * data)
 
     /* set player name */
     control_t * name_box = &data->controls[psc_name_box];
-    SetDlgItemText(data->dialog, name_box->id, NH_A2W(gp.plname, wbuf, sizeof(wbuf)));
+    SetDlgItemText(data->dialog, name_box->id, NH_A2W(svp.plname, wbuf, sizeof(wbuf)));
 
     plselRandomize(data);
 
@@ -871,7 +882,7 @@ plselAdjustSelections(HWND hWnd)
 
 /* player made up his mind - get final selection here */
 int
-plselFinalSelection(HWND hWnd)
+plselFinalSelection(HWND hWnd UNUSED)
 {
     int role, race, gender, alignment;
 
@@ -981,7 +992,7 @@ plselDrawItem(HWND hWnd, WPARAM wParam, LPARAM lParam)
     struct plsel_data * data = (plsel_data_t *) GetWindowLongPtr(hWnd, GWLP_USERDATA);
 
     /* If there are no list box items, skip this message. */
-    if (lpdis->itemID < 0)
+    if (lpdis->itemID == (UINT) -1)
         return FALSE;
 
     HWND control = GetDlgItem(hWnd, (int) wParam);

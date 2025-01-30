@@ -1,4 +1,4 @@
-/* NetHack 3.7	vmsmain.c	$NHDT-Date: 1596498307 2020/08/03 23:45:07 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.45 $ */
+/* NetHack 3.7	vmsmain.c	$NHDT-Date: 1693359633 2023/08/30 01:40:33 $  $NHDT-Branch: keni-crashweb2 $:$NHDT-Revision: 1.57 $ */
 /* Copyright (c) Stichting Mathematisch Centrum, Amsterdam, 1985. */
 /*-Copyright (c) Robert Patrick Rankin, 2011. */
 /* NetHack may be freely redistributed.  See license for details. */
@@ -33,12 +33,14 @@ static vms_handler_type vms_handler(genericptr_t, genericptr_t);
 static void wd_message(void);
 static boolean wiz_error_flag = FALSE;
 
+static char *progname = (char *) 0;
+
 int
 main(int argc, char *argv[])
 {
     NHFILE *nhfp;
 #ifdef CHDIR
-    register char *dir;
+    char *dir;
 #endif
     boolean resuming = FALSE; /* assume new game */
 
@@ -48,12 +50,15 @@ main(int argc, char *argv[])
     privon();
 #endif
 
-    early_init();
+    early_init(argc, argv);
 
     atexit(byebye);
-    gh.hname = argv[0];
-    gh.hname = vms_basename(gh.hname); /* name used in 'usage' type messages */
-    gh.hackpid = getpid();
+    /* vms_basename(,FALSE) strips device, directory, suffix, and version;
+       the result is returned in a static buffer so we make a copy that
+       isn't at risk of getting clobbered by core's handling of DEBUGFILES */
+    progname = dupstr(vms_basename(argv[0], FALSE));
+    gh.hname = progname;
+    svh.hackpid = getpid();
     (void) umask(0);
 
     choose_windows(DEFAULT_WINDOW_SYS);
@@ -75,15 +80,9 @@ main(int argc, char *argv[])
             exit(EXIT_SUCCESS);
 
         if (argcheck(argc, argv, ARG_SHOWPATHS) == 2) {
-#ifdef CHDIR
-            chdirx((char *) 0, 0);
-#endif
-            iflags.initoptions_noterminate = TRUE;
-            initoptions();
-            iflags.initoptions_noterminate = FALSE;
-            reveal_paths();
-            exit(EXIT_SUCCESS);
-        }
+            gd.deferred_showpaths = TRUE;
+            return;
+	}
         if (argcheck(argc, argv, ARG_DEBUG) == 1) {
             argc--;
             argv++;
@@ -276,11 +275,11 @@ process_options(int argc, char *argv[])
 #endif
         case 'u':
             if (argv[0][2])
-                (void) strncpy(gp.plname, argv[0] + 2, sizeof(gp.plname) - 1);
+                (void) strncpy(svp.plname, argv[0] + 2, sizeof(svp.plname) - 1);
             else if (argc > 1) {
                 argc--;
                 argv++;
-                (void) strncpy(gp.plname, argv[0], sizeof(gp.plname) - 1);
+                (void) strncpy(svp.plname, argv[0], sizeof(svp.plname) - 1);
             } else
                 raw_print("Player name expected after -u");
             break;
@@ -382,16 +381,16 @@ whoami(void)
      * Note that we trust the user here; it is possible to play under
      * somebody else's name.
      */
-    register char *s;
+    char *s;
 
-    if (!*gp.plname && (s = nh_getenv("USER")))
-        (void) lcase(strncpy(gp.plname, s, sizeof(gp.plname) - 1));
+    if (!*svp.plname && (s = nh_getenv("USER")))
+        (void) lcase(strncpy(svp.plname, s, sizeof(svp.plname) - 1));
 }
 
 static void
 byebye(void)
 {
-    void (*hup)(int) ;
+    void (*hup)(int);
 #ifdef SHELL
     extern unsigned long dosh_pid, mail_pid;
 #ifndef VMSVSI
@@ -405,11 +404,19 @@ byebye(void)
     if (mail_pid)
         (void) sys$delprc(&mail_pid, (genericptr_t) 0), mail_pid = 0;
 #endif
+#ifdef FREE_ALL_MEMORY
+    if (progname && !program_state.panicking) {
+        if (gh.hname == progname)
+            gh.hname = (char *) 0;
+        free((genericptr_t) progname), progname = (char *) 0;
+    }
+#endif
 
     /* SIGHUP doesn't seem to do anything on VMS, so we fudge it here... */
-    hup = (void (*)(int) ) signal(SIGHUP, SIG_IGN);
-    if (!gp.program_state.exiting++ && hup != (void (*)(int) ) SIG_DFL
-        && hup != (void (*)(int) ) SIG_IGN) {
+    hup = (void (*)(int)) signal(SIGHUP, SIG_IGN);
+    if (!program_state.exiting++
+        && hup != (void (*)(int)) SIG_DFL
+        && hup != (void (*)(int)) SIG_IGN) {
         (*hup)(SIGHUP);
     }
 
@@ -432,7 +439,7 @@ genericptr_t mechargs)     /* [0] is argc, [1..argc] are the real args */
     if (condition == SS$_ACCVIO /* access violation */
         || (condition >= SS$_ASTFLT && condition <= SS$_TBIT)
         || (condition >= SS$_ARTRES && condition <= SS$_INHCHME)) {
-        gp.program_state.done_hup = TRUE; /* pretend hangup has been attempted */
+        program_state.done_hup = TRUE; /* pretend hangup has been attempted */
 #if (NH_DEVEL_STATUS == NH_STATUS_RELEASED)
         if (wizard)
 #endif
@@ -468,6 +475,13 @@ authorize_wizard_mode(void)
         return TRUE;
     wiz_error_flag = TRUE; /* not being allowed into wizard mode */
     return FALSE;
+}
+
+/* similar to above, validate explore mode access */
+boolean
+authorize_explore_mode(void)
+{
+    return TRUE; /* no restrictions on explore mode */
 }
 
 static void

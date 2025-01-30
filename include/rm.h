@@ -31,10 +31,27 @@
  * +-           -+-             -+              |
  */
 
-/* Level location types.  [Some debugging code in src/display.c
-   defines array type_names[] which contains an entry for each of
-   these, so needs to be kept in sync if any new types are added
-   or existing ones renumbered.] */
+/*
+ * Level location types, values for 'level.locations[x][y].typ'.
+ *
+ * These are different from display symbols and while there is
+ * similarity between the cmap subset of those, there isn't any
+ * one-to-one correspondence between the two encodings.  For instance,
+ * the DOOR type has multiple symbols (closed|open|gone); so does the
+ * STAIRS type (down|up).  Conversely, DRAWBRIDGE_UP represents the
+ * location of the projected span if the drawbridge were down but
+ * there is no symbol for that; it is displayed as water, ice, lava, or
+ * floor depending on what is at that spot when the bridge is 'closed'.
+ *
+ * [Some debugging code in src/display.c defines array type_names[]
+ * which contains an entry for each of these, so needs to be kept in
+ * sync if any new types are added or existing ones renumbered.  The
+ * #terrain command also has a menu choice to display each map spot by
+ * a letter derived from these numeric values and another choice to
+ * display a legend showing the letter-to-type correspondence.  If any
+ * types are added, removed, or reordered, that needs to be updated to
+ * keep in synch.]
+ */
 enum levl_typ_types {
     STONE     =  0,
     VWALL     =  1,
@@ -88,16 +105,18 @@ enum levl_typ_types {
  */
 #define IS_WALL(typ) ((typ) && (typ) <= DBWALL)
 #define IS_STWALL(typ) ((typ) <= DBWALL) /* STONE <= (typ) <= DBWALL */
-#define IS_ROCK(typ) ((typ) < POOL)      /* absolutely nonaccessible */
+#define IS_OBSTRUCTED(typ) ((typ) < POOL)      /* absolutely nonaccessible */
+#define IS_SDOOR(typ) ((typ) == SDOOR)
 #define IS_DOOR(typ) ((typ) == DOOR)
-#define IS_DOORJOIN(typ) (IS_ROCK(typ) || (typ) == IRONBARS)
+#define IS_DOORJOIN(typ) (IS_OBSTRUCTED(typ) || (typ) == IRONBARS)
 #define IS_TREE(typ)                                            \
-    ((typ) == TREE || (gl.level.flags.arboreal && (typ) == STONE))
+    ((typ) == TREE || (svl.level.flags.arboreal && (typ) == STONE))
 #define ACCESSIBLE(typ) ((typ) >= DOOR) /* good position */
 #define IS_ROOM(typ) ((typ) >= ROOM)    /* ROOM, STAIRS, furniture.. */
 #define ZAP_POS(typ) ((typ) >= POOL)
 #define SPACE_POS(typ) ((typ) > DOOR)
 #define IS_POOL(typ) ((typ) >= POOL && (typ) <= DRAWBRIDGE_UP)
+#define IS_LAVA(typ) ((typ) == LAVAPOOL || (typ) == LAVAWALL)
 #define IS_THRONE(typ) ((typ) == THRONE)
 #define IS_FOUNTAIN(typ) ((typ) == FOUNTAIN)
 #define IS_SINK(typ) ((typ) == SINK)
@@ -121,6 +140,58 @@ enum levl_typ_types {
      : levl[x][y].typ)
 
 /*
+ * The structure describing a coordinate position.
+ * Before adding fields, remember that this will significantly affect
+ * the size of temporary files and save files.
+ *
+ * Also remember that the run-length encoding for some ports in save.c
+ * must be updated to consider the field.
+ */
+struct rm {
+    int glyph;               /* what the hero thinks is there */
+    schar typ;               /* what is really there  [why is this signed?] */
+    uchar seenv;             /* seen vector */
+    Bitfield(flags, 6);      /* extra information for typ */
+    Bitfield(horizontal, 1); /* wall/door/etc is horiz. (more typ info) */
+    Bitfield(lit, 1);        /* speed hack for lit rooms */
+
+    Bitfield(waslit, 1);     /* remember if a location was lit */
+    Bitfield(roomno, 6);     /* room # for special rooms */
+    Bitfield(edge, 1);       /* marks boundaries for special rooms*/
+
+    Bitfield(candig, 1);     /* Exception to Can_dig_down; was a trapdoor */
+    Bitfield(uvisited, 1);   /* player has visited this space */
+    Bitfield(unused, 6);     /* currently unused - take bits out of this rather
+                                than overloading it as if it were a second flags
+                                field! */
+};
+
+/*
+ * rm flags field overloads:
+ *
+ *         +--------+-------------+-------------+--------+----------+-----------+
+ *         |  bit6  |   bit5      |     bit4    |   bit3 |   bit2   |    bit1   |
+ *         |  0x20  |   0x10      |      0x8    |    0x4 |    0x2   |     0x1   |
+ *         +--------+-------------+-------------+--------+----------+-----------+
+ * door    |D_WARNED|D_IRON       | D_TRAPPED   |D_LOCKED| ~~~~~doorstate~~~~~~ |
+ * drawbr. |        |DB_FLOOR     | DB_ICE      |DB_LAVA |DB_DIR    |DB_DIR     |
+ * wall    |        |W_NONPASSWALL|W_NONDIGGABLE|W_MASK  |W_MASK    |W_MASK     |
+ * sink    |        |             |             |S_LRING |S_LDWASHER|S_LPUDDING |
+ * tree    |        |             |             |        |TREE_SWARM|TREE_LOOTED|
+ * throne  |        |             |             |        |          |T_LOOTED   |
+ * fountain|        |             |             |        |F_WARNED  |F_LOOTED   |
+ * ladder  |        |             |             |        |LA_DOWN   |LA_UP      |
+ * pool    |        |ICED_MOAT    | ICED_POOL   |        |          |           |
+ * grave   |        |             |             |        |          |emptygrave |
+ * altar   |        |AM_SANCTUM   | AM_SHRINE   |AM_MASK |AM_MASK   |AM_MASK    |
+ * corr    |        |             |             |        |          |is_niche   |
+ *         |        |             |             |        |          |           |
+ *         +--------+-------------+-------------+--------+----------+-----------+
+ *
+ *
+ * If these get changed or expanded, make sure wizard-mode wishing becomes
+ * aware of the new usage
+ *
  *      Note:  secret doors (SDOOR) want to use both rm.doormask and
  *      rm.wall_info but those both overload rm.flags.  SDOOR only
  *      has 2 states (closed or locked).  However, it can't specify
@@ -133,6 +204,17 @@ enum levl_typ_types {
  *      with W_NONPASSWALL but doors never block phasing.
  *      D_SECRET would not fit within struct rm's 6-bit 'flags' field.
  */
+
+#define doormask   flags /* door, sdoor (note conflict with wall_info) */
+#define altarmask  flags /* alignment and maybe temple */
+#define wall_info  flags /* wall, sdoor (note conflict with doormask) */
+#define ladder     flags /* up or down */
+#define drawbridgemask flags /* what's underneath when the span is open */
+#define looted     flags /* used for throne, tree, fountain, sink, door */
+#define icedpool   flags /* used for ice (in case it melts) */
+#define emptygrave flags /* no corpse in grave */
+#define is_niche   flags /* used to mark corridor spaces that are niches */
+
 /*
  * The possible states of doors - lowest 2 bits of doormask
  *
@@ -229,33 +311,6 @@ enum door_states {
 #define ICED_POOL 8
 #define ICED_MOAT 16
 
-/*
- * The structure describing a coordinate position.
- * Before adding fields, remember that this will significantly affect
- * the size of temporary files and save files.
- *
- * Also remember that the run-length encoding for some ports in save.c
- * must be updated to consider the field.
- */
-struct rm {
-    int glyph;               /* what the hero thinks is there */
-    schar typ;               /* what is really there  [why is this signed?] */
-    uchar seenv;             /* seen vector */
-    Bitfield(flags, 6);      /* extra information for typ */
-    Bitfield(horizontal, 1); /* wall/door/etc is horiz. (more typ info) */
-    Bitfield(lit, 1);        /* speed hack for lit rooms */
-
-    Bitfield(waslit, 1);     /* remember if a location was lit */
-    Bitfield(roomno, 6);     /* room # for special rooms */
-    Bitfield(edge, 1);       /* marks boundaries for special rooms*/
-
-    Bitfield(candig, 1);     /* Exception to Can_dig_down; was a trapdoor */
-    Bitfield(uvisited, 1);   /* player has visited this space */
-    Bitfield(unused, 6);     /* currently unused - take bits out of this rather
-                                than overloading it as if it were a second flags
-                                field! */
-};
-
 /* some door macros, intended to be called on a struct rm* */
 #define doorstate(x) ((x)->doormask & D_STATEMASK)
 #define door_is_closed(x) (doorstate(x) == D_CLOSED)
@@ -289,7 +344,7 @@ struct rm {
 
 /*
  * Add wall angle viewing by defining "modes" for each wall type.  Each
- * mode describes which parts of a wall are finished (seen as as wall)
+ * mode describes which parts of a wall are finished (seen as wall)
  * and which are unfinished (seen as rock).
  *
  * We use the bottom 3 bits of the flags field for the mode.  This comes
@@ -366,18 +421,7 @@ struct rm {
 #define SV7   ((seenV) 0x80)
 #define SVALL ((seenV) 0xFF)
 
-/* if these get changed or expanded, make sure wizard-mode wishing becomes
-   aware of the new usage */
-#define doormask   flags /* door, sdoor (note conflict with wall_info) */
-#define altarmask  flags /* alignment and maybe temple */
-#define wall_info  flags /* wall, sdoor (note conflict with doormask) */
-#define ladder     flags /* up or down */
-#define drawbridgemask flags /* what's underneath when the span is open */
-#define looted     flags /* used for throne, tree, fountain, sink, door */
-#define icedpool   flags /* used for ice (in case it melts) */
-#define is_niche   flags /* used to mark corridor spaces that are niches */
-#define emptygrave flags /* no corpse in grave */
-/* horizonal applies to walls, doors (including sdoor); also to iron bars
+/* horizontal applies to walls, doors (including sdoor); also to iron bars
    even though they don't have separate symbols for horizontal and vertical */
 #define blessedftn horizontal /* a fountain that grants attribs */
 #define disturbed  horizontal /* kicking or engraving on a grave's headstone
@@ -395,7 +439,7 @@ struct damage {
    an existing bones level; if so, most recent victim will be first in list */
 struct cemetery {
     struct cemetery *next; /* next struct is previous dead character... */
-    /* "gp.plname" + "-ROLe" + "-RACe" + "-GENder" + "-ALIgnment" + \0 */
+    /* "svp.plname" + "-ROLe" + "-RACe" + "-GENder" + "-ALIgnment" + \0 */
     char who[PL_NSIZ + 4 * (1 + 3) + 1];
     /* death reason, same as in score/log file */
     char how[100 + 1]; /* [DTHSZ+1] */
@@ -431,6 +475,7 @@ struct levelflags {
     Bitfield(is_maze_lev, 1);
     Bitfield(is_cavernous_lev, 1);
     Bitfield(arboreal, 1);     /* Trees replace rock */
+    Bitfield(has_town, 1);     /* level contains a town */
     Bitfield(wizard_bones, 1); /* set if level came from a bones file
                                   which was created in wizard mode (or
                                   normal mode descendant of such) */
@@ -442,6 +487,7 @@ struct levelflags {
     Bitfield(rndmongen, 1);    /* random monster generation allowed? */
 
     Bitfield(deathdrops, 1);   /* monsters may drop corpses/death drops */
+
     Bitfield(noautosearch, 1); /* automatic searching disabled */
     Bitfield(fumaroles, 1);    /* lava emits poison gas at random */
     Bitfield(stormy, 1);       /* clouds create lightning bolts at random */
@@ -480,9 +526,9 @@ typedef struct {
 /*
  * Macros for compatibility with old code. Someday these will go away.
  */
-#define levl gl.level.locations
-#define fobj gl.level.objlist
-#define fmon gl.level.monlist
+#define levl svl.level.locations
+#define fobj svl.level.objlist
+#define fmon svl.level.monlist
 
 /*
  * Covert a trap number into the defsym graphics array.
@@ -492,28 +538,28 @@ typedef struct {
 #define trap_to_defsym(t) (S_arrow_trap + (t) - 1)
 #define defsym_to_trap(d) ((d) - S_arrow_trap + 1)
 
-#define OBJ_AT(x, y) (gl.level.objects[x][y] != (struct obj *) 0)
+#define OBJ_AT(x, y) (svl.level.objects[x][y] != (struct obj *) 0)
 /*
  * Macros for encapsulation of level.monsters references.
  */
 #if 0
 /* these wouldn't allow buried monster and surface monster at same location */
 #define MON_AT(x, y) \
-    (gl.level.monsters[x][y] && !gl.level.monsters[x][y]->mburied)
+    (svl.level.monsters[x][y] && !svl.level.monsters[x][y]->mburied)
 #define MON_BURIED_AT(x, y) \
-    (gl.level.monsters[x][y] && gl.level.monsters[x][y]->mburied)
+    (svl.level.monsters[x][y] && svl.level.monsters[x][y]->mburied)
 #define m_at(x, y) \
-    (MON_AT(x, y) ? gl.level.monsters[x][y] : (struct monst *) 0)
+    (MON_AT(x, y) ? svl.level.monsters[x][y] : (struct monst *) 0)
 #define m_buried_at(x, y) \
-    (MON_BURIED_AT(x, y) ? gl.level.monsters[x][y] : (struct monst *) 0)
+    (MON_BURIED_AT(x, y) ? svl.level.monsters[x][y] : (struct monst *) 0)
 #else   /* without 'mburied' */
-#define MON_AT(x, y) (gl.level.monsters[x][y] != (struct monst *) 0)
-#define m_at(x, y) (gl.level.monsters[x][y])
+#define MON_AT(x, y) (svl.level.monsters[x][y] != (struct monst *) 0)
+#define m_at(x, y) (svl.level.monsters[x][y])
 #define m_buried_at(x, y) ((struct monst *) 0)
 #endif
 
 /* restricted movement, potential luck penalties */
-#define Sokoban gl.level.flags.sokoban_rules
+#define Sokoban svl.level.flags.sokoban_rules
 
 /*
  * These prototypes are in extern.h but some of the code which uses them

@@ -24,7 +24,11 @@ BEGIN {
     chomp $gitdir;
     push(@INC, $gitdir.$PDS."hooks");
 }
-use NHgithook;
+eval {use NHgithook;};
+if($@){
+    warn "loading NHgithook failed: $@";
+    $nogithook = 1;
+}
 #STARTUP-END
 
 &NHgithook::saveSTDIN;

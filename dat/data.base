@@ -21,7 +21,7 @@
 # prevents "orc mummy" and "orc zombie" from matching.
 #
 # A citation of "[]" indicates arbitrary text written by developers or
-# contributers.  Falling off the end of an entry without any citation
+# contributors.  Falling off the end of an entry without any citation
 # implies "[]".
 #
 # Some entries include blank lines to separate paragraphs but many don't.
@@ -337,34 +337,36 @@ asmodeus
 	or unhappiness.
 		[ Brewer's Concise Dictionary of Phrase and Fable ]
 athame
-	The consecrated ritual knife of a Wiccan initiate (one of
-	four basic tools, together with the wand, chalice and
-	pentacle).  Traditionally, the athame is a double-edged,
-	black-handled, cross-hilted dagger of between six and
-	eighteen inches length.
+	The consecrated ritual knife of a Wiccan initiate (one of four
+	basic tools, together with the wand, chalice and pentacle).
+	Traditionally, the athame is a double-edged, black-handled,
+	cross-hilted dagger of between six and eighteen inches length.
+		[]
 
 	A belt made from a twisted braid of silken threads of gold wound
 	around her waist, and a dark-handled knife rested on a slant at
 	her hip through a loop in the belt.
 	[...]
-	She arched her brows. "You should know better, dear godchild. You
-	know I cannot speak what is untrue. During our last encounter I
-	returned to Faerie with great power and upset vital balances. Those
-	balances had to be redressed, and your debt was the mechanism that
-	the Queen chose to employ."
-	I frowned at her for a minute. "Returned with great power." My eyes
-	fell to the knife at her waist. "That thing the vampires gave you?"
-	She rested her fingers lightly on the knife's hilt. "Don't cheapen
-	it. This athame was no creation of theirs. And it was less a gift
-	than a trade."
-	"Amoracchius and that thing are in the same league?" Gulp. My faerie
-	godmother was dangerous enough without a big-time artifact of magic.
+	She arched her brows. "You should know better, dear godchild.
+	You know I cannot speak what is untrue.  During our last
+	encounter I returned to Faerie with great power and upset vital
+	balances.  Those balances had to be redressed, and your debt was
+	the mechanism that the Queen chose to employ."
+	I frowned at her for a minute.  "Returned with great power."  My
+	eyes fell to the knife at her waist.  "That thing the vampires
+	gave you?"
+	She rested her fingers lightly on the knife's hilt.  "Don't
+	cheapen it.  This athame was no creation of theirs.  And it was
+	less a gift than a trade."
+	"Amoracchius and that thing are in the same league?"  Gulp.  My
+	faerie godmother was dangerous enough without a big-time
+	artifact of magic.
 		[ Summer Knight, by Jim Butcher ]
 athen*
 	Athene was the offspring of Zeus, and without a mother.  She
 	sprang forth from his head completely armed.  Her favourite
 	bird was the owl, and the plant sacred to her is the olive.
-	    [ Bulfinch's Mythology, by Thomas Bulfinch ]
+		[ Bulfinch's Mythology, by Thomas Bulfinch ]
 atheist
 	It was all very well going on about pure logic and how the
 	universe was ruled by logic and the harmony of numbers, but the
@@ -432,7 +434,7 @@ balrog
 	was a blade like a stabbing tongue of fire; in its left it
 	held a whip of many thongs.
 	'Ai, ai!' wailed Legolas.  'A Balrog!  A Balrog is come!'
-		   [ The Fellowship of the Ring, by J.R.R. Tolkien ]
+		[ The Fellowship of the Ring, by J.R.R. Tolkien ]
 baluchitherium
 titanothere
 	Extinct rhinos include a variety of forms, the most
@@ -542,7 +544,6 @@ bell of opening
 	Or wonder, till it drives you mad,
 	What would have followed if you had.
 		[ The Magician's Nephew, by C.S. Lewis ]
-~*engraved*bell*
 *bell*
 	Hear the sledges with the bells --
 	    Silver bells!
@@ -697,6 +698,7 @@ boomerang
 		[ The Last Continent, by Terry Pratchett ]
 ~*jack*boot*
 *boot*
+*shoes
 	In Fantasyland these are remarkable in that they seldom or
 	never wear out and are suitable for riding or walking in
 	without the need of Socks.  Boots never pinch, rub, or get
@@ -907,6 +909,7 @@ kitten
 	predatory felines (_Felis ochreata domestica_), with a thick,
 	soft pelt; often kept as a pet.  Various folklores have the
 	cat associated with magic and the gods of ancient Egypt.
+		[]
 
 	So Ulthar went to sleep in vain anger; and when the people
 	awakened at dawn - behold!  Every cat was back at his
@@ -965,7 +968,11 @@ gnom* cave*man
 	These strange creatures were said to live in the caves and
 	clefts of the mountains, myths associating them especially
 	with the hills of Thessaly and the range of Erymanthos.
-		     [ Mythology of all races, Vol. 1, pp. 270-271 ]
+		[ Mythology of all races, Vol. 1, pp. 270-271 ]
+#		[ capitalization of the title seems to be all over the place,
+#		  including all lower case and conventional mixed case;
+#		  it appears that Volume 1 (of 13) was written by
+#		  William Sherwood Fox and edited by Louis Herbert Gray ]
 centipede
 	I observed here, what I had often seen before, that certain
 	districts abound in centipedes.  Here they have light
@@ -1157,7 +1164,6 @@ zorkmid*
 	Empire ]."  On the other side, the coin depicts Egreth Castle,
 	and says "In Frobs We Trust" in several languages.
 		[ Zork Zero, by Infocom ]
-# not "stethoscope"
 combat
 fight
 fracas
@@ -1173,6 +1179,12 @@ tiff
 	Blind Pew:  Oh.  Must have been more of a tiff then.
 		[ Yellowbeard, directed by Mel Damski, screenplay
 		  by Graham Chapman, Peter Cook, Bernard McKenna ]
+conical hat
+	You couldn't escape the pointy hat, though. There was nothing magical
+	about a pointy hat except that it said that the woman underneath it
+	was a witch. People paid attention to a pointy hat.
+		[ Wintersmith, by Terry Pratchett ]
+# not "*cope" because that would match "stethoscope"
 cope
 * cope
 	The cope is a liturgical vestment which may be worn by any
@@ -1189,6 +1201,8 @@ brass
 	slightly worse than iron and steel in sheer durability, it has the
 	advantage that it won't rust, although it is still vulnerable to
 	corrosion.
+# the word "cornuthaum" was coined by devteam member jwalz and adopted in
+# 3.2.0, after searching for an actual name for pointy hat came up empty
 cornuthaum
 	He was dressed in a flowing gown with fur tippets which had
 	the signs of the zodiac embroidered over it, with various
@@ -1199,16 +1213,16 @@ cornuthaum
 	like the headgear worn by ladies of that time, except that
 	the ladies were accustomed to have a bit of veil floating
 	from the top of it.
-			[ The Once and Future King, by T.H. White ]
+		[ The Once and Future King, by T.H. White ]
 
-		"A wizard!" Dooley exclaimed, astounded.
-		"At your service, sirs," said the wizard.  "How
+	"A wizard!" Dooley exclaimed, astounded.
+	"At your service, sirs," said the wizard.  "How
 	perceptive of you to notice.  I suppose my hat rather gives me
 	away.  Something of a beacon, I don't doubt."  His hat was
 	pretty much that, tall and cone-shaped with stars and crescent
 	moons all over it.  All in all, it couldn't have been more
 	wizardish.
-			[ The Elfin Ship, James P. Blaylock ]
+		[ The Elfin Ship, James P. Blaylock ]
 couatl
 	A mythical feathered serpent.  The couatl are very rare.
 coyote
@@ -1222,14 +1236,15 @@ cram*
 	exercise.  It was made by the Lake-men for long journeys.
 		[ The Hobbit, by J.R.R. Tolkien ]
 cream pie
-		Gregor stared at the pastry tray, and sighed.  "I suppose
+	Gregor stared at the pastry tray, and sighed.  "I suppose
 	it would disturb the guards if I tried to shove a cream torte up
 	your nose."
-		"Deeply.  You should have done it when we were eight and
+	"Deeply.  You should have done it when we were eight and
 	twelve, you could have gotten away with it then.  The cream pie
 	of justice flies one way," Miles snickered.
 		[ The Vor Game, by Lois McMaster Bujold ]
 credit card
+charge card
 	"We are not worried about the expiration date," repeated the
 	barman, satisfied that he now had Ford Prefect's full attention;
 	"we are worried about the entire piece of plastic."
@@ -1408,6 +1423,19 @@ major demon
 	them difficult to deal with, even on the rare occasions when
 	they are friendly.
 	  [ The Tough Guide to Fantasyland, by Diana Wynne Jones ]
+# added by PR #1108 by NullCGT then replaced by PR #1109 by entrez
+# (Demonbane has been changed from a sword to a mace so the new quote doesn't
+# seem to be very appropriate)
+#	Do not be deceived, Wormwood. Our cause is never more in danger
+#	than when a human, no longer desiring, but still intending, to do
+#	our Enemy's will, looks round upon a universe from which every
+#	trace of Him seems to have vanished, and asks why he has been
+#	forsaken, and still obeys.
+#		[ The Screwtape Letters, by C.S. Lewis ]
+#
+	Think not that I am come to send peace on earth:  I came not to
+	send peace, but a sword.
+		[ The Gospel According to Matthew, 10:34 ]
 dented pot
 	Here was a sight to beat all: a man in the prime of life rambling
 	barefoot down the wilderness road, dressed in raggedy pantaloons
@@ -1512,7 +1540,8 @@ pup*
 	loyalty to man and gentleness with children, it is the
 	world's most popular domestic animal.  It can easily be
 	trained to perform various tasks.
-# typing "spellbook or a closed door" shouldn't yield this entry
+# typing "spellbook or a closed door" (map description for "+" when using
+# the default symbol set) shouldn't yield this entry
 ~trap*door
 ~*spellbook*
 *door
@@ -1526,8 +1555,8 @@ doorway
 	Before me things create were none, save things
 	Eternal, and eternal I endure.
 	All hope abandon ye who enter here.
-		[ The Inferno, from The Divine Comedy of Dante
-			Alighieri, translated by H.F. Cary ]
+	    [ The Inferno, from The Divine Comedy of Dante Alighieri,
+	      translated by H.F. Cary ]
 doppelganger
 	"Then we can only give thanks that this is Antarctica, where
 	there is not one, single, solitary, living thing for it to
@@ -1586,6 +1615,14 @@ doppelganger
 	make of steel.
 		[ The Last Book of Swords: Shieldbreaker's Story,
 			by Fred Saberhagen ]
+dragonbane
+	And now the youth
+	was to enter the line of battle with his lord,
+	his first time to be tested as a fighter.
+	His spirit did not break and the ancestral blade
+	would keep its edge, as the dragon discovered
+	as soon as they came together in combat.
+		[ Beowulf, translated by Seamus Heaney ]
 *drum*
 	Many travelers have seen the drums of the great apes, and
 	some have heard the sounds of their beating and the noise of
@@ -1818,8 +1855,23 @@ A.S*
 		[ Wikipedia, the free encyclopedia ]
 erinys
 erinyes
-	These female-seeming devils named after the Furies of mythology
-	attack hand to hand and poison their unwary victims as well.
+furies
+	Erinyes are the Furies of ancient myth.
+	(Erinys is the singular form.)
+		[]
+
+	Holy and pure, from Zeus Khthonios born
+	and Persephone, whom lovely locks adorn:
+	Whose piercing sight, with vision unconfin'd,
+	surveys the deeds of all the impious kind:
+	On Fate attendant, punishing the race
+	(with wrath severe) of deeds unjust and base.
+	Dark-colour'd queens, whose glittering eyes are bright
+	with dreadful, radiant, life-destroying, light:
+	Eternal rulers, terrible and strong,
+	to whom revenge, and tortures dire belong.
+		[ LXIX. To the Furies, The Orphic Hymns,
+		  translated by Thomas Taylor ]
 ettin
 	The two-headed giant, or ettin, is a vicious and unpredictable
 	hunter that stalks by night and eats any meat it can catch.
@@ -2051,6 +2103,7 @@ frost giant
 	a sugar donut.
 		[ The Last Olympian, by Rick Riordan ]
 fruit
+fruitname
 	They say this is edible.  Some adventurers have strange tastes.
 *fung*
 	Fungi, division of simple plants that lack chlorophyll, true
@@ -2171,8 +2224,8 @@ geryon
 	With sting like scorpion's arm'd.  Then thus my guide:
 	"Now need our way must turn few steps apart,
 	Far as to that ill beast, who couches there."
-		[ The Inferno, from The Divine Comedy of Dante
-			Alighieri, translated by H.F. Cary ]
+	    [ The Inferno, from The Divine Comedy of Dante Alighieri,
+	      translated by H.F. Cary ]
 *ghost
 valley of *dea*
 	And now the souls of the dead who had gone below came swarming
@@ -2219,6 +2272,11 @@ glass
 	throwing glass objects any distance will definitely break them.
 	There have been reports of magically enhanced glass that is
 	protected from breaking.
+*gloves
+gauntlets*
+	And her old Uncle William used to say a lady is known by her
+	shoes and her gloves.
+		[ Mrs. Dalloway, by Virginia Woolf ]
 # note: "gnomish wizard" is a monster
 ~gnome ??m*
 #~gnom* cave*man
@@ -2394,6 +2452,7 @@ hachi
 	statue was erected on the station platform in his honor.  It
 	is said to bring you luck if you touch his statue.
 hallucinat*
+potion of hallucination
 	All at once, and without further warning, my reason forsook me
 	altogether, and I started from Fr. Moffitt's house to go to my
 	boarding place.  The sidewalks were to me one mass of living,
@@ -2498,6 +2557,33 @@ hell hound*
 	dark form and savage face which broke upon us out of the wall
 	of fog.
 	  [ The Hound of the Baskervilles, by Sir Arthur Conan Doyle ]
+~helm of *
+~crystal helmet
+helm*
+* helmet
+	A piece of armor designed to protect the head.
+	(What were you expecting?)
+helm of telepathy
+	A helmet which allows the wearer to detect sentient creatures
+	within a modest radius, or within the whole level when blind.
+helm of opposite alignment
+	A helmet which changes the wearer's alignment while worn.
+	Alignment will change back when the helmet is taken off.
+helm of caution
+	A helmet which confers the "warning" property, sensing the
+	strength of threats posed by unseen hostile creatures.
+# note: this quotation had "high of steel" but we're going to cheat--it is
+# now deliberately mistranslated as "high of crystal" to match nethack 3.7's
+# change to helm of brilliance and become more useful to players.
+# PR #1109 wanted to change it to be for all helms but being covered with
+# gems and gold is not appropriate for ordinary helmets (plus it states that
+# it is unique, so is somewhat inappropriate for helm of brilliance too)
+helm of brilliance
+crystal helmet
+	A helm he set on his head, high of crystal; thereon was many
+	gemstone, all encompassed with gold; it was Uther's, the noble
+	king's; it was named Goswhit, each other unlike.
+	  [ Layamon's Brut, translated by Sir Frederic Madden, K.H. ]
 hermes
 	Messenger and herald of the Olympians.  Being required to do
 	a great deal of travelling and speaking in public, he became
@@ -2722,6 +2808,43 @@ hunter
 	Where is the haste that ye hurry by?
 	Brother, I go to my lair to die.
 		[ The Jungle Book, by Rudyard Kipling ]
+# added in PR #1108 by NullCGT for ice box object but has been changed to
+# ice terrain
+# note: this might need to be reformatted; it's much wider than other entries
+# but should be able to fit within a normal-width screen once nethack strips
+# off the leading <tab>.
+~ice box
+ice
+# thawing ice: "solid ice", "thin ice", &c
+* ice
+# hallucinating: "frozen <hallucination liquid>"
+frozen *
+	Ice, white ice, like a winding-sheet, sheathing each smoke-grimed wall;
+	Ice on the stove-pipe, ice on the bed, ice gleaming over all;
+	Sparkling ice on the dead man's chest, glittering ice in his hair,
+	Ice on his fingers, ice in his heart, ice in his glassy stare;
+	Hard as a log and trussed like a frog, with his arms and legs outspread.
+	I gazed at the coffin I'd brought for him, and I gazed at the gruesome dead,
+	And at last I spoke: "Bill liked his joke; but still, goldarn his eyes,
+	A man had ought to consider his mates in the way he goes and dies."
+		[ The Ballad of Blasphemous Bill, by Robert W. Service ]
+# part of PR #1109 by entrez
+ice box
+	I have eaten
+	the plums
+	that were in
+	the icebox
+
+	and which
+	you were probably
+	saving
+	for breakfast
+
+	Forgive me
+	they were delicious
+	so sweet
+	and so cold
+		[ This Is Just To Say, by William Carlos Williams ]
 ice devil
 	Ice devils are large semi-insectoid creatures, who are
 	equally at home in the fires of Hell and the cold of Limbo,
@@ -4440,12 +4563,11 @@ platinum
 	might make it useful on certain types of weapons.
 platinum yendorian express card
 	This is an ancient artifact made of an unknown material.  It
-	is rectangular in shape, very thin, and inscribed with
-	unreadable ancient runes.  When carried, it grants the one
-	who carries it ESP, and reduces all spell induced damage done to
-	the carrier by half.  It also protects from magic missile
-	attacks.  Finally, its power is such that when invoked, it
-	can charge other objects.
+	is rectangular in shape, very thin, and inscribed with archaic
+	runes of power.  When carried, it grants the bearer ESP, reduces
+	incoming damage from spells by half, and protects from magic
+	missile attacks.  Additionally, its power is such that when
+	invoked, it can charge other objects.
 # playing style, rather vague topic but these quotes are too apt to pass up
 player
 play* style
@@ -4463,6 +4585,16 @@ user
 	Might just kill you.
 		[ It's a Jungle Out There, by Randy Newman ]
 #			[ theme song from "Monk" ]
+poison
+poisoned
+potion of sickness
+*venom
+	Fate intervened. Some of us, that day, she led inexorably
+	through the gates of death. Some of us, innocent and unsuspecting,
+	took, unwillingly, that one last step to oblivion. Some of us took
+	very little sugar.
+		[ We Have Always Lived in the Castle,
+			by Shirley Jackson ]
 polearm
 * polearm
 partisan
@@ -4810,6 +4942,7 @@ robe
 	3.  As the garb of Desert Nomads.  [...]
 	    [ The Tough Guide to Fantasyland, by Diana Wynne Jones ]
 rock
+large rock
 	Bilbo saw that the moment had come when he must do something.
 	He could not get up at the brutes and he had nothing to shoot
 	with; but looking about he saw that in this place there were
@@ -5073,6 +5206,7 @@ scorpius
 	As Scorpius rises in the east, Orion sets in the west.
 		[ 365 Starry Nights, by Chet Raymo ]
 scroll of punishment
+punish*
 	It matters not how strait the gate,
 	How charged with punishments the scroll,
 	I am the master of my fate;
@@ -5114,25 +5248,25 @@ seth
 	hippopotamus, and the pig.
 		[ Encyclopedia Mythica, ed. M.F. Lindemans ]
 shad*
-	For the shades -- figures of jet black streaking acrossthe
-	white-knobbed ground -- were upon her. Strength was meaningless
-	against shades. They had no real substance. Only two things
-	mattered: moving quickly and not letting yourself be
-	frightened. Shades were dangerous, but so long as you had silver,
-	you could fight. [...]
+	For the shades--figures of jet black streaking across the
+	white-knobbed ground--were upon her.  Strength was meaningless
+	against shades.  They had no real substance.  Only two things
+	mattered:  moving quickly and not letting yourself be
+	frightened.  Shades were dangerous, but so long as you had silver,
+	you could fight.  [...]
 
 	Her knife passed through the shade with a slight tugging feeling,
 	creating a shower of bright white sparks that sprayed out of the
-	shade. The shade pulled back, its black tendrils writhing about
+	shade.  The shade pulled back, its black tendrils writhing about
 	one another.
 
-	Silence spun on the other. The pitch sky let her see only the
-	thing's eyes, a horrid green, as it reached for her. She lunged.
+	Silence spun on the other.  The pitch sky let her see only the
+	thing's eyes, a horrid green, as it reached for her.  She lunged.
 
 	Its spectral hands were upon her, the icy cold of its fingers
-	gripping her arm below the elbow. She could feel it. Shade fingers
-	had substance; they could grab you, hold you back. Only silver
-	warded them away. Only with silver could you fight.
+	gripping her arm below the elbow.  She could feel it.  Shade
+	fingers had substance; they could grab you, hold you back.  Only
+	silver warded them away.  Only with silver could you fight.
 		[ Shadows for Silence in the Forests of Hell,
 		  by Brandon Sanderson ]
 shaman karnov
@@ -5161,6 +5295,26 @@ shark
 	that no other creature in nature could make -- a bomb from
 	the depths.
 		[ Close to Shore, by Michael Capuzzo ]
+~uruk*
+~white*
+*shield
+	In his hands he took his shield, all glittering: no one ever
+	broke it with a blow or crushed it.  And a wonder it was to see;
+	for its whole orb shimmered with enamel and white ivory and
+	electrum, and it glowed with shining gold; and there were zones
+	of cyanus drawn upon it.  In the center was Fear worked in adamant,
+	unspeakable, staring backwards with eyes that glowed with fire.
+	His mouth was full of teeth in a white row, fearful and  daunting,
+	and upon his grim brow hovered frightful Strife who arrays the
+	throng of men: pitiless she, for she took away the mind and senses
+	of poor wretches who made war against the son of Zeus.  Their souls
+	passed beneath the earth and went down into the house of Hades;
+	but their bones, when the skin is rotted about them, crumble away
+	on the dark earth under parching Sirius.
+		[ Hesiod, The Homeric Hymns and Homerica,
+			translation by Hugh G. Evelyn-White ]
+shito
+	A Japanese stabbing knife.
 shopkeeper
 	There have been three general theories put forward to explain
 	the phenomenon of the wandering shops or, as they are
@@ -5443,32 +5597,31 @@ stair*
 		[ Ghostbusters, directed by Ivan Reitman,
 		  written by Dan Ackroyd and Harold Ramis ]
 *stalker
-	"You don't understand," he said, "who I am or what I am. I'll show
-	you. By Heaven! I'll show you." Then he put his open palm over his
-	face and withdrew it. The centre of his face became a black
-	cavity. "Here," he said. He stepped forward and handed Mrs. Hall
+	"You don't understand," he said, "who I am or what I am.  I'll show
+	you.  By Heaven!  I'll show you."  Then he put his open palm over
+	his face and withdrew it.  The centre of his face became a black
+	cavity.  "Here," he said.  He stepped forward and handed Mrs. Hall
 	something which she, staring at his metamorphosed face, accepted
-	automatically. Then, when she saw what it was, she screamed
-	loudly, dropped it, and staggered back. The nose--it was the
+	automatically.  Then, when she saw what it was, she screamed
+	loudly, dropped it, and staggered back.  The nose--it was the
 	stranger's nose! pink and shining--rolled on the floor.
 
-	Then he removed his spectacles, and everyone in the bar gasped. He
+	Then he removed his spectacles, and everyone in the bar gasped.  He
 	took off his hat, and with a violent gesture tore at his whiskers
-	and bandages. For a moment they resisted him. A flash of horrible
-	anticipation passed through the bar. "Oh, my Gard!" said some one.
+	and bandages.  For a moment they resisted him.  A flash of horrible
+	anticipation passed through the bar.  "Oh, my Gard!" said some one.
 	Then off they came.
 
-	It was worse than anything. Mrs. Hall, standing open-mouthed and
+	It was worse than anything.  Mrs. Hall, standing open-mouthed and
 	horror-struck, shrieked at what she saw, and made for the door of
-	the house. Everyone began to move. They were prepared for scars,
-	disfigurements, tangible horrors, but nothing! The bandages and
+	the house.  Everyone began to move.  They were prepared for scars,
+	disfigurements, tangible horrors, but nothing!  The bandages and
 	false hair flew across the passage into the bar, making a
-	hobbledehoy jump to avoid them. Everyone tumbled on everyone else
-	down the steps. For the man who stood there shouting some
+	hobbledehoy jump to avoid them.  Everyone tumbled on everyone else
+	down the steps.  For the man who stood there shouting some
 	incoherent explanation, was a solid gesticulating figure up to the
-	coat-collar of him, and then--nothingness, no visible thing at
-	all!
-		[ The Invisible Man, by H. G. Wells ]
+	coat-collar of him, and then--nothingness, no visible thing at all!
+		[ The Invisible Man, by H.G. Wells ]
 ~statue trap
 statue*
 	Then at last he began to wonder why the lion was standing so
@@ -5488,6 +5641,22 @@ statue*
 	the lion's back and the top of its head were covered with
 	snow.  Of course it must be only a statue!
 		[ The Lion, the Witch and the Wardrobe, by C.S. Lewis ]
+# the original stethoscope was a fixed tube open at both ends; subsequent
+# early ones were adaptations of an 'earhorn' used by the hard of hearing,
+# but players are unlikely to picture anything like that when they find one
+stethoscope
+	Tool used to listen closely to adjacent sound, typically by
+	a medical practitioner to listen to a patient's heart, lungs,
+	or pulse.
+# joke suggested by stethoscope; a zillion things could be added but these
+# ought to suffice
+microscope
+telescope
+telephone
+television
+#tricorder
+#phaser
+	Not invented yet.
 sting
 	There was the usual dim grey light of the forest-day about
 	him when he came to his senses.  The spider lay dead beside
@@ -5526,6 +5695,8 @@ stormbringer
 	great black battle-blade Stormbringer, drank their souls.
 		[ The Lands Beyond the World, by Michael Moorcock ]
 *strange object
+strange
+glorkum*
 	He walked for some time through a long narrow corridor
 	without finding any one and was just going to call out,
 	when suddenly in a dark corner between an old cupboard
@@ -5918,6 +6089,15 @@ unicorn horn
 unreconnoitered
 	Area of map which is beyond limited perception range when
 	underwater or engulfed by a monster.
+uruk*hai shield
+white-handed shield
+	They were armed with short broad-bladed swords, not with the
+	curved scimitars usual with Orcs: and they had bows of yew,
+	in length and shape like the bows of Men. Upon their shields
+	they bore a strange device: a small white hand in the centre
+	of a black field; on the front of their iron helms was set an
+	S-rune, wrought of some white metal.
+		[ The Two Towers, by J.R.R. Tolkien ]
 valkyrie
 * valkyrie
 	The Valkyries were the thirteen choosers of the slain, the

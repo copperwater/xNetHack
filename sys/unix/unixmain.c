@@ -1,4 +1,4 @@
-/* NetHack 3.7	unixmain.c	$NHDT-Date: 1646313937 2022/03/03 13:25:37 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.99 $ */
+/* NetHack 3.7	unixmain.c	$NHDT-Date: 1711213891 2024/03/23 17:11:31 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.127 $ */
 /* Copyright (c) Stichting Mathematisch Centrum, Amsterdam, 1985. */
 /*-Copyright (c) Robert Patrick Rankin, 2011. */
 /* NetHack may be freely redistributed.  See license for details. */
@@ -8,7 +8,6 @@
 #include "hack.h"
 #include "dlb.h"
 
-#include <ctype.h>
 #include <sys/stat.h>
 #include <signal.h>
 #include <pwd.h>
@@ -37,7 +36,6 @@ static void consume_two_args(int, int *, char ***);
 static void early_options(int *, char ***, char **);
 ATTRNORETURN static void opt_terminate(void) NORETURN;
 ATTRNORETURN static void opt_usage(const char *) NORETURN;
-static void opt_showpaths(const char *);
 ATTRNORETURN static void scores_only(int, char **, const char *) NORETURN;
 #ifdef SND_LIB_INTEGRATED
 uint32_t soundlibchoice = soundlib_nosound;
@@ -53,7 +51,6 @@ extern void init_linux_cons(void);
 #endif
 
 static void wd_message(void);
-static boolean wiz_error_flag = FALSE;
 static struct passwd *get_unix_pw(void);
 
 int
@@ -65,7 +62,7 @@ main(int argc, char *argv[])
     boolean resuming = FALSE; /* assume new game */
     boolean plsel_once = FALSE;
 
-    early_init();
+    early_init(argc, argv);
 
 #if defined(__APPLE__)
     {
@@ -100,7 +97,7 @@ main(int argc, char *argv[])
 #endif
 
     gh.hname = argv[0];
-    gh.hackpid = getpid();
+    svh.hackpid = getpid();
     (void) umask(0777 & ~FCMASK);
 
     choose_windows(DEFAULT_WINDOW_SYS);
@@ -165,7 +162,7 @@ main(int argc, char *argv[])
      */
     u.uhp = 1; /* prevent RIP on early quits */
 #if defined(HANGUPHANDLING)
-    gp.program_state.preserve_locks = 1;
+    program_state.preserve_locks = 1;
 #ifndef NO_SIGNAL
     sethanguphandler((SIG_RET_TYPE) hangup);
 #endif
@@ -196,7 +193,7 @@ main(int argc, char *argv[])
     /* wizard mode access is deferred until here */
     set_playmode(); /* sets plname to "wizard" for wizard mode */
     /* hide any hyphens from plnamesuffix() */
-    gp.plnamelen = exact_username ? (int) strlen(gp.plname) : 0;
+    gp.plnamelen = exact_username ? (int) strlen(svp.plname) : 0;
     /* strip role,race,&c suffix; calls askname() if plname[] is empty
        or holds a generic user name like "player" or "games" */
     plnamesuffix();
@@ -237,14 +234,14 @@ main(int argc, char *argv[])
      * clock, &c not currently in use in the playground directory
      * (for gl.locknum > 0).
      */
-    if (*gp.plname) {
+    if (*svp.plname) {
         getlock();
 #if defined(HANGUPHANDLING)
-        gp.program_state.preserve_locks = 0; /* after getlock() */
+        program_state.preserve_locks = 0; /* after getlock() */
 #endif
     }
 
-    if (*gp.plname && (nhfp = restore_saved_game()) != 0) {
+    if (*svp.plname && (nhfp = restore_saved_game()) != 0) {
         const char *fq_save = fqname(gs.SAVEF, SAVEPREFIX, 1);
 
         (void) chmod(fq_save, 0); /* disallow parallel restores */
@@ -277,10 +274,13 @@ main(int argc, char *argv[])
                 }
             }
         }
+        if (program_state.in_self_recover) {
+            program_state.in_self_recover = FALSE;
+        }
     }
 
     if (!resuming) {
-        boolean neednewlock = (!*gp.plname);
+        boolean neednewlock = (!*svp.plname);
         /* new game:  start by choosing role, race, etc;
            player might change the hero's name while doing that,
            in which case we try to restore under the new name
@@ -289,7 +289,7 @@ main(int argc, char *argv[])
             if (!plsel_once)
                 player_selection();
             plsel_once = TRUE;
-            if (neednewlock && *gp.plname)
+            if (neednewlock && *svp.plname)
                 goto attempt_restore;
             if (iflags.renameinprogress) {
                 /* player has renamed the hero while selecting role;
@@ -303,6 +303,16 @@ main(int argc, char *argv[])
                 goto attempt_restore;
             }
         }
+
+#ifdef CHECK_PANIC_SAVE
+        /* no save file; check for a panic save; if the check finds one,
+           ask the player whether to proceed with a new game; it will
+           quit instead of returning if the answer isn't yes */
+        if (check_panic_save())
+            ask_about_panic_save();
+#endif
+
+        /* no save file; start a new game */
         newgame();
         wd_message();
     }
@@ -462,12 +472,12 @@ process_options(int argc, char *argv[])
             break;
         case 'u':
             if (arg[2]) {
-                (void) strncpy(gp.plname, arg + 2, sizeof gp.plname - 1);
+                (void) strncpy(svp.plname, arg + 2, sizeof svp.plname - 1);
                 gp.plnamelen = 0; /* plname[] might have -role-race attached */
             } else if (argc > 1) {
                 argc--;
                 argv++;
-                (void) strncpy(gp.plname, argv[0], sizeof gp.plname - 1);
+                (void) strncpy(svp.plname, argv[0], sizeof svp.plname - 1);
                 gp.plnamelen = 0;
             } else {
                 config_error_add("Character name expected after -u");
@@ -481,6 +491,14 @@ process_options(int argc, char *argv[])
             } else {
                 config_error_add("Unknown option: %.60s", origarg);
             }
+            break;
+        case 'l':
+#ifdef LIVELOG
+            if(!strncmp(arg, "-loglua", 7)){
+                gl.loglua = 1;
+            } else
+#endif
+                config_error_add("Unknown option: %.60s", origarg);
             break;
         case 'p': /* profession (role) */
             if (arg[2]) {
@@ -605,7 +623,8 @@ early_options(int *argc_p, char ***argv_p, char **hackdir_p)
     /*
      * Both *argc_p and *argv_p account for the program name as (*argv_p)[0];
      * local argc and argv impicitly discard that (by starting 'ndx' at 1).
-     * argcheck() doesn't mind, prscore() (via scores_only()) does.
+     * argcheck() doesn't mind, prscore() (via scores_only()) does (for the
+     * number of args it gets passed, not for the value of argv[0]).
      */
     for (ndx = 1; ndx < *argc_p; ndx += (consumed ? 0 : 1)) {
         consumed = 0;
@@ -622,6 +641,15 @@ early_options(int *argc_p, char ***argv_p, char **hackdir_p)
             ++arg;
 
         switch (arg[1]) { /* char after leading dash */
+        case 'b':
+#ifdef CRASHREPORT
+            // --bidshow
+            if (argcheck(argc, argv, ARG_BIDSHOW) == 2){
+                opt_terminate();
+                /*NOTREACHED*/
+            }
+#endif
+            break;
         case 'd':
             if (argcheck(argc, argv, ARG_DEBUG) == 1) {
                 consume_arg(ndx, argc_p, argv_p), consumed = 1;
@@ -672,13 +700,22 @@ early_options(int *argc_p, char ***argv_p, char **hackdir_p)
             break;
         case 's':
             if (argcheck(argc, argv, ARG_SHOWPATHS) == 2) {
-                opt_showpaths(*hackdir_p);
-                opt_terminate();
-                /*NOTREACHED*/
+		gd.deferred_showpaths = TRUE;
+		gd.deferred_showpaths_dir = *hackdir_p;
+                config_error_done();
+		return;
             }
             /* check for "-s" request to show scores */
-            if (lopt(arg,
-                     (ArgValDisallowed | ArgNamOneLetter | ArgErrComplain),
+            if (lopt(arg, ((ArgValDisallowed | ArgErrComplain)
+                           /* only accept one-letter if there is just one
+                              dash; reject "--s" because prscore() via
+                              scores_only() doesn't understand it */
+                           | ((origarg[1] != '-') ? ArgNamOneLetter : 0)),
+                           /* [ought to omit val-disallowed and accept
+                              --scores=foo since -s foo and -sfoo are
+                              allowed, but -s form can take more than one
+                              space-separated argument and --scores=foo
+                              isn't suited for that] */
                      "-scores", origarg, &argc, &argv)) {
                 /* at this point, argv[0] contains "-scores" or a leading
                    substring of it; prscore() (via scores_only()) expects
@@ -747,18 +784,16 @@ opt_usage(const char *hackdir)
 
 /* show the sysconf file name, playground directory, run-time configuration
    file name, dumplog file name if applicable, and some other things */
-static void
-opt_showpaths(const char *dir)
+ATTRNORETURN void
+after_opt_showpaths(const char *dir)
 {
 #ifdef CHDIR
     chdirx(dir, FALSE);
 #else
     nhUse(dir);
 #endif
-    iflags.initoptions_noterminate = TRUE;
-    initoptions();
-    iflags.initoptions_noterminate = FALSE;
-    reveal_paths();
+    opt_terminate();
+    /*NOTREACHED*/
 }
 
 /* handle "-s <score options> [character-names]" to show all the entries
@@ -877,7 +912,7 @@ whoami(void)
      * Note that we trust the user here; it is possible to play under
      * somebody else's name.
      */
-    if (!*gp.plname) {
+    if (!*svp.plname) {
         register const char *s;
 
         s = nh_getenv("USER");
@@ -887,8 +922,8 @@ whoami(void)
             s = getlogin();
 
         if (s && *s) {
-            (void) strncpy(gp.plname, s, sizeof gp.plname - 1);
-            if (strchr(gp.plname, '-'))
+            (void) strncpy(svp.plname, s, sizeof svp.plname - 1);
+            if (strchr(svp.plname, '-'))
                 return TRUE;
         }
     }
@@ -940,28 +975,48 @@ port_help(void)
 boolean
 authorize_wizard_mode(void)
 {
-    struct passwd *pw = get_unix_pw();
-
-    if (pw && sysopt.wizards && sysopt.wizards[0]) {
+    if (sysopt.wizards && sysopt.wizards[0]) {
         if (check_user_string(sysopt.wizards))
             return TRUE;
     }
-    wiz_error_flag = TRUE; /* not being allowed into wizard mode */
+    iflags.wiz_error_flag = TRUE; /* not being allowed into wizard mode */
     return FALSE;
+}
+
+/* similar to above, validate explore mode access */
+boolean
+authorize_explore_mode(void)
+{
+#ifdef SYSCF
+    if (sysopt.explorers && sysopt.explorers[0]) {
+        if (check_user_string(sysopt.explorers))
+            return TRUE;
+    }
+    iflags.explore_error_flag = TRUE; /* not allowed into explore mode */
+    return FALSE;
+#else
+    return TRUE; /* if sysconf disabled, no restrictions on explore mode */
+#endif
 }
 
 static void
 wd_message(void)
 {
-    if (wiz_error_flag) {
+    if (iflags.wiz_error_flag) {
         if (sysopt.wizards && sysopt.wizards[0]) {
             char *tmp = build_english_list(sysopt.wizards);
             pline("Only user%s %s may access debug (wizard) mode.",
                   strchr(sysopt.wizards, ' ') ? "s" : "", tmp);
             free(tmp);
-        } else
+        } else {
+            You("cannot access debug (wizard) mode.");
+        }
+        wizard = FALSE; /* (paranoia) */
+        if (!iflags.explore_error_flag)
             pline("Entering explore/discovery mode instead.");
-        wizard = 0, discover = 1; /* (paranoia) */
+    } else if (iflags.explore_error_flag) {
+        You("cannot access explore mode."); /* same as enter_explore_mode */
+        discover = iflags.deferred_X = FALSE; /* (more paranoia) */
     } else if (discover)
         You("are in non-scoring explore/discovery mode.");
 }
@@ -996,7 +1051,7 @@ check_user_string(const char *optstr)
     if (optstr[0] == '*')
         return TRUE; /* allow any user */
     if (sysopt.check_plname)
-        pwname = gp.plname;
+        pwname = svp.plname;
     else if ((pw = get_unix_pw()) != 0)
         pwname = pw->pw_name;
     if (!pwname || !*pwname)

@@ -1,4 +1,4 @@
--- NetHack medusa medusa-4.lua	$NHDT-Date: 1652196028 2022/05/10 15:20:28 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.6 $
+-- NetHack medusa medusa-4.lua	$NHDT-Date: 1716152274 2024/05/19 20:57:54 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.8 $
 --	Copyright (c) 1989 by Jean-Christophe Collet
 --	Copyright (c) 1990, 1991 by M. Stephenson
 -- NetHack may be freely redistributed.  See license for details.
@@ -32,17 +32,30 @@ des.map([[
 }}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}.}}}}}}....}}}}}}}}}}}}}}}}}}}...}}}}}}
 }}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}
 ]]);
+
 --
+-- place handling is similar to medusa-3.lua except that there are 4
+-- downstairs-eligible rooms rather than 3, and only 2 of them are used
 local place = selection.new();
+-- each of these spots are inside a distinct room
 place:set(04,08);
 place:set(10,04);
 place:set(10,08);
 place:set(10,12);
+
+-- location of Medusa and downstairs and Perseus's statue
+local medloc = place:rndcoord(1,1);
+-- specific location for some other statue in a different downstairs-eligible
+-- room, to prevent object detection from becoming a trivial way to pinpoint
+-- Medusa's location
+-- [usefulness depends on future STATUE->dknown changes in nethack's core]
+local altloc = place:rndcoord(1,1);
+
 --
 des.region(selection.area(00,00,74,19),"lit")
--- fixup_special hack: The first "room" region in Medusa levels gets filled with
--- some leaderboard statues, so this needs to be a room; setting irregular=1
--- will force this
+-- fixup_special hack: The first "room" region in Medusa levels gets filled
+-- with some leaderboard statues, so this needs to be a room; setting
+-- irregular=1 will force this
 des.region({ region={13,03, 18,13}, lit=1, type="ordinary", irregular=1 })
 --
 des.teleport_region({ region = {64,01,74,17}, dir="down" });
@@ -50,7 +63,8 @@ des.teleport_region({ region = {02,02,18,13}, dir="up" });
 --
 des.levregion({ region = {67,01,74,20}, type="stair-up" });
 
-des.stair("down", place:rndcoord(1))
+-- place the downstairs at the same spot where Medusa will be placed
+des.stair("down", medloc)
 --
 des.door("locked",04,06)
 des.door("locked",04,10)
@@ -66,7 +80,8 @@ des.non_diggable(selection.area(01,01,22,14));
 --
 des.object("crystal ball", 07,08)
 --
-des.object({ id="statue",coord=place:rndcoord(1), buc="uncursed",
+-- same spot as Medusa plus downstairs
+des.object({ id="statue", coord=medloc, buc="uncursed",
                       montype="knight", historic=1, male=1,name="Perseus",
                       contents = function()
                          if percent(75) then
@@ -84,7 +99,9 @@ des.object({ id="statue",coord=place:rndcoord(1), buc="uncursed",
                       end
 });
 --
-des.object({ id = "statue", contents=0 })
+-- first random statue is in one of the designated stair rooms but not the
+-- one with Medusa plus downstairs
+des.object({ id = "statue", coord=altloc, contents=0 })
 des.object({ id = "statue", contents=0 })
 des.object({ id = "statue", contents=0 })
 des.object({ id = "statue", contents=0 })
@@ -99,7 +116,9 @@ for i=1,7 do
    des.trap()
 end
 --
-des.monster("Medusa", place:rndcoord(1))
+-- place Medusa before placing other monsters so that they won't be able to
+-- unintentionally steal her spot on the downstairs
+des.monster({ id = "Medusa", coord=medloc, asleep=1 })
 des.monster("kraken", 07,07)
 --
 -- the nesting dragon
@@ -129,3 +148,5 @@ for i=1,4 do
    des.monster("black naga hatchling")
    des.monster("black naga")
 end
+
+--#medusa-4.lua

@@ -1,4 +1,4 @@
-/* NetHack 3.7	unixconf.h	$NHDT-Date: 1607461111 2020/12/08 20:58:31 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.49 $ */
+/* NetHack 3.7	unixconf.h	$NHDT-Date: 1711213886 2024/03/23 17:11:26 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.57 $ */
 /* Copyright (c) Stichting Mathematisch Centrum, Amsterdam, 1985. */
 /*-Copyright (c) Pasi Kallinen, 2018. */
 /* NetHack may be freely redistributed.  See license for details. */
@@ -55,11 +55,6 @@
                         * particular, it should NOT be defined for the UNIXPC
                         * unless you remove the use of the shared library in
                         * the Makefile */
-#define TEXTCOLOR      /* Use System V r3.2 terminfo color support
-                        * and/or ANSI color support on termcap systems
-                        * and/or X11 color.  Note:  if you get compiler
-                        * warnings about 'has_colors()' being implicitly
-                        * declared, uncomment NEED_HAS_COLORS_DECL below. */
 #define POSIX_JOB_CONTROL /* use System V / Solaris 2.x / POSIX job control
                            * (e.g., VSUSP) */
 #define POSIX_TYPES /* use POSIX types for system calls and termios */
@@ -101,7 +96,7 @@
 /* #define DEF_PAGER "/usr/bin/less" */
 
 /*
- * Define PORT_HELP to be the name of the port-specfic help file.
+ * Define PORT_HELP to be the name of the port-specific help file.
  * This file is found in HACKDIR.
  * Normally, you shouldn't need to change this.
  * There is currently no port-specific help for Unix systems.
@@ -122,6 +117,21 @@
 #if defined(MACOS) && !defined(TIMED_DELAY)
 #define TIMED_DELAY
 #endif
+
+/*
+ * At start of game, if there are lock and level files for current
+ * character in the playground directory, ask whether to recover them
+ * (into a save file).
+ */
+/* #define SELF_RECOVER */
+
+/*
+ * At start of game, if there is no save file to restore or lock and
+ * level files to recover but there is a panic save file for the current
+ * character, tell the player that it exists and ask whether to start a
+ * new game.  Does not attempt to rename and restore the panic save file.
+ */
+#define CHECK_PANIC_SAVE
 
 /* #define AVOID_WIN_IOCTL */ /* ensure USE_WIN_IOCTL remains undefined */
 
@@ -292,8 +302,6 @@
 
 #if defined(BSD) || defined(ULTRIX)
 #include <sys/time.h>
-#else
-#include <time.h>
 #endif
 
 /* these might be needed for include/system.h;
@@ -314,10 +322,7 @@
 #define SHELL /* do not delete the '!' command */
 #endif
 
-/* #include "system.h" */
-
 #if defined(POSIX_TYPES) || defined(__GNUC__)
-#include <stdlib.h>
 #include <unistd.h>
 #endif
 
@@ -365,7 +370,7 @@
 #endif
 #endif
 
-/* Relevant for some systems which enable TEXTCOLOR:  some older versions
+/* Relevant for some systems:  some older versions
    of curses (the run-time library optionally used by nethack's tty
    interface in addition to its curses interface) supply 'has_colors()'
    but corresponding <curses.h> doesn't declare it.  has_colors() is used

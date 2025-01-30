@@ -241,8 +241,8 @@
 #define tty_nhbell() tty_nhbell_()
 #define tty_number_pad(x) tty_number_pad_(x)
 #define tty_delay_output() tty_delay_output_()
-#define tty_start_screen() tty_start_screen_()
-#define tty_end_screen() tty_end_screen_()
+#define term_start_screen() term_start_screen_()
+#define term_end_screen() term_end_screen_()
 
 /* ### topl.c ### */
 #define tty_doprev_message() tty_doprev_message_()

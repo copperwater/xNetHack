@@ -1,11 +1,11 @@
-/* NetHack 3.7	sys.h	$NHDT-Date: 1646255373 2022/03/02 21:09:33 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.38 $ */
+/* NetHack 3.7	sys.h	$NHDT-Date: 1693083207 2023/08/26 20:53:27 $  $NHDT-Branch: keni-crashweb2 $:$NHDT-Revision: 1.41 $ */
 /* Copyright (c) Kenneth Lorber, Kensington, Maryland, 2008. */
 /* NetHack may be freely redistributed.  See license for details. */
 
 #ifndef SYS_H
 #define SYS_H
 
-struct sysopt {
+struct sysopt_s {
     char *support; /* local support contact */
     char *recover; /* how to run recover - may be overridden by win port */
     char *wizards; /* space-separated list of usernames */
@@ -15,6 +15,7 @@ struct sysopt {
     char *shellers;   /* like wizards, for ! command (-DSHELL); also ^Z */
     char *genericusers; /* usernames that prompt for user name */
     char *debugfiles; /* files to show debugplines in. '*' is all. */
+    char *msghandler;
 #ifdef DUMPLOG
     char *dumplogfile; /* where the dump file is saved */
     char *dumplogurl;  /* url path for the above */
@@ -46,6 +47,7 @@ struct sysopt {
     /* panic options */
     char *gdbpath;
     char *greppath;
+    char *crashreporturl;
     int panictrace_gdb;
     int panictrace_libc;
 
@@ -64,7 +66,7 @@ struct sysopt {
                          * 1: suppress it */
 };
 
-extern struct sysopt sysopt;
+extern struct sysopt_s sysopt;
 
 #define SYSOPT_SEDUCE sysopt.seduce
 

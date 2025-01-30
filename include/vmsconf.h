@@ -93,17 +93,6 @@ PANICTRACE_GDB=2  #at conclusion of panic, show a call traceback and then
 #define SELECTSAVED
 
 /*
- * You may define TEXTCOLOR if your system has any terminals that recognize
- * ANSI color sequences of the form ``<ESCAPE>[#;#m'', where the first # is
- * a number between 40 and 47 represented background color, and the second
- * # is a number between 30 and 37 representing the foreground color.
- * GIGI terminals and DECterm windows on color VAXstations support these
- * color escape sequences, as do some 3rd party terminals and many micro
- * computers.
- */
-/* #define TEXTCOLOR */
-
-/*
  * If you define USE_QIO_INPUT, then you'll get raw characters from the
  * keyboard, not unlike those of the unix version of Nethack.  This will
  * allow you to use the Escape key in normal gameplay, and the appropriate
@@ -224,7 +213,6 @@ PANICTRACE_GDB=2  #at conclusion of panic, show a call traceback and then
 #include <types.h>
 #include <unistd.h>
 #include <fcntl.h>
-#include <stdlib.h>
 #include <signal.h>
 #include <stat.h>
 #include <errno.h>
@@ -256,8 +244,6 @@ typedef __mode_t mode_t;
 typedef int32_t off_t;
 #endif
 #endif /* _DECC_V4_SOURCE */
-
-#include <time.h>
 
 #ifndef VMSVSI
 #if 0 /* <file.h> is missing for old gcc versions; skip it to save time */
@@ -311,7 +297,7 @@ typedef int32_t off_t;
 #define link(f1, f2) vms_link(f1, f2)   /* vmsfiles.c */
 #define open(f, k, m) vms_open(f, k, m) /* vmsfiles.c */
 #define fopen(f, m) vms_fopen(f, m)     /* vmsfiles.c */
-/* #define unlink(f0) vms_unlink(f0)       /* vmsfiles.c */
+/* #define unlink(f0) vms_unlink(f0) */       /* vmsfiles.c */
 #ifdef VERYOLD_VMS
 #define unlink(f0) delete (f0) /* vaxcrtl */
 #else

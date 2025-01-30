@@ -1,4 +1,4 @@
-/* NetHack 3.7	timeout.h	$NHDT-Date: 1596498564 2020/08/03 23:49:24 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.13 $ */
+/* NetHack 3.7	timeout.h	$NHDT-Date: 1705087443 2024/01/12 19:24:03 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.23 $ */
 /* Copyright 1994, Dean Luick                                     */
 /* NetHack may be freely redistributed.  See license for details. */
 
@@ -10,11 +10,12 @@ typedef void (*timeout_proc)(ANY_P *, long);
 
 /* kind of timer */
 enum timer_type {
-    TIMER_LEVEL = 0,   /* event specific to level [melting ice] */
-    TIMER_GLOBAL = 1,  /* event follows current play [not used] */
-    TIMER_OBJECT = 2,  /* event follows an object [various] */
-    TIMER_MONSTER = 3, /* event follows a monster [not used] */
-    NUM_TIMER_KINDS    /* 4 */
+    TIMER_NONE = 0,
+    TIMER_LEVEL = 1,   /* event specific to level [melting ice] */
+    TIMER_GLOBAL = 2,  /* event follows current play [not used] */
+    TIMER_OBJECT = 3,  /* event follows an object [various] */
+    TIMER_MONSTER = 4, /* event follows a monster [not used] */
+    NUM_TIMER_KINDS    /* 5 */
 };
 
 /* save/restore timer ranges */
@@ -22,8 +23,16 @@ enum timer_type {
 #define RANGE_GLOBAL 1 /* save/restore timers following global play */
 
 /*
- * Timeout functions.  Add a define here, then put it in the table
+ * Timeout functions.  Add an enum here, then put it in the table
  * in timeout.c.  "One more level of indirection will fix everything."
+ * Also add it to timerstr[] in nhl_get_timertype(nhlua.c); the entries
+ * there match these but are spelled differently.
+ *
+ * Note:  if any are inserted, removed, or reordered then EDITLEVEL
+ * needs to be incremented because timeout indices get written into save
+ * and bones files if any timers are present while saving.  (Adding new
+ * ones at the end isn't restricted this way since new indices won't be
+ * present in old data.)
  */
 enum timeout_types {
     ROT_ORGANIC = 0, /* for buried organics */
@@ -33,10 +42,10 @@ enum timeout_types {
     BURN_OBJECT,
     HATCH_EGG,
     FIG_TRANSFORM,
-    MELT_ICE_AWAY,
     SHRINK_GLOB,
     MOLDY_CORPSE,
     FERMENT,
+    MELT_ICE_AWAY,
 
     NUM_TIME_FUNCS
 };
@@ -49,7 +58,9 @@ enum timeout_types {
                              || (ttype) == BURN_OBJECT   \
                              || (ttype) == HATCH_EGG     \
                              || (ttype) == FIG_TRANSFORM \
-                             || (ttype) == SHRINK_GLOB)
+                             || (ttype) == SHRINK_GLOB   \
+                             || (ttype) == MOLDY_CORPSE  \
+                             || (ttype) == FERMENT)
 
 /* used in timeout.c */
 typedef struct fe {

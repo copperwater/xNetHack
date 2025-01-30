@@ -1,4 +1,4 @@
-/* NetHack 3.7	unixunix.c	$NHDT-Date: 1605493693 2020/11/16 02:28:13 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.32 $ */
+/* NetHack 3.7	unixunix.c	$NHDT-Date: 1711213894 2024/03/23 17:11:34 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.43 $ */
 /* Copyright (c) Stichting Mathematisch Centrum, Amsterdam, 1985. */
 /*-Copyright (c) Kenneth Lorber, Kensington, Maryland, 2015. */
 /* NetHack may be freely redistributed.  See license for details. */
@@ -13,6 +13,9 @@
 #include <fcntl.h>
 #endif
 #include <signal.h>
+
+static int veryold(int);
+static int eraseoldlocks(void);
 
 #ifdef _M_UNIX
 extern void sco_mapon(void);
@@ -65,17 +68,21 @@ veryold(int fd)
 #endif
             return 0;
     }
-    (void) close(fd);
+    /* this used to close the file upon success, leave it open upon failure;
+       that was supposed to simplify the caller's usage but ended up making
+       that be more complicated; always leave the file open so that caller
+       can close it unconditionally */
+    /*(void) close(fd);*/
     return 1;
 }
 
 static int
 eraseoldlocks(void)
 {
-    register int i;
+    int i;
 
 #if defined(HANGUPHANDLING)
-    gp.program_state.preserve_locks = 0; /* not required but shows intent */
+    program_state.preserve_locks = 0; /* not required but shows intent */
     /* cannot use maxledgerno() here, because we need to find a lock name
      * before starting everything (including the dungeon initialization
      * that sets astral_level, needed for maxledgerno()) up
@@ -95,7 +102,11 @@ eraseoldlocks(void)
 void
 getlock(void)
 {
-    register int i = 0, fd, c;
+#ifndef SELF_RECOVER
+    static const char destroy_old_game_prompt[] =
+    "There is already a game in progress under your name.  Destroy old game?";
+#endif
+    int i = 0, fd, c, too_old;
     const char *fq_lock;
 
 #ifdef TTY_GRAPHICS
@@ -121,7 +132,7 @@ getlock(void)
        'a','b',&c below; override the default and use <uid><charname>
        if we aren't restricting the number of simultaneous games */
     if (!gl.locknum)
-        Sprintf(gl.lock, "%u%s", (unsigned) getuid(), gp.plname);
+        Sprintf(gl.lock, "%u%s", (unsigned) getuid(), svp.plname);
 
     regularize(gl.lock);
     set_levelfile_name(gl.lock, 0);
@@ -142,10 +153,11 @@ getlock(void)
                 error("Cannot open %s", fq_lock);
             }
 
-            /* veryold() closes fd if true */
-            if (veryold(fd) && eraseoldlocks())
-                goto gotlock;
+            /* veryold() no longer conditionally closes fd */
+            too_old = veryold(fd);
             (void) close(fd);
+            if (too_old && eraseoldlocks())
+                goto gotlock;
         } while (i < gl.locknum);
 
         unlock_file(HLOCK);
@@ -160,19 +172,36 @@ getlock(void)
             error("Cannot open %s", fq_lock);
         }
 
-        /* veryold() closes fd if true */
-        if (veryold(fd) && eraseoldlocks())
-            goto gotlock;
+        /* veryold() no longer conditionally closes fd */
+        too_old = veryold(fd);
         (void) close(fd);
+        if (too_old && eraseoldlocks())
+            goto gotlock;
 
-      {
-        const char destroy_old_game_prompt[] =
-    "There is already a game in progress under your name.  Destroy old game?";
-
+        /* drop the "perm" lock while the user decides */
+        unlock_file(HLOCK);
         if (iflags.window_inited) {
+#ifdef SELF_RECOVER
+            c = yn_function(
+             "Old game in progress. Destroy [y], Recover [r], or Cancel [n]?",
+                            "ynr", 'n', FALSE);
+#else
             /* this is a candidate for paranoid_confirmation */
             c = y_n(destroy_old_game_prompt);
+#endif
         } else {
+#ifdef SELF_RECOVER
+            (void) raw_printf(
+        "\nThere is already a game in progress under your name.  Do what?\n");
+            (void) raw_printf("\n  y - Destroy old game");
+            (void) raw_printf("\n  r - Try to recover it");
+            (void) raw_printf("\n  n - Cancel");
+            (void) raw_printf("\n\n  => ");
+            (void) fflush(stdout);
+            do {
+                c = getchar();
+            } while (!strchr("rRyYnN", c) && c != -1);
+#else
             (void) raw_printf("\n%s [yn] ", destroy_old_game_prompt);
             (void) fflush(stdout);
             if ((c = getchar()) != EOF) {
@@ -183,8 +212,20 @@ getlock(void)
                 while ((tmp = getchar()) != '\n' && tmp != EOF)
                     ; /* eat rest of line and newline */
             }
+#endif
         }
-      }
+#ifdef SELF_RECOVER
+        if (c == 'r' || c == 'R') {
+            if (recover_savefile() && program_state.in_self_recover) {
+                set_levelfile_name(gl.lock, 0);
+                fq_lock = fqname(gl.lock, LEVELPREFIX, 0);
+                goto gotlock;
+            } else {
+                unlock_file(HLOCK);
+                error("Couldn't recover old game.");
+            }
+        } else
+#endif
         if (c == 'y' || c == 'Y') {
             if (eraseoldlocks()) {
                 goto gotlock;
@@ -198,27 +239,64 @@ getlock(void)
         }
     }
 
-gotlock:
+ gotlock:
     fd = creat(fq_lock, FCMASK);
     unlock_file(HLOCK);
     if (fd == -1) {
         error("cannot creat lock file (%s).", fq_lock);
+        /*NOTREACHED*/
     } else {
-        if (write(fd, (genericptr_t) &gh.hackpid, sizeof gh.hackpid)
-            != sizeof gh.hackpid) {
+        if (write(fd, (genericptr_t) &svh.hackpid, sizeof svh.hackpid)
+            != sizeof svh.hackpid) {
             error("cannot write lock (%s)", fq_lock);
+            /*NOTREACHED*/
         }
         if (close(fd) == -1) {
             error("cannot close lock (%s)", fq_lock);
+            /*NOTREACHED*/
         }
     }
+}
+
+/* caller couldn't find a regular save file but did find a panic one */
+void
+ask_about_panic_save(void)
+{
+#ifdef CHECK_PANIC_SAVE
+    static const char Instead_prompt[] = "Start a new game instead?";
+    int c = '\0';
+
+    pline("There is no regular save file but there is a panic one.");
+    pline("It might be recoverable with demi-divine intervention.");
+    if (iflags.window_inited) {
+        c = yn_function(Instead_prompt, "yn\033q", 'n', FALSE);
+    } else {
+        raw_printf("%s [yn] (n) ", Instead_prompt);
+        (void) fflush(stdout);
+        do {
+            c = getchar();
+            if (c == EOF || c == '\033' || c == '\0')
+                break;
+            c = lowc(c);
+        } while (!strchr("ynq\n", c));
+    }
+    if (c != 'y') {
+        /* caller successfully called getlock() and made <levelfile>.0 */
+        delete_levelfile(0);
+        unlock_file(HLOCK); /* just in case, release 'perm' */
+        if (iflags.window_inited)
+            exit_nhwindows((char *) 0);
+        nh_terminate(EXIT_SUCCESS);
+    }
+#endif
+    return; /* proceed with new game */
 }
 
 /* normalize file name - we don't like .'s, /'s, spaces */
 void
 regularize(char *s)
 {
-    register char *lp;
+    char *lp;
 
     while ((lp = strchr(s, '.')) != 0 || (lp = strchr(s, '/')) != 0
            || (lp = strchr(s, ' ')) != 0)
@@ -291,7 +369,7 @@ dosh(void)
 int
 child(int wt)
 {
-    register int f;
+    int f;
 
     suspend_nhwindows((char *) 0); /* also calls end_screen() */
 #ifdef _M_UNIX
@@ -399,3 +477,5 @@ file_exists(const char *path)
     return TRUE;
 }
 #endif
+
+/*unixunix.c*/

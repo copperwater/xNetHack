@@ -6,7 +6,7 @@
 
 int get_rect_ind(NhRect *);
 
-static boolean intersect(NhRect *, NhRect *, NhRect *);
+staticfn boolean intersect(NhRect *, NhRect *, NhRect *);
 
 /*
  * In this file, we will handle the various rectangle functions we
@@ -52,17 +52,18 @@ free_rect(void)
 {
     if (rect)
         free(rect);
+    rect = 0;
     n_rects = rect_cnt = 0;
 }
 
 /* Find and return the index of one precise NhRect, or -1 if it doesn't exist
  * in the rect array. */
 int
-get_rect_ind(NhRect* r)
+get_rect_ind(NhRect *r)
 {
-    register NhRect *rectp;
-    register int lx, ly, hx, hy;
-    register int i;
+    NhRect *rectp;
+    int lx, ly, hx, hy;
+    int i;
 
     lx = r->lx;
     ly = r->ly;
@@ -79,11 +80,11 @@ get_rect_ind(NhRect* r)
  * the given rectangle, and return it, or NULL if no such rectangle exists.
  */
 NhRect *
-get_rect(NhRect* r)
+get_rect(NhRect *r)
 {
-    register NhRect *rectp;
-    register int lx, ly, hx, hy;
-    register int i;
+    NhRect *rectp;
+    int lx, ly, hx, hy;
+    int i;
 
     lx = r->lx;
     ly = r->ly;
@@ -108,8 +109,9 @@ rnd_rect(void)
  * If they don't intersect at all, return FALSE.
  * If they do, set r3 to be the intersection, and return TRUE.
  */
-static boolean
-intersect(NhRect* r1, NhRect* r2, NhRect* r3)
+
+staticfn boolean
+intersect(NhRect *r1, NhRect *r2, NhRect *r3)
 {
     if (r2->lx > r1->hx || r2->ly > r1->hy || r2->hx < r1->lx
         || r2->hy < r1->ly)
@@ -140,7 +142,7 @@ rect_bounds(NhRect r1, NhRect r2, NhRect *r3)
  */
 
 void
-remove_rect(NhRect* r)
+remove_rect(NhRect *r)
 {
     int ind;
 
@@ -151,7 +153,7 @@ remove_rect(NhRect* r)
 
 /* Add the given rectangle to the rect array. */
 void
-add_rect(NhRect* r)
+add_rect(NhRect *r)
 {
     if (rect_cnt >= n_rects) {
         impossible("n_rects may be too small.");
@@ -175,7 +177,7 @@ add_rect(NhRect* r)
  * anywhere that isn't directly in line with r2.
  */
 void
-split_rects(NhRect* r1, NhRect* r2)
+split_rects(NhRect *r1, NhRect *r2)
 {
     NhRect r, old_r;
     int i;

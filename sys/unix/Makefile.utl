@@ -1,5 +1,5 @@
 #	Makefile for NetHack's utility programs.
-# NetHack 3.7  Makefile.utl    $NHDT-Date: 1602258295 2020/10/09 15:44:55 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.53 $
+# NetHack 3.7  Makefile.utl    $NHDT-Date: 1693334279 2023/08/29 18:37:59 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.68 $
 # Copyright (c) 2018 by Robert Patrick Rankin
 # NetHack may be freely redistributed.  See license for details.
 
@@ -189,13 +189,18 @@ CALLOC = ../src/alloc.c panic.c
 OALLOC = $(OBJDIR)/alloc.o panic.o
 # build time info
 CDATE = ../src/date.c
-ODATE = $(OBJDIR)/date.o
+ODATE = $(OBJDIR)/date.o 
+
+# hacklib utility routines
+HACKLIB = $(OBJDIR)/hacklib.a
+HACKLIBSRC = ../src/hacklib.c
+HACKLIBOBJ = $(OBJDIR)/hacklib.o panic.o
 
 # object files for makedefs
 MAKEOBJS = makedefs.o $(OMONOBJ) $(ODATE) $(OALLOC)
 
 # object files for recovery utility
-RECOVOBJS = $(TARGETPFX)recover.o
+RECOVOBJS = recover.o
 
 # object files for the data librarian
 DLBOBJS = dlb_main.o $(OBJDIR)/dlb.o $(OALLOC)
@@ -213,11 +218,12 @@ TARGET_CLINK = $(CLINK)
 TARGET_LFLAGS = $(LFLAGS)
 TARGET_CXX = $(CXX)
 TARGET_CXXFLAGS = $(CXXFLAGS)
+TARGET_AR = $(AR)
 
 #	dependencies for makedefs
 #
-makedefs:	$(MAKEOBJS) mdgrep.h
-	$(CLINK) $(LFLAGS) -o makedefs $(MAKEOBJS)
+makedefs:	$(HACKLIB) $(MAKEOBJS) mdgrep.h
+	$(CLINK) $(LFLAGS) -o makedefs $(MAKEOBJS) $(HACKLIB)
 
 
 # note: the headers listed here are maintained manually rather than via
@@ -232,6 +238,8 @@ makedefs.o: makedefs.c ../src/mdlib.c $(CONFIG_H) \
 		../include/you.h ../include/context.h ../include/flag.h \
 		../include/dlb.h ../include/patchlevel.h mdgrep.h
 	$(CC) $(CFLAGS) $(CSTD) -c makedefs.c -o $@
+
+$(OBJDIR)/hacklib.o: $(HACKLIBSRC)
 
 # Don't require perl to build; that is why mdgrep.h is spelled wrong below.
 mdgreph: mdgrep.pl
@@ -252,6 +260,9 @@ lintdefs:
 ../include/date.h::
 	@( cd ../src ; $(MAKE) ../include/date.h )
 
+$(HACKLIB): $(CONFIG_H) $(HACKLIBSRC) panic.o
+	@( cd ../src ; $(MAKE) hacklib.a )
+
 # support code used by several of the utility programs (but not makedefs)
 panic.o:     panic.c $(CONFIG_H)
 	$(CC) $(CFLAGS) $(CSTD) -c panic.c -o $@
@@ -266,17 +277,18 @@ lintdgn:
 
 #	dependencies for recover
 #
-$(TARGETPFX)recover: $(RECOVOBJS)
-	$(TARGET_CLINK) $(TARGET_LFLAGS) -o recover $(RECOVOBJS) $(LIBS)
+recover: $(RECOVOBJS) $(HACKLIB)
+	$(CLINK) $(LFLAGS) -o recover \
+		$(RECOVOBJS) $(HACKLIB) $(LIBS)
 
-$(TARGETPFX)recover.o: recover.c $(CONFIG_H)
-	$(TARGET_CC) $(TARGET_CFLAGS) $(CSTD) -c recover.c -o $@
+recover.o: recover.c $(CONFIG_H)
+	$(CC) $(CFLAGS) $(CSTD) -c recover.c -o $@
 
 
 #	dependencies for dlb
 #
-dlb:	$(DLBOBJS)
-	$(CLINK) $(LFLAGS) -o dlb $(DLBOBJS) $(LIBS)
+dlb:	$(DLBOBJS) $(HACKLIB)
+	$(CLINK) $(LFLAGS) -o dlb $(DLBOBJS) $(HACKLIB) $(LIBS)
 
 dlb_main.o: dlb_main.c $(CONFIG_H) ../include/dlb.h
 	$(CC) $(CFLAGS) $(CSTD) -c dlb_main.c -o $@
@@ -295,30 +307,34 @@ gif2txt: $(GIFREADERS) $(TEXT_IO)
 txt2ppm: $(PPMWRITERS) $(TEXT_IO)
 	$(CLINK) $(LFLAGS) -o txt2ppm $(PPMWRITERS) $(TEXT_IO) $(LIBS)
 
-tile2x11: tile2x11.o $(TEXT_IO)
-	$(CLINK) $(LFLAGS) -o tile2x11 tile2x11.o $(TEXT_IO) $(LIBS)
+tile2x11: tile2x11.o $(TEXT_IO) $(HACKLIB)
+	$(CLINK) $(LFLAGS) -o tile2x11 tile2x11.o $(TEXT_IO) \
+		$(HACKLIB) $(LIBS)
 
 tile2img.ttp: tile2img.o bitmfile.o $(TEXT_IO)
 	$(CLINK) $(LFLAGS) -o tile2img.ttp tile2img.o bitmfile.o \
 		$(TEXT_IO) $(LIBS)
 
-tile2bmp: tile2bmp.o $(TEXT_IO)
-	$(CLINK) $(LFLAGS) -o tile2bmp tile2bmp.o $(TEXT_IO)
+tile2bmp: tile2bmp.o $(TEXT_IO) $(HACKLIB)
+	$(CLINK) $(LFLAGS) -o tile2bmp tile2bmp.o $(TEXT_IO) $(HACKLIB)
 
 xpm2img.ttp: xpm2img.o bitmfile.o
 	$(CLINK) $(LFLAGS) -o xpm2img.ttp xpm2img.o bitmfile.o $(LIBS)
 
-tile2beos: tile2beos.o $(TEXT_IO)
-	$(CXXLINK) $(LFLAGS) -o tile2beos tile2beos.o $(TEXT_IO) -lbe
+tile2beos: tile2beos.o $(TEXT_IO) $(HACKLIB)
+	$(CXXLINK) $(LFLAGS) -o tile2beos tile2beos.o \
+		$(TEXT_IO) $(HACKLIB) -lbe
 
 #--compiling and linking in one step leaves extra debugging files (in their
 #  own subdirectories!) on OSX; compile and link separately to suppress
 #  that without mucking about with extra OS-specific CFLAGS and/or LFLAGS
 #tilemap: ../win/share/tilemap.c $(HACK_H)
 #	$(CC) $(CFLAGS) $(LFLAGS) -o tilemap ../win/share/tilemap.c $(LIBS)
-tilemap: tilemap.o $(OBJDIR)/objects.o $(OBJDIR)/monst.o $(OBJDIR)/drawing.o
+tilemap: tilemap.o $(OBJDIR)/objects.o $(OBJDIR)/monst.o $(OBJDIR)/drawing.o \
+	$(HACKLIB)
 	$(CLINK) $(LFLAGS) -o tilemap tilemap.o $(OBJDIR)/objects.o  \
-		$(OBJDIR)/monst.o  $(OBJDIR)/drawing.o $(LIBS)
+		$(OBJDIR)/monst.o  $(OBJDIR)/drawing.o $(HACKLIB) \
+		$(LIBS)
 ../src/tile.c: tilemap
 	./tilemap
 
@@ -378,7 +394,7 @@ uudecode.o: ../sys/share/uudecode.c
 # make sure host object files from src are available when needed
 # (note: these dependencies have been copied from Makefile.src so only come
 # indirectly from 'make depend', hence are subject to bit rot as src changes)
-$(OBJDIR)/alloc.o: ../src/alloc.c $(CONFIG_H)
+$(OBJDIR)/alloc.o: ../src/alloc.c $(CONFIG_H) ../include/nhlua.h
 	$(CC) $(CFLAGS) $(CSTD) -c ../src/alloc.c -o $@
 $(OBJDIR)/drawing.o: ../src/drawing.c $(CONFIG_H) ../include/color.h \
 		../include/rm.h ../include/objclass.h ../include/defsym.h \
@@ -388,8 +404,8 @@ $(OBJDIR)/decl.o: ../src/decl.c $(HACK_H)
 	$(CC) $(CFLAGS) $(CSTD) -c ../src/decl.c -o $@
 $(OBJDIR)/monst.o: ../src/monst.c $(CONFIG_H) ../include/permonst.h \
 		../include/align.h ../include/monattk.h ../include/monflag.h \
-		../include/monsters.h ../include/sym.h ../include/defsym.h \
-		../include/color.h
+		../include/monsters.h ../include/wintype.h ../include/sym.h \
+		../include/defsym.h ../include/color.h
 	$(CC) $(CFLAGS) $(CSTD) -c ../src/monst.c -o $@
 $(OBJDIR)/objects.o: ../src/objects.c $(CONFIG_H) ../include/obj.h \
 		../include/prop.h ../include/skills.h ../include/color.h \
@@ -400,7 +416,8 @@ $(OBJDIR)/dlb.o: ../src/dlb.c $(CONFIG_H) ../include/dlb.h
 # this differs substantially from what Makefile.src specifies
 $(OBJDIR)/date.o: ../src/date.c $(CONFIG_H)
 	$(CC) $(CFLAGS) $(CSTD) -c ../src/date.c -o $@
-
+../include/nhlua.h:
+	@( cd .. ; $(MAKE) lua_support )
 # make sure hack.h dependencies get transitive information
 $(HACK_H): $(CONFIG_H)
 	@( cd ../src ; $(MAKE) $(HACK_H) )
@@ -424,7 +441,10 @@ clean-fixup:
 clean: clean-fixup
 	-rm -f *.o
 
+# obsolete dgn_comp and lev_comp could be left around from 3.6.x
 spotless: clean
-	-rm -f makedefs recover dlb
+	-rm -f makedefs recover dlb $(HACKLIB)
 	-rm -f gif2txt txt2ppm tile2x11 tile2img.ttp xpm2img.ttp \
 		tilemap tileedit tile2bmp uudecode
+	-rm -f dgn_comp* dgn_lex.c dgn_yacc.c ../include/dgn_comp.h \
+		lev_comp* lev_lex.c lev_yacc.c ../include/lev_comp.h

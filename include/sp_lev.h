@@ -84,6 +84,11 @@ enum lvlinit_types {
 #define SPACELOC    0x40 /* like DRY, but accepts furniture too */
 #define NOFLOOR     0x80 /* allows open air to be selected */
 
+/* has_invent flags */
+#define NO_INVENT 0         /* monster doesn't get any invent */
+#define CUSTOM_INVENT 0x01  /* monster gets items specified in lua */
+#define DEFAULT_INVENT 0x02 /* monster gets items from makemon() */
+
 #define SP_COORD_X(l) (l & 0xff)
 #define SP_COORD_Y(l) ((l >> 16) & 0xff)
 #define SP_COORD_PACK(x, y) (((x) & 0xff) + (((y) & 0xff) << 16))
@@ -166,7 +171,7 @@ typedef struct {
     int quan;
     short buried;
     short lit;
-    short eroded, locked, trapped, recharged, invis, greased, broken,
+    short eroded, locked, trapped, tknown, recharged, invis, greased, broken,
           achievement;
     xint8 material;
 } object;

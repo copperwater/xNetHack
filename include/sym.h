@@ -1,4 +1,4 @@
-/* NetHack 3.7	sym.h */
+/* NetHack	3.7	sym.h	$NHDT-Date: $ $NHDT-Branch: $ $NHDT-Revision: $ */
 /*      Copyright (c) 2016 by Pasi Kallinen              */
 /* NetHack may be freely redistributed.  See license for details. */
 
@@ -52,12 +52,11 @@ enum symset_handling_types {
 struct symdef {
     uchar sym;
     const char *explanation;
-#ifdef TEXTCOLOR
     uchar color;
-#endif
 };
 
 enum symparse_range {
+    SYM_INVALID = 0,
     SYM_CONTROL = 1, /* start/finish markers */
     SYM_PCHAR = 2,   /* index into showsyms  */
     SYM_OC = 3,      /* index into oc_syms   */
@@ -104,9 +103,9 @@ struct symsetentry {
 #define is_cmap_corr(i) ((i) >= S_corr && (i) <= S_litcorr)
 #define is_cmap_furniture(i) ((i) >= S_upstair && (i) <= S_fountain)
 #define is_cmap_water(i) ((i) == S_pool || (i) == S_water)
-#define is_cmap_lava(i) ((i) == S_lava)
-#define is_cmap_stairs(i) ((i) == S_upstair || (i) == S_dnstair || \
-                           (i) == S_upladder || (i) == S_dnladder)
+#define is_cmap_lava(i) ((i) == S_lava || (i) == S_lavawall)
+#define is_cmap_stairs(i) ((i) >= S_upstair && (i) <= S_brdnladder)
+#define is_cmap_engraving(i) ((i) == S_engroom || (i) == S_engrcorr)
 
 /* misc symbol definitions */
 enum misc_symbols {
@@ -130,8 +129,14 @@ enum graphics_sets {
         UNICODESET = NUM_GRAPHICS
 };
 
-#ifdef ENHANCED_SYMBOLS
-enum customization_types { custom_none, custom_symbols, custom_ureps };
+enum do_customizations {
+       do_custom_none,
+       do_custom_colors,
+       do_custom_symbols
+};
+
+enum customization_types { custom_none, custom_symbols,
+    custom_ureps, custom_nhcolor,  custom_count };
 
 struct custom_symbol {
     const struct symparse *symparse;
@@ -141,9 +146,14 @@ struct custom_urep {
     int glyphidx;
     struct unicode_representation u;
 };
+struct custom_nhcolor {
+    int glyphidx;
+    uint32 nhcolor;
+};
 union customization_content {
     struct custom_symbol sym;
     struct custom_urep urep;
+    struct custom_nhcolor ccolor;
 };
 struct customization_detail {
     union customization_content content;
@@ -155,11 +165,10 @@ struct customization_detail {
 struct symset_customization {
     const char *customization_name;
     int count;
-    int custtype;
+    enum customization_types custtype;
     struct customization_detail *details;
     struct customization_detail *details_end;
 };
-#endif /* ENHANCED_SYMBOLS */
 
 extern const struct symdef defsyms[MAXPCHARS + 1]; /* defaults */
 #define WARNCOUNT 6 /* number of different warning levels */

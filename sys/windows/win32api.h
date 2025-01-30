@@ -3,7 +3,7 @@
 /* NetHack may be freely redistributed.  See license for details. */
 
 /*
- * This header file is used to clear up some discrepencies with Visual C
+ * This header file is used to clear up some discrepancies with Visual C
  * header files & NetHack before including windows.h, so all NetHack
  * files should include "win32api.h" rather than <windows.h>.
  */
@@ -30,6 +30,8 @@
 #error win32api.h should be included first
 #endif
 
+#include "config.h"
+
 #if defined(_MSC_VER)
 #pragma warning(disable : 4142) /* Warning, Benign redefinition of type */
 #pragma pack(8)
@@ -37,7 +39,6 @@
 
 #ifdef DEBUG
 #define _CRTDBG_MAP_ALLOC
-#include <stdlib.h>
 #include <crtdbg.h>
 #endif
 

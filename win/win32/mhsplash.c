@@ -135,6 +135,8 @@ mswin_display_splash_window(BOOL show_ver)
     mswin_set_splash_data(hWnd, &splashData, monitorInfo.scale);
  
     SetWindowLongPtr(hWnd, GWLP_USERDATA, (LONG_PTR) &splashData);
+    windowdata[NHW_SPLASH].address = (genericptr_t) &splashData;
+    windowdata[NHW_SPLASH].isstatic = 1;
     
     GetNHApp()->hPopupWnd = hWnd;
 
@@ -257,6 +259,7 @@ NHSplashWndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
         DrawText(hdc, VersionString, strlen(VersionString), &rt,
                  DT_LEFT | DT_NOPREFIX);
         EndPaint(hWnd, &ps);
+	nhUse(OldFont);
     } break;
 
     case WM_COMMAND:
