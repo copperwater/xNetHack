@@ -50,7 +50,7 @@
  *              src/makemon.c:  if (mmflags & MM_XX) newXX(mtmp);
  *              your new code:  mon = makemon(&mons[mnum], x, y, MM_XX);
  *
- *       7. Adjust size_monst() in src/cmd.c appropriately.
+ *       7. Adjust size_monst() in src/wizcmds.c appropriately.
  *       8. Adjust dealloc_mextra() in src/mon.c to clean up
  *          properly during monst deallocation.
  *       9. Adjust copy_mextra() in src/mon.c to make duplicate
