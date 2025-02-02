@@ -506,6 +506,13 @@ savebones(int how, time_t when, struct obj *corpse)
         mtmp->mhp = mtmp->mhpmax = u.uhpmax;
         mtmp->female = flags.female;
         mtmp->msleeping = 1;
+        if (!has_former(mtmp))
+            newformer(mtmp);
+        if (has_former(mtmp)) {
+            Snprintf(FORMER(mtmp)->rank,
+                     sizeof FORMER(mtmp)->rank,
+                     "%s", rank());
+        }
     }
     for (mtmp = fmon; mtmp; mtmp = mtmp->nmon) {
         set_ghostly_objlist(mtmp->minvent);

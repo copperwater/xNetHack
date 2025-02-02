@@ -257,6 +257,7 @@ extern char *do_statusline2(void);
 extern void bot(void);
 extern void timebot(void);
 extern int xlev_to_rank(int);
+extern const char *rank(void);
 extern int rank_to_xlev(int);
 extern const char *rank_of(int, short, boolean);
 extern int title_to_mon(const char *, int *, int *);
@@ -1442,6 +1443,8 @@ extern void mkmonmoney(struct monst *, long) NONNULLARG1;
 extern int bagotricks(struct obj *, boolean, int *);
 extern boolean propagate(int, boolean, boolean);
 extern void summon_furies(int);
+extern void newformer(struct monst *) NONNULLARG1;
+extern void free_former(struct monst *) NONNULLARG1;
 
 /* ### mcastu.c ### */
 

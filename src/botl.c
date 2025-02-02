@@ -16,7 +16,6 @@ const char *const enc_stat[] = {
     "Strained", "Overtaxed", "Overloaded"
 };
 
-staticfn const char *rank(void);
 staticfn void bot_via_windowport(void);
 staticfn void stat_update_time(void);
 staticfn char *get_strength_str(void);
@@ -361,7 +360,7 @@ rank_of(int lev, short monnum, boolean female)
     return "Player";
 }
 
-staticfn const char *
+const char *
 rank(void)
 {
     return rank_of(u.ulevel, Role_switch, flags.female);

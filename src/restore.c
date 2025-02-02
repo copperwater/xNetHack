@@ -370,6 +370,15 @@ restmon(NHFILE *nhfp, struct monst *mtmp)
                EDOG(mtmp)->apport = 1;
            }
         }
+        /* former - info about former self, primarily for bones files */
+        if (nhfp->structlevel)
+            Mread(nhfp->fd, &buflen, sizeof buflen);
+        if (buflen > 0) {
+            newformer(mtmp);
+            if (nhfp->structlevel)
+                Mread(nhfp->fd, FORMER(mtmp),
+                      sizeof (struct former_incarnation));
+        }
         /* mcorpsenm - obj->corpsenm for mimic posing as corpse or
            statue (inline int rather than pointer to something) */
         if (nhfp->structlevel)
