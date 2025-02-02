@@ -509,9 +509,9 @@ savebones(int how, time_t when, struct obj *corpse)
         if (!has_former(mtmp))
             newformer(mtmp);
         if (has_former(mtmp)) {
-            Snprintf(FORMER(mtmp)->rank,
-                     sizeof FORMER(mtmp)->rank,
-                     "%s", rank());
+            FORMER(mtmp)->rank.lev = mtmp->m_lev;
+            FORMER(mtmp)->rank.mnum = Role_switch;
+            FORMER(mtmp)->rank.female = flags.female;
         }
     }
     for (mtmp = fmon; mtmp; mtmp = mtmp->nmon) {

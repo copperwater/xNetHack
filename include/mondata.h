@@ -260,14 +260,6 @@
             || objects[(obj)->otyp].oc_material == VEGGY                 \
             || ((obj)->otyp == CORPSE && (obj)->corpsenm == PM_LICHEN))))
 
-/* is_bones_monster() is currently only used by hardfought livelog,
- * but is included as part of savefile field compatibility adjustments.
- */
-#define is_bones_monster(ptr) \
-    ((ptr) == &mons[PM_GHOST] || (ptr) == &mons[PM_GHOUL]        \
-     || (ptr) == &mons[PM_VAMPIRE] || (ptr) == &mons[PM_WRAITH]  \
-     || (ptr) == &mons[PM_GREEN_SLIME] || (ptr)->mlet == S_MUMMY)
-
 #ifdef PMNAME_MACROS
 #define pmname(ptr,g) ((((g) == MALE || (g) == FEMALE) && (ptr)->pmnames[g]) \
                         ? (ptr)->pmnames[g] : (ptr)->pmnames[NEUTRAL])

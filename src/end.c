@@ -204,7 +204,12 @@ done_in_by(struct monst *mtmp, int how)
         svk.killer.format = KILLED_BY;
     }
     /* _the_ <invisible> <distorted> ghost of Dudley */
+#if 0
+    /* hardfought */
+    if (has_former(mtmp) && FORMER(mtmp)->rank.mnum != NON_PM) {
+#else
     if (mptr == &mons[PM_GHOST] && has_mgivenname(mtmp)) {
+#endif
         Strcat(buf, "the ");
         svk.killer.format = KILLED_BY;
     }
@@ -247,6 +252,10 @@ done_in_by(struct monst *mtmp, int how)
                                : "%s imitating %s",
                 realnm, shape);
         mptr = mtmp->data; /* reset for mimicker case */
+#if 0  /* hardfought */
+    } else if (has_former(mtmp) && FORMER(mtmp)->rank.mnum != NON_PM)
+        Strcpy(buf, m_monnam(mtmp));
+#endif
     } else if (mptr == &mons[PM_GHOST]) {
         Strcat(buf, "ghost");
         if (has_mgivenname(mtmp))

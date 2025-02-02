@@ -3644,15 +3644,13 @@ xkilled(
 
 #if 0  /* HARDFOUGHT-only at present */
 #ifdef LIVELOG
-    if (is_bones_monster(mtmp->data)
-        && has_former(mtmp) && *FORMER(mtmp)->rank
-        && strlen(FORMER(mtmp)->rank) > 0) {
-        if (mtmp->data == &mons[PM_GHOST])
-            livelog_printf(LL_UMONST, "destroyed %s, the former %s",
-                           livelog_mon_nam(mtmp), FORMER(mtmp)->rank);
-        else
-            livelog_printf(LL_UMONST, "destroyed %s, and former %s",
-                           livelog_mon_nam(mtmp), FORMER(mtmp)->rank);
+    if (has_former(mtmp) && FORMER(mtmp)->rank.mnum != NON_PM) {
+        livelog_printf(LL_UMONST, "destroyed %s, %s former %s",
+                       livelog_mon_nam(mtmp),
+                       (mtmp->data == &mons[PM_GHOST]) ? "the" : "and",
+                       rank_of(FORMER(mtmp)->rank.lev,
+                               FORMER(mtmp)->rank.mnum,
+                               FORMER(mtmp)->rank.female));
     }
 #endif  /* LIVELOG */
 #endif
