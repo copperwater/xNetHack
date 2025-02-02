@@ -561,6 +561,7 @@ neweshk(struct monst *mtmp)
     if (!ESHK(mtmp))
         ESHK(mtmp) = (struct eshk *) alloc(sizeof(struct eshk));
     (void) memset((genericptr_t) ESHK(mtmp), 0, sizeof(struct eshk));
+    ESHK(mtmp)->parentmid = mtmp->m_id;
     ESHK(mtmp)->bill_p = (struct bill_x *) 0;
 }
 

@@ -27,6 +27,7 @@ newegd(struct monst *mtmp)
     if (!EGD(mtmp)) {
         EGD(mtmp) = (struct egd *) alloc(sizeof (struct egd));
         (void) memset((genericptr_t) EGD(mtmp), 0, sizeof (struct egd));
+        EGD(mtmp)->parentmid = mtmp->m_id;
     }
 }
 
