@@ -183,6 +183,7 @@ struct edog {
 };
 
 struct former_incarnation {
+    unsigned parentmid;       /* make clobber-detection possible */
     char rank[25];            /* for bones' ghost rank in their former life */
 };
 

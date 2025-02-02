@@ -1080,6 +1080,7 @@ newformer(struct monst *mtmp)
                         sizeof(struct former_incarnation *));
         (void) memset((genericptr_t) FORMER(mtmp), 0,
                       sizeof(struct former_incarnation *));
+        FORMER(mtmp)->parentmid = mtmp->m_id;
     }
 }
 
