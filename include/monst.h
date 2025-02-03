@@ -1,4 +1,4 @@
-/* NetHack 3.7	monst.h	$NHDT-Date: 1678560511 2023/03/11 18:48:31 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.54 $ */
+/* NetHack 3.7	monst.h	$NHDT-Date: 1738640524 2025/02/03 19:42:04 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.67 $ */
 /* Copyright (c) Stichting Mathematisch Centrum, Amsterdam, 1985. */
 /*-Copyright (c) Robert Patrick Rankin, 2016. */
 /* NetHack may be freely redistributed.  See license for details. */
@@ -268,22 +268,15 @@ struct monst {
 #endif
 #define mon_resistancebits(mon) \
     ((mon)->data->mresists | (mon)->mextrinsics | (mon)->mintrinsics)
-#define resists_fire(mon) \
-    ((mon_resistancebits(mon) & MR_FIRE) != 0)
-#define resists_cold(mon) \
-    ((mon_resistancebits(mon) & MR_COLD) != 0)
-#define resists_sleep(mon) \
-    ((mon_resistancebits(mon) & MR_SLEEP) != 0)
-#define resists_disint(mon) \
-    ((mon_resistancebits(mon) & MR_DISINT) != 0)
-#define resists_elec(mon) \
-    ((mon_resistancebits(mon) & MR_ELEC) != 0)
-#define resists_poison(mon) \
-    ((mon_resistancebits(mon) & MR_POISON) != 0)
-#define resists_acid(mon) \
-    ((mon_resistancebits(mon) & MR_ACID) != 0)
-#define resists_ston(mon) \
-    ((mon_resistancebits(mon) & MR_STONE) != 0)
+#define resists_fire(mon)   Resists_Elem(mon, MR_FIRE)
+#define resists_cold(mon)   Resists_Elem(mon, MR_COLD)
+#define resists_sleep(mon)  Resists_Elem(mon, MR_SLEEP)
+#define resists_disint(mon) Resists_Elem(mon, MR_DISINT)
+#define resists_elec(mon)   Resists_Elem(mon, MR_ELEC)
+#define resists_poison(mon) Resists_Elem(mon, MR_POISON)
+#define resists_acid(mon)   Resists_Elem(mon, MR_ACID)
+#define resists_ston(mon)   Resists_Elem(mon, MR_STONE)
+
 #define is_lminion(mon) \
     (is_minion((mon)->data) && mon_aligntyp(mon) == A_LAWFUL)
 

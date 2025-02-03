@@ -1,4 +1,4 @@
-NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.1484 $ $NHDT-Date: 1726862062 2024/09/20 19:54:22 $
+NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.1533 $ $NHDT-Date: 1738638877 2025/02/03 19:14:37 $
 
 General Fixes and Modified Features
 -----------------------------------
@@ -1500,6 +1500,10 @@ when you hear a monster incant a scroll, ensure that the 'I' invisible
 proceed with showpaths option even if the sysconf file is missing
 angry shopkeeper was not charging for thrown items
 avoid "You fall down a deep shaft!" if deliberately flying down
+since introduction in 3.1.0, the definition for Mitre of Holiness has specified
+	that carrying it provides fire resistance, but that had never been
+	implemented; wearing it didn't confer fire resistance either--there is
+	no 'defends' capability for it since carrying should encompass that
 
 
 Fixes to 3.7.0-x General Problems Exposed Via git Repository
