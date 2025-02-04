@@ -767,6 +767,7 @@ struct role_filter {
     boolean roles[NUM_ROLES + 1];
     short mask;
 };
+#define NUM_RACES (5)
 
 enum saveformats {
     invalid = 0,

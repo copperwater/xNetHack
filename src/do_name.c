@@ -273,7 +273,7 @@ do_mgivenname(void)
             verbalize("I'm %s, not %s.", shkname(mtmp), buf);
         }
     } else if (mtmp->ispriest || mtmp->isminion || mtmp->isshk
-               || mtmp->data == &mons[PM_GHOST]) {
+               || mtmp->data == &mons[PM_GHOST] || has_ebones(mtmp)) {
         if (!alreadynamed(mtmp, monnambuf, buf))
             pline("%s will not accept the name %s.", upstart(monnambuf), buf);
     } else {
@@ -956,7 +956,7 @@ x_monnam(
 
 #if 0
       /* hardfought */
-      if (has_former(mtmp) && FORMER(mtmp)->rank.mnum != NON_PM) {
+      if (has_ebones(mtmp)) {
 #endif
         if (mdat == &mons[PM_GHOST]) {
             Sprintf(eos(buf), "%s ghost", s_suffix(name));

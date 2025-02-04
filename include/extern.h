@@ -248,6 +248,8 @@ extern void savebones(int, time_t, struct obj *);
 extern int getbones(void);
 extern boolean bones_include_name(const char *) NONNULLARG1;
 extern void fix_ghostly_obj(struct obj *) NONNULLARG1;
+extern void newebones(struct monst *) NONNULLARG1;
+extern void free_ebones(struct monst *) NONNULLARG1;
 
 /* ### botl.c ### */
 
@@ -1443,8 +1445,6 @@ extern void mkmonmoney(struct monst *, long) NONNULLARG1;
 extern int bagotricks(struct obj *, boolean, int *);
 extern boolean propagate(int, boolean, boolean);
 extern void summon_furies(int);
-extern void newformer(struct monst *) NONNULLARG1;
-extern void free_former(struct monst *) NONNULLARG1;
 
 /* ### mcastu.c ### */
 

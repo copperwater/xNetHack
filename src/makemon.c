@@ -1070,29 +1070,6 @@ newmextra(void)
     return mextra;
 }
 
-void
-newformer(struct monst *mtmp)
-{
-    if (!mtmp->mextra)
-        mtmp->mextra = newmextra();
-    if (!FORMER(mtmp)) {
-        FORMER(mtmp) = (struct former_incarnation *) alloc(
-                        sizeof(struct former_incarnation *));
-        (void) memset((genericptr_t) FORMER(mtmp), 0,
-                      sizeof(struct former_incarnation *));
-        FORMER(mtmp)->parentmid = mtmp->m_id;
-    }
-}
-
-void
-free_former(struct monst *mtmp)
-{
-    if (mtmp->mextra && FORMER(mtmp)) {
-        free((genericptr_t) FORMER(mtmp));
-        FORMER(mtmp) = (struct former_incarnation *) 0;
-    }
-}
-
 staticfn boolean
 makemon_rnd_goodpos(
     struct monst *mon,

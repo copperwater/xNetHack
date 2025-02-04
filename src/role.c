@@ -24,6 +24,9 @@
  *
  * God names use a leading underscore to flag goddesses.
  */
+
+/* NUM_ROLES is defined in hack.h */
+
 const struct Role roles[NUM_ROLES+1] = {
     { { "Archeologist", 0 },
       { { "Digger", 0 },
@@ -573,7 +576,9 @@ const struct Role roles[NUM_ROLES+1] = {
 };
 
 /* Table of all races */
-const struct Race races[] = {
+
+/* NUM_RACES is defined in hack.h */
+const struct Race races[NUM_RACES + 1] = {
     {
         "human",
         "human",
