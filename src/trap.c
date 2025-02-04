@@ -7233,8 +7233,12 @@ doortrapped(int x, int y, struct monst * mon, int bodypart, int action,
     else if (selected_trap == FIRE_BLAST && after
              && (action == D_ISOPEN || action == D_BROKEN
                  || action == -D_TRAPPED)) {
-        /* TODO: ensure explode() wakes monsters without having to call it
-         * here */
+        int dam = rnd(lvl);
+        if (door_is_iron(door)) {
+            /* more damage for iron doors, since flying pieces of metal are more
+             * damaging */
+            dam *= 3;
+        }
         if (byu || canseedoor) {
             /* if !byu, this will be preceded by "You see a door open." or "Foo
              * opens a door." */
@@ -7251,8 +7255,9 @@ doortrapped(int x, int y, struct monst * mon, int bodypart, int action,
          * door and call doortrapped() again */
         set_door_trap(door, FALSE); /* trap is gone */
         explode(x, y, 11, rnd(lvl), EXPLODING_DOOR, EXPL_FIERY);
-        /* don't need to set doorstate since the door should be consumed in
-         * flames */
+        /* wooden doors will be consumed in flames and don't need to set
+         * doorstate; however, iron ones won't burn so we need to set it */
+        set_doorstate(door, D_NODOOR);
     }
     if ((saved_doorstate != D_NODOOR && saved_doorstate != D_BROKEN)
         && (doorstate(door) == D_NODOOR || doorstate(door) == D_BROKEN)) {
