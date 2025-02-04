@@ -253,7 +253,7 @@ done_in_by(struct monst *mtmp, int how)
                 realnm, shape);
         mptr = mtmp->data; /* reset for mimicker case */
 #if 0  /* hardfought */
-    } else if (has_ebones(mtmp))
+    } else if (has_ebones(mtmp)) {
         Strcpy(buf, m_monnam(mtmp));
 #endif
     } else if (mptr == &mons[PM_GHOST]) {
