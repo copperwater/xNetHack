@@ -50,7 +50,7 @@ staticfn void move_update(boolean);
 staticfn int pickup_checks(void);
 staticfn void maybe_wail(void);
 staticfn boolean water_turbulence(coordxy *, coordxy *);
-staticfn boolean summon_thronerm_dlord(int);
+staticfn boolean summon_thronerm_archfiend(int);
 
 #define IS_SHOP(x) (svr.rooms[x].rtype >= SHOPBASE)
 
@@ -3665,7 +3665,7 @@ check_special_room(boolean newlev)
                   Blind ? "humid" : "muddy");
             break;
         case COURT:
-            if (summon_thronerm_dlord(roomno))
+            if (summon_thronerm_archfiend(roomno))
                 break;
             else  /* generic case */
                 You("enter an opulent%s room!",
@@ -4606,12 +4606,12 @@ environment_damages_u(void)
     }
 }
 
-/* We have just entered a throne room; check if we are in a demon lord lair, and
- * if so, spawn in that demon lord in the center of the throne room.
+/* We have just entered a throne room; check if we are in an archfiend's lair,
+ * and if so, spawn in that archfiend in the center of the throne room.
  * argument 'roomno' is index into svr.rooms of the throne room we just entered.
- * Return TRUE if a demon lord was spawned in or FALSE if not. */
+ * Return TRUE if an archfiend was spawned in or FALSE if not. */
 staticfn boolean
-summon_thronerm_dlord(int roomno)
+summon_thronerm_archfiend(int roomno)
 {
     boolean lair;
     int boss_mndx = find_boss(&lair);
@@ -4624,7 +4624,7 @@ summon_thronerm_dlord(int roomno)
                                                elsewhere... */
         && (is_archfiend(&mons[boss_mndx]))) {
         /* possible enhancement: scan for a throne in this room, and spawn the
-         * demon lord on it if one exists. Currently, no demon lords have
+         * archfiend on it if one exists. Currently, no archfiends have
          * thrones, though. */
         coordxy x = svr.rooms[roomno].lx + ((svr.rooms[roomno].hx -
                                              svr.rooms[roomno].lx) / 2);
@@ -4633,7 +4633,7 @@ summon_thronerm_dlord(int roomno)
         struct monst *mtmp = makemon(&mons[boss_mndx], x, y,
                                      MM_NOMSG | MM_ADJACENTOK);
         if (!mtmp) {
-            impossible("Failed to spawn in demon lord %d", boss_mndx);
+            impossible("Failed to spawn in archfiend %d", boss_mndx);
             return FALSE;
         }
         if (!boss_entrance(mtmp))
