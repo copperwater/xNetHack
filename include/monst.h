@@ -268,14 +268,14 @@ struct monst {
 #endif
 #define mon_resistancebits(mon) \
     ((mon)->data->mresists | (mon)->mextrinsics | (mon)->mintrinsics)
-#define resists_fire(mon)   Resists_Elem(mon, MR_FIRE)
-#define resists_cold(mon)   Resists_Elem(mon, MR_COLD)
-#define resists_sleep(mon)  Resists_Elem(mon, MR_SLEEP)
-#define resists_disint(mon) Resists_Elem(mon, MR_DISINT)
-#define resists_elec(mon)   Resists_Elem(mon, MR_ELEC)
-#define resists_poison(mon) Resists_Elem(mon, MR_POISON)
-#define resists_acid(mon)   Resists_Elem(mon, MR_ACID)
-#define resists_ston(mon)   Resists_Elem(mon, MR_STONE)
+#define resists_fire(mon)   Resists_Elem(mon, FIRE_RES)
+#define resists_cold(mon)   Resists_Elem(mon, COLD_RES)
+#define resists_sleep(mon)  Resists_Elem(mon, SLEEP_RES)
+#define resists_disint(mon) Resists_Elem(mon, DISINT_RES)
+#define resists_elec(mon)   Resists_Elem(mon, SHOCK_RES)
+#define resists_poison(mon) Resists_Elem(mon, POISON_RES)
+#define resists_acid(mon)   Resists_Elem(mon, ACID_RES)
+#define resists_ston(mon)   Resists_Elem(mon, STONE_RES)
 
 #define is_lminion(mon) \
     (is_minion((mon)->data) && mon_aligntyp(mon) == A_LAWFUL)

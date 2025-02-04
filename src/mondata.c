@@ -126,24 +126,24 @@ defended(struct monst *mon, int adtyp)
 /* returns True if monster resists particular elemental damage; mostly used
    in order to check effects of carried artifacts */
 boolean
-Resists_Elem(struct monst *mon, int restyp)
+Resists_Elem(struct monst *mon, int proptyp)
 {
     struct obj *o;
     long slotmask;
     boolean is_you = (mon == &gy.youmonst);
-    int u_resist, dmgtyp = 0, proptyp = 0;
+    int u_resist = 0, dmgtyp = 0, restyp = 0;
 
-    switch (restyp) {
-    case MR_FIRE:
-    case MR_COLD:
-    case MR_SLEEP:
-    case MR_DISINT:
-    case MR_ELEC:
-    case MR_POISON:
-    case MR_ACID:
-    case MR_STONE:
-        dmgtyp = restyp;
-        proptyp = dmgtyp - 1; /* valid for dmgtyp|restyp 2..9 */
+    switch (proptyp) {
+    case FIRE_RES:
+    case COLD_RES:
+    case SLEEP_RES:
+    case DISINT_RES:
+    case SHOCK_RES:
+    case POISON_RES:
+    case ACID_RES:
+    case STONE_RES:
+        dmgtyp = restyp = proptyp + 1; /* valid for dmgtyp|restyp 2..9 */
+        u_resist = u.uprops[proptyp].intrinsic || u.uprops[proptyp].extrinsic;
         break;
 
     /* accept these, but we expect callers to use their routines directly */
@@ -155,10 +155,9 @@ Resists_Elem(struct monst *mon, int restyp)
         return resists_blnd(mon);
 
     default:
-        impossible("Resists_Elem(%d), unexpected resistance type", restyp);
+        impossible("Resists_Elem(%d), unexpected property type", proptyp);
         return FALSE;
     }
-    u_resist = u.uprops[restyp].intrinsic || u.uprops[restyp].extrinsic;
 
     if (is_you ? u_resist : ((mon_resistancebits(mon) & restyp) != 0))
         return TRUE;
