@@ -206,7 +206,7 @@ done_in_by(struct monst *mtmp, int how)
     /* _the_ <invisible> <distorted> ghost of Dudley */
 #if 0
     /* hardfought */
-    if (has_ebones(mtmp) && EBONES(mtmp)->rank.mnum != NON_PM) {
+    if (has_ebones(mtmp)) {
 #else
     if (mptr == &mons[PM_GHOST] && has_mgivenname(mtmp)) {
 #endif
@@ -253,7 +253,7 @@ done_in_by(struct monst *mtmp, int how)
                 realnm, shape);
         mptr = mtmp->data; /* reset for mimicker case */
 #if 0  /* hardfought */
-    } else if (has_ebones(mtmp) && EBONES(mtmp)->rank.mnum != NON_PM)
+    } else if (has_ebones(mtmp))
         Strcpy(buf, m_monnam(mtmp));
 #endif
     } else if (mptr == &mons[PM_GHOST]) {
