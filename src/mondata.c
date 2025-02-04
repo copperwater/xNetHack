@@ -123,27 +123,36 @@ defended(struct monst *mon, int adtyp)
     return FALSE;
 }
 
-/* returns True if monster resists particular elemental damage; mostly used
-   in order to check effects of carried artifacts */
+/* returns True if monster resists particular elemental damage;
+   handles 'carry' effects of artifacts as well as worn/wielded items */
 boolean
-Resists_Elem(struct monst *mon, int proptyp)
+Resists_Elem(struct monst *mon, int propindx)
 {
     struct obj *o;
     long slotmask;
     boolean is_you = (mon == &gy.youmonst);
-    int u_resist = 0, dmgtyp = 0, restyp = 0;
+    int u_resist = 0, damgtype = 0, rsstmask = 0;
 
-    switch (proptyp) {
-    case FIRE_RES:
-    case COLD_RES:
-    case SLEEP_RES:
-    case DISINT_RES:
-    case SHOCK_RES:
-    case POISON_RES:
-    case ACID_RES:
-    case STONE_RES:
-        dmgtyp = restyp = proptyp + 1; /* valid for dmgtyp|restyp 2..9 */
-        u_resist = u.uprops[proptyp].intrinsic || u.uprops[proptyp].extrinsic;
+    /*
+     * Main damage/resistance types, mostly matching dragon breath values.
+     *  propindx = property index, fire (1), cold, (2) through stone (8);
+     *  damgtype = damage type, 2 through 9 (0 and 1 aren't used here);
+     *  rsstmask = resistance mask, 1, 2, 4, ..., 64, 128.
+     */
+
+    switch (propindx) {
+    case FIRE_RES:   /* 1 */
+    case COLD_RES:   /* 2 */
+    case SLEEP_RES:  /* 3 */
+    case DISINT_RES: /* 4 */
+    case SHOCK_RES:  /* 5 */
+    case POISON_RES: /* 6 */
+    case ACID_RES:   /* 7 */
+    case STONE_RES:  /* 8 */
+        damgtype = propindx + 1; /* valid for propindx 1..8, damgtype 2..9 */
+        rsstmask = 1 << (propindx - 1); /* valid for propindx 1..8 */
+        u_resist = u.uprops[propindx].intrinsic
+                   || u.uprops[propindx].extrinsic;
         break;
 
     /* accept these, but we expect callers to use their routines directly */
@@ -155,15 +164,15 @@ Resists_Elem(struct monst *mon, int proptyp)
         return resists_blnd(mon);
 
     default:
-        impossible("Resists_Elem(%d), unexpected property type", proptyp);
+        impossible("Resists_Elem(%d), unexpected property type", propindx);
         return FALSE;
     }
 
-    if (is_you ? u_resist : ((mon_resistancebits(mon) & restyp) != 0))
+    if (is_you ? u_resist : ((mon_resistancebits(mon) & rsstmask) != 0))
         return TRUE;
     /* check for resistance granted by wielded weapon */
     o = is_you ? uwep : MON_WEP(mon);
-    if (o && o->oartifact && defends(dmgtyp, o))
+    if (o && o->oartifact && defends(damgtype, o))
         return TRUE;
     /* check for resistance granted by worn or carried items */
     o = is_you ? gi.invent : mon->minvent;
@@ -175,8 +184,14 @@ Resists_Elem(struct monst *mon, int proptyp)
         slotmask |= W_SWAPWEP;
     for (; o; o = o->nobj)
         if (((o->owornmask & slotmask) != 0L
-             && objects[o->otyp].oc_oprop == restyp)
-            || (o->oartifact && defends_when_carried(dmgtyp, o)))
+             && objects[o->otyp].oc_oprop == propindx)
+            || ((o->owornmask & W_ARMC) == W_ARMC
+                /* worn apron confers a pair of resistances but
+                   objects[ALCHEMY_SMOCK].oc_oprop can only represent one;
+                   we check both so won't need to know which one that is */
+                && o->otyp == ALCHEMY_SMOCK
+                && (propindx == POISON_RES || propindx == ACID_RES))
+            || (o->oartifact && defends_when_carried(damgtype, o)))
             return TRUE;
     return FALSE;
 }
