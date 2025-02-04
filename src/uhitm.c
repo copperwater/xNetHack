@@ -3058,7 +3058,7 @@ mhitm_ad_sgld(
                           distant_name(gold, yname));
                 }
             }
-            obj_extract_self(gold);
+            extract_from_minvent(mdef, gold, TRUE, FALSE);
             add_to_minv(magr, gold);
         }
         mdef->mstrategy &= ~STRAT_WAITFORU;
