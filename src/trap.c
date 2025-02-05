@@ -6978,7 +6978,7 @@ doortrapped(int x, int y, struct monst * mon, int bodypart, int action,
         int range = (11 * lvl) + (11 * lvl);
         if (!Deaf) {
             if (byu || canseedoor) {
-                pline("The hinges screech loudly.");
+                pline_xy(x, y, "The hinges screech loudly.");
             }
             else {
                 You_hear("a %s screech.",
@@ -6992,7 +6992,7 @@ doortrapped(int x, int y, struct monst * mon, int bodypart, int action,
         boolean do_lock = FALSE;
         if (action == D_ISOPEN) {
             if (byu || canseedoor) {
-                pline("But it swings closed again!");
+                pline_xy(x, y, "But it swings closed again!");
             }
             do_lock = TRUE;
         }
@@ -7002,7 +7002,7 @@ doortrapped(int x, int y, struct monst * mon, int bodypart, int action,
         }
         else if (action == D_NODOOR) {
             if (byu || canseedoor) {
-                pline("The door swings itself shut!");
+                pline_xy(x, y, "The door swings itself shut!");
             }
             do_lock = TRUE;
         }
@@ -7036,13 +7036,13 @@ doortrapped(int x, int y, struct monst * mon, int bodypart, int action,
         dmg = rnd(lvl * 2) / (resists ? 4 : 1);
         dmg += 1;
         if (byu) {
-            pline("An electric spark from the doorknob zaps you!");
+            pline_xy(x, y, "An electric spark from the doorknob zaps you!");
             losehp(dmg, "charged doorknob", KILLED_BY_AN);
             exercise(A_WIS, FALSE);
         }
         else {
             if (canseemon) {
-                pline("%s is zapped by a doorknob!", Monnam(mon));
+                pline_mon(mon, "%s is zapped by a doorknob!", Monnam(mon));
             }
             mon->mhp -= dmg;
             if (DEADMONSTER(mon)) {
@@ -7056,8 +7056,8 @@ doortrapped(int x, int y, struct monst * mon, int bodypart, int action,
              && (action == D_ISOPEN || action == D_BROKEN
                  || action == -D_TRAPPED)) {
         if (canseemon) {
-            pline("A bucket of water splashes down on %s!",
-                  (!touching ? "the floor" : (byu ? "you" : mon_nam(mon))));
+            pline_xy(x, y, "A bucket of water splashes down on %s!",
+                     (!touching ? "the floor" : (byu ? "you" : mon_nam(mon))));
         }
         else {
             You_hear("a distant splash.");
@@ -7088,8 +7088,8 @@ doortrapped(int x, int y, struct monst * mon, int bodypart, int action,
          * door and don't actually move */
         set_doorstate(door, D_BROKEN);
         if (byu) {
-            pline("The door %s forward off its hinges!",
-                  (action == D_BROKEN ? "is knocked" : "falls"));
+            pline_xy(x, y, "The door %s forward off its hinges!",
+                     (action == D_BROKEN ? "is knocked" : "falls"));
             if (touching) {
                 You("crash on top of it!");
                 /* move onto the door */
@@ -7109,7 +7109,7 @@ doortrapped(int x, int y, struct monst * mon, int bodypart, int action,
             }
             if (touching) {
                 if (canseedoor) {
-                    pline("%s crashes on top of it!", Monnam(mon));
+                    pline_mon(mon, "%s crashes on top of it!", Monnam(mon));
                 }
                 else {
                     You_hear("a nearby crash.");
@@ -7129,7 +7129,7 @@ doortrapped(int x, int y, struct monst * mon, int bodypart, int action,
              && (action == D_ISOPEN || action == -D_TRAPPED)) {
         dmg = rnd((lvl/2) + 1);
         if (byu) {
-            pline("The door falls backward off its hinges!");
+            pline_xy(x, y, "The door falls backward off its hinges!");
             if (touching) {
                 You("are flattened by it!");
                 losehp(Maybe_Half_Phys(dmg), "crushed by a falling door",
@@ -7146,7 +7146,7 @@ doortrapped(int x, int y, struct monst * mon, int bodypart, int action,
             }
             if (touching) {
                 if (canseemon) {
-                    pline("It crashes on top of %s!", Monnam(mon));
+                    pline_mon(mon, "It crashes on top of %s!", Monnam(mon));
                 }
                 else {
                     You_hear("a nearby crash.");
@@ -7205,7 +7205,8 @@ doortrapped(int x, int y, struct monst * mon, int bodypart, int action,
         if (byu) {
             pline("Ouch!  The knob is red-hot!");
             if (dmg <= 0) {
-                pline("Fortunately, your glove protects your %s.", body_part(HAND));
+                pline("Fortunately, your glove protects your %s.",
+                      body_part(HAND));
             }
             else {
                 losehp(dmg, "a red-hot doorknob", KILLED_BY);
@@ -7213,7 +7214,8 @@ doortrapped(int x, int y, struct monst * mon, int bodypart, int action,
         }
         else {
             if (canseemon && dmg) {
-                pline("%s is burned by a red-hot doorknob!", Monnam(mon));
+                pline_mon(mon, "%s is burned by a red-hot doorknob!",
+                          Monnam(mon));
             }
             mon->mhp -= dmg;
             if (DEADMONSTER(mon)) {
@@ -7240,7 +7242,7 @@ doortrapped(int x, int y, struct monst * mon, int bodypart, int action,
             /* if !byu, this will be preceded by "You see a door open." or "Foo
              * opens a door." */
             Soundeffect(se_kaboom_door_explodes, 75);
-            pline("KABOOM!!  The door was booby-trapped!");
+            pline_xy(x, y, "KABOOM!!  The door was booby-trapped!");
         }
         else {
             Soundeffect(se_explosion, 75);
