@@ -120,6 +120,8 @@ set_uasmon(void)
     if (VIA_WINDOWPORT())
         status_initialize(REASSESS_ONLY);
 #endif
+    /* we can reset this now, having just done what it is meant to trigger */
+    gw.were_changes = 0L;
 }
 
 /* Levitation overrides Flying; set or clear BFlying|I_SPECIAL */

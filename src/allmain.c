@@ -328,7 +328,6 @@ moveloop_core(void)
                 if (gw.were_changes) {
                     /* update innate intrinsics (mainly Drain_resistance) */
                     set_uasmon();
-                    gw.were_changes = 0L;
                 }
                 mkot_trap_warn();
                 dosounds();
