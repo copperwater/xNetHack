@@ -1456,16 +1456,21 @@ really_done(int how)
         umoney += hidden_gold(TRUE); /* accumulate gold from containers */
         tmp = umoney - tmp;          /* net gain */
 
-        /* There's not really any particular reason that a dungeon that was 52
-         * levels deep should be worth more than a dungeon that was 45 levels
-         * deep. The only people who realistically care about score at these
-         * stages of the game are those who are trying to get the minimum score,
-         * which is only possible when the sanctum is on level 45, and it really
-         * annoys them that an unknowable variable decided at the start of the
-         * game controls whether they can actually get it or not.
-         */
-        if (deepest > 45)
-            deepest = 45;
+        /* There's not really any particular reason why differences in the
+         * maximum dungeon depth across different games (that reached the
+         * Sanctum) should affect score. The only people who realistically care
+         * about score at these stages of the game are those who are trying to
+         * get the minimum score, which is only possible when the sanctum is at
+         * the shallowest possible level, and it really annoys them that an
+         * unknowable variable decided at the start of the game controls whether
+         * they can actually get it or not.
+         * Shallowest possible dungeon is the min depth of the Dungeons of Doom
+         * (25) plus the min depth of Gehennom (10). Unfortunately, since the
+         * numbers that go into those are only used in game creation, we can't
+         * calculate them here. If the minimum dungeon depth changes at some
+         * point, this will need to be updated. */
+        if (deepest > 35)
+            deepest = 35;
 
         if (tmp < 0L)
             tmp = 0L;
