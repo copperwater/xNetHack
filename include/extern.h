@@ -506,7 +506,6 @@ extern void dump_map(void);
 #endif
 extern void reveal_terrain(unsigned);
 extern int wiz_mgender(void);
-extern void passive_gold_detect(void);
 
 /* ### dig.c ### */
 

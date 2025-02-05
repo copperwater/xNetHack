@@ -2387,20 +2387,6 @@ reveal_terrain(
     map_redisplay();
 }
 
-/* Detect out-of-sight gold across the level, silently. */
-void
-passive_gold_detect(void)
-{
-    if (Race_if(PM_DWARF) || gy.youmonst.data == &mons[PM_LEPRECHAUN]) {
-        /* create temporary uncursed scroll of gold detection */
-        struct obj * otmp = mksobj(SCR_GOLD_DETECTION, FALSE, FALSE);
-        /* passive - won't impede map */
-        gold_detect(otmp, TRUE);
-        obfree(otmp, NULL);
-        see_monsters(); /* don't overwrite visible monsters with $ */
-    }
-}
-
 #undef FOUND_FLASH_COUNT
 
 /*detect.c*/

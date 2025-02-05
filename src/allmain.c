@@ -498,7 +498,6 @@ moveloop_core(void)
 
     clear_splitobjs();
     find_ac();
-    /* passive_gold_detect(); */ /* too buggy right now */
     if (!svc.context.mv || Blind) {
         /* redo monsters if hallu or wearing a helm of telepathy */
         if (Hallucination) { /* update screen randomly */
