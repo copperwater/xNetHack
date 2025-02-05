@@ -2727,7 +2727,8 @@ breakmsg(struct obj *obj, boolean in_view)
     switch (obj->oclass == POTION_CLASS ? POT_WATER : obj->otyp) {
     default: /* glass or crystal wand */
         if (obj->material != GLASS)
-            impossible("breaking odd object?");
+            impossible("breaking odd object? otyp=%d, material=%d",
+                       obj->otyp, obj->material);
         FALLTHROUGH;
         /*FALLTHRU*/
     case LENSES:
