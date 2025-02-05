@@ -172,6 +172,8 @@ changes:
   "Indestructible" is still used for glass items which have been made immune to
   shock damage from erodeproofing - i.e. rings and wands.
 - Inventory weights are formatted as "(x aum)" instead of "{x}".
+- Archfiends (besides Juiblex) now render as regular magenta &, the same as
+  vanilla. The Riders are still bright magenta.
 
 ### Architectural changes
 
