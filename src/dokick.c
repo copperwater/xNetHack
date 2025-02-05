@@ -960,7 +960,8 @@ kick_door(coordxy x, coordxy y, int avrg_attrib)
         /* break the door */
         if (flags.verbose)
             You("kick the door.");
-        if (predoortrapped(x, y, &gy.youmonst, FOOT, D_BROKEN) < 2) {
+        if (predoortrapped(x, y, &gy.youmonst, FOOT, D_BROKEN)
+            != DOORTRAPPED_DESTROYED) {
             if (ACURR(A_STR) > 18 && !rn2(5) && !shopdoor) {
                 Soundeffect(se_kick_door_it_shatters, 50);
                 pline("The door shatters to pieces!");
@@ -974,7 +975,7 @@ kick_door(coordxy x, coordxy y, int avrg_attrib)
             }
             feel_newsym(x, y); /* we know we broke it */
             unblock_point(x, y); /* vision */
-            postdoortrapped(x, y, &gy.youmonst, FOOT, D_BROKEN);
+            (void) postdoortrapped(x, y, &gy.youmonst, FOOT, D_BROKEN);
             if (shopdoor) {
                 add_damage(x, y, SHOP_DOOR_COST);
                 pay_for_damage("break", FALSE);
@@ -995,7 +996,8 @@ kick_door(coordxy x, coordxy y, int avrg_attrib)
             losehp(Maybe_Half_Phys(sear_damage(IRON)), "kicking an iron door",
                    KILLED_BY);
         }
-        if (!predoortrapped(x, y, &gy.youmonst, FOOT, D_BROKEN)
+        if ((predoortrapped(x, y, &gy.youmonst, FOOT, D_BROKEN)
+             == DOORTRAPPED_NOCHANGE)
             && door_is_iron(gm.maploc)) {
             pline("The door doesn't budge an inch.");
         }
@@ -1019,10 +1021,10 @@ kick_nondoor(coordxy x, coordxy y, int avrg_attrib)
                       ? "Your kick uncovers"
                       : "You kick open");
             exercise(A_DEX, TRUE);
-            predoortrapped(x, y, &gy.youmonst, FOOT, D_BROKEN);
+            (void) predoortrapped(x, y, &gy.youmonst, FOOT, D_BROKEN);
             if (!door_is_iron(gm.maploc) && !door_is_locked(gm.maploc)) {
                 /* assume doorstate is already D_CLOSED */
-                postdoortrapped(x, y, &gy.youmonst, FOOT, D_ISOPEN);
+                (void) postdoortrapped(x, y, &gy.youmonst, FOOT, D_ISOPEN);
                 set_doorstate(gm.maploc, D_ISOPEN);
             }
             feel_newsym(x, y);

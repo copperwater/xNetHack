@@ -6163,7 +6163,7 @@ untrap(
                            || rnd(75 + level_difficulty() / 2) > ch)) {
                 You("slip up...");
                 /* don't "set it off"; some traps have no message here */
-                doortrapped(x, y, &gy.youmonst, FINGER, -D_TRAPPED, 2);
+                (void) alldoortrapped(x, y, &gy.youmonst, FINGER, -D_TRAPPED);
             } else {
                 You("disarm it!");
                 set_door_trap(&levl[x][y], FALSE);
@@ -6899,10 +6899,13 @@ getdoortrap(int x, int y)
 }
 
 /* Interacting with a door triggers a trap.
+ *
  * mon is the monster triggering the trap (NULL or youmonst means player)
+ *
  * bodypart is the body part used to touch the door, and can affect what the
  * trap does. Note: ARM is sometimes used to denote touching the door with an
  * object (i.e. chopping the door down).
+ *
  * action is a doorstate that defines what the player is doing with the door:
  *   D_ISOPEN - opening it
  *   D_CLOSED - closing it, not wizard-locking it
@@ -6915,24 +6918,17 @@ getdoortrap(int x, int y)
  * Unused ones that might be of some use at some point:
  *  -D_NODOOR - moving onto the doorway. (Note that D_NODOOR is 0 so this won't
  *    work.)
- * when means whether this function is being called before the action is
- * complete, e.g. a STATIC_KNOB should trigger when touching the door but a
- * WATER_BUCKET after opening it.
- *   0 = only trigger before-action traps
- *   1 = only trigger after-action traps
- *   2 = trigger all possible traps (used when e.g. zapping striking at door)
  *
- * Return value is as follows:
- *   0 = doorstate is not changed, the caller can continue to do things with it
- *   1 = doorstate is set by this function, to something non-destroyed
- *   2 = door has been destroyed
+ * "when" is a combination of DOOR_TRAP_[PRE|POST] flags documented in trap.h.
+ *
+ * Return value is one of the DOORTRAPPED_* constants documented in trap.h.
  */
 xint8
 doortrapped(int x, int y, struct monst * mon, int bodypart, int action,
             xint8 when)
 {
-    boolean before = (when == 0 || when == 2);
-    boolean after = (when == 1 || when == 2);
+    boolean before = (when & DOOR_TRAP_PRE);
+    boolean after = (when & DOOR_TRAP_POST);
     boolean byu = (mon == &gy.youmonst || mon == NULL);
     boolean touching = (bodypart != NO_PART);
     /* note that touching represents either you or the monster touching the
@@ -6949,22 +6945,22 @@ doortrapped(int x, int y, struct monst * mon, int bodypart, int action,
 
     if (door->typ != DOOR && door->typ != SDOOR) {
         impossible("doortrapped: called on a non-door");
-        return 0;
+        return DOORTRAPPED_NOCHANGE;
     }
     if (selected_trap < HINGE_SCREECH || selected_trap >= NUMDOORTRAPS) {
         impossible("doortrapped: bad trap %d", selected_trap);
-        return 0;
+        return DOORTRAPPED_NOCHANGE;
     }
     if (action != D_NODOOR && action != D_ISOPEN && action != D_BROKEN
         && action != D_CLOSED && action != -D_TRAPPED
         && action != -D_LOCKED && action != D_LOCKED) {
         impossible("doortrapped: bad action %d", action);
-        return 0;
+        return DOORTRAPPED_NOCHANGE;
     }
     /* ok to call this on a non-trapped door, since it lets us call the
      * function unconditionally whenever something interacts with a door */
     if (!door_is_trapped(door)) {
-        return 0;
+        return DOORTRAPPED_NOCHANGE;
     }
 
     if (mon == NULL) {
@@ -7015,7 +7011,7 @@ doortrapped(int x, int y, struct monst * mon, int bodypart, int action,
                 You("disarm a self-locking mechanism.");
             }
             set_door_trap(door, FALSE);
-            return 0; /* not changed at all */
+            return DOORTRAPPED_NOCHANGE; /* not changed at all */
         }
         /* no case for action == D_LOCKED
          * not much point doing anything when the player *wants* to lock it */
@@ -7029,8 +7025,9 @@ doortrapped(int x, int y, struct monst * mon, int bodypart, int action,
         /* trap not disarmed, except if trying to unlock */
         feel_newsym(x, y); /* the hero knows it is closed */
         block_point(x, y); /* vision: no longer see there */
-        return 1; /* apart from disarming, all of these effects change door state
-                     even temporarily */
+        return DOORTRAPPED_CHANGED; /* apart from disarming, all of these
+                                     * effects change door state even
+                                     * temporarily */
     }
     else if (selected_trap == STATIC_SHOCK && before && bodypart == FINGER
              && (action == D_ISOPEN || action == D_CLOSED
@@ -7269,7 +7266,7 @@ doortrapped(int x, int y, struct monst * mon, int bodypart, int action,
         }
         newsym(x, y);
         unblock_point(x, y); /* can now see through it */
-        return 2;
+        return DOORTRAPPED_DESTROYED;
     }
     else if (saved_doorstate != doorstate(door)) {
         newsym(x, y);
@@ -7278,10 +7275,10 @@ doortrapped(int x, int y, struct monst * mon, int bodypart, int action,
             unblock_point(x, y);
         else
             block_point(x, y);
-        return 1;
+        return DOORTRAPPED_CHANGED;
     }
     else {
-        return 0;
+        return DOORTRAPPED_NOCHANGE;
     }
 }
 

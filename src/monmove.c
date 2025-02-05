@@ -2503,7 +2503,8 @@ mon_open_door(struct monst * mtmp, coordxy x, coordxy y)
     if (door_is_locked(here) && can_unlock) {
         /* tries to unlock, trigger locking traps */
         /* don't bother with predoortrapped/postdoortrapped */
-        if (doortrapped(x, y, mtmp, FINGER, -D_LOCKED, 2) == 0) {
+        if (alldoortrapped(x, y, mtmp, FINGER, -D_LOCKED)
+            == DOORTRAPPED_NOCHANGE) {
             if (DEADMONSTER(mtmp))
                 return 2;
             if (flags.verbose) {
@@ -2521,7 +2522,8 @@ mon_open_door(struct monst * mtmp, coordxy x, coordxy y)
     }
     else if (!door_is_locked(here) && can_open) {
         /* tries to open, trigger opening traps */
-        if (predoortrapped(x, y, mtmp, FINGER, D_ISOPEN) == 0) {
+        if (predoortrapped(x, y, mtmp, FINGER, D_ISOPEN)
+            == DOORTRAPPED_NOCHANGE) {
             if (DEADMONSTER(mtmp))
                 return 2;
             if (flags.verbose) {
@@ -2534,8 +2536,8 @@ mon_open_door(struct monst * mtmp, coordxy x, coordxy y)
                     You_hear("a door open.");
                 }
             }
-            if (postdoortrapped(x, y, mtmp,
-                                FINGER, D_ISOPEN) == 0) {
+            if (postdoortrapped(x, y, mtmp, FINGER, D_ISOPEN)
+                == DOORTRAPPED_NOCHANGE) {
                 set_doorstate(here, D_ISOPEN);
             }
             if (!door_is_closed(here)) {
@@ -2548,7 +2550,8 @@ mon_open_door(struct monst * mtmp, coordxy x, coordxy y)
     }
     else if (is_giant(mtmp->data) && !door_is_iron(here)) {
         /* smashing down a door */
-        if (predoortrapped(x, y, mtmp, HAND, D_BROKEN) == 0) {
+        if (predoortrapped(x, y, mtmp, HAND, D_BROKEN)
+            == DOORTRAPPED_NOCHANGE) {
             if (DEADMONSTER(mtmp))
                 return 2;
             if (flags.verbose) {
@@ -2562,7 +2565,8 @@ mon_open_door(struct monst * mtmp, coordxy x, coordxy y)
                     You_hear("a door crash open.");
                 }
             }
-            if (postdoortrapped(x, y, mtmp, HAND, D_BROKEN) == 0) {
+            if (postdoortrapped(x, y, mtmp, HAND, D_BROKEN)
+                == DOORTRAPPED_NOCHANGE) {
                 set_doorstate(here, D_BROKEN);
                 /* if it's a shop door, schedule repair */
                 if (*in_rooms(x, y, SHOPBASE))

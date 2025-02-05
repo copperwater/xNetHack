@@ -151,6 +151,35 @@ enum doortrap_types {
      * hurtle(u.ux - doorx, u.uy - doory, 1, FALSE) */
 };
 
+/* Possible return values for doortrapped() */
+enum doortrap_returns {
+    DOORTRAPPED_NOCHANGE = 0, /* doorstate is not changed, caller can continue
+                                 to do things with it */
+    DOORTRAPPED_CHANGED,      /* doorstate is changed but not destroyed */
+    DOORTRAPPED_DESTROYED     /* door was destroyed by trap, now D_BROKEN */
+};
+
+/* Flags for the "when" argument of doortrapped(), indicating what the caller is
+ * doing with the door at this point.
+ * "Pre" means traps that trigger before the caller has "done" anything to the
+ * door, such as traps that trigger just by touching it like STATIC_SHOCK.
+ * "Post" means traps that trigger after the caller has interacted with the
+ * door, such as WATER_BUCKET.
+ * "Both" just triggers all possible traps, such as when zapping striking at a
+ * door to destroy it.
+ */
+#define DOOR_TRAP_PRE 0x1
+#define DOOR_TRAP_POST 0x2
+
+/* These are convenience "functions" so the caller doesn't have to worry about
+ * the DOOR_TRAP_* flags. */
+#define predoortrapped(x, y, mon, body, act) \
+    doortrapped(x, y, mon, body, act, DOOR_TRAP_PRE)
+#define postdoortrapped(x, y, mon, body, act) \
+    doortrapped(x, y, mon, body, act, DOOR_TRAP_POST)
+#define alldoortrapped(x, y, mon, body, act) \
+    doortrapped(x, y, mon, body, act, (DOOR_TRAP_PRE | DOOR_TRAP_POST))
+
 /* Values for deltrap_with_ammo */
 enum deltrap_handle_ammo {
     DELTRAP_RETURN_AMMO = 0, /* return ammo to caller; do nothing with it */
@@ -159,10 +188,5 @@ enum deltrap_handle_ammo {
     DELTRAP_BURY_AMMO,       /* bury ammo under where trap was */
     DELTRAP_TAKE_AMMO        /* put ammo into player's inventory */
 };
-
-#define predoortrapped(x, y, mon, body, act) \
-    doortrapped(x, y, mon, body, act, 0)
-#define postdoortrapped(x, y, mon, body, act) \
-    doortrapped(x, y, mon, body, act, 1)
 
 #endif /* TRAP_H */

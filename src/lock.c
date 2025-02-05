@@ -118,9 +118,9 @@ picklock(void)
         }
     }
 
-    if (gx.xlock.door &&
-        predoortrapped(doorx, doory, NULL, FINGER, -D_LOCKED) == 2) {
-        /* door was destroyed somehow */
+    if (gx.xlock.door
+        && predoortrapped(doorx, doory, NULL, FINGER, -D_LOCKED)
+           == DOORTRAPPED_DESTROYED) {
         return (gx.xlock.usedtime = 0);
     }
 
@@ -197,7 +197,8 @@ picklock(void)
     You("succeed in %s.", lock_action());
     if (gx.xlock.door) {
         int intended = (door_is_locked(gx.xlock.door) ? -D_LOCKED : D_LOCKED);
-        if (!postdoortrapped(doorx, doory, NULL, FINGER, intended)) {
+        if (postdoortrapped(doorx, doory, NULL, FINGER, intended)
+            == DOORTRAPPED_NOCHANGE) {
             set_door_lock(gx.xlock.door, !door_is_locked(gx.xlock.door));
         }
         if (demogorgon_special_door(gx.xlock.door)
@@ -969,7 +970,8 @@ doopen_indir(coordxy x, coordxy y)
         return res;
     }
 
-    if (predoortrapped(cc.x, cc.y, &gy.youmonst, FINGER, D_ISOPEN) != 0) {
+    if (predoortrapped(cc.x, cc.y, &gy.youmonst, FINGER, D_ISOPEN)
+        != DOORTRAPPED_NOCHANGE) {
         return res;
     }
 
@@ -1000,7 +1002,8 @@ doopen_indir(coordxy x, coordxy y)
     /* door is known to be CLOSED */
     pline_The("door opens.");
     set_msg_xy(cc.x, cc.y);
-    if (postdoortrapped(cc.x, cc.y, &gy.youmonst, FINGER, D_ISOPEN) == 0) {
+    if (postdoortrapped(cc.x, cc.y, &gy.youmonst, FINGER, D_ISOPEN)
+        == DOORTRAPPED_NOCHANGE) {
         set_doorstate(door, D_ISOPEN);
         feel_newsym(cc.x, cc.y); /* the hero knows she opened it */
         unblock_point(cc.x, cc.y); /* vision: new see through there */
@@ -1117,7 +1120,8 @@ doclose(void)
         return res;
     }
 
-    if (predoortrapped(x, y, &gy.youmonst, FINGER, D_CLOSED)) {
+    if (predoortrapped(x, y, &gy.youmonst, FINGER, D_CLOSED)
+        != DOORTRAPPED_NOCHANGE) {
         return res;
     }
 
@@ -1127,7 +1131,8 @@ doclose(void)
             return res;
         }
         pline_The("door closes.");
-        if (postdoortrapped(x, y, &gy.youmonst, FINGER, D_CLOSED) == 0) {
+        if (postdoortrapped(x, y, &gy.youmonst, FINGER, D_CLOSED)
+            == DOORTRAPPED_NOCHANGE) {
             set_doorstate(door, D_CLOSED);
             feel_newsym(x, y); /* the hero knows she closed it */
             block_point(x, y); /* vision:  no longer see there */
@@ -1259,7 +1264,8 @@ doorlock(struct obj *otmp, struct monst *mon, coordxy x, coordxy y)
     case WAN_OPENING:
     case SPE_KNOCK:
         if (door_is_locked(door)
-            && doortrapped(x, y, mon, NO_PART, -D_LOCKED, 2) == 0) {
+            && alldoortrapped(x, y, mon, NO_PART, -D_LOCKED)
+               == DOORTRAPPED_NOCHANGE) {
             if (demogorgon_special_door(door)) {
                 msg = "A shimmering shield on the door dissipates the beam.";
             }
@@ -1279,7 +1285,8 @@ doorlock(struct obj *otmp, struct monst *mon, coordxy x, coordxy y)
                 msg = "The reinforced door shudders.";
                 break;
             }
-            if (doortrapped(x, y, mon, NO_PART, D_BROKEN, 2) > 0) {
+            if (alldoortrapped(x, y, mon, NO_PART, D_BROKEN)
+                != DOORTRAPPED_NOCHANGE) {
                 break;
             }
             sawit = cansee(x, y);

@@ -5526,8 +5526,9 @@ zap_over_floor(
             } else
                 You_feel("vibrations.");
         }
-        if (new_doormask >= 0 /* door gets broken */
-            && doortrapped(x, y, NULL, NO_PART, D_BROKEN, 2) < 2) {
+        if (new_doormask >= 0 /* door got broken */
+            && alldoortrapped(x, y, NULL, NO_PART, D_BROKEN)
+               != DOORTRAPPED_DESTROYED) {
             /* BUG: this function doesn't tell us who is responsible for the
              * zap.  The doortrapped call is assuming it's the player but
              * that's not guaranteed, meaning that if some door trap blames a

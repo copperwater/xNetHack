@@ -552,7 +552,8 @@ dig(void)
         if (IS_DOOR(lev->typ)) {
             /* use ARM to represent that you're in melee range ("touching") the
              * door */
-            if (!postdoortrapped(dpx, dpy, &gy.youmonst, ARM, D_BROKEN)) {
+            if (postdoortrapped(dpx, dpy, &gy.youmonst, ARM, D_BROKEN)
+                == DOORTRAPPED_NOCHANGE) {
                 if (shopedge) {
                     add_damage(dpx, dpy, SHOP_DOOR_COST);
                     dmgtxt = "break";
@@ -1315,7 +1316,8 @@ use_pick_axe2(struct obj *obj)
             gd.did_dig_msg = FALSE;
             svc.context.digging.quiet = FALSE;
             if (IS_DOOR(lev->typ)
-                && predoortrapped(rx, ry, &gy.youmonst, ARM, D_BROKEN)) {
+                && predoortrapped(rx, ry, &gy.youmonst, ARM, D_BROKEN)
+                   != DOORTRAPPED_NOCHANGE) {
                 /* doorstate was modified by trap, so don't dig:
                  * do nothing else; trap will handle messages */
                 ;
@@ -1348,7 +1350,7 @@ use_pick_axe2(struct obj *obj)
                 svc.context.digging.chew = FALSE;
             }
             if (IS_DOOR(lev->typ)) {
-                predoortrapped(rx, ry, &gy.youmonst, ARM, D_BROKEN);
+                (void) predoortrapped(rx, ry, &gy.youmonst, ARM, D_BROKEN);
             }
             set_occupation(dig, verbing, 0);
         }
@@ -1467,13 +1469,13 @@ mdig_tunnel(struct monst *mtmp)
     if (closed_door(mtmp->mx, mtmp->my)) {
         if (door_is_iron(here) && (withpick || !metallivorous(mtmp->data)))
             return FALSE;
-        predoortrapped(mtmp->mx, mtmp->my, mtmp,
-                       (withpick ? ARM : FACE), D_BROKEN);
+        (void) predoortrapped(mtmp->mx, mtmp->my, mtmp,
+                              (withpick ? ARM : FACE), D_BROKEN);
         if (!DEADMONSTER(mtmp)) {
             if (*in_rooms(mtmp->mx, mtmp->my, SHOPBASE))
                 add_damage(mtmp->mx, mtmp->my, 0L);
-            postdoortrapped(mtmp->mx, mtmp->my, mtmp,
-                            (withpick ? ARM : FACE), D_BROKEN);
+            (void) postdoortrapped(mtmp->mx, mtmp->my, mtmp,
+                                   (withpick ? ARM : FACE), D_BROKEN);
             set_doorstate(here, D_BROKEN);
             unblock_point(mtmp->mx, mtmp->my); /* vision */
             newsym(mtmp->mx, mtmp->my);
@@ -1722,7 +1724,8 @@ zap_dig(void)
             else {
                 if (cansee(zx, zy))
                     pline_The("door is razed!");
-                if (doortrapped(zx, zy, &gy.youmonst, NO_PART, D_BROKEN, 2) < 2) {
+                if (alldoortrapped(zx, zy, &gy.youmonst, NO_PART, D_BROKEN)
+                    != DOORTRAPPED_DESTROYED) {
                     set_doorstate(room, D_BROKEN);
                     if (*in_rooms(zx, zy, SHOPBASE)) {
                         add_damage(zx, zy, SHOP_DOOR_COST);

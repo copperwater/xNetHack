@@ -3335,7 +3335,7 @@ vamprises(struct monst *mtmp)
             set_msg_xy(0, 0); /* in case none of the messages was delivered */
 
             if (kaboom)
-                doortrapped(x, y, mtmp, TORSO, D_BROKEN, 2);
+                (void) alldoortrapped(x, y, mtmp, TORSO, D_BROKEN);
             else
                 set_doorstate(door, D_BROKEN);
 
