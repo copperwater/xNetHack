@@ -98,6 +98,26 @@ changes:
   variation with randomly generated "spotlights" of lit area.
 - Martial arts users with at least Basic skill (all monks and samurai) no longer
   take damage or wound their legs when kicking inadvisable things.
+- Lawful minions' weapons can no longer rarely be very highly enchanted; swords
+  they get will be +0 to +3, and maces +3 to +6.
+- Attacking with no weapon is now handled the same as vanilla, meaning multiple
+  attacks will hit with alternating hands, and you will always lead with your
+  dominant hand. This mainly has implications for if you are hitting monsters
+  with rings made of materials they hate.
+- Object merging now follows vanilla rules - there are a few cases where objects
+  won't immediately merge such as being blind or hallucinating and not fully
+  knowing one of the objects.
+- The 5 random comestibles in a chest on the Monk quest start level are replaced
+  with 4 food rations.
+- Pauper characters get their normal race-based skill caps (but not any actual
+  skill in them, same as everyone else).
+- Monsters break ammo less often - 25% of the time assuming it isn't influenced
+  by beatitude or enchantment.
+- Zapping oneself with a wand of make invisible confers 30+d15 turns of
+  invisibility, down from 50+d50.
+- A vampire reforming from fog cloud form on a wooden door's space will always
+  smash it; on an iron door's space, they will never smash it unless the door
+  was trapped to explode.
 
 ### Interface changes
 
@@ -129,8 +149,29 @@ changes:
   - Monster drinking a potion where you can't see while hallucinating.
 - There is now a pager message for the bridge in the Valkyrie locate level being
   restored.
+- There is no longer a S_engraving character. Instead, there are the S_engroom
+  and S_engrcorr ones from vanilla, which represent engravings in rooms (or
+  other non-corridor terrain) and corridors respectively. However, the default
+  ASCII glyphs for both of these have been changed to the former default glyph
+  for S_engraving, "~", instead of vanilla's "`". They can still be mapped to
+  a symbol of the player's preference via the SYMBOLS option.
+- Paranoid swim and paranoid trap are reverted to vanilla behavior, meaning if
+  you don't have paranoid trap set, you aren't prompted to confirm before moving
+  a trap, and if you do have it set, you only need to type "y" to move in
+  instead of "yes".
+- Secret door detection wands no longer produce a "You find many hidden bugs on
+  the floor" message since they always unambiguously identify themselves.
+- Erodeproof glass objects are now referred to as "tempered" rather than
+  "shatterproof", though shatterproof will still be treated as valid for wishes.
+  "Indestructible" is still used for glass items which have been made immune to
+  shock damage from erodeproofing - i.e. rings and wands.
+- Inventory weights are formatted as "(x aum)" instead of "{x}".
 
 ### Architectural changes
 
 - The monster ID of the quest nemesis is now tracked similar to the quest
   leader's.
+- current_holidays() now lives in calendar.c.
+- Hash functions now live in rnd.c.
+- Some (but not all) xNetHack-added functions are annotated with the NONNULL*
+  attributes.
