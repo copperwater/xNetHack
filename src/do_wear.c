@@ -869,11 +869,18 @@ dragon_armor_handling(
     boolean puton,      /* True: on, False: off */
     boolean on_purpose) /* voluntary removal; not applicable for putting on */
 {
-    /* xNetHack note: as of first merging this behavior in from NetHack 3.7,
-     * this only happens on dragon-scaled body armor - NOT scales worn in the
-     * cloak slot. */
-    if (!otmp)
+    /* xNetHack note: as of first merging in extra dragon extrinsics from
+     * NetHack 3.7, this only happens on dragon-scaled body armor - NOT scales
+     * worn in the cloak slot. */
+    if (!otmp) {
+        impossible("dragon_armor_handling called with null armor");
         return;
+    }
+    else if (!is_suit(otmp)) {
+        impossible("dragon_armor_handling called on non-suit, otyp=%d",
+                   otmp->otyp);
+        return;
+    }
 
     switch (Dragon_armor_to_scales(otmp)) {
         /* grey: no extra effect */
