@@ -118,6 +118,12 @@ changes:
 - A vampire reforming from fog cloud form on a wooden door's space will always
   smash it; on an iron door's space, they will never smash it unless the door
   was trapped to explode.
+- Vanilla artifact gift rebalance is mostly unchanged, except that it still only
+  considers the number of gifts you have already received and artifacts randomly
+  generating won't harm it.
+  - Mirror Brand will be +1 if gifted and requires a sacrifice of difficulty 5+.
+  - The Apple of Discord requires a sacrifice of difficulty 7+.
+  - The Amulet of Storms requires a sacrifice of difficulty 2+.
 
 ### Interface changes
 
