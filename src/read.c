@@ -3258,7 +3258,7 @@ unpunish(void)
 }
 
 /* prompt the player to create a stinking cloud and then create it if they
-   give a location */
+   give a location; return one of the SCLOUD_* constants */
 xint8
 do_stinking_cloud(struct obj *sobj, boolean mention_stinking)
 {
