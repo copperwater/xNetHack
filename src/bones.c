@@ -813,9 +813,9 @@ newebones(struct monst *mtmp)
         mtmp->mextra = newmextra();
     if (!EBONES(mtmp)) {
         EBONES(mtmp) = (struct ebones *) alloc(
-            sizeof(struct ebones *));
+            sizeof (struct ebones));
         (void) memset((genericptr_t) EBONES(mtmp), 0,
-                      sizeof(struct ebones *));
+                      sizeof (struct ebones));
         EBONES(mtmp)->parentmid = mtmp->m_id;
     }
 }
