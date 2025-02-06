@@ -259,7 +259,6 @@ extern char *do_statusline2(void);
 extern void bot(void);
 extern void timebot(void);
 extern int xlev_to_rank(int);
-extern const char *rank(void);
 extern int rank_to_xlev(int);
 extern const char *rank_of(int, short, boolean);
 extern int title_to_mon(const char *, int *, int *);
