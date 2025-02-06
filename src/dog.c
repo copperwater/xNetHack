@@ -65,6 +65,16 @@ initedog(struct monst *mtmp, boolean everything)
         EDOG(mtmp)->mhpmax_penalty = 0;
         EDOG(mtmp)->killed_by_u = 0;
     }
+    /* livelog first pet, but only if you didn't start with one (the starting
+     * pet will be initialized before in_moveloop is true) */
+    if (!u.uconduct.pets && program_state.in_moveloop) {
+        /* "obtained" a pet rather than "tamed" it because it might have come
+         * from a figurine or some other method in which it was created tame
+         * using an() is safe unless it somehow becomes possible to tame a
+         * unique monster */
+        livelog_printf(LL_CONDUCT, "obtained %s first pet (%s)",
+                       uhis(), an(mon_pmname(mtmp)));
+    }
     u.uconduct.pets++;
 }
 
@@ -118,6 +128,7 @@ make_familiar(struct obj *otmp, coordxy x, coordxy y, boolean quietly)
     struct permonst *pm;
     struct monst *mtmp = 0;
     int chance, trycnt = 100;
+    boolean reallytame = TRUE;
 
     do {
         mmflags_nht mmflags;
@@ -159,17 +170,14 @@ make_familiar(struct obj *otmp, coordxy x, coordxy y, boolean quietly)
     if (is_pool(mtmp->mx, mtmp->my) && minliquid(mtmp))
         return (struct monst *) 0;
 
-    initedog(mtmp, TRUE);
-    mtmp->msleeping = 0;
     if (otmp) { /* figurine; resulting monster might not become a pet */
         chance = rn2(10); /* 0==tame, 1==peaceful, 2==hostile */
         if (chance > 2)
             chance = otmp->blessed ? 0 : !otmp->cursed ? 1 : 2;
         /* 0,1,2:  b=80%,10,10; nc=10%,80,10; c=10%,10,80 */
         if (chance > 0) {
-            mtmp->mtame = 0;   /* not tame after all */
-            u.uconduct.pets--; /* doesn't count as creating a pet */
-            if (chance == 2) { /* hostile (cursed figurine) */
+            reallytame = FALSE; /* not tame after all */
+            if (chance == 2) {  /* hostile (cursed figurine) */
                 if (!quietly)
                     You("get a bad feeling about this.");
                 mtmp->mpeaceful = 0;
@@ -180,6 +188,9 @@ make_familiar(struct obj *otmp, coordxy x, coordxy y, boolean quietly)
         if (has_oname(otmp))
             mtmp = christen_monst(mtmp, ONAME(otmp));
     }
+    if (reallytame)
+        initedog(mtmp, TRUE);
+    mtmp->msleeping = 0;
     set_malign(mtmp); /* more alignment changes */
     newsym(mtmp->mx, mtmp->my);
 
