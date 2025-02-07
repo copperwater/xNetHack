@@ -337,6 +337,7 @@ l_obj_to_table(lua_State *L)
     nhl_add_table_entry_int(L, "has_oname", has_oname(obj));
     if (has_oname(obj))
         nhl_add_table_entry_str(L, "oname", ONAME(obj));
+    nhl_add_table_entry_str(L, "material", materialnm[obj->material]);
 
     return 1;
 }
