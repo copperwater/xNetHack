@@ -3107,7 +3107,7 @@ cnf_line_LIVELOG(char *bufp)
 
     if (L < 0L || L > 0xffffffL) {
         config_error_add("Illegal value for LIVELOG"
-                         " (must be between 0 and 0xFFFF).");
+                         " (must be between 0 and 0xFFFFFF).");
         return 0;
     }
     sysopt.livelog = L;
