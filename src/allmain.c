@@ -18,6 +18,7 @@ staticfn void maybe_do_tutorial(void);
 staticfn void do_positionbar(void);
 #endif
 staticfn void regen_pw(int);
+staticfn int dispater_adjust_regen(int);
 staticfn void regen_hp(int);
 staticfn void interrupt_multi(const char *);
 staticfn void debug_fields(const char *);
@@ -676,6 +677,39 @@ regen_pw(int wtcap)
     }
 }
 
+/* Make an adjustment to the amount of HP the player is recovering if Dispater's
+ * adversity is affecting them.
+ * Return the new amount of HP that should be recovered.
+ * Moved to a function because it's shared between Upolyd and !Upolyd code
+ * paths. */
+staticfn int
+dispater_adjust_regen(int heal)
+{
+    /* track odd-HP rounding as a boolean so it gives a predictable sequence of
+     * up, down, up, down, ...
+     * instead of randomizing each time which could lead to not recovering any
+     * HP at all in a long string of unlucky rolls */
+    static boolean roundup = FALSE;
+
+    if (heal <= 0)
+        return heal;
+    if (!fiend_adversity(PM_DISPATER))
+        return heal;
+
+    /* When Dispater halves an odd amount of recovered HP, dividing it
+     * by 2 would always lose the odd point of HP, and prevent HP from ever
+     * recovering when heal == 1.
+     * Instead, have it round down half the time and round up half the
+     * time (which is why there is this counterintuitive increase). */
+    if (heal % 2 == 1) {
+        if (roundup)
+            heal++;
+        roundup = !roundup;
+    }
+    heal /= 2;
+    return heal;
+}
+
 #define U_CAN_REGEN() (Regeneration || (Sleepy && u.usleep))
 
 /* maybe recover some lost health (or lose some when an eel out of water) */
@@ -702,9 +736,10 @@ regen_hp(int wtcap)
             if (U_CAN_REGEN() || (encumbrance_ok && !(svm.moves % 20L)))
                 heal = 1;
         }
+        heal = dispater_adjust_regen(heal);
         if (heal && !(Withering && heal > 0)) {
             disp.botl = TRUE;
-            u.mh += heal / (fiend_adversity(PM_DISPATER) ? 2 : 1);
+            u.mh += heal;
             reached_full = (u.mh == u.mhmax);
         }
 
@@ -722,9 +757,10 @@ regen_hp(int wtcap)
             if (Sleepy && u.usleep)
                 heal++;
 
+            heal = dispater_adjust_regen(heal);
             if (heal && !(Withering && heal > 0)) {
                 disp.botl = TRUE;
-                u.uhp += heal / (fiend_adversity(PM_DISPATER) ? 2 : 1);
+                u.uhp += heal;
                 if (u.uhp > u.uhpmax)
                     u.uhp = u.uhpmax;
                 /* stop voluntary multi-turn activity if now fully healed */
