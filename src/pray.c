@@ -1955,7 +1955,7 @@ dosacrifice(void)
         You("are not %s an altar.",
             (Levitation || Flying) ? "over" : "on");
         return ECMD_OK;
-    } else if (Confusion || Stunned || Hallucination) {
+    } else if (Confusion || Stunned) {
         You("are too impaired to perform the rite.");
         return ECMD_OK;
     }
