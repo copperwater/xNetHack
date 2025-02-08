@@ -163,8 +163,9 @@ changes:
   a symbol of the player's preference via the SYMBOLS option.
 - Paranoid swim and paranoid trap are reverted to vanilla behavior, meaning if
   you don't have paranoid trap set, you aren't prompted to confirm before moving
-  a trap, and if you do have it set, you only need to type "y" to move in
-  instead of "yes".
+  into a not-obviously-harmless trap, and if you do have it set, you only need
+  to type "y" to move in instead of "yes" (unless paranoid_confirmation:Confirm
+  is also set).
 - Secret door detection wands no longer produce a "You find many hidden bugs on
   the floor" message since they always unambiguously identify themselves.
 - Erodeproof glass objects are now referred to as "tempered" rather than
