@@ -111,7 +111,8 @@ picklock(void)
             }
             else { /* key */
                 if (!demogorgon_special_key(gx.xlock.pick)) {
-                    pline("This door's keyhole is strange and won't admit your key.");
+                    pline(
+                "This door's keyhole is strange and won't admit your key.");
                     return (gx.xlock.usedtime = 0);
                 }
             }
@@ -439,6 +440,8 @@ pick_lock(
     struct obj *otmp;
     char qbuf[QBUFSZ];
     boolean autounlock = (rx != 0 && ry != 0) || (container != NULL);
+    static const char *cant_open_with_card =
+        "It doesn't look like this lock can be opened with a credit card.";
 
     /* 'pick' might be Null [called by do_loot_cont() for AUTOUNLOCK_UNTRAP] */
     if (!pick) {
@@ -590,7 +593,7 @@ pick_lock(
                 switch (picktyp) {
                 case CREDIT_CARD:
                     if (hash1(otmp->o_id) % 5 < 2) {
-                        pline("It doesn't look like this lock can be opened with a credit card.");
+                        pline1(cant_open_with_card);
                         return PICKLOCK_LEARNED_SOMETHING;
                     }
                     ch = ACURR(A_DEX) + 20 * Role_if(PM_ROGUE);
@@ -702,10 +705,11 @@ pick_lock(
             switch (picktyp) {
             case CREDIT_CARD:
                 /* chance of unopenable door increases with depth;
-                 * 10% on early floors, increasing to 60% or so by the Sanctum */
+                 * 10% on early floors, increasing to 60% or so by the Sanctum
+                 */
                 if (coord_hash(cc.x, cc.y, ledger_no(&u.uz)) % 10
                     < (unsigned int) (depth(&u.uz) / 7) + 1) {
-                    pline("It doesn't look like this lock can be opened with a credit card.");
+                    pline1(cant_open_with_card);
                     return PICKLOCK_LEARNED_SOMETHING;
                 }
                 ch = 2 * ACURR(A_DEX) + 20 * Role_if(PM_ROGUE);
