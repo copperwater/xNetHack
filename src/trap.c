@@ -3522,17 +3522,18 @@ launch_obj(
             }
         }
         if (otyp == BOULDER && closed_door(x, y)) {
-            if (!door_is_iron(&levl[x][y])) {
+            if (!(door_is_iron(&levl[x][y]) && door_is_locked(&levl[x][y]))) {
                 if (cansee(x, y)) {
                     set_msg_xy(x, y);
                     pline_The("boulder crashes through a door.");
                 }
-                set_doorstate(&levl[x][y], D_BROKEN);
+                set_doorstate(&levl[x][y],
+                              door_is_iron(&levl[x][y]) ? D_ISOPEN : D_BROKEN);
                 if (dist)
                     unblock_point(x, y);
             }
             else {
-                /* boulder hits iron door, stop the boulder */
+                /* boulder hits locked iron door, stop the boulder */
                 dist = 0;
             }
         }
