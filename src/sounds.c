@@ -227,7 +227,7 @@ dosounds(void)
 
     /* first put things that print like sounds but are not sounds, before the
      * check that aborts if you can't hear sounds */
-    if (!rn2(300) && undiscovered_bones()) {
+    if (undiscovered_bones() && !rn2(300)) {
         if (hallu) {
             You("have a cheery feeling.");
         }
