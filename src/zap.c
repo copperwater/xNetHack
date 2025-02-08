@@ -5527,15 +5527,8 @@ zap_over_floor(
                 You_feel("vibrations.");
         }
         if (new_doormask >= 0 /* door got broken */
-            && alldoortrapped(x, y, NULL, NO_PART, D_BROKEN)
+            && alldoortrapped(x, y, (struct monst *) 0, NO_PART, D_BROKEN)
                != DOORTRAPPED_DESTROYED) {
-            /* BUG: this function doesn't tell us who is responsible for the
-             * zap.  The doortrapped call is assuming it's the player but
-             * that's not guaranteed, meaning that if some door trap blames a
-             * monster's death on the player based on this, it could have
-             * implications like breaking pacifist conduct.
-             * Currently I don't think any traps would do this, but it's
-             * important to remember. */
             if (*in_rooms(x, y, SHOPBASE)) {
                 if (type >= 0) {
                     add_damage(x, y, SHOP_DOOR_COST);

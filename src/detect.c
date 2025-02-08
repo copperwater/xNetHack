@@ -1736,7 +1736,7 @@ openone(coordxy zx, coordxy zy, genericptr_t num)
             /* Bell of Opening > self-locking mechanism */
             set_door_trap(&levl[zx][zy], FALSE);
         }
-        if (alldoortrapped(zx, zy, NULL, NO_PART, D_ISOPEN)
+        if (alldoortrapped(zx, zy, &gy.youmonst, NO_PART, D_ISOPEN)
             != DOORTRAPPED_DESTROYED) {
             /* ideally we'd have some way of telling whether any messages were
              * printed by doortrapped and then not increment num_p, but that

@@ -119,7 +119,7 @@ picklock(void)
     }
 
     if (gx.xlock.door
-        && predoortrapped(doorx, doory, NULL, FINGER, -D_LOCKED)
+        && predoortrapped(doorx, doory, &gy.youmonst, FINGER, -D_LOCKED)
            == DOORTRAPPED_DESTROYED) {
         return (gx.xlock.usedtime = 0);
     }
@@ -197,7 +197,7 @@ picklock(void)
     You("succeed in %s.", lock_action());
     if (gx.xlock.door) {
         int intended = (door_is_locked(gx.xlock.door) ? -D_LOCKED : D_LOCKED);
-        if (postdoortrapped(doorx, doory, NULL, FINGER, intended)
+        if (postdoortrapped(doorx, doory, &gy.youmonst, FINGER, intended)
             == DOORTRAPPED_NOCHANGE) {
             set_door_lock(gx.xlock.door, !door_is_locked(gx.xlock.door));
         }

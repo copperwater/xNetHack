@@ -6900,7 +6900,10 @@ getdoortrap(int x, int y)
 
 /* Interacting with a door triggers a trap.
  *
- * mon is the monster triggering the trap (NULL or youmonst means player)
+ * mon is the monster triggering the trap (youmonst means player; null means
+ * caller doesn't know who the culprit is, which happens a lot if the trap is
+ * triggered by someone zapping something, so make a best guess based on
+ * context.mon_moving)
  *
  * bodypart is the body part used to touch the door, and can affect what the
  * trap does. Note: ARM is sometimes used to denote touching the door with an
@@ -6929,11 +6932,13 @@ doortrapped(int x, int y, struct monst * mon, int bodypart, int action,
 {
     boolean before = (when & DOOR_TRAP_PRE);
     boolean after = (when & DOOR_TRAP_POST);
-    boolean byu = (mon == &gy.youmonst || mon == NULL);
+    boolean byu = (mon == &gy.youmonst || (mon == (struct monst *) 0
+                                           && !svc.context.mon_moving));
     boolean touching = (bodypart != NO_PART);
     /* note that touching represents either you or the monster touching the
      * door and does not mean "the player touching". */
-    boolean canseemon = ((byu || cansee(mon->mx, mon->my)) && !Unaware);
+    boolean canseemon = ((byu || (mon && cansee(mon->mx, mon->my)))
+                         && !Unaware);
     /* also assume that it's impossible for the player to trigger a door trap
      * while unaware, so assume byu implies !Unaware */
     boolean canseedoor = (cansee(x,y) && !Unaware);
@@ -6963,9 +6968,14 @@ doortrapped(int x, int y, struct monst * mon, int bodypart, int action,
         return DOORTRAPPED_NOCHANGE;
     }
 
-    if (mon == NULL) {
-        /* useful for calling player/monster agnostic stuff later */
-        mon = &gy.youmonst;
+    if (mon == (struct monst *) 0) {
+        if (byu) {
+            /* useful for calling player/monster agnostic stuff later;
+             * also ensures that after this block, !mon means there isn't a
+             * monster who can be directly affected, so we can outright exclude
+             * certain traps */
+            mon = &gy.youmonst;
+        }
     }
     else if (mon != &gy.youmonst) {
         mon->mtrapseen |= (1 << (TRAPPED_DOOR - 1));
@@ -7030,8 +7040,8 @@ doortrapped(int x, int y, struct monst * mon, int bodypart, int action,
                                      * temporarily */
     }
     else if (selected_trap == STATIC_SHOCK && before && bodypart == FINGER
-             && (action == D_ISOPEN || action == D_CLOSED
-                 || action == -D_LOCKED || action == -D_TRAPPED)) {
+             && mon && (action == D_ISOPEN || action == D_CLOSED
+                        || action == -D_LOCKED || action == -D_TRAPPED)) {
         boolean resists = (byu ? Shock_resistance : resists_elec(mon));
         dmg = rnd(lvl * 2) / (resists ? 4 : 1);
         dmg += 1;
@@ -7055,9 +7065,10 @@ doortrapped(int x, int y, struct monst * mon, int bodypart, int action,
     else if (selected_trap == WATER_BUCKET && after
              && (action == D_ISOPEN || action == D_BROKEN
                  || action == -D_TRAPPED)) {
-        if (canseemon) {
+        if (canseedoor) {
             pline_xy(x, y, "A bucket of water splashes down on %s!",
-                     (!touching ? "the floor" : (byu ? "you" : mon_nam(mon))));
+                     ((!touching || !mon) ? "the floor"
+                                          : (byu ? "you" : mon_nam(mon))));
         }
         else {
             You_hear("a distant splash.");
@@ -7069,7 +7080,7 @@ doortrapped(int x, int y, struct monst * mon, int bodypart, int action,
                 water_damage_chain(gi.invent, FALSE, (lvl/5)+1, FALSE);
                 exercise(A_WIS, FALSE);
             }
-            else {
+            else if (mon) {
                 water_damage_chain(mon->minvent, FALSE, (lvl/5)+1, FALSE);
             }
         }
@@ -7107,7 +7118,7 @@ doortrapped(int x, int y, struct monst * mon, int bodypart, int action,
                 You_see("a door %s off its hinges!",
                         (action == D_BROKEN ? "smashed" : "fall"));
             }
-            if (touching) {
+            if (mon && touching) {
                 if (canseedoor) {
                     pline_mon(mon, "%s crashes on top of it!", Monnam(mon));
                 }
@@ -7144,7 +7155,7 @@ doortrapped(int x, int y, struct monst * mon, int bodypart, int action,
             if (canseedoor) {
                 You_see("a door fall off its hinges!");
             }
-            if (touching) {
+            if (touching && mon) {
                 if (canseemon) {
                     pline_mon(mon, "It crashes on top of %s!", Monnam(mon));
                 }
@@ -7170,7 +7181,7 @@ doortrapped(int x, int y, struct monst * mon, int bodypart, int action,
             You("see a tripwire snap!");
         }
         You_hear("something rumbling in the ceiling.");
-        if (touching) {
+        if (touching && mon) {
             if (byu) {
                 drop_boulder_on_player(FALSE, FALSE, FALSE, FALSE);
                 exercise(A_STR, FALSE);
@@ -7186,8 +7197,8 @@ doortrapped(int x, int y, struct monst * mon, int bodypart, int action,
         set_door_trap(door, FALSE); /* trap is gone */
     }
     else if (selected_trap == HOT_KNOB && before && bodypart == FINGER
-             && (action == D_ISOPEN || action == D_CLOSED
-                 || action == -D_TRAPPED)) {
+             && mon && (action == D_ISOPEN || action == D_CLOSED
+                        || action == -D_TRAPPED)) {
         dmg = rnd(lvl);
         struct obj* gloves = which_armor(mon, W_ARMG);
         if (byu ? Fire_resistance : resists_fire(mon)) {
