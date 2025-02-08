@@ -1543,9 +1543,9 @@ nhl_timer_start_at(lua_State *L)
 
 /* for a special level (demon lord lair) to check if it should generate a wand
  * of wishing
- * nh.is_wish_dlord('Orcus') */
+ * nh.is_wish_archfiend('Orcus') */
 static int
-nhl_is_wish_dlord(lua_State *L)
+nhl_is_wish_archfiend(lua_State *L)
 {
     int mndx;
     boolean ret = FALSE;
@@ -1814,7 +1814,7 @@ static const struct luaL_Reg nhl_functions[] = {
     { "pushkey", nhl_pushkey },
     { "doturn", nhl_doturn },
     { "debug_flags", nhl_debug_flags },
-    { "is_wish_dlord", nhl_is_wish_dlord },
+    { "is_wish_archfiend", nhl_is_wish_archfiend },
     { NULL, NULL }
 };
 

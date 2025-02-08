@@ -50,7 +50,7 @@ des.monster({ id='Yeenoghu', coord={Yx,Yy}, waiting=1, inventory=function()
 end })
 des.object({ id='chest', locked=true, coord={Yx,Yy}, buried=true, material='iron',
              contents=function()
-   if nh.is_wish_dlord('Yeenoghu') then
+   if nh.is_wish_archfiend('Yeenoghu') then
       des.object({ class='/', id='wishing', spe=1 })
    else
       des.object({ class='/', id='magic missile' })

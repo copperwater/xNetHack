@@ -137,7 +137,7 @@ for i = 1, 2 do
 end
 des.region({ region={59,03,68,05}, type="throne", filled=0, lit=0 })
 des.object({ id='chest', x=64, y=03, locked=true, trapped=true, contents=function()
-   if nh.is_wish_dlord('Orcus') then
+   if nh.is_wish_archfiend('Orcus') then
       des.object({ class='/', id='wishing', spe=1 })
    else
       local blackgems = { 'jet', 'obsidian', 'black opal', 'worthless piece of black glass' }

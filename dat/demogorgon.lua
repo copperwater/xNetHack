@@ -427,11 +427,11 @@ end
 local wisharea = (selection.area(64,05,72,19) + selection.area(57,10,65,19)
                   + selection.area(50,15,58,19)):filter_mapchar('.')
 des.object({ id='chest', material='gold', coord=wisharea:rndcoord(), contents=function()
-   if nh.is_wish_dlord('Demogorgon') then
+   if nh.is_wish_archfiend('Demogorgon') then
       des.object({ class='/', id='wishing', spe=1 })
    else
       if percent(10) then
-         des.object('magic lamp') -- even if not a wish dlord
+         des.object('magic lamp') -- even if not a wish archfiend
       elseif percent(30) then
          des.object('magic marker')
       elseif percent(30) then

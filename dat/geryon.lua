@@ -142,7 +142,7 @@ local w = d(2)
 des.region({ region=coordsets[w].thronereg, type='throne', filled=0, lit = 1 })
 des.object({ id='chest', locked=true, coord=coordsets[w].wishchest, material='wooden',
              contents=function()
-   if nh.is_wish_dlord('Geryon') then
+   if nh.is_wish_archfiend('Geryon') then
       des.object({ class='/', id='wishing', spe=1 })
    else
       for i = 1, 1 + d(3) do

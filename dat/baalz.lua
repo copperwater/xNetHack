@@ -141,7 +141,7 @@ end
 -- the treasure
 des.door({ state='secret', locked=1, iron=1, coord = {68,09} })
 des.object({ id='chest', locked=1, coord={71,09}, material='iron', contents=function()
-   if nh.is_wish_dlord('Baalzebub') then
+   if nh.is_wish_archfiend('Baalzebub') then
       des.object({ class='/', id='wishing', spe=1 })
    else
       for i = 1, 3 do

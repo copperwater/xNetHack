@@ -52,7 +52,7 @@ allcorners:iterate(function(x,y)
    end
 end)
 
-if nh.is_wish_dlord('Dispater') then
+if nh.is_wish_archfiend('Dispater') then
    local lootspots = { {38,01}, {03,04}, {26,17} }
    shuffle(lootspots)
    des.object({ id='chest', locked=1, coord=lootspots[1], material='iron', contents=function()
