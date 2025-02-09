@@ -3346,11 +3346,14 @@ that this may be the last time you come here.]],
          text = [["Greetings, %p.  I have not been able to pay as much
 attention to your search for the Amulet as I have wished.  How do you fare?"]],
       },
-      restorelevel = {
+      level_restored = {
          text = [[
 As you near the great bridge once more, you are amazed to see that it is
 no longer shattered!  It is as smooth and glimmering as the first time
 you ever beheld it.]],
+      },
+      level_restoring = {
+         text = "The bridge shimmers and re-solidifies before your eyes!"
       },
    },
    Wiz = {

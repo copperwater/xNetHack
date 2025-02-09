@@ -112,8 +112,13 @@ nemdead(void)
         qt_pager("killed_nemesis");
 
         /* this won't do anything unless on Valk locate level */
-        restore_valk_locate(PHASE_PHYSICAL | PHASE_DIALOGUE | PHASE_VISION);
+        restore_valk_locate(PHASE_PHYSICAL | PHASE_VISION);
         svl.level.flags.visited_after_event |= VISITED_AFTER_NEMDEAD;
+        if (Is_qlocate(&u.uz) && Role_if(PM_VALKYRIE)) {
+            /* give a different pager message than the one that speaks about it
+             * in the past tense (we left out PHASE_DIALOGUE above) */
+            qt_pager("level_restoring");
+        }
     }
 }
 

@@ -2733,7 +2733,7 @@ restore_valk_locate(xint8 phases)
         docrt();
     }
     if (phases & PHASE_DIALOGUE) {
-        qt_pager("restorelevel");
+        qt_pager("level_restored");
     }
 }
 
