@@ -4233,6 +4233,35 @@ maybe_wail(void)
     }
 }
 
+/* logic for whether saving grace would trigger given a certain amount of
+ * damage.
+ * Extracted from saving_grace so callers of losehp() can decide whether
+ * they want to print a message indicating fatal damage, which would not make
+ * sense should saving grace actually trigger. */
+boolean
+saving_grace_would_trigger(int dmg)
+{
+    if (Upolyd)
+        /* rehumanize() is expected instead
+         * (in xNetHack should we be triggering saving grace when in a permanent
+         * polymorph form?) */
+        return FALSE;
+
+    if (u.usaving_grace != 0)
+        /* already used up saving grace */
+        return FALSE;
+
+    if (dmg < u.uhp)
+        /* not a killing blow */
+        return FALSE;
+
+    if ((u.uhp * 100 / u.uhpmax) <= 90)
+        /* killing blow, but you were below 90% HP */
+        return FALSE;
+
+    return TRUE;
+}
+
 /* once per game, if receiving a killing blow from above 90% HP,
    allow the hero to survive with 1 HP */
 int
@@ -4243,7 +4272,7 @@ saving_grace(int dmg)
         return 0;
     }
 
-    if (!u.usaving_grace && dmg >= u.uhp && (u.uhp * 100 / u.uhpmax) > 90) {
+    if (saving_grace_would_trigger(dmg)) {
         /* saving_grace doesn't have it's own livelog classification;
            we might invent one, or perhaps use LL_LIFESAVE, but surviving
            certain death (or preserving worn amulet of life saving) via

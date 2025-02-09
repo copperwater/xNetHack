@@ -1221,6 +1221,7 @@ extern int monster_nearby(void);
 extern void end_running(boolean);
 extern void nomul(int);
 extern void unmul(const char *);
+extern boolean saving_grace_would_trigger(int);
 extern int saving_grace(int);
 extern void showdamage(int);
 extern void losehp(int, const char *, schar) ;
