@@ -3515,9 +3515,9 @@ mondead(struct monst *mtmp)
 
     /* if it's a (possibly polymorphed) quest leader, mark him as dead */
     if (mtmp->m_id == svq.quest_status.leader_m_id)
-        svq.quest_status.killed_leader = TRUE;
+        leaddead();
     if (mtmp->m_id == svq.quest_status.nemesis_m_id)
-        svq.quest_status.killed_nemesis = TRUE;
+        nemdead();
 #ifdef MAIL_STRUCTURES
     /* if the mail daemon dies, no more mail delivery.  -3. */
     if (mndx == PM_MAIL_DAEMON)
