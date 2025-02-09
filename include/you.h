@@ -431,7 +431,7 @@ struct you {
     Bitfield(uinvulnerable, 1); /* you're invulnerable (praying) */
     Bitfield(uburied, 1);       /* you're buried */
     Bitfield(uedibility, 1);    /* blessed food detect; sense unsafe food */
-    Bitfield(ufalldamage, 1);   /* fell into air; take damage on level below */
+    Bitfield(ufelloffcliff, 1); /* fell into air; take damage on level below */
 
     Bitfield(usaving_grace, 1); /* prevents death once */
     Bitfield(uhandedness, 1); /* There is no advantage for either handedness.

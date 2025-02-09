@@ -3273,9 +3273,7 @@ u_aireffects(void)
         svk.killer.format = NO_KILLER_PREFIX;
         done(DIED);
         /* life-saved */
-        if (safe_teleds(TELEDS_ALLOW_DRAG | TELEDS_TELEPORT))
-            ;
-        else {
+        if (!safe_teleds(TELEDS_ALLOW_DRAG | TELEDS_TELEPORT)) {
             pline("Unfortunately, there is still nowhere safe to land.");
             You("fall to your death again.");
             Sprintf(svk.killer.name, "fell to %s death", uhis());
@@ -3297,7 +3295,7 @@ u_aireffects(void)
          * to. Usually this wouldn't happen due to inter-branch levels and the
          * bottom levels of branches being ineligible for bones, though. */
         schedule_goto(&destination, UTOTYPE_FALLING, (char *) 0, (char *) 0);
-        u.ufalldamage = 1;
+        u.ufelloffcliff = 1;
     }
     in_aireffects = FALSE;
 }

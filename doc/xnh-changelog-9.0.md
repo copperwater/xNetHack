@@ -125,6 +125,8 @@ changes:
   - The Apple of Discord requires a sacrifice of difficulty 7+.
   - The Amulet of Storms requires a sacrifice of difficulty 2+.
 - Bone items now have a +1 damage bonus against ghosts and shades.
+- Saving grace will not alleviate death from falling into open air and
+  splattering on the ground below.
 
 ### Interface changes
 
@@ -178,6 +180,8 @@ changes:
   vanilla. The Riders are still bright magenta.
 - Vrocks are now green, the same as vanilla.
 - Erinyes are now orange.
+- Print a message "You crash into the ground" when taking damage falling down a
+  hole or a trap door.
 
 ### Architectural changes
 

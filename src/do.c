@@ -2001,24 +2001,6 @@ goto_level(
     notice_mon_on();
     notice_all_mons(TRUE);
 
-    /* Take deferred fall damage (from falling into open air)
-     * Hero takes fall damage on arrival in the new level whereas monsters take
-     * it before falling (in order to avert oddities such as pet-killing
-     * penalties and experience gain being deferred until visiting the new
-     * level). */
-    if (u.ufalldamage) {
-        u.ufalldamage = FALSE;
-        int fall_damage = Maybe_Half_Phys(d(20, 12));
-        if (fall_damage >= (Upolyd ? u.mh : u.uhp))
-            You("splatter upon hitting the ground.");
-        else
-            You("crash into the ground very hard.");
-        Sprintf(svk.killer.name, "fell to %s death", uhis());
-        losehp(fall_damage, svk.killer.name, NO_KILLER_PREFIX);
-        make_stunned((HStun & TIMEOUT) + rn1(15, 15), TRUE);
-        set_wounded_legs(BOTH_SIDES, 60 + d(10,10));
-    }
-
     print_level_annotation();
     /* give room entrance message, if any */
     check_special_room(FALSE);
@@ -2033,12 +2015,33 @@ goto_level(
     if (!new)
         fix_shop_damage();
 
-    /* fall damage? */
+    /* Take deferred fall damage (from falling into open air, or down a hole)
+     * Hero takes fall damage on arrival in the new level whereas monsters take
+     * it before falling (in order to avert oddities such as pet-killing
+     * penalties and experience gain being deferred until visiting the new
+     * level). */
     if (do_fall_dmg) {
         int dmg = d(max(dist, 1), 6);
-
+        if (u.ufelloffcliff) {
+            dmg += d(20, 12);
+        }
         dmg = Maybe_Half_Phys(dmg);
-        losehp(dmg, "falling down a mine shaft", KILLED_BY);
+        if (u.ufelloffcliff && dmg >= (Upolyd ? u.mh : u.uhp)
+            && !saving_grace_would_trigger(dmg))
+            You("splatter upon hitting the ground.");
+        else
+            You("crash into the ground%s.", dmg >= 30 ? " very hard" : "");
+
+        if (u.ufelloffcliff) {
+            Sprintf(svk.killer.name, "fell to %s death", uhis());
+            losehp(dmg, svk.killer.name, NO_KILLER_PREFIX);
+            make_stunned((HStun & TIMEOUT) + rn1(15, 15), TRUE);
+            set_wounded_legs(BOTH_SIDES, 60 + d(10,10));
+        }
+        else
+            losehp(dmg, "falling down a mine shaft", KILLED_BY);
+
+        u.ufelloffcliff = FALSE;
     }
 
     (void) pickup(1);
