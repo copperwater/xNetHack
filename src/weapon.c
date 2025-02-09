@@ -355,6 +355,15 @@ dmgval(struct obj *otmp, struct monst *mon)
             bonus += rnd(sear_damage(otmp->material));
         if (artifact_light(otmp) && otmp->lamplit && hates_light(ptr))
             bonus += rnd(8);
+        if (noncorporeal(ptr) && otmp->material == BONE) {
+            /* ideally there wouldn't be bonus damage here, but there's quite a
+             * bit of code that assumes if there is no special damage to a
+             * noncorporeal monster, the attack should harmlessly pass through;
+             * some of that code is separated from the actual call to
+             * special_dmgval. So, giving a bonus point of damage for bone items
+             * vs incorporeal enemies is the simplest way to do it. */
+            bonus += 1;
+        }
 
         /* if the weapon is going to get a double damage bonus, adjust
            this bonus so that effectively it's added after the doubling */

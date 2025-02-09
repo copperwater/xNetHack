@@ -124,6 +124,7 @@ changes:
   - Mirror Brand will be +1 if gifted and requires a sacrifice of difficulty 5+.
   - The Apple of Discord requires a sacrifice of difficulty 7+.
   - The Amulet of Storms requires a sacrifice of difficulty 2+.
+- Bone items now have a +1 damage bonus against ghosts and shades.
 
 ### Interface changes
 
