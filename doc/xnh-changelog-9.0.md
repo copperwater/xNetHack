@@ -176,6 +176,8 @@ changes:
 - Inventory weights are formatted as "(x aum)" instead of "{x}".
 - Archfiends (besides Juiblex) now render as regular magenta &, the same as
   vanilla. The Riders are still bright magenta.
+- Vrocks are now green, the same as vanilla.
+- Erinyes are now orange.
 
 ### Architectural changes
 
