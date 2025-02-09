@@ -1783,6 +1783,11 @@ const char* femdemonnames[] = {
 void
 mintroduce(struct monst *mtmp)
 {
+    if (ismnum(mtmp->cham)) {
+        /* shapeshifter in the form of an introducing monster; they don't
+         * actually have a "name" */
+        return;
+    }
     if (!has_mgivenname(mtmp)) {
         const char* name;
         if (mtmp->data->mlet == S_NYMPH) {
