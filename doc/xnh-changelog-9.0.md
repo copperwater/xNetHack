@@ -127,6 +127,10 @@ changes:
 - Bone items now have a +1 damage bonus against ghosts and shades.
 - Saving grace will not alleviate death from falling into open air and
   splattering on the ground below.
+- Several xNetHack themed rooms have been converted to fills, allowing them to
+  fill the oddly shaped rooms rather than only appearing in rectangular rooms.
+- The xNetHack "garden" themed room is removed (but the vanilla "garden" themed
+  room fill is still present).
 
 ### Interface changes
 

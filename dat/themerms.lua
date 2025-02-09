@@ -28,6 +28,13 @@
 
 local postprocess = { };
 
+-- Themed room fills, which can be applied to rooms of various shape and size
+-- that use filler_region() to provide a potential fill.
+-- This allows for a lot of variety in rooms, since otherwise there would have
+-- to be (#empty room shapes x #fills) different themed rooms to accomplish the
+-- same effect.
+-- Generally expected is that the region is in fact empty, which is a safe
+-- assumption if calling filler_region on an empty room space.
 themeroom_fills = {
 
    -- Ice room
@@ -235,6 +242,85 @@ themeroom_fills = {
          end
       end
    end,
+
+   -- XNETHACK THEMED ROOM FILLS START HERE
+
+   -- Graffiti room
+   function(rm)
+      local locs = selection.room():percentage(30);
+      local graffiti_it = function(x, y)
+         -- text="" means make a random engraving
+         des.engraving({ coord={x,y}, type="mark", text="" })
+      end;
+      locs:iterate(graffiti_it)
+   end,
+
+   -- Scummy moldy room
+   {
+      mindiff = 6,
+      contents = function(rm)
+         mons = { 'gas spore', 'F', 'b', 'j', 'P' }
+         local nummons = math.min(selection.room():numpoints(), d(4,3))
+         for i=1, nummons do
+            -- Note: this is a bit different from the original UnNetHack
+            -- room; that one picked one member from mons and filled the room
+            -- with it, whereas this randomizes the member of mons each time.
+            des.monster(mons[d(#mons)])
+         end
+      end
+   },
+
+   -- Gas spore den
+   -- Tread carefully...
+   {
+      mindiff = 5,
+      contents = function()
+         local make_spore = function(x, y)
+            if percent(math.min(100, 75 + nh.level_difficulty())) then
+               des.monster({ id="gas spore", coord={x,y}, asleep=1 })
+            end
+         end
+         selection.room():iterate(make_spore)
+      end
+   },
+
+   -- Water temple (not a real temple)
+   {
+      mindiff = nh.mon_difficulty('water nymph') + 1,
+      contents = function()
+         local totsiz = selection.room():numpoints()
+         for i = 1, math.min(d(6)+6, math.floor(totsiz / 4)) do
+            des.feature({ type='pool' })
+         end
+         for i = 1, math.min(d(3), math.floor(totsiz / 4)) do
+            des.feature({ type='fountain' })
+         end
+         if percent(30) then
+            des.feature({ type='sink' })
+         end
+         for i = 1, math.min(d(4)+1, math.floor(totsiz / 4)) do
+            des.monster('water nymph')
+         end
+      end
+   },
+
+   -- Meadow
+   {
+      eligible = function(rm) return rm.lit == true; end,
+      contents = function()
+         local interior = selection.room()
+         des.terrain(interior, 'g')
+         if interior:numpoints() > 8 then
+            -- in the original implementation this tried to pick points not against
+            -- a wall so as not to block doors. now that this is a fill, that's too
+            -- hard to do.
+            for i = 1, d(4)-2 do
+               des.terrain(interior:rndcoord(), 'T')
+            end
+         end
+      end,
+   }
+
 };
 
 ------------------------------- HELPER FUNCTIONS -------------------------------
@@ -548,7 +634,7 @@ xxx|...|xxx
 |.........|
 |.........|
 -----------]], contents = function(m) filler_region(5,5); end });
-   end,
+   end, 
 
    -- T-shaped, rot 1
    function()
@@ -734,6 +820,58 @@ xx|.....|xx
 end });
    end,
 
+   -- Twin businesses
+   {
+      mindiff = 4, -- arbitrary
+      contents = function()
+         -- Due to the way room connections work in mklev.c, we must guarantee
+         -- that the "aisle" between the shops touches all four walls of the
+         -- larger room. Thus it has an extra width and height.
+         des.room({ type="themed", w=9, h=5, contents = function()
+            -- There are eight possible placements of the two shops, four of
+            -- which have the vertical aisle in the center.
+            southeast = function() return percent(50) and "south" or "east" end
+            northeast = function() return percent(50) and "north" or "east" end
+            northwest = function() return percent(50) and "north" or "west" end
+            southwest = function() return percent(50) and "south" or "west" end
+            placements = {
+               { lx = 1, ly = 1, rx = 4, ry = 1, lwall = "south", rwall = southeast() },
+               { lx = 1, ly = 2, rx = 4, ry = 2, lwall = "north", rwall = northeast() },
+               { lx = 1, ly = 1, rx = 5, ry = 1, lwall = southeast(), rwall = southwest() },
+               { lx = 1, ly = 1, rx = 5, ry = 2, lwall = southeast(), rwall = northwest() },
+               { lx = 1, ly = 2, rx = 5, ry = 1, lwall = northeast(), rwall = southwest() },
+               { lx = 1, ly = 2, rx = 5, ry = 2, lwall = northeast(), rwall = northwest() },
+               { lx = 2, ly = 1, rx = 5, ry = 1, lwall = southwest(), rwall = "south" },
+               { lx = 2, ly = 2, rx = 5, ry = 2, lwall = northwest(), rwall = "north" }
+            }
+            ltype,rtype = "weapon shop","armor shop"
+            if percent(50) then
+               ltype,rtype = rtype,ltype
+            end
+            shopdoorstate = function()
+               if percent(1) then
+                  return "locked"
+               elseif percent(50) then
+                  return "closed"
+               else
+                  return "open"
+               end
+            end
+            p = placements[d(#placements)]
+            des.room({ type=ltype, x=p["lx"], y=p["ly"], w=3, h=3, filled=1,
+                       joined=false, contents = function()
+               des.door({ state=shopdoorstate(), wall=p["lwall"] })
+            end })
+            des.room({ type=rtype, x=p["rx"], y=p["ry"], w=3, h=3, filled=1,
+                       joined=false, contents = function()
+               des.door({ state=shopdoorstate(), wall=p["rwall"] })
+            end })
+         end })
+      end
+   },
+
+   -- XNETHACK THEMED ROOMS START HERE
+
    -- Four connected rooms
    -- Note: they're all independent, meaning each one generates monsters,
    -- objects, furniture etc separately.
@@ -802,20 +940,6 @@ x|.|x
                         filled=1 })
             des.door("random", 02, 04)
             des.door("random", 02, 08)
-         end
-      end })
-   end,
-
-   -- Graffiti room
-   function()
-      des.room({ type = "themed", filled = 1,
-                 contents = function(rm)
-         for x = 0, rm.width - 1 do
-            for y = 0, rm.height - 1 do
-               if percent(30) then
-                  des.engraving({ coord={x,y}, type="mark", text="" })
-               end
-            end
          end
       end })
    end,
@@ -892,7 +1016,7 @@ xxx---...|
 xxxxx-----]], contents = function(rm) filler_region(7,1) end })
    end,
 
-   -- Rectangular walled corridor
+   -- Rectangular 1-wide ring around a blocked center
    -- Note: a 5x5 version of this room could be confused for Mausoleum
    function()
       des.room({ type = "themed", filled = 1,
@@ -1245,7 +1369,7 @@ xxxx----xx----xxxx]], contents=function(m)
       end })
    end,
 
-   -- Swimming pool
+   -- Swimming pool (ring of dry land surrounding water)
    {
       mindiff = 5,
       contents = function()
@@ -1272,7 +1396,7 @@ xxxx----xx----xxxx]], contents=function(m)
       end
    },
 
-   -- Anti swimming pool
+   -- Anti swimming pool (ring of water surrounding a dry platform)
    {
       mindiff = 14,
       contents = function()
@@ -1291,23 +1415,6 @@ xxxx----xx----xxxx]], contents=function(m)
       local width = 14 + d(6)
       des.room({ type="ordinary", filled=1, w=14+d(6), h=d(2) })
    end,
-
-   -- Scummy moldy room
-   {
-      mindiff = 6,
-      contents = function()
-         des.room({ type="themed", filled=0, contents=function(rm)
-            mons = { 'gas spore', 'F', 'b', 'j', 'P' }
-            local nummons = math.min(rm.width * rm.height, d(4,3))
-            for i=1, nummons do
-               -- Note: this is a bit different from the original UnNetHack
-               -- room; that one picked one member from mons and filled the room
-               -- with it, whereas this randomizes the member of mons each time.
-               des.monster(mons[d(#mons)])
-            end
-         end })
-      end
-   },
 
    -- Ozymandias' Tomb
    {
@@ -1344,23 +1451,6 @@ xxxx----xx----xxxx]], contents=function(m)
       end
    },
 
-   -- Gas spore den
-   -- Tread carefully...
-   {
-      mindiff = 5,
-      contents = function()
-         des.room({ type="themed", filled=0, contents=function(rm)
-            for x=0,rm.width-1 do
-               for y=0,rm.width-1 do
-                  if percent(math.min(100, 75 + nh.level_difficulty())) then
-                     des.monster({ id='gas spore', asleep=1 })
-                  end
-               end
-            end
-         end })
-      end
-   },
-
    -- Pool room: a homage to the /dev/null pool challenge
    function()
       des.room({ type="themed", filled=0, w=9, h=9, contents = function(rm)
@@ -1380,58 +1470,9 @@ xxxx----xx----xxxx]], contents=function(m)
             end
             des.object({ id = 'boulder', x = bx, y = by, name = tostring(i) })
          end
+         des.object("quarterstaff") -- cue stick
       end })
    end,
-
-   -- Twin businesses
-   {
-      mindiff = 4, -- arbitrary
-      contents = function()
-         -- Due to the way room connections work in mklev.c, we must guarantee
-         -- that the "aisle" between the shops touches all four walls of the
-         -- larger room. Thus it has an extra width and height.
-         des.room({ type="themed", w=9, h=5, contents = function()
-            -- There are eight possible placements of the two shops, four of
-            -- which have the vertical aisle in the center.
-            southeast = function() return percent(50) and "south" or "east" end
-            northeast = function() return percent(50) and "north" or "east" end
-            northwest = function() return percent(50) and "north" or "west" end
-            southwest = function() return percent(50) and "south" or "west" end
-            placements = {
-               { lx = 1, ly = 1, rx = 4, ry = 1, lwall = "south", rwall = southeast() },
-               { lx = 1, ly = 2, rx = 4, ry = 2, lwall = "north", rwall = northeast() },
-               { lx = 1, ly = 1, rx = 5, ry = 1, lwall = southeast(), rwall = southwest() },
-               { lx = 1, ly = 1, rx = 5, ry = 2, lwall = southeast(), rwall = northwest() },
-               { lx = 1, ly = 2, rx = 5, ry = 1, lwall = northeast(), rwall = southwest() },
-               { lx = 1, ly = 2, rx = 5, ry = 2, lwall = northeast(), rwall = northwest() },
-               { lx = 2, ly = 1, rx = 5, ry = 1, lwall = southwest(), rwall = "south" },
-               { lx = 2, ly = 2, rx = 5, ry = 2, lwall = northwest(), rwall = "north" }
-            }
-            ltype,rtype = "weapon shop","armor shop"
-            if percent(50) then
-               ltype,rtype = rtype,ltype
-            end
-            shopdoorstate = function()
-               if percent(1) then
-                  return "locked"
-               elseif percent(50) then
-                  return "closed"
-               else
-                  return "open"
-               end
-            end
-            p = placements[d(#placements)]
-            des.room({ type=ltype, x=p["lx"], y=p["ly"], w=3, h=3, filled=1,
-                       joined=false, contents = function()
-               des.door({ state=shopdoorstate(), wall=p["lwall"] })
-            end })
-            des.room({ type=rtype, x=p["rx"], y=p["ry"], w=3, h=3, filled=1,
-                       joined=false, contents = function()
-               des.door({ state=shopdoorstate(), wall=p["rwall"] })
-            end })
-         end })
-      end
-   },
 
    -- Four-way circle-and-cross room
    function()
@@ -1620,64 +1661,6 @@ xxxxxxx------xxxxxx]], contents = function()
       end
    },
 
-   -- Water temple (not a real temple)
-   {
-      mindiff = nh.mon_difficulty('water nymph') + 1,
-      contents = function()
-         des.room({ type = 'themed', contents = function(rm)
-            local totsiz = rm.width * rm.height
-            for i = 1, math.min(d(6)+6, math.floor(totsiz / 4)) do
-               des.feature({ type='pool' })
-            end
-            for i = 1, math.min(d(3), math.floor(totsiz / 4)) do
-               des.feature({ type='fountain' })
-            end
-            if percent(30) then
-               des.feature({ type='sink' })
-            end
-            for i = 1, math.min(d(4)+1, math.floor(totsiz / 4)) do
-               des.monster('water nymph')
-            end
-         end })
-      end
-   },
-
-   -- Meadow
-   function()
-      des.room({ type='themed', contents = function(rm)
-         des.terrain(selection.floodfill(0, 0), 'g')
-         if rm.width > 2 and rm.height > 2 then
-            local interior = selection.area(1, 1, rm.width-2, rm.height-2)
-            for i = 1, d(4)-2 do
-               des.terrain(interior:rndcoord(), 'T')
-            end
-         end
-      end })
-   end,
-
-   -- Garden (based on the garden rooms patch by Pasi Kallinen)
-   {
-      mindiff = 10,
-      contents = function()
-         des.room({ type='themed', contents = function(rm)
-            local totsiz = rm.width * rm.height
-            local nnymphs = math.min(d(5) + 2, totsiz / 2)
-            local nfeatures = math.min(d(3) + 2, totsiz / 2)
-            des.terrain(selection.floodfill(0, 0), 'g')
-            for i = 1, nfeatures do
-               -- The only thing missing from the original patch here is a
-               -- nexttodoor() check, because themed rooms generate before rooms
-               -- are connected but special rooms get filled after joining.
-               -- This means a tree could theoretically block a door.
-               des.feature({ type = percent(66) and 'tree' or 'fountain' })
-            end
-            for i = 1, nnymphs do
-               des.monster('n')
-            end
-         end })
-      end
-   },
-
    -- Triple rhombus
    function()
       des.map({ map = [[
@@ -1851,7 +1834,9 @@ x------------xx]], contents = function()
 
 };
 
-
+-- given a point in a themed room, create an irregular region expanding out from
+-- that point, and fill it with either ordinary room contents (70%) or a themed
+-- room fill (30%)
 function filler_region(x, y)
    local rmtyp = "ordinary";
    local func = nil;
@@ -1862,6 +1847,9 @@ function filler_region(x, y)
    des.region({ region={x,y,x,y}, type=rmtyp, irregular=true, filled=1, contents = func });
 end
 
+-- Is the themed room template or themed room filler teplate "room" eligible to
+-- generate where it's being considered?
+-- "mkrm" is either nil or the actual des.room being considered.
 function is_eligible(room, mkrm)
    local t = type(room);
    local diff = nh.level_difficulty();
@@ -1923,7 +1911,7 @@ function themeroom_fill(rm)
    local pick = 1;
    local total_frequency = 0;
    for i = 1, #themeroom_fills do
-      -- Reservoir sampling: select one room from the set of eligible rooms,
+      -- Reservoir sampling: select one fill from the set of eligible fills,
       -- which may change on different levels because of level difficulty.
       if is_eligible(themeroom_fills[i], rm) then
          local this_frequency;
