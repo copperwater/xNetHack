@@ -1877,23 +1877,27 @@ dohide(void)
     if (hides_under(gy.youmonst.data)) {
         long ct = 0L;
         struct obj *otmp, *otop = svl.level.objects[u.ux][u.uy];
-        int concealflags = concealed_spot(u.ux, u.uy);
+        int concealflags = concealed_spot(&gy.youmonst, u.ux, u.uy);
 
-        if (concealflags == NOT_CONCEALABLE_SPOT) {
-            There("is nothing to hide under here.");
-            u.uundetected = 0;
-            return ECMD_OK;
-        }
         for (otmp = otop;
              otmp && otmp->otyp == CORPSE
                   && touch_petrifies(&mons[otmp->corpsenm]);
              otmp = otmp->nexthere)
             ct += otmp->quan;
+        if (concealflags == NOT_CONCEALABLE_SPOT
+            /* if we can't hide here solely because the only items on this spot
+             * are petrifying corpses, *do* allow the player to hide here; they
+             * will get petrified, but they asked for it. */
+            && ct == 0) {
+            There("is nothing you can hide under here.");
+            u.uundetected = 0;
+            return ECMD_OK;
+        }
         /* otmp will be Null iff the entire pile consists of 'trice corpses */
         if (!otmp && !Stone_resistance
             /* hiding in the terrain will supersede even the entire object pile
              * being trice corpses... */
-            && !(concealed_spot(u.ux, u.uy) & CONCEALABLE_BY_TERRAIN)) {
+            && !(concealflags & CONCEALABLE_BY_TERRAIN)) {
             char kbuf[BUFSZ];
             const char *corpse_name = cxname(otop);
 

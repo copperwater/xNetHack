@@ -2075,8 +2075,8 @@ m_move(struct monst *mtmp, int after)
 
         /* monsters hiding under things are less likely to venture out, even to
          * attack */
-        if (hides_under(ptr) && concealed_spot(mtmp->mx, mtmp->my)
-            && !concealed_spot(nix, niy) && rn2(10)) {
+        if (hides_under(ptr) && concealed_spot(mtmp, mtmp->mx, mtmp->my)
+            && !concealed_spot(mtmp, nix, niy) && rn2(10)) {
             return MMOVE_NOTHING;
         }
 
@@ -2173,26 +2173,40 @@ m_move_aggress(struct monst *mtmp, coordxy x, coordxy y)
     return MMOVE_DONE;
 }
 
-/* Tell in what ways a hides_under monster can conceal itself at this spot.
+/* Tell in what ways a hides_under monster, mtmp, can conceal itself at this
+ * spot.
  * Such monsters can hide in grass and under some types of dungeon furniture, as
  * well as under objects. Return a bitmask of concealed_spot_return flags if it
  * can conceal itself, or 0 (NOT_CONCEALABLE_SPOT) if a monster can't conceal
  * itself.
+ * mtmp can be &gy.youmonst to mean the player.
  */
 int
-concealed_spot(coordxy x, coordxy y)
+concealed_spot(struct monst *mtmp, coordxy x, coordxy y)
 {
-    struct obj *otmp = svl.level.objects[x][y];
+    struct obj *otmp;
     int cflags = NOT_CONCEALABLE_SPOT;
     struct trap *t;
+    boolean stone_res = (mtmp == &gy.youmonst ? Stone_resistance
+                                              : resists_ston(mtmp));
 
     /* can't hide in/on/under traps (except pits) even when there is an
        object here */
     if ((t = t_at(x, y)) != 0 && !is_pit(t->ttyp))
         return NOT_CONCEALABLE_SPOT;
 
-    if (otmp && can_hide_under_obj(otmp))
+    /* most monsters won't hide under a cockatrice corpse but they can hide
+     * under a pile containing more than just such corpses */
+    for (otmp = svl.level.objects[x][y]; otmp; otmp = otmp->nexthere) {
+        if (!can_hide_under_obj(otmp))
+            continue;
+        if (otmp->otyp == CORPSE && !stone_res
+            && touch_petrifies(&mons[otmp->corpsenm]))
+            continue;
+
         cflags |= CONCEALABLE_BY_OBJECT;
+        break;
+    }
 
     switch (levl[x][y].typ) {
     case GRASS:

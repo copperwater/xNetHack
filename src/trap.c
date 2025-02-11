@@ -953,7 +953,7 @@ animate_statue(
 
     /* avoid hiding under nothing */
     if (u_at(x, y) && Upolyd && hides_under(gy.youmonst.data)
-        && !concealed_spot(x, y))
+        && !concealed_spot(&gy.youmonst, x, y))
         u.uundetected = 0;
 
     if (fail_reason)

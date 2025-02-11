@@ -2236,7 +2236,7 @@ rot_corpse(anything *arg, long timeout)
         struct monst *mtmp = m_at(x, y);
 
         /* a hiding monster may be exposed */
-        if (mtmp && !concealed_spot(x, y) && mtmp->mundetected
+        if (mtmp && !concealed_spot(mtmp, x, y) && mtmp->mundetected
             && hides_under(mtmp->data)) {
             mtmp->mundetected = 0;
         } else if (u_at(x, y)

@@ -299,7 +299,7 @@ attack_checks(
                       notseen ? "is present" : "appears");
             else if (Blind || (is_pool(mtmp->mx, mtmp->my) && !Underwater))
                 pline("Wait!  There's a hidden monster there!");
-            else if (concealed_spot(mtmp->mx, mtmp->my)) {
+            else if (concealed_spot(mtmp, mtmp->mx, mtmp->my)) {
                 obj = svl.level.objects[mtmp->mx][mtmp->my];
                 pline("Wait!  There's %s hiding under %s%s!", an(l_monnam(mtmp)),
                       obj ? "" : "the ",

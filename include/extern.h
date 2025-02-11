@@ -1972,7 +1972,7 @@ extern boolean m_avoid_kicked_loc(struct monst *, coordxy, coordxy) NONNULLARG1;
 extern boolean m_avoid_soko_push_loc(struct monst *, coordxy, coordxy) NONNULLARG1;
 extern int m_move(struct monst *, int) NONNULLARG1;
 extern int m_move_aggress(struct monst *, coordxy, coordxy) NONNULLARG1;
-extern int concealed_spot(coordxy, coordxy);
+extern int concealed_spot(struct monst *, coordxy, coordxy);
 extern void dissolve_bars(coordxy, coordxy);
 extern boolean closed_door(coordxy, coordxy);
 extern boolean accessible(coordxy, coordxy);

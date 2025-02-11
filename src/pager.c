@@ -244,8 +244,8 @@ mhidden_description(
         Strcpy(outbuf, ", hiding");
         if (hides_under(mon->data)) {
             Strcat(outbuf, " under ");
-            int hidetyp = concealed_spot(x, y);
-            if (hidetyp == 1) { /* hiding with terrain */
+            int hidetyp = concealed_spot(isyou ? &gy.youmonst : mon, x, y);
+            if (hidetyp == CONCEALABLE_BY_TERRAIN) {
                 Strcat(outbuf, explain_terrain(x, y));
             }
             else {

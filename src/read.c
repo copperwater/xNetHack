@@ -3536,7 +3536,7 @@ create_particular_creation(
         }
         if (d->hidden
            && ((is_hider(mtmp->data) && mtmp->data->mlet != S_MIMIC)
-               || (hides_under(mtmp->data) && concealed_spot(mx, my))
+               || (hides_under(mtmp->data) && concealed_spot(mtmp, mx, my))
                || (mtmp->data->mlet == S_EEL && is_pool(mx, my))))
             mtmp->mundetected = 1;
         if (d->sleeping)

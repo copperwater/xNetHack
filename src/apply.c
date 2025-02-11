@@ -2587,7 +2587,8 @@ fig_transform(anything *arg, long timeout)
             suppress_see = TRUE;
 
         if (mtmp->mundetected) {
-            if (hides_under(mtmp->data) && concealed_spot(mtmp->mx, mtmp->my)) {
+            if (hides_under(mtmp->data)
+                && concealed_spot(mtmp, mtmp->mx, mtmp->my)) {
                 Sprintf(and_vanish, " and %s under %s%s",
                         locomotion(mtmp->data, "crawl"),
                         (mshelter ? "" : "the "),

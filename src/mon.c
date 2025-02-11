@@ -154,8 +154,8 @@ sanity_check_single_mon(
         if (mtmp == u.ustuck)
             impossible("hiding monster stuck to you (%s)", msg);
         if (m_at(mx, my) == mtmp && hides_under(mptr)
-            && !concealed_spot(mx, my))
-            impossible("mon hiding under nonexistent obj (%s)", msg);
+            && !concealed_spot(mtmp, mx, my))
+            impossible("mon hiding in unconcealable spot (%s)", msg);
         if (mptr->mlet == S_EEL
             && !(is_pool(mx, my) && !Is_waterlevel(&u.uz)))
             impossible("eel hiding %s (%s)",
@@ -5190,7 +5190,8 @@ maybe_unhide_at(coordxy x, coordxy y)
     }
 
     if (undetected
-        && ((hides_under(mtmp->data) && (!concealed_spot(x, y) || trapped))
+        && ((hides_under(mtmp->data)
+             && (!concealed_spot(mtmp, x, y) || trapped))
             || (mtmp->data->mlet == S_EEL && !is_pool(x, y))))
         (void) hideunder(mtmp);
 }
@@ -5232,7 +5233,7 @@ hideunder(struct monst *mtmp)
                /* aquatic creatures don't reach here; other swimmers
                   shouldn't hide beneath underwater objects */
                && !is_pool_or_lava(x, y)) {
-        int concealment = concealed_spot(x, y);
+        int concealment = concealed_spot(mtmp, x, y);
         if (concealment == CONCEALABLE_BY_TERRAIN) {
             undetected = TRUE;
         }
@@ -5240,14 +5241,7 @@ hideunder(struct monst *mtmp)
             struct obj *otmp = svl.level.objects[x][y];
             if (seeit) /*&& (!is_pool(x, y) || (Underwater && distu(x, y) <= 2))*/
                 seenobj = ansimpleoname(otmp);
-            /* most monsters won't hide under cockatrice corpse but they
-               can hide under a pile containing more than just such corpses */
-            if (is_u ? !Stone_resistance : !resists_ston(mtmp))
-                while (otmp && otmp->otyp == CORPSE
-                       && touch_petrifies(&mons[otmp->corpsenm]))
-                    otmp = otmp->nexthere;
-            if (otmp)
-                undetected = TRUE;
+            undetected = TRUE;
         }
     }
 
