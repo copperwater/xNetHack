@@ -6993,7 +6993,7 @@ doortrapped(int x, int y, struct monst * mon, int bodypart, int action,
             }
             else {
                 You_hear("a %s screech.",
-                        dist2(u.ux, u.uy, x, y) < range ? "faint" : "nearby");
+                        distu(x, y) < range ? "faint" : "nearby");
             }
         }
         wake_nearto(x, y, range);
@@ -7099,6 +7099,7 @@ doortrapped(int x, int y, struct monst * mon, int bodypart, int action,
         /* necessary to set this up front; otherwise we hurtle into the closed
          * door and don't actually move */
         set_doorstate(door, D_BROKEN);
+        unblock_point(x, y);
         if (byu) {
             pline_xy(x, y, "The door %s forward off its hinges!",
                      (action == D_BROKEN ? "is knocked" : "falls"));
@@ -7120,13 +7121,14 @@ doortrapped(int x, int y, struct monst * mon, int bodypart, int action,
                         (action == D_BROKEN ? "smashed" : "fall"));
             }
             if (mon && touching) {
-                if (canseedoor) {
+                mhurtle(mon, x - mon->mx, y - mon->my, 1);
+                if (canseedoor) { /* not canseemon: mon is on door now anyway */
                     pline_mon(mon, "%s crashes on top of it!", Monnam(mon));
                 }
                 else {
-                    You_hear("a nearby crash.");
+                    You_hear("a %s crash.", distu(x, y) > 7 * 7 ? "distant"
+                                                                : "nearby");
                 }
-                mhurtle(mon, x - mon->mx, y - mon->my, 1);
                 mon->mstun = 1;
                 mon->mhp -= dmg;
                 if (DEADMONSTER(mon)) {
