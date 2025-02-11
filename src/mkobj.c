@@ -30,7 +30,7 @@ staticfn void sanity_check_worn(struct obj *);
 staticfn void init_oextra(struct oextra *);
 staticfn void init_thiefstone(struct obj *);
 staticfn const struct icp* material_list(struct obj *);
-staticfn boolean invalid_obj_material(struct obj *, uchar);
+staticfn boolean nonsensical_obj_material(struct obj *, uchar);
 
 struct icp {
     int iprob;   /* probability of an item type */
@@ -4461,10 +4461,14 @@ init_obj_material(struct obj* obj)
         if (Inhell && materials->iclass == SILVER)
             return;
         /* Only set the new material if:
-         * 1) it is not marked as invalid for this specific object
+         * 1) it is not marked as invalid for this specific object (the reason
+         *    we don't call valid_obj_material is it's just redundant and will
+         *    iterate over this same list again to check. if there is ever
+         *    another condition added to valid_obj_material this will need to be
+         *    reconsidered.)
          * 2) iclass is non-zero (a zero indicates base material should be used)
          */
-        if (!invalid_obj_material(obj, materials->iclass)
+        if (!nonsensical_obj_material(obj, materials->iclass)
             && materials->iclass != 0) {
             set_material(obj, materials->iclass);
         }
@@ -4479,7 +4483,7 @@ init_obj_material(struct obj* obj)
  * materials.
  * This should be treated as subsidiary to valid_obj_material. */
 staticfn boolean
-invalid_obj_material(struct obj *obj, uchar mat)
+nonsensical_obj_material(struct obj *obj, uchar mat)
 {
     int oclass = obj->oclass;
 
@@ -4512,29 +4516,27 @@ valid_obj_material(struct obj *obj, uchar mat)
         return TRUE;
     }
 
-    /* if it is what it's defined as in objects.c, always valid, don't bother
+    /* if it is what it's defined as in objects.h, always valid, don't bother
      * with lists */
     if (objects[obj->otyp].oc_material == mat) {
         return TRUE;
     }
-    else {
-        if (invalid_obj_material(obj, mat)) {
-            return FALSE;
-        }
-        const struct icp* materials = material_list(obj);
-
-        if (materials) {
-            int i = 100; /* guarantee going through everything */
-            while (i > 0) {
-                if (materials->iclass == mat)
-                    return TRUE;
-                i -= materials->iprob;
-                materials++;
-            }
-        }
-        /* no valid materials in list, or no valid list */
+    if (nonsensical_obj_material(obj, mat)) {
         return FALSE;
     }
+    const struct icp* materials = material_list(obj);
+
+    if (materials) {
+        int i = 100; /* guarantee going through everything */
+        while (i > 0) {
+            if (materials->iclass == mat)
+                return TRUE;
+            i -= materials->iprob;
+            materials++;
+        }
+    }
+    /* no valid materials in list, or no valid list */
+    return FALSE;
 }
 
 /* Change the object's material, and any properties derived from it.
