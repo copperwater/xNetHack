@@ -1255,12 +1255,12 @@ dump_enums(void)
         const char *const title;
         const char *const pfx;
         int unprefixed_count;
-        int dumpflgs;
+        int dumpflgs;  /* 0 = dump numerically only, 1 = add 'char' comment */
         int szd;
     } edmp[NUM_ENUM_DUMPS] = {
         { "monnums", "PM_", UNPREFIXED_COUNT, 0, SIZE(monsdump) },
         { "objects_nums", "", 1, 0, SIZE(objdump) },
-        { "misc_object_nums",  "", 1, 0, SIZE(omdump) },
+        { "misc_object_nums", "", 1, 0, SIZE(omdump) },
         { "cmap_symbols", "", 1, 0, SIZE(defsym_cmap_dump) },
         { "mon_syms", "", 1, 0, SIZE(defsym_mon_syms_dump) },
         { "mon_defchars", "", 1, 1, SIZE(defsym_mon_defchars_dump) },
