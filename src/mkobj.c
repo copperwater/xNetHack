@@ -4483,8 +4483,9 @@ invalid_obj_material(struct obj *obj, uchar mat)
 {
     int oclass = obj->oclass;
 
-    /* flimsy/brittle digging tools... */
-    if (is_pick(obj) && (mat == PLASTIC || mat == GLASS)) {
+    /* flimsy/brittle digging and hauling tools... */
+    if ((is_pick(obj) || obj->otyp == GRAPPLING_HOOK)
+        && (mat == PLASTIC || mat == GLASS)) {
         return TRUE;
     }
 

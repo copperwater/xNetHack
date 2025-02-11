@@ -131,6 +131,7 @@ changes:
   fill the oddly shaped rooms rather than only appearing in rectangular rooms.
 - The xNetHack "garden" themed room is removed (but the vanilla "garden" themed
   room fill is still present).
+- Grappling hooks can no longer generate as plastic or glass.
 
 ### Interface changes
 
