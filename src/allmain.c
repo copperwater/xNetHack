@@ -1220,12 +1220,6 @@ dump_enums(void)
         arti_enum,
         NUM_ENUM_DUMPS
     };
-    static const char *const titles[NUM_ENUM_DUMPS] = {
-        "monnums", "objects_nums" , "misc_object_nums",
-        "cmap_symbols", "mon_syms", "mon_defchars",
-        "objclass_defchars", "objclass_classes",
-        "objclass_syms", "artifacts_nums",
-    };
 
 #define dump_om(om) { om, #om }
     static const struct enum_dump omdump[] = {
@@ -1246,6 +1240,7 @@ dump_enums(void)
         dump_om(MAX_GLYPH),
     };
 #undef dump_om
+
     static const struct enum_dump *const ed[NUM_ENUM_DUMPS] = {
         monsdump, objdump, omdump,
         defsym_cmap_dump, defsym_mon_syms_dump,
@@ -1255,34 +1250,37 @@ dump_enums(void)
         objclass_syms_dump,
         arti_enum_dump,
     };
-    static const char *const pfx[NUM_ENUM_DUMPS] = {
-        "PM_", "", "", "", "", "", "", "", "", ""
+
+    static const struct de_params {
+        const char *const title;
+        const char *const pfx;
+        int unprefixed_count;
+        int dumpflgs;
+        int szd;
+    } edmp[NUM_ENUM_DUMPS] = {
+        { "monnums", "PM_", UNPREFIXED_COUNT, 0, SIZE(monsdump) },
+        { "objects_nums", "", 1, 0, SIZE(objdump) },
+        { "misc_object_nums",  "", 1, 0, SIZE(omdump) },
+        { "cmap_symbols", "", 1, 0, SIZE(defsym_cmap_dump) },
+        { "mon_syms", "", 1, 0, SIZE(defsym_mon_syms_dump) },
+        { "mon_defchars", "", 1, 1, SIZE(defsym_mon_defchars_dump) },
+        { "objclass_defchars", "", 1, 1, SIZE(objclass_defchars_dump) },
+        { "objclass_classes", "", 1, 0, SIZE(objclass_classes_dump) },
+        { "objclass_syms", "", 1, 0, SIZE(objclass_syms_dump) },
+        { "artifacts_nums", "", 1, 0, SIZE(arti_enum_dump) },
     };
-    /* 0 = dump numerically only, 1 = add 'char' comment */
-    static const int dumpflgs[NUM_ENUM_DUMPS] = {
-        0, 0, 0, 0, 0, 1, 1, 0, 0, 0
-    };
-    static int szd[NUM_ENUM_DUMPS] = { SIZE(monsdump), SIZE(objdump),
-                                       SIZE(omdump), SIZE(defsym_cmap_dump),
-                                       SIZE(defsym_mon_syms_dump),
-                                       SIZE(defsym_mon_defchars_dump),
-                                       SIZE(objclass_defchars_dump),
-                                       SIZE(objclass_classes_dump),
-                                       SIZE(objclass_syms_dump),
-                                       SIZE(arti_enum_dump),
-    };
+
     const char *nmprefix;
     int i, j, nmwidth;
     char comment[BUFSZ];
 
     for (i = 0; i < NUM_ENUM_DUMPS; ++ i) {
-        raw_printf("enum %s = {", titles[i]);
-        for (j = 0; j < szd[i]; ++j) {
-            int unprefixed_count = (i == monsters_enum) ? UNPREFIXED_COUNT : 1;
-            nmprefix = (j >= szd[i] - unprefixed_count)
-                           ? "" : pfx[i]; /* "" or "PM_" */
+        raw_printf("enum %s = {", edmp[i].title);
+        for (j = 0; j < edmp[i].szd; ++j) {
+            nmprefix = (j >= edmp[i].szd - edmp[i].unprefixed_count)
+                           ? "" : edmp[i].pfx; /* "" or "PM_" */
             nmwidth = 27 - (int) strlen(nmprefix); /* 27 or 24 */
-            if (dumpflgs[i] > 0) {
+            if (edmp[i].dumpflgs > 0) {
                 Snprintf(comment, sizeof comment,
                          "    /* '%c' */",
                          (ed[i][j].val >= 32 && ed[i][j].val <= 126)
