@@ -1139,6 +1139,7 @@ timet_delta(time_t etim, time_t stim) /* end and start times */
 /* monsdump[] and objdump[] are also used in utf8map.c */
 
 #define DUMP_ENUMS
+#define UNPREFIXED_COUNT (5)
 struct enum_dump monsdump[] = {
 #include "monsters.h"
     { NUMMONS, "NUMMONS" },
@@ -1277,7 +1278,7 @@ dump_enums(void)
     for (i = 0; i < NUM_ENUM_DUMPS; ++ i) {
         raw_printf("enum %s = {", titles[i]);
         for (j = 0; j < szd[i]; ++j) {
-            int unprefixed_count = (i == monsters_enum) ? 4 : 1;
+            int unprefixed_count = (i == monsters_enum) ? UNPREFIXED_COUNT : 1;
             nmprefix = (j >= szd[i] - unprefixed_count)
                            ? "" : pfx[i]; /* "" or "PM_" */
             nmwidth = 27 - (int) strlen(nmprefix); /* 27 or 24 */
@@ -1299,6 +1300,7 @@ dump_enums(void)
     }
     raw_print("");
 }
+#undef UNPREFIXED_COUNT
 #endif /* NODUMPENUMS */
 
 void
