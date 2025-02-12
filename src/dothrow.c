@@ -2577,7 +2577,7 @@ release_camera_demon(struct obj *obj, coordxy x, coordxy y)
 }
 
 /*
- * Break an object.  Breakable armor goes through erosion steps; other
+ * Break an object.  Breakable armor/weapon goes through erosion steps; other
  * items break unconditionally.  Assumes all resistance checks
  * and break messages have been delivered prior to getting here.
  * (No longer true; breakmsg() is silent for crackable armor and we
@@ -2594,7 +2594,7 @@ breakobj(
     boolean explosion = FALSE;
 
     if (is_crackable(obj)) /* if erodeproof, erode_obj() will say so */
-        return (erode_obj(obj, armor_simple_name(obj), ERODE_CRACK,
+        return (erode_obj(obj, simpleonames(obj), ERODE_CRACK,
                           EF_DESTROY | EF_VERBOSE) == ER_DESTROYED);
 
     switch (obj->oclass == POTION_CLASS ? POT_WATER : obj->otyp) {
@@ -2690,10 +2690,9 @@ breaktest(struct obj *obj)
 {
     int nonbreakchance = 1; /* chance for non-artifacts to resist */
 
-    /* this may need to be changed if actual glass armor gets added someday;
-       for now, it affects crystal plate mail and helm of brilliance;
+    /* this affects all glass armor and weapons;
        either of them will have to be cracked 4 times before breaking */
-    if (obj->oclass == ARMOR_CLASS && objects[obj->otyp].oc_material == GLASS)
+    if (is_crackable(otmp))
         nonbreakchance = 90;
 
     if (obj_resists(obj, nonbreakchance, 99))

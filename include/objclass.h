@@ -204,9 +204,12 @@ extern NEARDATA struct objdescr obj_descr[NUM_OBJECTS + 1];
 /* primary damage: fire/rust/--- */
 /* is_flammable(otmp), is_rottable(otmp) in mkobj.c */
 #define is_rustprone(otmp) ((otmp)->material == IRON)
+/* note: is_crackable doesn't need to include weptools because none of them can
+ * generate as glass */
 #define is_crackable(otmp) \
-    ((otmp)->material == GLASS         \
-     && (otmp)->oclass == ARMOR_CLASS) /* erosion_matters() */
+    ((otmp)->material == GLASS               \
+     && ((otmp)->oclass == ARMOR_CLASS       \
+         || (otmp)->oclass == WEAPON_CLASS)) /* erosion_matters() */
 /* secondary damage: rot/acid/acid */
 #define is_corrodeable(otmp)                   \
     ((otmp)->material == COPPER || (otmp)->material == SILVER \

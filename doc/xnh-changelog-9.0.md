@@ -132,6 +132,9 @@ changes:
 - The xNetHack "garden" themed room is removed (but the vanilla "garden" themed
   room fill is still present).
 - Grappling hooks can no longer generate as plastic or glass.
+- Glass weapons as well as armor are subject to the 3-stages-of-cracking system,
+  instead of randomly shattering. Like armor, a glass weapon taking a light
+  impact has a 10% chance of cracking (unless it's tempered).
 
 ### Interface changes
 
