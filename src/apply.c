@@ -4686,12 +4686,12 @@ doapply(void)
     case UNICORN_HORN:
         use_unicorn_horn(&obj, FALSE);
         break;
-    case FLUTE:
+    case MUNDANE_FLUTE:
     case MAGIC_FLUTE:
     case TOOLED_HORN:
     case FROST_HORN:
     case FIRE_HORN:
-    case HARP:
+    case MUNDANE_HARP:
     case MAGIC_HARP:
     case BUGLE:
     case LEATHER_DRUM:

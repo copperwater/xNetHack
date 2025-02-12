@@ -4381,9 +4381,9 @@ material_list(struct obj* obj)
         case MAGIC_LAMP:
         case PEA_WHISTLE:
         case MAGIC_WHISTLE:
-        case FLUTE:
+        case MUNDANE_FLUTE:
         case MAGIC_FLUTE:
-        case HARP:
+        case MUNDANE_HARP:
         case MAGIC_HARP:
             return resonant_materials;
         case TOOLED_HORN:

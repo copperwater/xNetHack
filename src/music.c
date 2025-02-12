@@ -601,7 +601,7 @@ do_improvisation(struct obj *instr)
         exercise(A_DEX, TRUE);
         makeknown(MAGIC_FLUTE);
         break;
-    case FLUTE: /* May charm snakes */
+    case MUNDANE_FLUTE: /* May charm snakes */
         do_spec &= (rn2(ACURR(A_DEX)) + u.ulevel > 25);
         if (!Deaf)
             pline("%s%s.", Tobjnam(instr, do_spec ? "trill" : "toot"),
@@ -675,7 +675,7 @@ do_improvisation(struct obj *instr)
         exercise(A_DEX, TRUE);
         makeknown(MAGIC_HARP);
         break;
-    case HARP: /* May calm Nymph */
+    case MUNDANE_HARP: /* May calm Nymph */
         do_spec &= (rn2(ACURR(A_DEX)) + u.ulevel > 25);
         if (!Deaf)
             pline("%s %s.", Yname2(instr),
@@ -772,7 +772,7 @@ do_play_instrument(struct obj *instr)
     if (Underwater) {
         You_cant("play music underwater!");
         return ECMD_OK;
-    } else if ((instr->otyp == FLUTE || instr->otyp == MAGIC_FLUTE
+    } else if ((instr->otyp == MUNDANE_FLUTE || instr->otyp == MAGIC_FLUTE
                 || instr->otyp == TOOLED_HORN || instr->otyp == FROST_HORN
                 || instr->otyp == FIRE_HORN || instr->otyp == BUGLE)
                && !can_blow(&gy.youmonst)) {
@@ -922,7 +922,7 @@ obj_to_instr(struct obj *obj SOUNDLIBONLY) {
 
 #if defined(SND_LIB_INTEGRATED)
     switch(obj->otyp) {
-        case FLUTE:
+        case MUNDANE_FLUTE:
             ret_instr = ins_flute;
             break;
         case MAGIC_FLUTE:
@@ -940,7 +940,7 @@ obj_to_instr(struct obj *obj SOUNDLIBONLY) {
         case BUGLE:
             ret_instr = ins_trumpet;
             break;
-        case HARP:
+        case MUNDANE_HARP:
             ret_instr = ins_orchestral_harp;
             break;
         case MAGIC_HARP:

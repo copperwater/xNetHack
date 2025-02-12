@@ -633,7 +633,7 @@ disco_typename(int otyp)
 
     if (Role_if(PM_SAMURAI) && Japanese_item_name(otyp, (const char *) 0)) {
         char buf[BUFSZ];
-        const char *actualn = (((otyp != MAGIC_HARP && otyp != HARP)
+        const char *actualn = (((otyp != MAGIC_HARP && otyp != MUNDANE_HARP)
                                 || objects[otyp].oc_name_known)
                                ? OBJ_NAME(objects[otyp])
                                /* undiscovered harp (since wooden harp is

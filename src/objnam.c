@@ -110,7 +110,7 @@ static const struct Jitem Japanese_items[] = {
     { FLAIL, "nunchaku" },
     { GLAIVE, "naginata" },
     { LOCK_PICK, "osaku" },
-    { HARP, "koto" },
+    { MUNDANE_HARP, "koto" },
     { MAGIC_HARP, "magic koto" },
     { KNIFE, "shito" },
     { PLATE_MAIL, "tanko" },
@@ -210,7 +210,7 @@ obj_typename(int otyp)
 
     if (Role_if(PM_SAMURAI)) {
         actualn = Japanese_item_name(otyp, actualn);
-        if (otyp == HARP || otyp == MAGIC_HARP)
+        if (otyp == MUNDANE_HARP || otyp == MAGIC_HARP)
             dn = "koto";
     }
     /* generic items don't have an actual-name; we shouldn't ever be called
@@ -598,7 +598,7 @@ xname_flags(
 
     if (Role_if(PM_SAMURAI)) {
         actualn = Japanese_item_name(typ, actualn);
-        if (typ == HARP || typ == MAGIC_HARP)
+        if (typ == MUNDANE_HARP || typ == MAGIC_HARP)
             dn = "koto";
     }
     /* generic items don't have an actual-name; we shouldn't ever be called

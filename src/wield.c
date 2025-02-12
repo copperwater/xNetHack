@@ -1011,7 +1011,7 @@ chwepon(struct obj *otmp, int amount)
          * have such a counterpart, however */
         short old_otyp = uwep->otyp;
         char *old_yname = Yname2(uwep);
-        if (uwep->otyp == HARP) {
+        if (uwep->otyp == MUNDANE_HARP) {
             /* may not get any charges; blessed guarantees at least 1 charge */
             uwep->otyp = MAGIC_HARP;
             uwep->recharged = 0;
@@ -1024,7 +1024,7 @@ chwepon(struct obj *otmp, int amount)
             uwep->recharged = 0;
             uwep->spe = rn2(2) + (otmp->blessed ? 1 : 0);
         }
-        else if (uwep->otyp == FLUTE) {
+        else if (uwep->otyp == MUNDANE_FLUTE) {
             uwep->otyp = MAGIC_FLUTE;
             uwep->recharged = 0;
             uwep->spe = rn2(1) + (otmp->blessed ? 1 : 0);

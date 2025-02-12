@@ -229,12 +229,12 @@ loot_classify(Loot *sort_item, struct obj *obj)
             k = 1; /* regular container or unknown bag of tricks */
         else
             switch (otyp) {
-            case FLUTE:
+            case MUNDANE_FLUTE:
             case MAGIC_FLUTE:
             case TOOLED_HORN:
             case FROST_HORN:
             case FIRE_HORN:
-            case HARP:
+            case MUNDANE_HARP:
             case MAGIC_HARP:
             case BUGLE:
             case LEATHER_DRUM:
@@ -3279,7 +3279,7 @@ itemactions(struct obj *otmp)
     else if (otmp->otyp == HORN_OF_PLENTY
              && objects[otmp->otyp].oc_name_known)
         ia_addmenu(win, IA_APPLY_OBJ, 'a', "Blow into the horn of plenty");
-    else if (otmp->otyp >= FLUTE && otmp->otyp <= DRUM_OF_EARTHQUAKE)
+    else if (otmp->otyp >= MUNDANE_FLUTE && otmp->otyp <= DRUM_OF_EARTHQUAKE)
         ia_addmenu(win, IA_APPLY_OBJ, 'a', "Play this musical instrument");
     else if (otmp->otyp == LAND_MINE || otmp->otyp == BEARTRAP)
         ia_addmenu(win, IA_APPLY_OBJ, 'a', "Arm this trap");

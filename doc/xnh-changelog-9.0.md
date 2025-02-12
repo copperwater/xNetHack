@@ -197,6 +197,8 @@ changes:
 - Erinyes are now orange.
 - Print a message "You crash into the ground" when taking damage falling down a
   hole or a trap door.
+- Nonmagic flutes and harps display as "mundane flute" and "mundane harp" when
+  fully identified.
 
 ### Architectural changes
 

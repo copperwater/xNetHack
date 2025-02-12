@@ -1425,11 +1425,11 @@ add_obj_info(winid datawin, short otyp)
             break;
         case BUGLE:
         case MAGIC_FLUTE:
-        case FLUTE:
+        case MUNDANE_FLUTE:
         case TOOLED_HORN:
         case FIRE_HORN:
         case FROST_HORN:
-        case HARP:
+        case MUNDANE_HARP:
         case MAGIC_HARP:
             subclass = "tonal instrument";
             break;

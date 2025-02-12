@@ -346,7 +346,7 @@ m_initweap(struct monst *mtmp)
             otmp->spe = 0;
             /* non-archons might have a stereotypical harp */
             if (!rn2(20) && !is_lord(ptr))
-                (void) mongets(mtmp, rn2(5) ? HARP : MAGIC_HARP);
+                (void) mongets(mtmp, rn2(5) ? MUNDANE_HARP : MAGIC_HARP);
         }
         break;
 
