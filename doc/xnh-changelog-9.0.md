@@ -142,6 +142,9 @@ changes:
 - Falling rocks from traps or from zapping at the ceiling can crack non-tempered
   glass helmets; this is considered a light impact so it only happens 10% of the
   time.
+- Enchanting a mundane harp, flute, whistle, or drum will identify the magical
+  counterpart it turns into. (Not so for tooled horns or sacks, which could turn
+  into different items and are ambiguous).
 
 ### Interface changes
 

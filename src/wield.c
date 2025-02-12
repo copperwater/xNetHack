@@ -1008,41 +1008,53 @@ chwepon(struct obj *otmp, int amount)
     }
     else if (uwep->oclass == TOOL_CLASS && !is_weptool(uwep) && !otmp->cursed) {
         /* enchant a non-magical tool into a magical counterpart; not all tools
-         * have such a counterpart, however */
+         * have such a counterpart, however.
+         * known = 0 is usually set to hide the new charges and avoid e.g. fully
+         * identified sack turning into a "bag" of unknown type but which has
+         * charges and is therefore definitely a bag of tricks. */
         short old_otyp = uwep->otyp;
         char *old_yname = Yname2(uwep);
         if (uwep->otyp == MUNDANE_HARP) {
             /* may not get any charges; blessed guarantees at least 1 charge */
             uwep->otyp = MAGIC_HARP;
+            uwep->known = 0;
             uwep->recharged = 0;
             uwep->spe = rn2(2) + (otmp->blessed ? 1 : 0);
+            makeknown(MAGIC_HARP);
         }
         else if (uwep->otyp == TOOLED_HORN && rn2(3)) {
             /* can't become a horn of plenty; it only turns into "instrumental"
              * type horns */
             uwep->otyp = rnd_class(FROST_HORN, FIRE_HORN);
+            uwep->known = 0;
             uwep->recharged = 0;
             uwep->spe = rn2(2) + (otmp->blessed ? 1 : 0);
         }
         else if (uwep->otyp == MUNDANE_FLUTE) {
             uwep->otyp = MAGIC_FLUTE;
+            uwep->known = 0;
             uwep->recharged = 0;
             uwep->spe = rn2(1) + (otmp->blessed ? 1 : 0);
+            makeknown(MAGIC_FLUTE);
         }
         else if (uwep->otyp == PEA_WHISTLE && !rn2(3)) {
             uwep->otyp = MAGIC_WHISTLE;
+            makeknown(MAGIC_WHISTLE);
         }
         else if (uwep->otyp == SACK && !rn2(6)) {
             uwep->otyp = rnd_class(BAG_OF_HOLDING, BAG_OF_TRICKS);
             if (uwep->otyp == BAG_OF_TRICKS) {
+                uwep->known = 0;
                 uwep->recharged = 0;
                 uwep->spe = rn2(2) + (otmp->blessed ? 1 : 0);
             }
         }
         else if (uwep->otyp == LEATHER_DRUM) {
             uwep->otyp = DRUM_OF_EARTHQUAKE;
+            uwep->known = 0;
             uwep->recharged = 0;
             uwep->spe = rn2(2) + (otmp->blessed ? 1 : 0);
+            makeknown(DRUM_OF_EARTHQUAKE);
         }
 
         if (uwep->otyp != old_otyp) {
