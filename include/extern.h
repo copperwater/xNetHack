@@ -832,7 +832,7 @@ extern void release_camera_demon(struct obj *, coordxy, coordxy) NONNULLARG1;
 extern int breakobj(struct obj *, coordxy, coordxy, boolean, boolean) NONNULLARG1;
 extern boolean breaktest(struct obj *) NONNULLARG1;
 extern void breakmsg(struct obj *, boolean) NONNULLARG1;
-extern boolean break_glass_obj(struct obj *) NO_NNARGS;
+extern boolean crack_glass_obj(struct obj *) NO_NNARGS;
 extern boolean walk_path(coord *, coord *,
                          boolean(*)(void *, coordxy, coordxy), genericptr_t) NONNULLARG12;
 

@@ -1458,10 +1458,10 @@ toss_up(struct obj *obj, boolean hitsroof)
         dmg = Maybe_Half_Phys(dmg);
 
         if (uarmh) {
-            if (obj->owt >= 400 && is_brittle(uarmh) && break_glass_obj(uarmh)) {
-                ;
-            } else if ((less_damage && dmg < (Upolyd ? u.mh : u.uhp))
+            if ((less_damage && dmg < (Upolyd ? u.mh : u.uhp))
                        || harmless) {
+                if (obj->owt >= CRACK_WT && is_crackable(uarmh))
+                    (void) breakobj(uarmh, u.ux, u.uy, TRUE, TRUE);
                 if ((artimsg & ARTIFACTHIT_GAVEMSG) == 0) {
                     if (dmg > 2)
                         Your("helmet only slightly protects you.");
@@ -2692,7 +2692,7 @@ breaktest(struct obj *obj)
 
     /* this affects all glass armor and weapons;
        either of them will have to be cracked 4 times before breaking */
-    if (is_crackable(otmp))
+    if (is_crackable(obj))
         nonbreakchance = 90;
 
     if (obj_resists(obj, nonbreakchance, 99))
@@ -2759,70 +2759,49 @@ breakmsg(struct obj *obj, boolean in_view)
     }
 }
 
-/* Possibly destroy a glass object by its use in melee or thrown combat.
+/* Possibly crack a glass object by its use in melee or thrown combat.
+ * Separate logic from breakobj because we are not unconditionally cracking the
+ * object.
  * Return TRUE if destroyed.
- * Separate logic from breakobj because we are not unconditionally breaking the
- * object, and we also need to make sure it's removed from the inventory
- * properly.
- * This also can be called if something heavy falls on a glass helm. */
+ * Potential callers might decide to call is_crackable() then breakobj() instead
+ * of this function; that will no longer outright destroy the object, but will
+ * unconditionally crack it by avoiding breaktest().
+ */
 boolean
-break_glass_obj(struct obj* obj)
+crack_glass_obj(struct obj* obj)
 {
-    if (!obj || !breaktest(obj) || rn2(6))
+    /* this function can get called with null via some_armor() or by being
+     * called with uarm* variables that weren't null-checked */
+    if (!obj)
         return FALSE;
-    /* now we are definitely breaking it */
 
-    boolean your_fault = !svc.context.mon_moving;
+    /* some_armor() may also give an arbitrary item; we only want to damage it
+     * if it's glass */
+    if (obj->material != GLASS)
+        return FALSE;
+
+    /* shouldn't be called on a glass object that isn't crackable */
+    if (!is_crackable(obj)) {
+        impossible("attempting to crack non-crackable glass obj %d",
+                    obj->otyp);
+        return FALSE;
+    }
+
+    /* breaktest() now tries a random chance for glass armor and weapons to
+     * resist cracking, so it's no longer necessary to put a random chance in
+     * here */
+    if (!breaktest(obj))
+        return FALSE;
+
+    /* now we are definitely trying to crack it */
     boolean ucarried = carried(obj);
+    boolean it_broke = breakobj(obj, obj->ox, obj->oy,
+                                !svc.context.mon_moving, TRUE);
 
-    /* remove its worn flags */
-    long unwornmask = obj->owornmask;
-    if (!unwornmask) {
-        impossible("breaking non-equipped glass obj?");
-        return FALSE;
-    }
-    if (ucarried) { /* hero's item */
-        if (obj->quan == 1L) {
-            if (obj == uwep) {
-                gu.unweapon = TRUE;
-            }
-            setworn(NULL, unwornmask);
-        }
-        obj->ox = u.ux, obj->oy = u.uy;
-    }
-    else if (mcarried(obj)) { /* monster's item */
-        struct monst *mon = obj->ocarry;
-        if (obj->quan == 1L) {
-            mon->misc_worn_check &= ~unwornmask;
-            if (unwornmask & W_WEP) {
-                setmnotwielded(mon, obj);
-                possibly_unwield(mon, FALSE);
-            }
-            else if (unwornmask & W_ARMG) {
-                mselftouch(mon, NULL, TRUE);
-            }
-            /* shouldn't really be needed but... */
-            update_mon_extrinsics(mon, obj, FALSE, FALSE);
-        }
-        obj->ox = mon->mx, obj->oy = mon->my;
-    }
-    else {
-        impossible("breaking glass obj not in anyone's inventory?");
-        return FALSE;
-    }
-
-    if (obj->quan == 1L) {
-        obj->owornmask = 0L;
-        pline("%s breaks into pieces!", Yname2(obj));
-    }
-    else {
-        pline("One of %s breaks into pieces!", yname(obj));
-        obj = splitobj(obj, 1L);
-    }
-    breakobj(obj, obj->ox, obj->oy, your_fault, TRUE);
     if (ucarried)
         update_inventory();
-    return TRUE;
+
+    return it_broke;
 }
 
 staticfn int

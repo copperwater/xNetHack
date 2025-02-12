@@ -1555,6 +1555,10 @@ enum concealed_spot_returnflags {
 #define FIRST_ARCHFIEND PM_JUIBLEX
 #define LAST_ARCHFIEND PM_DEMOGORGON
 
+/* amount of weight a flying object needs to have to unconditionally crack a
+ * glass piece of armor */
+#define CRACK_WT 400
+
 /*********************************************************************
  * END defines that are unique to xNetHack *
  *********************************************************************/

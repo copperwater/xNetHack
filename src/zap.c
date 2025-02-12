@@ -3380,6 +3380,7 @@ zap_updown(struct obj *obj) /* wand or spell, nonnull */
                   ceiling(x, y), body_part(HEAD));
             dmg = rnd(hard_helmet(uarmh) ? 2 : 6);
             losehp(Maybe_Half_Phys(dmg), "falling rock", KILLED_BY_AN);
+            crack_glass_obj(uarmh);
             if ((otmp = mksobj(ROCK, FALSE, FALSE)) != 0) {
                 (void) xname(otmp); /* set dknown, maybe bknown */
                 obj_drops_at(otmp, x, y);

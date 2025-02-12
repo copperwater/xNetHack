@@ -2426,7 +2426,7 @@ seffects(
 void
 drop_boulder_on_player(
     boolean confused,
-    boolean helmet_protects,
+    boolean helmet_protects UNUSED,
     boolean byu,
     boolean skip_uswallow)
 {
@@ -2448,17 +2448,17 @@ drop_boulder_on_player(
         && !noncorporeal(gy.youmonst.data) && !unsolid(gy.youmonst.data)) {
         You("are hit by %s!", doname(otmp2));
         dmg = (int) (dmgval(otmp2, &gy.youmonst) * otmp2->quan);
-        if (uarmh && helmet_protects) {
-            if (otmp2->owt >= 400 && is_brittle(uarmh)
-                && break_glass_obj(uarmh)) {
-                ;
-            } else if (hard_helmet(uarmh)) {
-                if (otmp2->owt >= 400) {
+        if (uarmh) {
+            if (hard_helmet(uarmh)) {
+                if (otmp2->owt >= CRACK_WT) {
+                    if (is_crackable(uarmh))
+                        (void) breakobj(uarmh, u.ux, u.uy, byu, TRUE);
                     if (dmg > 2)
                         dmg -= 2;
                     Your("helmet only slightly protects you.");
                 }
                 else {
+                    crack_glass_obj(uarmh);
                     if (dmg > 2)
                         dmg = 2;
                     pline("Fortunately, you are wearing a hard helmet.");
@@ -2512,11 +2512,10 @@ drop_boulder_on_monster(coordxy x, coordxy y, boolean confused, boolean byu)
 
         mdmg = dmgval(otmp2, mtmp) * otmp2->quan;
         if (helmet) {
-            if (otmp2->owt >= 400 && is_brittle(helmet)
-                && break_glass_obj(helmet)) {
-                ;
-            } else if (hard_helmet(helmet)) {
-                if (otmp2->owt >= 400) {
+            if (hard_helmet(helmet)) {
+                if (otmp2->owt >= CRACK_WT) {
+                    if (is_crackable(helmet))
+                        (void) breakobj(helmet, u.ux, u.uy, byu, TRUE);
                     if (mdmg > 2)
                         mdmg -= 2;
                     if (canspotmon(mtmp)) {
@@ -2525,6 +2524,7 @@ drop_boulder_on_monster(coordxy x, coordxy y, boolean confused, boolean byu)
                     }
                 }
                 else {
+                    crack_glass_obj(helmet);
                     if (mdmg > 2)
                         mdmg = 2;
                     if (canspotmon(mtmp))

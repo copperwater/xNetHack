@@ -1261,6 +1261,7 @@ trapeffect_rocktrap(
                 } else if (flags.verbose) {
                     pline("%s does not protect you.", Yname2(uarmh));
                 }
+                crack_glass_obj(uarmh);
             } else if (passes_rocks(gy.youmonst.data)) {
                 pline("It passes harmlessly through you.");
                 harmless = TRUE;

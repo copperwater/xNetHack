@@ -1375,6 +1375,7 @@ extract_from_minvent(
         if (!DEADMONSTER(mon) && do_extrinsics) {
             update_mon_extrinsics(mon, obj, FALSE, silently);
         }
+        mselftouch(mon, NULL, TRUE);
         mon->misc_worn_check &= ~unwornmask;
         /* give monster a chance to wear other equipment on its next
            move instead of waiting until it picks something up */

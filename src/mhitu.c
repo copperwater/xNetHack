@@ -2895,8 +2895,8 @@ piercer_hit(struct monst *magr, struct monst *mdef)
         }
         return;
     } else if (helm) {
-        if (breaktest(helm) && magr->data == &mons[PM_GLASS_PIERCER]
-            && helm->material == GLASS) {
+        if (magr->data == &mons[PM_GLASS_PIERCER] && helm->material == GLASS
+            && !helm->oerodeproof) {
             pline("%s is pierced and shattered!", Yname2(helm));
             if (youdefend) {
                 Helmet_off();
@@ -2908,9 +2908,17 @@ piercer_hit(struct monst *magr, struct monst *mdef)
                 check_gear_next_turn(mdef);
                 update_mon_extrinsics(mdef, helm, FALSE, TRUE);
             }
-            /* not break_glass_obj: we want this always to break, not be subject
+            if (!svc.context.mon_moving && *u.ushops) {
+                /* effectively the same as check_shop_obj() */
+                struct monst *shkp = shop_keeper(*u.ushops);
+                if (is_unpaid(helm))
+                    (void) stolen_value(helm, u.ux, u.uy,
+                                        (boolean) shkp->mpeaceful, FALSE);
+                helm->no_charge = 1;
+            }
+            /* not crack_glass_obj: we want this always to break, not be subject
              * to random chance */
-            breakobj(helm, u.ux, u.uy, FALSE, TRUE);
+            delobj(helm);
             /* glass piercer actually piercing glass.
              * Give it some bonus damage. */
             dmg += rnd(6);

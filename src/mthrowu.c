@@ -147,8 +147,9 @@ thitu(
                 searmsg((struct monst *) 0, &gy.youmonst, obj, TRUE);
                 exercise(A_CON, FALSE);
             }
-            else if (obj && obj->owt >= 400 && uarm && is_brittle(uarm)) {
-                break_glass_obj(uarm);
+            else if (obj && obj->owt >= CRACK_WT && uarm
+                     && is_crackable(uarm)) {
+                breakobj(uarm, u.ux, u.uy, FALSE, TRUE);
             }
             if (is_acid) {
                 pline("It burns!");

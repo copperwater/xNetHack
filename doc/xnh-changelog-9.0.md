@@ -135,6 +135,13 @@ changes:
 - Glass weapons as well as armor are subject to the 3-stages-of-cracking system,
   instead of randomly shattering. Like armor, a glass weapon taking a light
   impact has a 10% chance of cracking (unless it's tempered).
+- Heavy objects that hit non-tempered glass armor (boulders, iron balls, etc)
+  will unconditionally crack it.
+- Glass piercers that fall on a monster wearing a non-tempered glass helm will
+  still shatter the helm in a single hit.
+- Falling rocks from traps or from zapping at the ceiling can crack non-tempered
+  glass helmets; this is considered a light impact so it only happens 10% of the
+  time.
 
 ### Interface changes
 

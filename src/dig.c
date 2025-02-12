@@ -1639,6 +1639,7 @@ zap_dig(void)
                 pline("It falls on your %s!", body_part(HEAD));
                 dmg = rnd(hard_helmet(uarmh) ? 2 : 6);
                 losehp(Maybe_Half_Phys(dmg), "falling rock", KILLED_BY_AN);
+                crack_glass_obj(uarmh);
                 otmp = mksobj(ROCK, FALSE, FALSE);
                 if (otmp) {
                     (void) xname(otmp); /* set dknown, maybe bknown */
