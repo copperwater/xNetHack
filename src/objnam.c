@@ -5563,32 +5563,6 @@ readobjnam(char *bp, struct obj *no_wish)
      * zeroes those when the material makes erosion irrelevant. */
     set_material(d.otmp, objects[d.otmp->otyp].oc_material);
 
-    /* set eroded and erodeproof */
-    if (erosion_matters(d.otmp) || destroyable_oclass(d.otmp->oclass)) {
-        /* wished-for item shouldn't be eroded unless specified */
-        d.otmp->oeroded = d.otmp->oeroded2 = 0;
-        if (d.eroded && (is_flammable(d.otmp) || is_rustprone(d.otmp)
-                         || is_crackable(d.otmp)))
-            d.otmp->oeroded = d.eroded;
-        if (d.eroded2 && (is_corrodeable(d.otmp) || is_rottable(d.otmp)))
-            d.otmp->oeroded2 = d.eroded2;
-        /*
-         * 3.6.1: earlier versions included `&& !eroded && !eroded2' here,
-         * but damageproof combined with damaged is feasible (eroded
-         * armor modified by confused reading of cursed destroy armor)
-         * so don't prevent player from wishing for such a combination.
-         *
-         * Note on glass objects: this cannot be used to wish for shatterproof
-         * non-base-glass objects like daggers, but it can be used to e.g. get a
-         * shatterproof crystal plate mail.
-         */
-        if (d.erodeproof
-            && (is_damageable(d.otmp) || destroyable_oclass(d.otmp->oclass)
-                || d.otmp->otyp == CRYSKNIFE
-                || objects[d.otmp->otyp].oc_material == GLASS))
-            d.otmp->oerodeproof = (Luck >= 0 || wizard);
-    }
-
     /* set otmp->recharged */
     if (d.oclass == WAND_CLASS) {
         /* prevent wishing abuse */
@@ -5703,6 +5677,37 @@ readobjnam(char *bp, struct obj *no_wish)
     }
     /* if oartifact is true, oname() will have handled the assignment of a
      * specific material for any possible artifact. */
+
+    /* set eroded and erodeproof
+     * Moved here after final material is set because otherwise is_crackable
+     * won't be true for a glass object whose base type isn't glass.
+     * For most items, such a wish is only possible in wizard mode, but a
+     * normal-mode player could hypothetically wish for a cracked Mirror Brand,
+     * which is non-base-type glass. */
+    if (erosion_matters(d.otmp) || destroyable_oclass(d.otmp->oclass)) {
+        /* wished-for item shouldn't be eroded unless specified */
+        d.otmp->oeroded = d.otmp->oeroded2 = 0;
+        if (d.eroded && (is_flammable(d.otmp) || is_rustprone(d.otmp)
+                         || is_crackable(d.otmp)))
+            d.otmp->oeroded = d.eroded;
+        if (d.eroded2 && (is_corrodeable(d.otmp) || is_rottable(d.otmp)))
+            d.otmp->oeroded2 = d.eroded2;
+        /*
+         * 3.6.1: earlier versions included `&& !eroded && !eroded2' here,
+         * but damageproof combined with damaged is feasible (eroded
+         * armor modified by confused reading of cursed destroy armor)
+         * so don't prevent player from wishing for such a combination.
+         *
+         * Note on glass objects: this cannot be used to wish for shatterproof
+         * non-base-glass objects like daggers, but it can be used to e.g. get a
+         * shatterproof crystal plate mail.
+         */
+        if (d.erodeproof
+            && (is_damageable(d.otmp) || destroyable_oclass(d.otmp->oclass)
+                || d.otmp->otyp == CRYSKNIFE
+                || objects[d.otmp->otyp].oc_material == GLASS))
+            d.otmp->oerodeproof = (Luck >= 0 || wizard);
+    }
 
     if (d.halfeaten && d.otmp->oclass == FOOD_CLASS) {
         unsigned nut = obj_nutrition(d.otmp);
