@@ -16,6 +16,9 @@ staticfn boolean uncommon(int);
 staticfn int align_shift(struct permonst *);
 staticfn int temperature_shift(struct permonst *);
 staticfn boolean mk_gen_ok(int, unsigned, unsigned);
+staticfn int QSORTCALLBACK cmp_init_mongen_order(const void *, const void *);
+staticfn void check_mongen_order(void);
+staticfn void init_mongen_order(void);
 staticfn boolean wrong_elem_type(struct permonst *);
 staticfn void m_initgrp(struct monst *, coordxy, coordxy, int, mmflags_nht);
 staticfn void m_initthrow(struct monst *, int, int);
@@ -1742,6 +1745,71 @@ mk_gen_ok(int mndx, unsigned mvflagsmask, unsigned genomask)
     return TRUE;
 }
 
+/* monsters in order by mlet & difficulty for mkclass() */
+static int mongen_order[NUMMONS];
+static boolean mongen_order_init = FALSE;
+
+staticfn int QSORTCALLBACK
+cmp_init_mongen_order(const void *p1, const void *p2)
+{
+    const int *pi1 = p1;
+    const int *pi2 = p2;
+    int i1 = *pi1, i2 = *pi2;
+
+    if (((mons[i1].geno & (G_NOGEN|G_UNIQ)) != 0)
+        || ((mons[i2].geno & (G_NOGEN|G_UNIQ)) != 0))
+        return 0;
+    if (mons[i1].mlet != mons[i2].mlet)
+        return 0;
+    return (int)(mons[i1].difficulty - mons[i2].difficulty);
+}
+
+/* check that monsters are in correct difficulty order for mkclass() */
+staticfn void
+check_mongen_order(void)
+{
+    int i, diff = 0;
+    char mlet = '\0';
+    for (i = LOW_PM; i < SPECIAL_PM; i++) {
+        if (i != mongen_order[i]) {
+            debugpline2("changed:%s=>%s", mons[i].pmnames[NEUTRAL], mons[mongen_order[i]].pmnames[NEUTRAL]);
+        }
+
+        if (mlet == mons[mongen_order[i]].mlet) {
+            if (mons[mongen_order[i]].difficulty < diff)
+                debugpline1("%s", mons[mongen_order[i]].pmnames[NEUTRAL]);
+            diff = mons[mongen_order[i]].difficulty;
+        }
+        if (!mlet || mlet != mons[mongen_order[i]].mlet) {
+            mlet = mons[mongen_order[i]].mlet;
+            diff = 0;
+        }
+    }
+}
+
+/* initialize monster order for mkclass */
+staticfn void
+init_mongen_order(void)
+{
+    int i;
+
+    if (mongen_order_init)
+        return;
+
+    mongen_order_init = TRUE;
+    for (i = LOW_PM; i <= SPECIAL_PM; i++)
+        mongen_order[i] = i;
+
+#if (NH_DEVEL_STATUS != NH_STATUS_RELEASED)
+    check_mongen_order();
+#endif
+    qsort((genericptr_t) mongen_order, NUMMONS, sizeof(int), cmp_init_mongen_order);
+#if (NH_DEVEL_STATUS != NH_STATUS_RELEASED)
+    check_mongen_order();
+#endif
+}
+
+
 /* Make one of the multiple types of a given monster class.
    The second parameter specifies a special casing bit mask
    to allow the normal genesis masks to be deactivated.
@@ -1751,6 +1819,8 @@ mkclass(char class, int spc)
 {
     return mkclass_aligned(class, spc, A_NONE);
 }
+
+#define MONSi(i) (mongen_order[i])
 
 /* mkclass() with alignment restrictions; used by ndemon() */
 struct permonst *
@@ -1768,6 +1838,9 @@ mkclass_aligned(char class, int spc, /* special mons[].geno handling */
         impossible("mkclass called with bad class!");
         return (struct permonst *) 0;
     }
+
+    init_mongen_order();
+
     /*  Assumption #1:  monsters of a given class are contiguous in the
      *                  mons[] array.  Player monsters and quest denizens
      *                  are an exception; mkclass() won't pick them.
@@ -1775,7 +1848,7 @@ mkclass_aligned(char class, int spc, /* special mons[].geno handling */
      *                  regular monsters from the exceptions.
      */
     for (first = LOW_PM; first < SPECIAL_PM; first++)
-        if (mons[first].mlet == class)
+        if (mons[MONSi(first)].mlet == class)
             break;
     if (first == SPECIAL_PM) {
         impossible("mkclass found no class %d monsters", class);
@@ -1792,9 +1865,9 @@ mkclass_aligned(char class, int spc, /* special mons[].geno handling */
     /*  Assumption #2:  monsters of a given class are presented in ascending
      *                  order of strength.
      */
-    for (last = first; last < SPECIAL_PM && mons[last].mlet == class;
+    for (last = first; last < SPECIAL_PM && mons[MONSi(last)].mlet == class;
          last++) {
-        if (atyp != A_NONE && sgn(mons[last].maligntyp) != sgn(atyp))
+        if (atyp != A_NONE && sgn(mons[MONSi(last)].maligntyp) != sgn(atyp))
             continue;
         /* traditionally mkclass() ignored hell-only and never-in-hell;
            now we usually honor those but not all the time, mostly so that
@@ -1806,17 +1879,17 @@ mkclass_aligned(char class, int spc, /* special mons[].geno handling */
             gn_mask |= (gehennom ? G_NOHELL : G_HELL);
         gn_mask &= ~spc;
 
-        if (mk_gen_ok(last, mv_mask, gn_mask)) {
+        if (mk_gen_ok(MONSi(last), mv_mask, gn_mask)) {
             /* consider it; don't reject a toostrong() monster if we
                don't have anything yet (num==0) or if it is the same
                (or lower) difficulty as preceding candidate (non-zero
                'num' implies last > first so mons[last-1] is safe);
                sometimes accept it even if high difficulty */
-            if (num && montoostrong(last, maxmlev)
-                && mons[last].difficulty > mons[last - 1].difficulty
+            if (num && montoostrong(MONSi(last), maxmlev)
+                && mons[MONSi(last)].difficulty > mons[MONSi(last - 1)].difficulty
                 && rn2(2))
                 break;
-            if ((k = (mons[last].geno & G_FREQ)) > 0) {
+            if ((k = (mons[MONSi(last)].geno & G_FREQ)) > 0) {
                 /* skew towards lower value monsters at lower exp. levels
                    (this used to be done in the next loop, but that didn't
                    work well when multiple species had the same level and
@@ -1826,8 +1899,8 @@ mkclass_aligned(char class, int spc, /* special mons[].geno handling */
                    being picked nearly twice as often as succubus);
                    we need the '+1' in case the entire set is too high
                    level (really low svl.level hero) */
-                nums[last] = k + 1 - (adj_lev(&mons[last]) > (u.ulevel * 2));
-                num += nums[last];
+                nums[MONSi(last)] = k + 1 - (adj_lev(&mons[MONSi(last)]) > (u.ulevel * 2));
+                num += nums[MONSi(last)];
             }
         }
     }
@@ -1837,11 +1910,13 @@ mkclass_aligned(char class, int spc, /* special mons[].geno handling */
     /* the hard work has already been done; 'num' should hit 0 before
        first reaches last (which is actually one past our last candidate) */
     for (num = rnd(num); first < last; first++)
-        if ((num -= nums[first]) <= 0)
+        if ((num -= nums[MONSi(first)]) <= 0)
             break;
 
-    return nums[first] ? &mons[first] : (struct permonst *) 0;
+    return nums[MONSi(first)] ? &mons[MONSi(first)] : (struct permonst *) 0;
 }
+#undef MONSi
+
 
 /* like mkclass(), but excludes difficulty considerations; used when
    player with polycontrol picks a class instead of a specific type;
