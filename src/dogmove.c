@@ -21,6 +21,7 @@ staticfn struct monst *best_target(struct monst *, boolean);
 staticfn long score_targ(struct monst *, struct monst *);
 staticfn boolean can_reach_location(struct monst *, coordxy, coordxy, coordxy,
                                   coordxy) NONNULLARG1;
+staticfn boolean mnum_leashable(int);
 
 /* pick a carried item for pet to drop */
 struct obj *
@@ -1449,10 +1450,23 @@ finish_meating(struct monst *mtmp)
     }
 }
 
+/*
+ * variation of leashable() that takes a PM_ index */
+staticfn boolean
+mnum_leashable(int mnum)
+{
+    return ((mnum >= LOW_PM && mnum <= HIGH_PM)
+            && mnum != PM_LONG_WORM && !unsolid(&mons[mnum])
+            && (!nolimbs(&mons[mnum]) || has_head(&mons[mnum])))
+               ? TRUE
+               : FALSE;
+}
+
 void
 quickmimic(struct monst *mtmp)
 {
     int idx = 0, trycnt = 5, spotted, seeloc;
+    boolean was_leashed = mtmp->mleashed;
     char buf[BUFSZ];
 
     if (Protection_from_shape_changers || !mtmp->meating)
@@ -1502,6 +1516,12 @@ quickmimic(struct monst *mtmp)
                                  : something;
 
         newsym(mtmp->mx, mtmp->my);
+        if (was_leashed
+            && (M_AP_TYPE(mtmp) != M_AP_MONSTER
+                || !mnum_leashable(mtmp->mappearance))) {
+            Your("leash goes slack.");
+            m_unleash(mtmp, FALSE);
+        }
         if (glyph_at(mtmp->mx, mtmp->my) != prev_glyph)
             You("%s %s %s where %s was!",
                 seeloc ? "see" : "sense that",
