@@ -1680,7 +1680,7 @@ seffect_light(struct obj **sobjp)
                 mon = makemon(&mons[pm], u.ux, u.uy,
                               MM_EDOG | NO_MINVENT | MM_NOMSG);
                 if (mon) {
-                    initedog(mon);
+                    initedog(mon, TRUE);
                     mon->msleeping = 0;
                     mon->mcan = TRUE;
                     if (canspotmon(mon))
