@@ -1809,6 +1809,41 @@ init_mongen_order(void)
 #endif
 }
 
+#define MONSi(i) (mongen_order[i])
+
+extern struct enum_dump monsdump[];  /* allmain.c */
+
+void
+dump_mongen(void)
+{
+    char mlet, prev_mlet = 0;
+    int i, nmwidth = 27, special;
+    char nmbuf[80];
+
+    monst_globals_init();
+    init_mongen_order();
+    raw_printf("int mongen_order[] = {");
+    for (i = LOW_PM; i < SPECIAL_PM; ++i) {
+        special = (mons[MONSi(i)].geno & (G_NOGEN | G_UNIQ));
+        mlet = def_monsyms[(int) mons[MONSi(i)].mlet].sym;
+        if (prev_mlet && prev_mlet != mlet)
+            raw_print("");
+        Snprintf(nmbuf, sizeof nmbuf, "PM_%s%s",
+                 monsdump[MONSi(i)].nm,
+                 (i == SPECIAL_PM - 1) ? "" : ",");
+        raw_printf("    %*s /* %c seq=%3d, idx=%3d, sym='%c', diff=%2d %s */",
+                   -nmwidth, nmbuf, (i == MONSi(i)) ? ' ' : '.', i, MONSi(i),
+                   mlet, (int) mons[MONSi(i)].difficulty,
+                   (special == (G_NOGEN | G_UNIQ)) ? "(G_NOGEN | G_UNIQ)"
+                   : (special == G_NOGEN)          ? "(G_NOGEN)"
+                   : (special == G_UNIQ)           ? "(G_UNIQ)"
+                                                   : "");
+        prev_mlet = mlet;
+    }
+    raw_print("};");
+    raw_print("");
+    freedynamicdata();
+}
 
 /* Make one of the multiple types of a given monster class.
    The second parameter specifies a special casing bit mask
@@ -1819,8 +1854,6 @@ mkclass(char class, int spc)
 {
     return mkclass_aligned(class, spc, A_NONE);
 }
-
-#define MONSi(i) (mongen_order[i])
 
 /* mkclass() with alignment restrictions; used by ndemon() */
 struct permonst *

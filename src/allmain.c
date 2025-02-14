@@ -937,6 +937,7 @@ static const struct early_opt earlyopts[] = {
     { ARG_DUMPENUMS, "dumpenums", 9, FALSE },
 #endif
     { ARG_DUMPGLYPHIDS, "dumpglyphids", 12, FALSE },
+    { ARG_DUMPMONGEN, "dumpmongen", 10, FALSE },
 #ifdef WIN32
     { ARG_WINDOWS, "windows", 4, TRUE },
 #endif
@@ -1037,6 +1038,9 @@ argcheck(int argc, char *argv[], enum earlyarg e_arg)
 #endif
         case ARG_DUMPGLYPHIDS:
             dump_glyphids();
+            return 2;
+        case ARG_DUMPMONGEN:
+            dump_mongen();
             return 2;
 #ifdef CRASHREPORT
         case ARG_BIDSHOW:
