@@ -416,8 +416,9 @@ dipfountain(struct obj *obj)
         return;
     }
 
-    if (obj->otyp == LONG_SWORD && u.ulevel >= 5
-        && !rn2(Role_if(PM_KNIGHT) ? 6 : 30)
+    if (obj->otyp == LONG_SWORD
+        && u.ulevel >= ((Role_if(PM_KNIGHT) && !u.ualign.abuse) ? 5 : 10)
+        && rn2(Role_if(PM_KNIGHT) ? 6 : 30)
         /* once upon a time it was possible to poly N daggers into N swords */
         && obj->quan == 1L && !obj->oartifact
         && !exist_artifact(LONG_SWORD, artiname(ART_EXCALIBUR))) {

@@ -145,6 +145,8 @@ changes:
 - Enchanting a mundane harp, flute, whistle, or drum will identify the magical
   counterpart it turns into. (Not so for tooled horns or sacks, which could turn
   into different items and are ambiguous).
+- Dipping for Excalibur can only be done at level 5 if the hero is a Knight who
+  has never abused their alignment. Otherwise, the minimum level is 10.
 
 ### Interface changes
 
