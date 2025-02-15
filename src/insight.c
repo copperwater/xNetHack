@@ -1536,8 +1536,26 @@ attributes_enlightenment(
     else
         you_have(buf, "");
 
+    if (!u.ualign.abuse) {
+        you_have_never("been untrue to your alignment");
+    }
+    else {
+        /* currently this is the only place this is shown so no need for a
+         * function like piousness() yet
+         * erinyes stop gaining power at abuse = 50; treat that informally as
+         * the point to stop caring about adjectives */
+        const char *adjective = u.ualign.abuse <= 10 ? "occasionally"
+                                : u.ualign.abuse <= 20 ? "woefully"
+                                : u.ualign.abuse <= 30 ? "appallingly"
+                                : u.ualign.abuse <= 40 ? "grievously"
+                                : u.ualign.abuse <= 50 ? "deplorably"
+                                : "wretchedly";
+        Sprintf(buf, "been %s untrue to your alignment", adjective);
+        you_have(buf, "");
+    }
+
     if (wizard) {
-        Sprintf(buf, " %d", u.ualign.record);
+        Sprintf(buf, " %d (abuse: %d)", u.ualign.record, u.ualign.abuse);
         enl_msg("Your alignment ", "is", "was", buf, "");
     }
 

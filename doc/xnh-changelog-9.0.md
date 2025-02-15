@@ -202,6 +202,8 @@ changes:
   hole or a trap door.
 - Nonmagic flutes and harps display as "mundane flute" and "mundane harp" when
   fully identified.
+- Attribute display from enlightenment shows whether and how much you ever
+  abused your alignment (in wizard mode, you are also shown the exact amount).
 
 ### Architectural changes
 
