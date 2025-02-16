@@ -159,10 +159,10 @@ GIT_AVAILABLE=Y
 #==============================================================================
 #
 #  The version of the game this Makefile was designed for
-NETHACK_VERSION="9.0.0"
+XNETHACK_VERSION="9.0.0"
 
 # A brief version for use in macros
-NHV=$(NETHACK_VERSION:.=)
+NHV=$(XNETHACK_VERSION:.=)
 NHV=$(NHV:"=)
 
 #==============================================================================
@@ -378,15 +378,15 @@ ADD_CURSES=Y
 INCLCURSES_H=-I$(R_PDCURSES_TOP)
 !  ELSE
 #  Cannot do it, sorry
-   PDCINCL=
-   INCLCURSES_H=
-   ADD_CURSES = N
+PDCINCL=
+INCLCURSES_H=
+ADD_CURSES = N
 !  ENDIF  # If we found a copy of curses.h
 ! ENDIF  # ADD_CURSES == Y
 !ENDIF  # WANT_CURSES
 
 !IF "$(ADD_CURSES)" != "Y"
-!MESSAGE NetHack 3.7 will be built without support for the curses window-port.
+!MESSAGE xNetHack $(XNETHACK_VERSION) will be built without support for the curses window-port.
 !ENDIF
 
 #These will be in the environment variables with one of the Visual Studio
@@ -1613,7 +1613,7 @@ $(PDCURSES_TOP)curses.h:
 #	git submodule update --remote $(SUBM)$(R_PDCDIST)
 !ENDIF
 !ELSE  # GIT_AVAILABLE no
-CURLLUASRC=http://www.lua.org/ftp/lua-5.4.6.tar.gz
+CURLLUASRC=https://www.lua.org/ftp/lua-5.4.6.tar.gz
 CURLLUADST=lua-5.4.6.tar.gz
 
 #CURLPDCSRC=https://github.com/wmcbrine/PDCurses/archive/refs/tags/3.9.zip
@@ -1709,7 +1709,7 @@ $(GAMEDIR)xNetHack.exe : gamedir.tag $(OTTY)consoletty.o \
 $(GAMEDIR)xNetHackW.exe : gamedir.tag $(OGUI)tile.o \
 			$(ALLOBJGUI) $(GAMEOBJGUI) $(GUIOBJ) $(GUISOUNDOBJS) \
 			$(CURSESWINGUIOBJS) $(OGUI)date.o \
-			$(OGUI)xNetHackW.res \
+			$(OGUI)NetHackW.res \
 			$(LUALIB) $(PDCWINGUILIB) $(PDCWINGUIOBJS) $(OGUIHACKLIB)
 	@if not exist $(GAMEDIR)*.* mkdir $(R_GAMEDIR)
 	@echo   Linking $(@:\=/)
@@ -1724,7 +1724,7 @@ $(GAMEDIR)xNetHackW.exe : gamedir.tag $(OGUI)tile.o \
 		$(GUISOUNDOBJS) $(CURSESWINGUIOBJS) $(PDCWINGUIOBJS)
 		$(OGUI)tile.o
 		$(OGUI)date.o
-		$(OGUI)xNetHackW.res
+		$(OGUI)NetHackW.res
 << keep
 
 #--------
@@ -1739,9 +1739,9 @@ binary.tag: 	$(DAT)data $(DAT)rumors $(DAT)oracles $(DLB) \
 	if exist $(MSWSYS)sysconf.template copy $(MSWSYS)sysconf.template $(GAMEDIR)
 	if exist $(DAT)symbols copy $(DAT)symbols $(GAMEDIR)symbols
 	if exist $(DOC)guidebook.txt copy $(DOC)guidebook.txt $(GAMEDIR)Guidebook.txt
-	if exist $(DOC)nethack.txt copy $(DOC)nethack.txt $(GAMEDIR)NetHack.txt
-	@if exist $(GAMEDIR)NetHack.PDB echo NOTE: You may want to remove $(U_GAMEDIR)/NetHack.PDB to conserve space
-	@if exist $(GAMEDIR)NetHackW.PDB echo NOTE: You may want to remove $(U_GAMEDIR)/NetHackW.PDB to conserve space
+	if exist $(DOC)xnethack.txt copy $(DOC)xnethack.txt $(GAMEDIR)xNetHack.txt
+	@if exist $(GAMEDIR)xNetHack.PDB echo NOTE: You may want to remove $(U_GAMEDIR)/xNetHack.PDB to conserve space
+	@if exist $(GAMEDIR)xNetHackW.PDB echo NOTE: You may want to remove $(U_GAMEDIR)/xNetHackW.PDB to conserve space
 	-if exist $(MSWSYS)xnethackrc.template copy $(MSWSYS)xnethackrc.template   $(R_GAMEDIR)
 	-if not exist $(GAMEDIR)record. goto>$(GAMEDIR)record.
 ! IF ("$(USE_DLB)" == "Y")
@@ -1793,12 +1793,12 @@ $(INCL)nhlua.h:
 tileutil: $(U)gif2txt.exe $(U)gif2tx32.exe $(U)txt2ppm.exe
 	@echo Optional tile development utilities are up to date.
 
-$(OGUI)xNetHackW.res: $(SRC)tiles.bmp $(MSWIN)xNetHackW.rc $(MSWIN)NetHack.ico \
+$(OGUI)NetHackW.res: $(SRC)tiles.bmp $(MSWIN)NetHackW.rc $(MSWIN)NetHack.ico \
 	$(MSWIN)mnsel.bmp $(MSWIN)mnselcnt.bmp $(MSWIN)mnunsel.bmp \
 	$(MSWIN)petmark.bmp $(MSWIN)pilemark.bmp $(MSWIN)NetHack.ico \
-	$(MSWIN)rip.bmp $(MSWIN)splash.bmp $(MSWIN)xNetHackW.exe.manifest $(WAV)
+	$(MSWIN)rip.bmp $(MSWIN)splash.bmp $(MSWIN)NetHackW.exe.manifest $(WAV)
 	@echo Building resource file $@ from $**
-	$(rc) -nologo -r -fo$@ -i$(MSWIN) -i$(SndWavDir) -dNDEBUG -dVIA_MAKE $(RCFLAGS) $(MSWIN)xNetHackW.rc
+	$(rc) -nologo -r -fo$@ -i$(MSWIN) -i$(SndWavDir) -dNDEBUG -dVIA_MAKE $(RCFLAGS) $(MSWIN)NetHackW.rc
 
 $(OTTY)console.res: $(MSWSYS)console.rc $(MSWSYS)NetHack.ico $(WAV)
 	@echo Building resource file $@ from $**
@@ -2039,7 +2039,7 @@ fetch-Lua: fetch-actual-Lua
 fetch-actual-Lua:
 	@if not exist $(LIBDIR)*.* mkdir $(R_LIBDIR)
 	cd $(LIBDIR)
-	curl -R -O http://www.lua.org/ftp/lua-$(LUAVER).tar.gz
+	curl -R -O https://www.lua.org/ftp/lua-$(LUAVER).tar.gz
 	tar zxf lua-$(LUAVER).tar.gz
 	if exist lua-$(LUAVER).tar.gz del lua-$(LUAVER).tar.gz
 	if exist lua-$(LUAVER).tar del lua-$(LUAVER).tar
@@ -2369,7 +2369,7 @@ $(OGUI)mhstatus.o: $(MSWIN)mhstatus.c $(MSWIN)$(@B).h $(MSWIN)mhmsg.h $(MSWIN)mh
 $(OGUI)mhtext.o: $(MSWIN)mhtext.c $(MSWIN)$(@B).h $(MSWIN)mhmsg.h $(MSWIN)mhfont.h \
 		$(WINDHDR) $(HACK_H)
 $(OGUI)mswproc.o: $(MSWIN)mswproc.c $(ALL_GUIHDR) $(MSWIN)resource.h $(WINDHDR) $(HACK_H)
-$(OGUI)xNetHackW.o: $(MSWIN)NetHackW.c $(ALL_GUIHDR) $(MSWIN)resource.h $(WINDHDR) $(HACK_H)
+$(OGUI)NetHackW.o: $(MSWIN)NetHackW.c $(ALL_GUIHDR) $(MSWIN)resource.h $(WINDHDR) $(HACK_H)
 
 #===================================================================
 # sys/share dependencies
@@ -2549,14 +2549,14 @@ $(SndWavDir)sa2_xplevelup.wav: $(SndWavDir)sa2_xplevelup.uu $(U)uudecode.exe
 # packaging
 #===============================================================================
 
-PKGFILES = nethackrc.template Guidebook.txt license xNetHack.exe NetHack.txt \
-	 NetHackW.exe opthelp nhdat370 record symbols sysconf.template
-FILESTOZIP = $(BinDir)nethackrc.template $(BinDir)Guidebook.txt $(BinDir)license \
-	$(BinDir)xNetHack.exe $(BinDir)NetHack.txt $(BinDir)NetHackW.exe \
-	$(BinDir)opthelp $(BinDir)nhdat370 $(BinDir)record \
+PKGFILES = xnethackrc.template Guidebook.txt license xNetHack.exe xNetHack.txt \
+	 xNetHackW.exe opthelp nhdat$(NHV) record symbols sysconf.template
+FILESTOZIP = $(BinDir)xnethackrc.template $(BinDir)Guidebook.txt $(BinDir)license \
+	$(BinDir)xNetHack.exe $(BinDir)xNetHack.txt $(BinDir)xNetHackW.exe \
+	$(BinDir)opthelp $(BinDir)nhdat$(NHV) $(BinDir)record \
 	$(BinDir)symbols $(BinDir)sysconf.template
-DBGSYMS = NetHack.PDB NetHackW.PDB
-PDBTOZIP = $(BinDir)NetHack.PDB $(BinDir)NetHackW.PDB
+DBGSYMS = xNetHack.PDB xNetHackW.PDB
+PDBTOZIP = $(BinDir)xNetHack.PDB $(BinDir)xNetHackW.PDB
 MAINZIP = $(PkgDir)nethack-$(NHV)-win-$(TARGET_CPU).zip
 DBGSYMZIP = $(PkgDir)nethack-$(NHV)-win-$(TARGET_CPU)-debugsymbols.zip
 
@@ -2577,7 +2577,7 @@ binary:  envchk.tag libdir.tag ottydir$(TARGET_CPU).tag \
 		$(INCL)nhlua.h $(OUTL)utility.tag \
 		$(DAT)data $(DAT)rumors $(DAT)oracles $(DAT)engrave \
 		$(DAT)epitaph $(DAT)bogusmon $(GAMEDIR)xNetHack.exe \
-		$(GAMEDIR)NetHackW.exe $(GAMEDIRDLLS) binary.tag
+		$(GAMEDIR)xNetHackW.exe $(GAMEDIRDLLS) binary.tag
 	@echo NetHack is up to date.
 
 #===============================================================================
@@ -2715,7 +2715,7 @@ clean:
 	if exist $(SRC)tiles.bmp       del $(SRC)tiles.bmp
 	if exist $(OTTY)console.res     del $(OTTY)console.res
 	if exist $(OTTY)xNetHack.res    del $(OTTY)xNetHack.res
-	if exist $(OGUI)xNetHackW.res   del $(OGUI)xNetHackW.res
+	if exist $(OGUI)NetHackW.res   del $(OGUI)NetHackW.res
 
 #===================================================================
 # OTHER DEPENDENCIES

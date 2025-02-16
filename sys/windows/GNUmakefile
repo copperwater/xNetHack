@@ -229,10 +229,10 @@ endif
 #==============================================================================
 
 #  The version of the game this Makefile was designed for
-NETHACK_VERSION="3.7.0"
+XNETHACK_VERSION="9.0.0"
 
 # A brief version for use in macros
-NHV1=$(subst .,,$(NETHACK_VERSION))
+NHV1=$(subst .,,$(XNETHACK_VERSION))
 NHV=$(subst ",,$(NHV1))
 
 #
@@ -412,7 +412,7 @@ $(ULUADLL) $(LUAIMP): $(LUAOBJS) | $(OLUA)
 	$(ld) $(LDFLAGS) -fPIC -shared -Wl,--export-all-symbols -Wl,--add-stdcall-alias \
 		-Wl,--out-implib=$(LUAIMP) $^ -o$(ULUADLL)
 
-$(LUASTATIC): $(LUAOBJS) | $(OLUA) 
+$(LUASTATIC): $(LUAOBJS) | $(OLUA)
 	ar rcs $@ $^
 
 $(OLUA)/%.o: $(LUASRC)/%.c | $(OLUA)
@@ -485,7 +485,7 @@ HLTARGETS = $(HLHACKLIB) $(HLHACKLIBOBJS)
 $(HL)/hacklib.a: $(HLHACKLIBOBJS)
 	ar rcs $@ $^
 
-$(HL)/hacklib.o: $(HACKLIBSRC) | $(HL)	
+$(HL)/hacklib.o: $(HACKLIBSRC) | $(HL)
 
 $(HL)/%.o: $(SRC)/%.c | $(HL)
 	$(cc) $(CFLAGSU) $< -o$@

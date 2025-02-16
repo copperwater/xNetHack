@@ -631,7 +631,7 @@ getline.c  termcap.c  topl.c     wintty.c
 
 win/win32:
 (files for Windows versions - tested up to Windows 11)
-NetHackW.c             xNetHackW.exe.manifest xNetHackW.rc
+NetHackW.c             NetHackW.exe.manifest  NetHackW.rc
 mhaskyn.c              mhaskyn.h              mhdlg.c
 mhdlg.h                mhfont.c               mhfont.h
 mhinput.c              mhinput.h              mhmain.c
