@@ -6,7 +6,7 @@
 --
 --	The "start" level for the quest.
 --
---	Here you meet your (besieged) class leader, the Grand Master
+--	Here you meet your (besieged) class leader, the Chan-Sune Lama
 --	and receive your quest assignment.
 --
 des.level_init({ style = "solidfill", fg = " " });
@@ -61,8 +61,8 @@ des.door("random", 66,17)
 -- Unattended Altar - unaligned due to conflict - player must align it.
 des.altar({ x=44,y=18, align="noalign", type="altar" })
 
--- The Grand Master
-des.monster({ id = "Grand Master", coord = {49, 09}, inventory = function()
+-- The Chan-Sune Lama
+des.monster({ id = "Chan-Sune Lama", coord = {49, 09}, inventory = function()
    des.object({ id = "robe", spe = 6 });
 end })
 -- guards for the audience chamber

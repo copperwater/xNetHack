@@ -209,7 +209,7 @@ const struct Role roles[NUM_ROLES+1] = {
       "the Monastery of the Earth-Lord",
       PM_MONK,
       NON_PM,
-      PM_GRAND_MASTER,
+      PM_CHAN_SUNE_LAMA,
       PM_ABBOT,
       PM_MASTER_KAEN,
       PM_EARTH_ELEMENTAL,
