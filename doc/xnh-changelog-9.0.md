@@ -165,6 +165,7 @@ changes:
     replaced with 4 food rations.
   - Master Kaen can phase through walls and boulders, and casts summon
     elementals instead of summon insects.
+- One giant on the Valkyrie quest goal level may have a fire horn.
 
 ### Interface changes
 

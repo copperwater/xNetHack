@@ -109,6 +109,8 @@ for i = 1, 6 + d(4) do
       des.monster('fire ant')
    end
 end
+
+local donefirehorn = false
 function giant_generator(species, sel) 
    -- spawn a fire giant within a certain area of the map, contains safeguards
    -- against placing it in lava or walls, makes sure it isn't peaceful and
@@ -121,6 +123,10 @@ function giant_generator(species, sel)
                 inventory = function()
                    if percent(70) then des.object() end
                    if percent(5) then des.object() end
+                   if percent(10) and not donefirehorn then
+                      des.object('fire horn')
+                      donefirehorn = true
+                   end
                 end
               }
    if species ~= 'H' then
