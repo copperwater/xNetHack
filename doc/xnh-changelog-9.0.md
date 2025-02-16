@@ -107,8 +107,6 @@ changes:
 - Object merging now follows vanilla rules - there are a few cases where objects
   won't immediately merge such as being blind or hallucinating and not fully
   knowing one of the objects.
-- The 5 random comestibles in a chest on the Monk quest start level are replaced
-  with 4 food rations.
 - Pauper characters get their normal race-based skill caps (but not any actual
   skill in them, same as everyone else).
 - Monsters break ammo less often - 25% of the time assuming it isn't influenced
@@ -147,6 +145,12 @@ changes:
   into different items and are ambiguous).
 - Dipping for Excalibur can only be done at level 5 if the hero is a Knight who
   has never abused their alignment. Otherwise, the minimum level is 10.
+- The Monk quest has received an overhaul:
+  - Note: the home and locate level and some parts of the quest text were
+    modified in previous xNetHack versions. Those largely haven't changed in
+    this version.
+  - The 5 random comestibles in a chest on the Monk quest start level are replaced
+    with 4 food rations.
 
 ### Interface changes
 
