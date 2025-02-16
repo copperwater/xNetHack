@@ -180,12 +180,10 @@ struct monst {
 #define STRAT_PLAYER    0x01000000L
 #define STRAT_NONE      0x00000000L
 #define STRAT_STRATMASK 0x0f000000L
-#define STRAT_XMASK     0x00ff0000L
-#define STRAT_YMASK     0x0000ff00L
+    /* mstrategy unused 0x00ffff00L */
 #define STRAT_GOAL      0x000000ffL
-#define STRAT_GOALX(s) ((coordxy) ((s & STRAT_XMASK) >> 16))
-#define STRAT_GOALY(s) ((coordxy) ((s & STRAT_YMASK) >> 8))
 
+    coord mgoal;           /* monster strategy, target location */
     long mtrapseen;        /* bitmap of traps we've been trapped in */
     long mlstmv;           /* for catching up with lost time */
     long mstate;           /* debugging info on monsters stored here */
