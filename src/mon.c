@@ -12,7 +12,6 @@ staticfn int minliquid_core(struct monst *);
 staticfn void m_calcdistress(struct monst *);
 staticfn boolean monlineu(struct monst *, int, int);
 staticfn long mm_2way_aggression(struct monst *, struct monst *);
-staticfn long mm_aggression(struct monst *, struct monst *);
 staticfn long mm_displacement(struct monst *, struct monst *);
 staticfn void mon_leaving_level(struct monst *);
 staticfn void m_detach(struct monst *, struct permonst *, boolean);

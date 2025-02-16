@@ -1600,7 +1600,7 @@ ia_checkfile(struct obj *otmp)
  *
  * Returns True if an entry is found, False otherwise.
  */
-staticfn boolean
+boolean
 checkfile(
     char *inp, /* string to look up */
     struct permonst *pm, /* monster type to look up (overrides 'inp') */

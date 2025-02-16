@@ -14,7 +14,6 @@ staticfn boolean rloc_pos_ok(coordxy, coordxy, struct monst *);
 staticfn void rloc_to_core(struct monst *, coordxy, coordxy, unsigned);
 staticfn void mvault_tele(struct monst *);
 staticfn boolean m_blocks_teleporting(struct monst *);
-staticfn stairway *stairway_find_forwiz(boolean, boolean);
 
 /* does monster block others from teleporting? */
 staticfn boolean

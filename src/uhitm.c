@@ -53,8 +53,6 @@ staticfn void hmon_hitmon_splitmon(struct _hitmon_data *, struct monst *,
                              struct obj *) NONNULLARG12;
 staticfn void hmon_hitmon_msg_hit(struct _hitmon_data *, struct monst *,
                              struct obj *) NONNULLARG12;
-staticfn void hmon_hitmon_msg_silver(struct _hitmon_data *, struct monst *,
-                             struct obj *) NONNULLARG12;
 staticfn void hmon_hitmon_msg_lightobj(struct _hitmon_data *, struct monst *,
                              struct obj *) NONNULLARG12;
 staticfn boolean hmon_hitmon(struct monst *, struct obj *, int, int)

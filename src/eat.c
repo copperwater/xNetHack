@@ -41,7 +41,6 @@ staticfn int bounded_increase(int, int, int);
 staticfn void accessory_has_effect(struct obj *);
 staticfn void eataccessory(struct obj *);
 staticfn const char *foodword(struct obj *);
-staticfn int tin_variety(struct obj *, boolean);
 staticfn boolean maybe_cannibal(int, boolean);
 staticfn int eat_ok(struct obj *);
 staticfn int offer_ok(struct obj *);

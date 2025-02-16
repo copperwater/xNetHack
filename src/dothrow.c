@@ -22,7 +22,6 @@ staticfn struct obj *return_throw_to_inv(struct obj *, long, boolean,
 staticfn void tmiss(struct obj *, struct monst *, boolean);
 staticfn int throw_gold(struct obj *);
 staticfn void check_shop_obj(struct obj *, coordxy, coordxy, boolean);
-staticfn void breakmsg(struct obj *, boolean);
 staticfn boolean mhurtle_step(genericptr_t, coordxy, coordxy);
 
 /* uwep might already be removed from inventory so test for W_WEP instead;

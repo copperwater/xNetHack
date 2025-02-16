@@ -29,7 +29,6 @@ staticfn int Helmet_on(void);
 staticfn int Gloves_on(void);
 staticfn int Shield_on(void);
 staticfn int Shirt_on(void);
-staticfn void dragon_armor_handling(struct obj *, boolean, boolean);
 staticfn void Amulet_on(struct obj *) NONNULLARG1;
 staticfn void learnring(struct obj *, boolean);
 staticfn void adjust_attrib(struct obj *, int, int);

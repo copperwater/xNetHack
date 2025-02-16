@@ -13,11 +13,7 @@ staticfn int mkmonst_in_room(struct mkroom *);
 staticfn boolean generate_stairs_room_good(struct mkroom *, int);
 staticfn struct mkroom *generate_stairs_find_room(void);
 staticfn void generate_stairs(void);
-staticfn void mkfount(struct mkroom *);
 staticfn boolean find_okay_roompos(struct mkroom *, coord *) NONNULLARG12;
-staticfn void mksink(struct mkroom *);
-staticfn void mkaltar(struct mkroom *);
-staticfn void mkgrave(struct mkroom *);
 staticfn void mkinvpos(coordxy, coordxy, int);
 staticfn int mkinvk_check_wall(coordxy x, coordxy y);
 staticfn void mk_knox_portal(coordxy, coordxy);
@@ -28,9 +24,7 @@ staticfn void makelevel(void);
 staticfn boolean bydoor(coordxy, coordxy);
 staticfn void mktrap_victim(struct trap *);
 staticfn int traptype_rnd(unsigned);
-staticfn int traptype_roguelvl(void);
 staticfn struct mkroom *find_branch_room(coord *) NONNULLARG1;
-staticfn struct mkroom *pos_to_room(coordxy, coordxy);
 staticfn boolean cardinal_nextto_room(struct mkroom *, coordxy, coordxy);
 staticfn boolean place_niche(struct mkroom *, int *, coordxy *, coordxy *);
 staticfn void makeniche(int);
@@ -1829,20 +1823,6 @@ find_branch_room(coord *mp)
     return croom;
 }
 
-/* Find the room for (x,y).  Return null if not in a room. */
-staticfn struct mkroom *
-pos_to_room(coordxy x, coordxy y)
-{
-    int i;
-    struct mkroom *curr;
-
-    for (curr = svr.rooms, i = 0; i < svn.nroom; curr++, i++)
-        if (inside_room(curr, x, y))
-            return curr;
-    ;
-    return (struct mkroom *) 0;
-}
-
 /* Place a branch staircase or ladder for branch br at the coordinates (x,y).
  * If x is zero, pick the branch room and coordinates within it randomly.
  * If br is null, or the global made_branch is TRUE, do nothing. */
@@ -2501,7 +2481,7 @@ bury_sink_ring(coordxy x, coordxy y)
     add_to_buried(ring);
 }
 
-staticfn void
+void
 mksink(struct mkroom *croom)
 {
     coord m;
@@ -2540,7 +2520,7 @@ mkaltar(struct mkroom *croom)
     levl[m.x][m.y].altarmask = Align2amask(al);
 }
 
-staticfn void
+void
 mkgrave(struct mkroom *croom)
 {
     coord m;

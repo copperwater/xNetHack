@@ -18,8 +18,6 @@ extern void mkmap(lev_init *);
 
 staticfn void solidify_map(void);
 staticfn void map_cleanup(void);
-staticfn void lvlfill_maze_grid(int, int, int, int, schar);
-staticfn void lvlfill_solid(schar, schar);
 staticfn void lvlfill_swamp(schar, schar, schar);
 staticfn void flip_dbridge_horizontal(struct rm *);
 staticfn void flip_dbridge_vertical(struct rm *);
@@ -34,7 +32,6 @@ staticfn void set_door_orientation(int, int);
 staticfn boolean shared_with_room(int, int, struct mkroom *);
 staticfn void maybe_add_door(int, int, struct mkroom *);
 staticfn void link_doors_rooms(void);
-staticfn int rnddoor(void);
 staticfn int rndtrap(void);
 staticfn void get_location(coordxy *, coordxy *, getloc_flags_t,
                          struct mkroom *);
@@ -113,7 +110,6 @@ staticfn int floodfillchk_match_accessible(coordxy, coordxy);
 staticfn void l_push_mkroom_table(lua_State *, struct mkroom *);
 staticfn int get_table_align(lua_State *);
 staticfn int get_table_monclass(lua_State *);
-staticfn int find_montype(lua_State *, const char *, int *);
 staticfn int get_table_montype(lua_State *, int *);
 staticfn lua_Integer get_table_int_or_random(lua_State *, const char *, int);
 staticfn int get_table_buc(lua_State *);

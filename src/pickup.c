@@ -53,7 +53,6 @@ staticfn boolean reverse_loot(void);
 staticfn boolean mon_beside(coordxy, coordxy);
 staticfn int do_loot_cont(struct obj **, int, int);
 staticfn int doloot_core(void);
-staticfn void tipcontainer(struct obj *);
 staticfn void u_took_forbidden_object(struct obj *);
 
 /* define for query_objlist() and autopickup() */

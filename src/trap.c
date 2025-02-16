@@ -7,17 +7,14 @@
 
 extern const char *const destroy_strings[][3]; /* from zap.c */
 
-staticfn void mk_trap_statue(coordxy, coordxy);
 staticfn int dng_bottom(d_level *lev);
 staticfn void hole_destination(d_level *);
 staticfn boolean keep_saddle_with_steedcorpse(unsigned, struct obj *,
                                             struct obj *);
 staticfn boolean mu_maybe_destroy_web(struct monst *, boolean, struct trap *);
-staticfn struct obj *t_missile(int, struct trap *);
 staticfn boolean floor_trigger(int);
 staticfn boolean check_in_air(struct monst *, unsigned);
 staticfn int trapeffect_arrow_trap(struct monst *, struct trap *, unsigned);
-staticfn int trapeffect_dart_trap(struct monst *, struct trap *, unsigned);
 staticfn int trapeffect_rocktrap(struct monst *, struct trap *, unsigned);
 staticfn int trapeffect_sqky_board(struct monst *, struct trap *, unsigned);
 staticfn int trapeffect_bear_trap(struct monst *, struct trap *, unsigned);
@@ -40,7 +37,6 @@ staticfn int trapeffect_magic_portal(struct monst *, struct trap *, unsigned);
 staticfn int trapeffect_vibrating_square(struct monst *, struct trap *,
                                            unsigned);
 staticfn int trapeffect_selector(struct monst *, struct trap *, unsigned);
-staticfn char *trapnote(struct trap *, boolean);
 staticfn int choose_trapnote(struct trap *);
 staticfn int steedintrap(struct trap *, struct obj *);
 staticfn void launch_drop_spot(struct obj *, coordxy, coordxy);
