@@ -150,6 +150,9 @@ changes:
     modified in previous xNetHack versions. Those largely haven't changed in
     this version.
   - The Monk quest leader is now named the Chan-Sune Lama.
+  - The Monk lower filler levels are no longer standard room-and-corridor: they
+    are an interconnected set of rooms with various types of things blocking the
+    ways between them.
   - The 5 random comestibles in a chest on the Monk quest start level are replaced
     with 4 food rations.
 
