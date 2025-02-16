@@ -153,8 +153,11 @@ changes:
   - The Monk lower filler levels are no longer standard room-and-corridor: they
     are an interconnected set of rooms with various types of things blocking the
     ways between them.
-  - The 5 random comestibles in a chest on the Monk quest start level are replaced
-    with 4 food rations.
+  - The Monk goal level is a chamber, smaller, walled in, and with several
+    wings. It contains mostly the same enemies as the former goal level, but
+    does not contain any lava.
+  - The 5 random comestibles in a chest on the Monk quest start level are
+    replaced with 4 food rations.
   - Master Kaen can phase through walls and boulders, and casts summon
     elementals instead of summon insects.
 
