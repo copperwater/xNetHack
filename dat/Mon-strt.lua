@@ -11,7 +11,7 @@
 --
 des.level_init({ style = "solidfill", fg = " " });
 
-des.level_flags("mazelevel", "hardfloor", "outdoors")
+des.level_flags("mazelevel", "hardfloor", "outdoors", "noflipx")
 
 des.map([[
 ,,,,T,,,,,,,,,T,,,|,,,,,....,|.}}}.|T,,,,,,.........T....-...T.--....T,,,,,,
