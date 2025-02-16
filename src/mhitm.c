@@ -714,6 +714,7 @@ hitmm(
                                  weaphitmsg(mwep, magr));
                     break;
                 }
+                FALLTHROUGH;
                 /* FALLTHRU */
             case AT_CLAW: {
                 const char *verb = barehitmsg(magr);

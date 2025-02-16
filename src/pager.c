@@ -1485,6 +1485,7 @@ add_obj_info(winid datawin, short otyp)
                         break;
                     case LIFESAVED:
                         effect = "life saving";
+                        FALLTHROUGH;
                         /* FALLTHRU */
                     /* for things that don't work with "Makes you" */
                     case GLIB:

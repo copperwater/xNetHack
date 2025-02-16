@@ -620,6 +620,7 @@ make_corpse(struct monst *mtmp, unsigned int corpseflags)
     case PM_GIANT_ZOMBIE:
     case PM_ETTIN_ZOMBIE:
         corpstatflags |= CORPSTAT_ZOMBIE;
+        FALLTHROUGH;
         /* FALLTHRU */
     case PM_KOBOLD_MUMMY:
     case PM_DWARF_MUMMY:
@@ -1944,6 +1945,7 @@ mon_give_prop(struct monst *mtmp, int prop)
             if (haseyes(mtmp->data))
                 msg = "%s blinks a few times.";
         }
+        break;
     default:
         return; /* can't give it */
         break;

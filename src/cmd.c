@@ -1193,6 +1193,7 @@ doterrain(void)
         break;
     case 7: /* full map with visited spaces */
         reveal_terrain(TER_MAP | TER_VISIT);
+        break;
     default:
         break;
     }

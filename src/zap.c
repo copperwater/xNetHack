@@ -2439,6 +2439,7 @@ bhito(struct obj *obj, struct obj *otmp)
             if (obj->otyp == STATUE && obj->cobj) {
                 tipcontainer(obj); /* spill any contents */
             }
+            FALLTHROUGH;
             /* FALLTHRU */
         case SPE_KNOCK:
         case WAN_LOCKING:

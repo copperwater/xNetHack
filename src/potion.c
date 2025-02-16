@@ -2389,6 +2389,7 @@ potionbreathe(struct obj *obj)
         break;
     case POT_GAIN_LEVEL:
         more_experienced(5, 0);
+        FALLTHROUGH;
         /* FALLTHRU */
     case POT_LEVITATION:
         You_feel("slightly elevated.");

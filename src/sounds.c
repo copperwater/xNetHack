@@ -999,6 +999,7 @@ domonnoise(struct monst *mtmp)
             }
             break;
         }
+        FALLTHROUGH;
         /*FALLTHRU*/
     case MS_GRUNT:
         Soundeffect(se_grunt, 60);

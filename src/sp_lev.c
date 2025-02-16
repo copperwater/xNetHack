@@ -1166,6 +1166,7 @@ rndtrap(void)
         case ROCKTRAP:
             if (svl.level.flags.outdoors)
                 rtrap = NO_TRAP;
+            FALLTHROUGH;
             /* FALLTHRU */
         case ROLLING_BOULDER_TRAP:
             if (In_endgame(&u.uz))

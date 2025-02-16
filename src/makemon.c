@@ -182,6 +182,7 @@ m_initweap(struct monst *mtmp)
                 break;
             case PM_WATCH_CAPTAIN:
                 w2 = SKELETON_KEY;
+                FALLTHROUGH;
                 /* FALLTHRU */
             case PM_CAPTAIN:
                 w1 = rn2(2) ? LONG_SWORD : SABER;

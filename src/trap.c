@@ -6687,6 +6687,7 @@ deltrap_with_ammo(struct trap *trap, int do_what)
             switch (do_what) {
             default:
                 impossible("Bad deltrap constant! Placing ammo instead");
+                FALLTHROUGH;
                 /* FALLTHRU */
             case DELTRAP_PLACE_AMMO:
                 place_object(otmp, trap->tx, trap->ty);

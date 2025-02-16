@@ -580,6 +580,7 @@ update_mon_extrinsics(
         }
         case TELEPAT:
             mask = MR2_TELEPATHY;
+            FALLTHROUGH;
             /* FALLTHRU */
         case FIRE_RES:
         case COLD_RES:

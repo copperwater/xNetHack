@@ -4307,6 +4307,7 @@ getprice(struct obj *obj, boolean shk_buying)
     case ARMOR_CLASS:
         if (Is_dragon_scaled_armor(obj))
             tmp += ((3 * objects[obj->dragonscales].oc_cost) / 2L);
+        FALLTHROUGH;
         /* FALLTHRU */
     case WEAPON_CLASS:
         if (obj->spe > 0)

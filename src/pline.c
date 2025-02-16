@@ -280,6 +280,7 @@ vpline(const char *line, va_list the_args)
     switch (msgtyp) {
     case MSGTYP_ALERT:
         iflags.msg_is_alert = TRUE; /* <TAB> */
+        FALLTHROUGH;
         /* FALLTHRU */
     case MSGTYP_STOP:
         display_nhwindow(WIN_MESSAGE, TRUE); /* --more-- */
