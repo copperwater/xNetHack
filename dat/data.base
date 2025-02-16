@@ -1165,6 +1165,7 @@ zorkmid*
 	and says "In Frobs We Trust" in several languages.
 		[ Zork Zero, by Infocom ]
 combat
+*corpse*
 fight
 fracas
 melee
@@ -5596,6 +5597,9 @@ stair*
 	Dr. Peter Venkman:  They go up.
 		[ Ghostbusters, directed by Ivan Reitman,
 		  written by Dan Ackroyd and Harold Ramis ]
+invisible*
+invisibility
+unseen*
 *stalker
 	"You don't understand," he said, "who I am or what I am.  I'll show
 	you.  By Heaven!  I'll show you."  Then he put his open palm over
