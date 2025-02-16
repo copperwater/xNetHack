@@ -1763,9 +1763,9 @@ cmp_init_mongen_order(const void *p1, const void *p2)
 
     /* incorporate the mlet into the sort values for comparison */
     int difficulty1 =
-        ((int) (mons[i1].difficulty + offset1) | ((int) mons[i1].mlet << 8)),
+        ((mons[i1].difficulty + offset1) | ((int) mons[i1].mlet << 8)),
         difficulty2 =
-        ((int) (mons[i2].difficulty + offset2) | ((int) mons[i2].mlet << 8));
+        ((mons[i2].difficulty + offset2) | ((int) mons[i2].mlet << 8));
     return difficulty1 - difficulty2;
 }
 
