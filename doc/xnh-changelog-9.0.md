@@ -156,6 +156,11 @@ changes:
   - The Monk goal level is a chamber, smaller, walled in, and with several
     wings. It contains mostly the same enemies as the former goal level, but
     does not contain any lava.
+  - The Monk quest text is now fully unique and does not contain any more
+    copy-pasted lines from the Priest quest text.
+  - The Monk quest is only counted as completed when you return to the quest
+    leader having killed Master Kaen, not merely by returning the Eyes of the
+    Overworld.
   - The 5 random comestibles in a chest on the Monk quest start level are
     replaced with 4 food rations.
   - Master Kaen can phase through walls and boulders, and casts summon

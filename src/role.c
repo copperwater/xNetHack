@@ -206,7 +206,7 @@ const struct Role roles[NUM_ROLES+1] = {
       "Shan Lai Ching", "Chih Sung-tzu", "Huan Ti", /* Chinese */
       "Mon",
       "the Monastery of Chan-Sune",
-      "the Monastery of the Earth-Lord",
+      "the Monastery of Shi Zhi Zhu",
       PM_MONK,
       NON_PM,
       PM_CHAN_SUNE_LAMA,

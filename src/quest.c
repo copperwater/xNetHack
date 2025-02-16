@@ -231,7 +231,7 @@ expulsion(boolean seal)
 staticfn boolean
 arti_fulfills_quest(void)
 {
-    if (Role_if(PM_VALKYRIE)) {
+    if (Role_if(PM_VALKYRIE) || Role_if(PM_MONK)) {
         return FALSE;
     }
     return TRUE;
