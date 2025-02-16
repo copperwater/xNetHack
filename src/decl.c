@@ -854,9 +854,6 @@ static const struct instance_globals_w g_init_w = {
     UNDEFINED_VALUE, /* wc */
     /* mkmaze.c */
     UNDEFINED_PTR, /* wportal */
-    /* wizard.c */
-    /* wizpuzzle is a bit weird because it contains a 2D array */
-    { { UNDEFINED_VALUES }, UNDEFINED_VALUES, 0, 0, 0, 0 }, /* wizpuzzle */
     /* new */
     { wdmode_traditional, NO_COLOR },       /* wsettings */
     TRUE, /* havestate*/
@@ -1017,6 +1014,12 @@ static const struct instance_globals_saved_u init_svu = {
     { 0, 0, 0, 0, 0, 0, 0, 0 },          /* updest */
 };
 
+static const struct instance_globals_saved_w init_svw = {
+    /* wizard.c */
+    /* wizpuzzle is a bit weird because it contains a 2D array */
+    { { UNDEFINED_VALUES }, UNDEFINED_VALUES, 0, 0, 0, 0 }, /* wizpuzzle */
+};
+
 static const struct instance_globals_saved_x init_svx = {
     /* mkmaze.c */
     UNDEFINED_VALUE,                     /* xmin */
@@ -1078,6 +1081,7 @@ struct instance_globals_saved_r svr;
 struct instance_globals_saved_s svs;
 struct instance_globals_saved_t svt;
 struct instance_globals_saved_u svu;
+struct instance_globals_saved_w svw;
 struct instance_globals_saved_x svx;
 struct instance_globals_saved_y svy;
 struct sinfo program_state;
@@ -1161,6 +1165,7 @@ decl_globals_init(void)
     svs = init_svs;
     svt = init_svt;
     svu = init_svu;
+    svw = init_svw;
     svx = init_svx;
     svy = init_svy;
     program_state = init_program_state;

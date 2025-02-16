@@ -984,7 +984,7 @@ wizpuzzle_give_clues(void)
     char notebuf[BUFSZ] = {0};
 
     for (ring = 0; ring < NUM_PUZZLE_RINGS; ++ring) {
-        int openroom = gw.wizpuzzle.open_chamber[ring];
+        int openroom = svw.wizpuzzle.open_chamber[ring];
         struct trap *board = (struct trap *) 0;
         xint8 colors_found[CLR_MAX] = {0};
         xint8 maxcolor = 0;
@@ -1031,18 +1031,18 @@ wizpuzzle_give_clues(void)
         if (board) {
             if (ring > 0)
                 Strcat(notebuf, ", then ");
-            Strcat(notebuf, trapnote(board, gw.wizpuzzle.solved));
+            Strcat(notebuf, trapnote(board, svw.wizpuzzle.solved));
         }
         /* else impossible("no board found?"); -- except this isn't actually
          * impossible, since hero may disarm the board. */
 
-        if (ring == 0 && gw.wizpuzzle.solved)
+        if (ring == 0 && svw.wizpuzzle.solved)
             /* rings will be aligned so no point in continuing, and preserve the
              * color and note in the buffers with no intervening "then" */
             break;
     }
 
-    if (gw.wizpuzzle.solved) {
+    if (svw.wizpuzzle.solved) {
         if (!Blind)
             pline("There is a brilliant flash of %s light.", lightbuf);
         You_hear("a harmonious %s chime.", notebuf);
@@ -1122,18 +1122,18 @@ wizpuzzle_move_gap(int newc, xint8 ring)
     boolean gaveopenmsg = FALSE;
     boolean solved = FALSE;
 
-    if (gw.wizpuzzle.solved)
+    if (svw.wizpuzzle.solved)
         return;
 
-    if (!gw.wizpuzzle.gave_msg) {
+    if (!svw.wizpuzzle.gave_msg) {
         if (Deaf)
             You_feel("the ground rumbling!");
         else
             You_hear("a massive grinding noise!");
-        gw.wizpuzzle.gave_msg = TRUE;
+        svw.wizpuzzle.gave_msg = TRUE;
     }
 
-    if (gw.wizpuzzle.open_chamber[ring] != newc) {
+    if (svw.wizpuzzle.open_chamber[ring] != newc) {
         for (round = 1; round <= 2; ++round) {
             /* round 1: wall comes down
              * round 2: wall lifts up
@@ -1161,21 +1161,22 @@ wizpuzzle_move_gap(int newc, xint8 ring)
         }
     }
 
-    gw.wizpuzzle.open_chamber[ring] = newc;
+    svw.wizpuzzle.open_chamber[ring] = newc;
 
     /* only mark the puzzle as solved when processing the last ring, so that a
      * move of another ring into the same room as another ring (which is about
      * to move but hasn't yet) doesn't count it as solved */
     if (ring == NUM_PUZZLE_RINGS - 1
         && levl[u.ux][u.uy].roomno - ROOMOFFSET
-            == gw.wizpuzzle.open_chamber[ring]) {
+            == svw.wizpuzzle.open_chamber[ring]) {
         solved = TRUE;
         for (i = 0; i < NUM_PUZZLE_RINGS - 1; ++i) {
-            if (gw.wizpuzzle.open_chamber[i] != gw.wizpuzzle.open_chamber[i+1])
+            if (svw.wizpuzzle.open_chamber[i]
+                != svw.wizpuzzle.open_chamber[i+1])
                 solved = FALSE;
         }
         if (solved)
-            gw.wizpuzzle.solved = TRUE;
+            svw.wizpuzzle.solved = TRUE;
     }
 }
 
@@ -1196,27 +1197,27 @@ static void
 wizpuzzle_init(int init_room) {
     int ring, room1;
     for (ring = 0; ring < NUM_PUZZLE_RINGS; ++ring) {
-        gw.wizpuzzle.open_chamber[ring] = init_room;
+        svw.wizpuzzle.open_chamber[ring] = init_room;
         /* Initialize and shuffle the chamber actions. */
-        gw.wizpuzzle.actions[ring][0] = NO_ROTATION;
-        gw.wizpuzzle.actions[ring][1] = CLOCKWISE_1;
-        gw.wizpuzzle.actions[ring][2] = CLOCKWISE_2;
-        gw.wizpuzzle.actions[ring][3] = CLOCKWISE_3;
-        gw.wizpuzzle.actions[ring][4] = COUNTERCLOCKWISE_1;
-        gw.wizpuzzle.actions[ring][5] = COUNTERCLOCKWISE_2;
-        gw.wizpuzzle.actions[ring][6] = COUNTERCLOCKWISE_3;
-        gw.wizpuzzle.actions[ring][7] = ROTATE_180;
+        svw.wizpuzzle.actions[ring][0] = NO_ROTATION;
+        svw.wizpuzzle.actions[ring][1] = CLOCKWISE_1;
+        svw.wizpuzzle.actions[ring][2] = CLOCKWISE_2;
+        svw.wizpuzzle.actions[ring][3] = CLOCKWISE_3;
+        svw.wizpuzzle.actions[ring][4] = COUNTERCLOCKWISE_1;
+        svw.wizpuzzle.actions[ring][5] = COUNTERCLOCKWISE_2;
+        svw.wizpuzzle.actions[ring][6] = COUNTERCLOCKWISE_3;
+        svw.wizpuzzle.actions[ring][7] = ROTATE_180;
         for (room1 = NUM_PUZZLE_CHAMBERS - 1; room1 >= 1; --room1) {
             int room2 = rn2(room1 + 1);
-            enum wizpuzzle_actions tmp = gw.wizpuzzle.actions[ring][room1];
-            gw.wizpuzzle.actions[ring][room1]
-                = gw.wizpuzzle.actions[ring][room2];
-            gw.wizpuzzle.actions[ring][room2] = tmp;
+            enum wizpuzzle_actions tmp = svw.wizpuzzle.actions[ring][room1];
+            svw.wizpuzzle.actions[ring][room1]
+                = svw.wizpuzzle.actions[ring][room2];
+            svw.wizpuzzle.actions[ring][room2] = tmp;
         }
     }
-    gw.wizpuzzle.activated_chamber = -1;
-    gw.wizpuzzle.entered = TRUE;
-    gw.wizpuzzle.solved = FALSE;
+    svw.wizpuzzle.activated_chamber = -1;
+    svw.wizpuzzle.entered = TRUE;
+    svw.wizpuzzle.solved = FALSE;
 }
 
 /* In the Wizard's Tower puzzle, you have just entered a new chamber, possibly
@@ -1226,15 +1227,15 @@ wizpuzzle_enterchamber(int rm_entered)
 {
     int ring;
     boolean firsttime = FALSE;
-    if (!gw.wizpuzzle.entered) { /* entering level for the first time */
+    if (!svw.wizpuzzle.entered) { /* entering level for the first time */
         wizpuzzle_init(rm_entered);
         firsttime = TRUE;
     }
-    if (gw.wizpuzzle.solved)
+    if (svw.wizpuzzle.solved)
         return;
 
     for (ring = 0; ring < NUM_PUZZLE_RINGS; ++ring) {
-        if (gw.wizpuzzle.open_chamber[ring] != rm_entered)
+        if (svw.wizpuzzle.open_chamber[ring] != rm_entered)
             return;
     }
 
@@ -1243,7 +1244,7 @@ wizpuzzle_enterchamber(int rm_entered)
      * activating mechanisms randomly in a 2-ring puzzle), you can't win just by
      * walking into that room containing the lined-up gaps. Instead, force the
      * gaps to move somewhere random. */
-    gw.wizpuzzle.gave_msg = FALSE;
+    svw.wizpuzzle.gave_msg = FALSE;
     for (ring = 0; ring < NUM_PUZZLE_RINGS; ++ring) {
         int selected = 0;
         int nselected = 0;
@@ -1267,7 +1268,7 @@ wizpuzzle_enterchamber(int rm_entered)
              * the puzzle from randomly producing a fully open gap in a
              * different room). */
             if (ring > 0
-                && rm_candidate == gw.wizpuzzle.open_chamber[ring-1]) {
+                && rm_candidate == svw.wizpuzzle.open_chamber[ring-1]) {
                 eligible = FALSE;
             }
             if (eligible) {
@@ -1289,17 +1290,18 @@ wizpuzzle_activate_mechanism(coordxy x, coordxy y)
 {
     int roomno = levl[x][y].roomno - ROOMOFFSET;
     int ring;
-    if (gw.wizpuzzle.activated_chamber == roomno) {
+    if (svw.wizpuzzle.activated_chamber == roomno) {
         if (u_at(x, y) || cansee(x, y)) {
             pline("Nothing else happens.");
         }
         return;
     }
-    gw.wizpuzzle.activated_chamber = roomno;
-    gw.wizpuzzle.gave_msg = FALSE;
+    svw.wizpuzzle.activated_chamber = roomno;
+    svw.wizpuzzle.gave_msg = FALSE;
     for (ring = 0; ring < NUM_PUZZLE_RINGS; ++ring) {
-        int destination = wizpuzzle_clamp(gw.wizpuzzle.open_chamber[ring]
-                                          + gw.wizpuzzle.actions[ring][roomno]);
+        int destination
+                = wizpuzzle_clamp(svw.wizpuzzle.open_chamber[ring]
+                                  + svw.wizpuzzle.actions[ring][roomno]);
         wizpuzzle_move_gap(destination, ring);
     }
     wizpuzzle_give_clues();

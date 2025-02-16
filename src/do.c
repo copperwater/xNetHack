@@ -1949,7 +1949,7 @@ goto_level(
             debugpline0("Marking un-entered wizard puzzle as solved...");
         else
             impossible("got to wizard3 ladder without ever entering level?");
-        gw.wizpuzzle.entered = gw.wizpuzzle.solved = TRUE;
+        svw.wizpuzzle.entered = svw.wizpuzzle.solved = TRUE;
     } else {
         if (new && Is_bigroom(&u.uz)) {
             record_achievement(ACH_BGRM);

@@ -1072,9 +1072,6 @@ struct instance_globals_w {
     /* mkmaze.c */
     struct trap *wportal;
 
-    /* wizard.c */
-    struct wizard_puzzle wizpuzzle;
-
     /* new */
     struct win_settings wsettings;      /* wintype.h */
 
@@ -1248,6 +1245,11 @@ struct instance_globals_saved_u {
     dest_area updest;
 };
 
+struct instance_globals_saved_w {
+    /* wizard.c */
+    struct wizard_puzzle wizpuzzle;
+};
+
 struct instance_globals_saved_x {
     /* mkmaze.c */
     int xmin, xmax; /* level boundaries x */
@@ -1301,6 +1303,7 @@ extern struct instance_globals_saved_r svr;
 extern struct instance_globals_saved_s svs;
 extern struct instance_globals_saved_t svt;
 extern struct instance_globals_saved_u svu;
+extern struct instance_globals_saved_w svw;
 extern struct instance_globals_saved_x svx;
 extern struct instance_globals_saved_y svy;
 extern struct sinfo program_state; /* flags describing game's current state */

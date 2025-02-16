@@ -342,7 +342,7 @@ savegamestate(NHFILE *nhfp)
     save_msghistory(nhfp);
     save_gamelog(nhfp);
     save_luadata(nhfp);
-    bwrite(nhfp->fd, (genericptr_t) &gw.wizpuzzle, sizeof gw.wizpuzzle);
+    bwrite(nhfp->fd, (genericptr_t) &svw.wizpuzzle, sizeof svw.wizpuzzle);
     if (nhfp->structlevel)
         bflush(nhfp->fd);
     program_state.saving--;
