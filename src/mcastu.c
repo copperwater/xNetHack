@@ -302,7 +302,7 @@ castmu(
 
         do {
             if (has_special_spell_list(mtmp->data)) {
-                /* is demon lord or other special spellcaster */
+                /* is archfiend or other special spellcaster */
                 spellnum = choose_special_spell(mtmp);
             }
             else {
@@ -996,6 +996,16 @@ cast_cleric_spell(struct monst *mtmp, int dmg, int spellnum)
         quan = (mtmp->m_lev < 2) ? 1 : rnd((int) mtmp->m_lev / 2);
         if (quan < 3)
             quan = 3;
+        if (mtmp->data == &mons[PM_MASTER_KAEN]) {
+            /* Master Kaen can cast this spell, but summoning insects doesn't
+             * make much sense for him. Create elementals instead. */
+            let = S_ELEMENTAL;
+            if (!m_next2u(mtmp)) {
+                /* you are probably already surrounded by some elementals, don't
+                 * dogpile too many more on */
+                quan = rnd(2);
+            }
+        }
         for (i = 0; i <= quan; i++) {
             if (!enexto(&bypos, mtmp->mux, mtmp->muy, mtmp->data))
                 break;
@@ -1011,7 +1021,8 @@ cast_cleric_spell(struct monst *mtmp, int dmg, int spellnum)
 
         /* not canspotmon() which includes unseen things sensed via warning */
         seecaster = canseemon(mtmp) || tp_sensemon(mtmp) || Detect_monsters;
-        what = (let == S_SNAKE) ? "snakes" : "insects";
+        what = (let == S_ELEMENTAL) ? "elementals"
+                                    : (let == S_SNAKE) ? "snakes" : "insects";
         if (Hallucination)
             what = makeplural(bogusmon(whatbuf, (char *) 0, -1));
 

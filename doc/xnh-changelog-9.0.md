@@ -155,6 +155,8 @@ changes:
     ways between them.
   - The 5 random comestibles in a chest on the Monk quest start level are replaced
     with 4 food rations.
+  - Master Kaen can phase through walls and boulders, and casts summon
+    elementals instead of summon insects.
 
 ### Interface changes
 
