@@ -1265,7 +1265,8 @@ use_crystal_ball(struct obj **optr)
         pline("The glass shell is empty.");
         return;
     }
-    oops = ((long) rnd(20) > (ACURR(A_INT) + 5 * (obj->blessed - obj->cursed)));
+    oops = ((long) rnd(20)
+            > (long) (ACURR(A_INT) + 5 * (obj->blessed - obj->cursed)));
     if (oops && (obj->spe > 0)) {
         long impair = (long) rnd(100 - 3 * ACURR(A_INT));
         switch (rnd((obj->oartifact || !obj->cursed) ? 4 : 5)) {

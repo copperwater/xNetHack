@@ -487,7 +487,7 @@ get_rnd_line(
         (void) dlb_fgets(buf, bufsiz, fh);
         /* get the line _after_ the startpos if we might be trying to read
            from the middle of a line, where xcrypt won't work. */
-        if (startpos > padlength) {
+        if (startpos > (long) padlength) {
             (void) dlb_fgets(buf, bufsiz, fh);
         }
     }
@@ -545,8 +545,8 @@ get_rnd_text(
              * which, then select start and end pos up to (padlength) away from
              * it */
             tidbit = (which % sizetxt) + starttxt;
-            starttxt = max(starttxt, tidbit - padlength);
-            endtxt = min(endtxt, tidbit + padlength);
+            starttxt = max(starttxt, tidbit - (long) padlength);
+            endtxt = min(endtxt, tidbit + (long) padlength);
         }
 
         /* get a randomly chosen line; it comes back decrypted and unpadded */

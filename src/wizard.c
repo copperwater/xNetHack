@@ -998,7 +998,7 @@ wizpuzzle_give_clues(void)
         for (x = svr.rooms[openroom].lx; x <= svr.rooms[openroom].hx; ++x) {
             for (y = svr.rooms[openroom].ly; y <= svr.rooms[openroom].hy; ++y) {
                 struct obj *otmp;
-                if (levl[x][y].roomno - ROOMOFFSET != openroom)
+                if ((int) levl[x][y].roomno - ROOMOFFSET != openroom)
                     continue; /* not part of this irregular room */
                 if (levl[x][y].typ != ROOM)
                     continue; /* only care about floor space */
@@ -1167,7 +1167,7 @@ wizpuzzle_move_gap(int newc, xint8 ring)
      * move of another ring into the same room as another ring (which is about
      * to move but hasn't yet) doesn't count it as solved */
     if (ring == NUM_PUZZLE_RINGS - 1
-        && levl[u.ux][u.uy].roomno - ROOMOFFSET
+        && (int) levl[u.ux][u.uy].roomno - ROOMOFFSET
             == svw.wizpuzzle.open_chamber[ring]) {
         solved = TRUE;
         for (i = 0; i < NUM_PUZZLE_RINGS - 1; ++i) {
