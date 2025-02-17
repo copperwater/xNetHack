@@ -273,7 +273,9 @@
 # endif
 # ifdef __linux__
 #  define PANICTRACE
-#  define NOSTATICFN
+#  ifndef NOSTATICFN	   // may be defined on command line
+#   define NOSTATICFN
+#  endif
 # endif
 // This test isn't quite right: CNG is only available from Windows 2000 on.
 // But we'll check that at runtime.
