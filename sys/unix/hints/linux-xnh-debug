@@ -45,7 +45,7 @@ GAMEGRP  = games
 
 # This gives better backtraces by making all core functions global; this
 # works around a limitation in glibc's backtrace(3) function.
-# This will be turned on automatically with CRASHREPROT.
+# This will be turned on automatically with CRASHREPORT.
 # 1 to enable, 0 to disable
 USE_NOSTATICFN = 1
 # If you want CRASHREPORT but absolutely don't want NOSTATICFN, define this:
@@ -152,23 +152,51 @@ NHCFLAGS+=-DCOMPRESS=\"/bin/gzip\" -DCOMPRESS_EXTENSION=\".gz\"
 #NHCFLAGS+=-DCHANGE_COLOR
 NHCFLAGS+=-DSELF_RECOVER
 
-# CUSTOM COMPILER OPTIONS FOR ENSURING HARDFOUGHT SERVER BUILD WORKS
+# CUSTOM FLAGS FOR DEBUGGING
+
+# ensure the hardfought server code will build by enabling most of the settings
+# it builds with
 NHCFLAGS+=-DDUMPHTML
 NHCFLAGS+=-DDGAMELAUNCH
+NHCFLAGS+=-DTTY_TILES_ESCCODES
+NHCFLAGS+=-DLIVELOG
+NHCFLAGS+=-DEDIT_GETLIN
 
-# CUSTOM FLAGS FOR DEBUGGING
-NHCFLAGS+=-O0 # don't optimize out anything
-NHCFLAGS+=-g  # -g3 will include highest level of debug symbols (macros) but
-              # this slows it down too much
-NHCFLAGS+=-Wformat=2 # -Wformat=2 includes format-nonliteral, which NetHack liberally violates;
-                     # however we still want those warnings outside
-                     # DISABLE_WARNING_FORMAT_NONLITERAL blocks
-NHCFLAGS+=-Wall -Werror # warnings are Serious Business
-NHCFLAGS+= -Wimplicit-fallthrough=2 # 3 usually ok, but nice to enforce
-                                    # /* else FALLTHRU */
-NHCFLAGS+=-Warray-bounds=2 # extra checking for struct/pointer array access
-NHCFLAGS+=-DFUZZER_LOG # log things so fuzzer crashes can trace what was happening
-NHCFLAGS+=-DDEBUG # duh
+# extra sanity checks can't hurt
+NHCFLAGS+=-DEXTRA_SANITY_CHECKS
+
+# don't optimize out anything
+NHCFLAGS+=-O0
+
+# -g3 will include highest level of debug symbols (macros) but this slows it
+# down too much
+NHCFLAGS+=-g
+
+# turn USE_NONOSTATICFN on so we do compile CRASHREPORT code (rather than
+# failing to build it, breaking it, and only finding out when building from some
+# other hints file), but also see any warnings about unused functions, colliding
+# static and non-static declarations, etc. Poorer default backtraces are not a
+# problem when the binary produced from this hints file can be run in gdb.
+USE_NONOSTATICFN = 1
+
+# warnings are Serious Business
+NHCFLAGS+=-Wall -Werror
+
+# set this to 5 when enabling -std=c23 or when gcc uses C23 by default; it will
+# then catch anything not using the FALLTHROUGH attribute; otherwise set it to 3
+# which requires a /* FALLTHRU */ after every FALLTHROUGH
+NHCFLAGS+=-Wimplicit-fallthrough=5
+NHCFLAGS+=-std=c23
+
+# extra checking for struct/pointer array access
+NHCFLAGS+=-Warray-bounds=2
+
+ # log things so fuzzer crashes can trace what was happening
+NHCFLAGS+=-DFUZZER_LOG
+
+# enable anything behind debug ifdefs
+NHCFLAGS+=-DDEBUG
+
 # END CUSTOM FLAGS
 
 ifdef WANT_WIN_CURSES
@@ -385,10 +413,10 @@ endif
 POSTINSTALL+=sed -i"" 's/root games/*/' $(INSTDIR)/sysconf;
 # END CUSTOM
 
-ifeq 'USENONOSTATICFN' '1'
+ifeq "$(USE_NONOSTATICFN)" "1"
 CFLAGS += -DNONOSTATICFN
 else
-ifeq 'USE_NOSTATICFN' '1'
+ifeq "$(USE_NOSTATICFN)" "1"
 CFLAGS += -DNOSTATICFN
 endif
 endif
