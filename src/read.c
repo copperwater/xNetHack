@@ -2658,7 +2658,7 @@ litroom(
     boolean no_op = (u.uswallow || Underwater || Is_waterlevel(&u.uz));
     char is_lit = 0; /* value is irrelevant but assign something anyway; its
                       * address is used as a 'not null' flag for set_lit() */
-    int radius;
+    int radius = 0;
 
     /* update object lights and produce message (provided you're not blind) */
     if (!on) {
@@ -2744,18 +2744,17 @@ litroom(
     }
     else if (obj && obj->oclass == SCROLL_CLASS) {
         /* blessed scroll lights up entire level */
-        if(blessed_effect) {
+        if (blessed_effect) {
             int x, y;
-            radius = -1;
             for (x = 1; x < COLNO; x++) {
                 for (y = 1; y < ROWNO; y++) {
                     set_lit(x, y, (on ? &is_lit : NULL));
                 }
             }
+            radius = 0; /* no need to call do_clear_area */
         }
         else {
-            /* uncursed gets a much larger area than the
-                * 5 it had previously */
+            /* uncursed gets a much larger area than the 5 it had previously */
             radius = 11;
         }
     }
@@ -2763,7 +2762,7 @@ litroom(
         radius = 5;
     }
 
-    if(radius > 0) {
+    if (radius > 0) {
         do_clear_area(u.ux, u.uy, radius, set_lit,
                       (genericptr_t) (on ? &is_lit : (char *) 0));
     }

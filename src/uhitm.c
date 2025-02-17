@@ -954,7 +954,7 @@ staticfn void
 hmon_hitmon_barehands(struct _hitmon_data *hmd, struct monst *mon)
 {
     struct obj *mwep;
-    long ringmask;
+    long ringmask = 0;
     if (noncorporeal(hmd->mdat)) {
         hmd->dmg = 0;
     } else {
@@ -985,6 +985,7 @@ hmon_hitmon_barehands(struct _hitmon_data *hmd, struct monst *mon)
         break;
     default: /* third or later of more than two hit attempts (poly'd hero);
               * rings were applied on first and second hits */
+        ringmask = 0;
         break;
     }
     hmd->dmg += special_dmgval(&gy.youmonst, mon, (W_ARMG | ringmask),
