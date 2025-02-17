@@ -1802,7 +1802,7 @@ init_mongen_order(void)
         return;
 
     mongen_order_init = TRUE;
-    for (i = LOW_PM; i <= NUMMONS; i++)
+    for (i = LOW_PM; i < NUMMONS; i++)
         mongen_order[i] = i;
 
 #if (NH_DEVEL_STATUS != NH_STATUS_RELEASED)
