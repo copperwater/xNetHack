@@ -73,15 +73,6 @@ www]]
    return selection.match(deadendN) | selection.match(deadendE) | selection.match(deadendS) | selection.match(deadendW)
 end
 
--- dumb function for stuff that requires a number
-function bool2int(b)
-   if b then
-      return 1
-   else
-      return 0
-   end
-end
-
 -- for Cocytus monster generation to avoid repeating this list
 function get_icymon_list()
    return { 'ice vortex', 'ice troll', 'freezing sphere', 'winter wolf',

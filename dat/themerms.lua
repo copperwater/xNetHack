@@ -1081,7 +1081,7 @@ xxxxx-----]], contents = function(rm) filler_region(7,1) end })
                        w = rndx, h = rm.height, filled = 1,
                        contents = function()
                des.door({ state = doorstates[1], wall = "east",
-                          iron = bool2int(doiron) })
+                          iron = doiron })
             end })
             repltyp = '|'
          else
@@ -1089,7 +1089,7 @@ xxxxx-----]], contents = function(rm) filler_region(7,1) end })
                        w = rm.width, h = rndy, filled = 1,
                        contents = function()
                des.door({ state = doorstates[1], wall = "south",
-                          iron = bool2int(doiron) })
+                          iron = doiron })
             end })
             repltyp = '-'
          end
@@ -1243,7 +1243,7 @@ xxxxx-----]], contents = function(rm) filler_region(7,1) end })
                      if x % 2 == 0 then
                         -- closet column
                         local doiron = percent(nh.level_difficulty() * 4)
-                        des.door({ x = x, y = y, iron = bool2int(doiron) })
+                        des.door({ x = x, y = y, iron = doiron })
                      else
                         -- wall column
                         des.terrain(x, y, '-')
