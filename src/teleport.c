@@ -1458,6 +1458,14 @@ domagicportal(struct trap *ttmp)
 void
 tele_trap(struct trap *trap)
 {
+    /* a fixed-destination teleport trap could theoretically place hero onto a
+     * second teleport trap; prevent the recursive call from spoteffects() from
+     * triggering the trap at the destination */
+    static boolean in_tele_trap = FALSE;
+    if (in_tele_trap)
+        return;
+
+    in_tele_trap = TRUE;
     if (In_endgame(&u.uz) || Antimagic) {
         if (Antimagic)
             shieldeff(u.ux, u.uy);
@@ -1478,13 +1486,19 @@ tele_trap(struct trap *trap)
                 /* could not find some other place to put mtmp; the level must
                  * be nearly or completely full */
                 You1(shudder_for_moment);
-                return;
             }
-            rloc_to(mtmp, cc.x, cc.y);
+            else {
+                rloc_to(mtmp, cc.x, cc.y);
+                mtmp = (struct monst *) 0; /* no longer a monster at dest */
+            }
         }
-        teleds(trap->teledest.x, trap->teledest.y, TELEDS_TELEPORT);
+        if (!mtmp) {
+            teleds(trap->teledest.x, trap->teledest.y, TELEDS_TELEPORT);
+        }
     } else
         tele();
+
+    in_tele_trap = FALSE;
 }
 
 void
