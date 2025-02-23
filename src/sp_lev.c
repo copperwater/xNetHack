@@ -2361,7 +2361,7 @@ create_object(object *o, struct mkroom *croom)
         otmp->otrapped = o->trapped;
     if (o->trapped && (o->tknown == 0 || o->tknown == 1))
         otmp->tknown = o->tknown;
-    if (o->id == STATUE && o->trapped) {
+    if (o->id == STATUE && o->trapped == 1) {
         otmp->otrapped = 0;
         maketrap(x, y, STATUE_TRAP);
     }
