@@ -1880,7 +1880,7 @@ create_trap(spltrap *t, struct mkroom *croom)
         do {
             get_location_coord(&x, &y, DRY, croom, t->coord);
         } while ((levl[x][y].typ == STAIRS || levl[x][y].typ == LADDER)
-                 && ++trycnt <= 100);
+                 && !t_at(x, y) && ++trycnt <= 100);
         if (trycnt > 100)
             return;
     }
