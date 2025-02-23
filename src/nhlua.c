@@ -65,6 +65,7 @@ staticfn int nhl_rn2(lua_State *);
 staticfn int nhl_random(lua_State *);
 staticfn int nhl_level_difficulty(lua_State *);
 staticfn int nhl_is_genocided(lua_State *);
+staticfn int nhl_get_debug_themerm_name(lua_State *);
 staticfn void init_nhc_data(lua_State *);
 staticfn int nhl_push_anything(lua_State *, int, void *);
 staticfn int nhl_meta_u_index(lua_State *);
@@ -975,6 +976,30 @@ nhl_is_genocided(lua_State *L)
     return 1;
 }
 
+/* local debug_themerm = nh.debug_themerm(isfill)
+ * if isfill is false, returns value of env variable THEMERM
+ * if isfill is true,  returns value of env variable THEMERMFILL
+ * return nil if not in wizard mode or the variable isn't set */
+staticfn int
+nhl_get_debug_themerm_name(lua_State *L)
+{
+    int argc = lua_gettop(L);
+    if (argc == 1) {
+        char *dbg_themerm = (char *) 0;
+        boolean is_fill = lua_toboolean(L, 1);
+        lua_pop(L, 1);
+        if (wizard)
+            dbg_themerm = getenv(is_fill ? "THEMERMFILL" : "THEMERM");
+        if (!dbg_themerm || strlen(dbg_themerm) == 0) {
+            lua_pushnil(L);
+        } else {
+            lua_pushstring(L, dbg_themerm);
+        }
+    } else {
+        nhl_error(L, "debug_themerm should have 1 boolean arg");
+    }
+    return 1;
+}
 
 RESTORE_WARNING_UNREACHABLE_CODE
 
@@ -1754,6 +1779,7 @@ static const struct luaL_Reg nhl_functions[] = {
     { "random", nhl_random },
     { "level_difficulty", nhl_level_difficulty },
     { "is_genocided", nhl_is_genocided },
+    { "debug_themerm", nhl_get_debug_themerm_name },
     { "parse_config", nhl_parse_config },
     { "get_config", nhl_get_config },
     { "get_config_errors", l_get_config_errors },
