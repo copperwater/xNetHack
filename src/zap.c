@@ -2436,8 +2436,12 @@ bhito(struct obj *obj, struct obj *otmp)
             }
             break;
         case WAN_OPENING:
-            if (obj->otyp == STATUE && obj->cobj) {
-                tipcontainer(obj); /* spill any contents */
+            if (obj->otyp == STATUE) {
+                if (obj->cobj) {
+                    dump_container(obj, (struct obj *) 0, DUMPCONT_NORMAL);
+                    if (cansee(obj->ox, obj->oy))
+                        learn_it = TRUE;
+                }
             }
             FALLTHROUGH;
             /* FALLTHRU */
@@ -2749,7 +2753,7 @@ boxlock_invent(struct obj *obj)
             boxing = TRUE;
         }
         if (otmp->otyp == STATUE && obj->otyp == WAN_OPENING) {
-            tipcontainer(otmp);
+            dump_container(otmp, (struct obj *) 0, DUMPCONT_NORMAL);
         }
     }
     if (boxing)
