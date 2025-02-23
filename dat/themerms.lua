@@ -2018,7 +2018,7 @@ function themerooms_generate()
       themerooms[actualrm].contents();
       return
    end
-   local pick = 1;
+   local pick = nil;
    local total_frequency = 0;
    for i = 1, #themerooms do
       if (type(themerooms[i]) ~= "table") then
@@ -2038,6 +2038,10 @@ function themerooms_generate()
             pick = i;
          end
       end
+   end
+   if pick == nil then
+      nh.impossible('no eligible themed rooms?')
+      return
    end
    themerooms[pick].contents();
 end
@@ -2077,7 +2081,7 @@ function themeroom_fill(rm)
       end
       return
    end
-   local pick = 1;
+   local pick = nil;
    local total_frequency = 0;
    for i = 1, #themeroom_fills do
       if (type(themeroom_fills[i]) ~= "table") then
@@ -2097,6 +2101,10 @@ function themeroom_fill(rm)
             pick = i;
          end
       end
+   end
+   if pick == nil then
+      nh.impossible('no eligible themed room fills?')
+      return
    end
    themeroom_fills[pick].contents(rm);
 end
