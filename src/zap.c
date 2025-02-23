@@ -2437,10 +2437,14 @@ bhito(struct obj *obj, struct obj *otmp)
             break;
         case WAN_OPENING:
             if (obj->otyp == STATUE) {
+                struct trap *ttmp = t_at(obj->ox, obj->oy);
                 if (obj->cobj) {
                     dump_container(obj, (struct obj *) 0, DUMPCONT_NORMAL);
                     if (cansee(obj->ox, obj->oy))
                         learn_it = TRUE;
+                }
+                if (ttmp && ttmp->ttyp == STATUE_TRAP) {
+                    (void) activate_statue_trap(ttmp, obj->ox, obj->oy, FALSE);
                 }
             }
             FALLTHROUGH;
