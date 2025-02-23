@@ -1156,7 +1156,7 @@ rndtrap(void)
             break;
         case LEVEL_TELEP:
         case TELEP_TRAP:
-            if (svl.level.flags.noteleport)
+            if (svl.level.flags.noteleport && !Is_telemaze_lev(&u.uz))
                 rtrap = NO_TRAP;
             break;
         case ROCKTRAP:
