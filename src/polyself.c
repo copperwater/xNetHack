@@ -1,4 +1,4 @@
-/* NetHack 3.7	polyself.c	$NHDT-Date: 1703845752 2023/12/29 10:29:12 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.207 $ */
+/* NetHack 3.7	polyself.c	$NHDT-Date: 1740534595 2025/02/25 17:49:55 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.223 $ */
 /*      Copyright (C) 1987, 1988, 1989 by Ken Arromdee */
 /* NetHack may be freely redistributed.  See license for details. */
 
@@ -59,15 +59,16 @@ set_uasmon(void)
         else                                           \
             u.uprops[PropIndx].intrinsic &= ~FROMFORM; \
     } while (0)
+#define resist_from_form(MRtyp) ((gy.youmonst.data->mresists & (MRtyp)) != 0)
 
-    PROPSET(FIRE_RES, resists_fire(&gy.youmonst));
-    PROPSET(COLD_RES, resists_cold(&gy.youmonst));
-    PROPSET(SLEEP_RES, resists_sleep(&gy.youmonst));
-    PROPSET(DISINT_RES, resists_disint(&gy.youmonst));
-    PROPSET(SHOCK_RES, resists_elec(&gy.youmonst));
-    PROPSET(POISON_RES, resists_poison(&gy.youmonst));
-    PROPSET(ACID_RES, resists_acid(&gy.youmonst));
-    PROPSET(STONE_RES, resists_ston(&gy.youmonst));
+    PROPSET(FIRE_RES, resist_from_form(MR_FIRE));
+    PROPSET(COLD_RES, resist_from_form( MR_COLD));
+    PROPSET(SLEEP_RES, resist_from_form(MR_SLEEP));
+    PROPSET(DISINT_RES, resist_from_form(MR_DISINT));
+    PROPSET(SHOCK_RES, resist_from_form(MR_ELEC));
+    PROPSET(POISON_RES, resist_from_form(MR_POISON));
+    PROPSET(ACID_RES, resist_from_form(MR_ACID));
+    PROPSET(STONE_RES, resist_from_form(MR_STONE));
     {
         /* resists_drli() takes wielded weapon into account; suppress it */
         struct obj *save_uwep = uwep;
@@ -107,6 +108,7 @@ set_uasmon(void)
     PROPSET(BLND_RES, (dmgtype_fromattack(mdat, AD_BLND, AT_EXPL)
                        || dmgtype_fromattack(mdat, AD_BLND, AT_GAZE)));
 #undef PROPSET
+#undef resist_from_form
 
     /* whether the player is flying/floating depends on their steed,
        which won't be known during the restore process: but BFlying
