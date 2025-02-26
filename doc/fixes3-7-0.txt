@@ -1,4 +1,4 @@
-NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.1533 $ $NHDT-Date: 1738638877 2025/02/03 19:14:37 $
+NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.1535 $ $NHDT-Date: 1740629713 2025/02/26 20:15:13 $
 
 General Fixes and Modified Features
 -----------------------------------
@@ -1504,6 +1504,8 @@ since introduction in 3.1.0, the definition for Mitre of Holiness has specified
 	that carrying it provides fire resistance, but that had never been
 	implemented; wearing it didn't confer fire resistance either--there is
 	no 'defends' capability for it since carrying should encompass that
+if a tree and a boulder or statue were at the same location, applying an axe
+	would break the boulder or statue rather than chop the tree
 
 
 Fixes to 3.7.0-x General Problems Exposed Via git Repository
