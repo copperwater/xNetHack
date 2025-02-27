@@ -1493,9 +1493,9 @@ console_g_putch(int in_ch)
 #else /* VIRTUAL_TERMINAL_SEQUENCES */
     ccount = 0;
     WCHAR wch[2];
-    boolean usemap = (in_ch >= 0 && in_ch < SIZE(console.cpMap));
-#endif /* VIRTUAL_TERMINAL_SEQUENCES */
     ch = (unsigned char) in_ch;
+    boolean usemap = (ch >= 0 && ch < SIZE(console.cpMap));
+#endif /* VIRTUAL_TERMINAL_SEQUENCES */
 
     set_console_cursor(ttyDisplay->curx, ttyDisplay->cury);
 #ifndef VIRTUAL_TERMINAL_SEQUENCES
