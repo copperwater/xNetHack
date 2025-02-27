@@ -357,12 +357,12 @@ restore_savefile(char *basename)
                 if (write(sfd, (genericptr_t) &levc, sizeof levc)
                     != sizeof levc) {
                     res = -1;
-		} else {
+                } else {
                     if (!copy_bytes(lfd, sfd)) {
                         Fprintf(stderr, "file copy failed!\n");
                         exit(EXIT_FAILURE);
-		    }
-		}
+                    }
+                }
                 Close(lfd);
                 (void) unlink(lock);
             }
