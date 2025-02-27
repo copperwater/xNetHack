@@ -6133,7 +6133,7 @@ TODO: gc.coder->croom needs to be updated
                     if (y < 1)
                         y = 1;
                 } else {
-                    y = rn2(ROWNO - mf->wid);
+                    y = rn2(ROWNO - mf->hei);
                 }
             }
         }
