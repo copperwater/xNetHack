@@ -1142,7 +1142,7 @@ domonnoise(struct monst *mtmp)
             (void) demon_talk(mtmp);
             break;
         }
-	FALLTHROUGH;
+        FALLTHROUGH;
         /* FALLTHRU */
     case MS_CUSS:
         if (!mtmp->mpeaceful)

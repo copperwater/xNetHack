@@ -1144,7 +1144,7 @@ pleased(aligntyp g_align)
             fix_worst_trouble(trouble);
             FALLTHROUGH;
             /*FALLTHRU*/
-	    case 2:
+        case 2:
             /* up to 9 troubles */
             while ((trouble = in_trouble()) > 0 && (++tryct < 10))
                 fix_worst_trouble(trouble);

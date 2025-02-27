@@ -4640,7 +4640,7 @@ reveal_paths(int code)
     if (code == 1) {
         raw_printf("NOTE: The %s above is missing or inaccessible!",
                    SYSCONFFILE);
-	skip_sysopt = TRUE;
+        skip_sysopt = TRUE;
     }
 #else /* !SYSCF */
     raw_printf("No system configuration file.");
@@ -4722,8 +4722,8 @@ reveal_paths(int code)
 #ifdef SYSCF
     if (!skip_sysopt) {
         fqn = sysopt.dumplogfile;
-	if (!fqn)
-	    nodumpreason = "DUMPLOGFILE is not set in " SYSCONFFILE;
+        if (!fqn)
+            nodumpreason = "DUMPLOGFILE is not set in " SYSCONFFILE;
     } else {
         nodumpreason = SYSCONFFILE " is missing; no DUMPLOGFILE setting";
     }
