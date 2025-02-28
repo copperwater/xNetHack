@@ -1319,6 +1319,8 @@ Example:
 === room
 
 Create a selection of locations inside the (current) room.
+Does not include the edges of the room, such as its walls.
+Does not do any check on terrain type, so if there are non-ROOM locations inside the room, they remain part of the selection.
 
 Example:
 
