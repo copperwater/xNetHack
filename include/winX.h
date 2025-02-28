@@ -1,4 +1,4 @@
-/* NetHack 3.7	winX.h	$NHDT-Date: 1643491525 2022/01/29 21:25:25 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.52 $ */
+/* NetHack 3.7	winX.h	$NHDT-Date: 1740795096 2025/02/28 18:11:36 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.65 $ */
 /* Copyright (c) Dean Luick, 1992                                 */
 /* NetHack may be freely redistributed.  See license for details. */
 
@@ -24,6 +24,19 @@
 #else
 #define DIMENSION_P Dimension
 #endif
+#endif
+
+/* winX.c uses XtOffset() and the way that that macro is defined in
+   <X11/Intrinsic.h> triggers "performing pointer subtraction with
+   a null pointer has undefined behavior" warnings; this modified
+   edition doesn't guarantee defined behavior but does silence those
+   warnings without needing to know whether current compiler version
+   supports the '-wno-null-pointer-subtraction' option */
+#ifdef XtOffset
+#undef XtOffset
+#define XtOffset(p_type,field) \
+    ((Cardinal) (((ptrdiff_t) (char *) (&(((p_type) NULL)->field)))     \
+                 - ((ptrdiff_t) (char *) NULL)))
 #endif
 
 /*
