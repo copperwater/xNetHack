@@ -31,7 +31,7 @@
    a null pointer has undefined behavior" warnings; this modified
    edition doesn't guarantee defined behavior but does silence those
    warnings without needing to know whether current compiler version
-   supports the '-wno-null-pointer-subtraction' option */
+   supports the '-Wno-null-pointer-subtraction' option */
 #ifdef XtOffset
 #undef XtOffset
 #define XtOffset(p_type,field) \
