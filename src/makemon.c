@@ -1747,6 +1747,7 @@ mk_gen_ok(int mndx, unsigned mvflagsmask, unsigned genomask)
 
 /* monsters in order by mlet & difficulty for mkclass() */
 static int mongen_order[NUMMONS];
+static xint8 mclass_maxf[MAXMCLASSES];
 static boolean mongen_order_init = FALSE;
 
 staticfn int QSORTCALLBACK
@@ -1796,15 +1797,18 @@ check_mongen_order(void)
 staticfn void
 init_mongen_order(void)
 {
-    int i;
+    int i, mlet;
 
     if (mongen_order_init)
         return;
 
     mongen_order_init = TRUE;
-    for (i = LOW_PM; i < NUMMONS; i++)
+    for (i = LOW_PM; i < NUMMONS; i++) {
         mongen_order[i] = i;
-
+        mlet = mons[i].mlet;
+        if ((xint8) (mons[i].geno & G_FREQ) > mclass_maxf[mlet])
+            mclass_maxf[mlet] = (xint8) (mons[i].geno & G_FREQ);
+    }
 #if (NH_DEVEL_STATUS != NH_STATUS_RELEASED)
     check_mongen_order();
 #endif
@@ -1836,9 +1840,11 @@ dump_mongen(void)
         Snprintf(nmbuf, sizeof nmbuf, "PM_%s%s",
                  monsdump[MONSi(i)].nm,
                  (i == SPECIAL_PM - 1) ? "" : ",");
-        raw_printf("    %*s /* %c seq=%3d, idx=%3d, sym='%c', diff=%2d %s */",
+        raw_printf("    %*s /* %c seq=%3d, idx=%3d, sym='%c', diff=%2d, freq=%2d[%d] %s */",
                    -nmwidth, nmbuf, (i == MONSi(i)) ? ' ' : '.', i, MONSi(i),
                    mlet, (int) mons[MONSi(i)].difficulty,
+                   (int) (mons[MONSi(i)].geno & G_FREQ),
+                   (int) mclass_maxf[(int) mons[MONSi(i)].mlet],
                    (special == (G_NOGEN | G_UNIQ)) ? "(G_NOGEN | G_UNIQ)"
                    : (special == G_NOGEN)          ? "(G_NOGEN)"
                    : (special == G_UNIQ)           ? "(G_UNIQ)"
@@ -1869,6 +1875,7 @@ mkclass_aligned(char class, int spc, /* special mons[].geno handling */
     int k, nums[SPECIAL_PM + 1]; /* +1: insurance for final return value */
     int maxmlev, gehennom = Inhell != 0;
     unsigned mv_mask, gn_mask;
+    boolean zero_freq_for_entire_class;
 
     (void) memset((genericptr_t) nums, 0, sizeof nums);
     maxmlev = level_difficulty() >> 1;
@@ -1878,6 +1885,8 @@ mkclass_aligned(char class, int spc, /* special mons[].geno handling */
     }
 
     init_mongen_order();
+    /* the following must come after init_mongen_order() */
+    zero_freq_for_entire_class = (mclass_maxf[(int) class] == 0);
 
     /*  Assumption #1:  monsters of a given class are contiguous in the
      *                  mons[] array.  Player monsters and quest denizens
@@ -1927,7 +1936,8 @@ mkclass_aligned(char class, int spc, /* special mons[].geno handling */
                 && mons[MONSi(last)].difficulty > mons[MONSi(last - 1)].difficulty
                 && rn2(2))
                 break;
-            if ((k = (mons[MONSi(last)].geno & G_FREQ)) > 0) {
+            if ((k = (mons[MONSi(last)].geno & G_FREQ)) > 0
+                || (k = (zero_freq_for_entire_class ? 1 : 0)) > 0) {
                 /* skew towards lower value monsters at lower exp. levels
                    (this used to be done in the next loop, but that didn't
                    work well when multiple species had the same level and
