@@ -1933,6 +1933,9 @@ nhl_meta_u_index(lua_State *L)
     } else if (!strcmp(tkey, "invocation_level")) {
         lua_pushboolean(L, Invocation_lev(&u.uz));
         return 1;
+    } else if (!strcmp(tkey, "name")) {
+        lua_pushstring(L, svp.plname);
+        return 1;
     }
 
     nhl_error(L, "Unknown u table index");
