@@ -2942,6 +2942,7 @@ copy_mextra(struct monst *mtmp2, struct monst *mtmp1)
     if (EBONES(mtmp1)) {
         if (!EBONES(mtmp2))
             newebones(mtmp2);
+        assert(has_ebones(mtmp2));
         *EBONES(mtmp2) = *EBONES(mtmp1);
     }
     if (has_mcorpsenm(mtmp1))
@@ -4117,17 +4118,22 @@ xkilled(
     /* malign was already adjusted for u.ualign.type and randomization */
     adjalign(mtmp->malign);
 
+#ifdef LIVELOG
     if (has_ebones(mtmp)) {
-        livelog_printf(LL_UMONST, "destroyed %s, the former %s",
+        livelog_printf(LL_UMONST, "destroyed %s, %s former %s",
                        livelog_mon_nam(mtmp),
+                       (mtmp->data == &mons[PM_GHOST]) ? "the" : "and",
                        rank_of(EBONES(mtmp)->deathlevel,
-                               roles[EBONES(mtmp)->role].mnum,
+                               EBONES(mtmp)->mnum,
                                EBONES(mtmp)->female));
     }
+#endif  /* LIVELOG */
+    return;
 }
 
 #undef livelog_mon_nam
 #undef LEVEL_SPECIFIC_NOCORPSE
+#undef livelog_mon_nam
 
 /* changes the monster into a stone monster of the same type
    this should only be called when poly_when_stoned() is true */

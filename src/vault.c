@@ -1,4 +1,4 @@
-/* NetHack 3.7	vault.c	$NHDT-Date: 1657868307 2022/07/15 06:58:27 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.91 $ */
+/* NetHack 3.7	vault.c	$NHDT-Date: 1737622664 2025/01/23 00:57:44 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.113 $ */
 /* Copyright (c) Stichting Mathematisch Centrum, Amsterdam, 1985. */
 /*-Copyright (c) Robert Patrick Rankin, 2011. */
 /* NetHack may be freely redistributed.  See license for details. */
@@ -27,6 +27,7 @@ newegd(struct monst *mtmp)
     if (!EGD(mtmp)) {
         EGD(mtmp) = (struct egd *) alloc(sizeof (struct egd));
         (void) memset((genericptr_t) EGD(mtmp), 0, sizeof (struct egd));
+        EGD(mtmp)->parentmid = mtmp->m_id;
     }
 }
 
@@ -99,8 +100,7 @@ clear_fcorr(struct monst *grd, boolean forceshow)
         }
         del_engr_at(fcx, fcy);
         map_location(fcx, fcy, 1); /* bypass vision */
-        if (!ACCESSIBLE(lev->typ))
-            block_point(fcx, fcy);
+        recalc_block_point(fcx, fcy);
         gv.vision_full_recalc = 1;
         egrd->fcbeg++;
     }
@@ -889,7 +889,7 @@ gd_move(struct monst *grd)
 
     if (!on_level(&(egrd->gdlevel), &u.uz))
         return -1;
-    nx = ny = m = n = 0;
+
     if (semi_dead || !grd->mx || egrd->gddone) {
         egrd->gddone = 1;
         return gd_move_cleanup(grd, semi_dead, FALSE);
@@ -1034,6 +1034,7 @@ gd_move(struct monst *grd)
             }
         }
     }
+    m = n = 0;
     for (fci = egrd->fcbeg; fci < egrd->fcend; fci++)
         if (g_at(egrd->fakecorr[fci].fx, egrd->fakecorr[fci].fy)) {
             m = egrd->fakecorr[fci].fx;

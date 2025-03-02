@@ -277,7 +277,7 @@ format_monkiller(struct monst *mtmp)
         svk.killer.format = KILLED_BY;
     }
     /* _the_ <invisible> <distorted> ghost of Dudley */
-    if (has_ebones(mtmp) && has_mgivenname(mtmp)) {
+    if (has_ebones(mtmp)) {
         Strcat(buf, "the ");
         svk.killer.format = KILLED_BY;
     }
@@ -320,6 +320,12 @@ format_monkiller(struct monst *mtmp)
                                : "%s imitating %s",
                 realnm, shape);
         mptr = mtmp->data; /* reset for mimicker case */
+    } else if (has_ebones(mtmp)) {
+        Strcpy(buf, m_monnam(mtmp));
+    } else if (mptr == &mons[PM_GHOST]) {
+        Strcat(buf, "ghost");
+        if (has_mgivenname(mtmp))
+            Sprintf(eos(buf), " of %s", MGIVENNAME(mtmp));
     } else if (mtmp->isshk) {
         const char *shknm = shkname(mtmp),
                    *honorific = shkname_is_pname(mtmp) ? ""

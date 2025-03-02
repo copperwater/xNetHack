@@ -1027,6 +1027,10 @@ x_monnam(
     } else if (do_name && has_mgivenname(mtmp)) {
         char *name = MGIVENNAME(mtmp);
 
+#if 0
+      /* hardfought */
+      if (has_ebones(mtmp)) {
+#endif
         if (mdat == &mons[PM_GHOST]) {
             Sprintf(eos(buf), "%s ghost", s_suffix(name));
             name_at_start = TRUE;
@@ -1052,6 +1056,9 @@ x_monnam(
             Strcat(buf, name);
             name_at_start = TRUE;
         }
+#if 0 /* hardfought */
+      }
+#endif
     } else if (is_mplayer(mdat) && !In_endgame(&u.uz)) {
         char pbuf[BUFSZ];
 

@@ -1,4 +1,4 @@
-/* NetHack 3.7  pmatchregex.c	$NHDT-Date: 1596498285 2020/08/03 23:44:45 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.4 $ */
+/* NetHack 3.7  pmatchregex.c	$NHDT-Date: 1737691300 2025/01/23 20:01:40 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.10 $ */
 /* Copyright (c) Sean Hunt  2015.                                 */
 /* NetHack may be freely redistributed.  See license for details. */
 
@@ -59,11 +59,11 @@ regex_match(const char *s, struct nhregex *re)
 void
 regex_free(struct nhregex *re)
 {
-    if (re) {
-        if (re->pat)
-            free((genericptr_t) re->pat);
-        free((genericptr_t) re);
-    }
+    assert(re != NULL); /* regex_free() is declared with NONNULLPTR1 */
+
+    if (re->pat)
+        free((genericptr_t) re->pat);
+    free((genericptr_t) re);
 }
 
 /*pmatchregex.c*/

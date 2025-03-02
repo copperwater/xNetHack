@@ -50,7 +50,7 @@
  *              src/makemon.c:  if (mmflags & MM_XX) newXX(mtmp);
  *              your new code:  mon = makemon(&mons[mnum], x, y, MM_XX);
  *
- *       7. Adjust size_monst() in src/cmd.c appropriately.
+ *       7. Adjust size_monst() in src/wizcmds.c appropriately.
  *       8. Adjust dealloc_mextra() in src/mon.c to clean up
  *          properly during monst deallocation.
  *       9. Adjust copy_mextra() in src/mon.c to make duplicate
@@ -75,6 +75,7 @@ struct fakecorridor {
 };
 
 struct egd {
+    unsigned parentmid;   /* make clobber-detection possible */
     int fcbeg, fcend;     /* fcend: first unused pos */
     int vroom;            /* room number of the vault */
     coordxy gdx, gdy;     /* goal of guard's walk */
@@ -92,6 +93,7 @@ struct egd {
  **     formerly epri.h -- temple priest extension
  */
 struct epri {
+    unsigned parentmid;   /* make clobber-detection possible */
     aligntyp shralign; /* alignment of priest's shrine */
     schar shroom;      /* index in rooms */
     coord shrpos;      /* position of shrine */
@@ -118,6 +120,7 @@ struct bill_x {
 };
 
 struct eshk {
+    unsigned parentmid;   /* make clobber-detection possible */
     long robbed;          /* amount stolen by most recent customer */
     long credit;          /* amount credited to customer */
     long debit;           /* amount of debt for using unpaid items */
@@ -145,6 +148,7 @@ struct eshk {
  **     formerly emin.h -- minion extension
  */
 struct emin {
+    unsigned parentmid;   /* make clobber-detection possible */
     aligntyp min_align; /* alignment of minion */
     boolean renegade;   /* hostile co-aligned priest or Angel */
 };
@@ -165,6 +169,7 @@ enum dogfood_types {
 };
 
 struct edog {
+    unsigned parentmid;       /* make clobber-detection possible */
     long droptime;            /* moment dog dropped object */
     unsigned dropdist;        /* dist of dropped obj from @ */
     int apport;               /* amount of training */
@@ -181,12 +186,14 @@ struct edog {
  **     extension tracking a player's remnant monster (ghost, mummy etc.)
  */
 struct ebones {
+    unsigned parentmid;     /* make clobber-detection possible */
     uchar role;             /* index into roles[] */
     uchar race;             /* index into races[] */
     align oldalign;         /* character alignment */
-    Bitfield(female, 1);    /* was female */
     uchar deathlevel;       /* level when dying (m_lev may differ) */
     schar luck;             /* luck when dying */
+    short mnum;             /* monster type */
+    Bitfield(female, 1);    /* was female */
     Bitfield(demigod, 1);   /* had killed wiz or invoked */
     Bitfield(crowned, 1);   /* had been crowned */
 };

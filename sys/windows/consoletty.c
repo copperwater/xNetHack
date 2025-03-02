@@ -1486,16 +1486,15 @@ xputc_core(int ch)
 void
 console_g_putch(int in_ch)
 {
-    unsigned char ch;
+    unsigned char ch = (unsigned char) in_ch;
     cell_t cell;
 #ifndef VIRTUAL_TERMINAL_SEQUENCES
     boolean inverse = FALSE;
 #else /* VIRTUAL_TERMINAL_SEQUENCES */
     ccount = 0;
     WCHAR wch[2];
-    boolean usemap = (in_ch >= 0 && in_ch < SIZE(console.cpMap));
+    boolean usemap = (ch >= 0 && ch < SIZE(console.cpMap));
 #endif /* VIRTUAL_TERMINAL_SEQUENCES */
-    ch = (unsigned char) in_ch;
 
     set_console_cursor(ttyDisplay->curx, ttyDisplay->cury);
 #ifndef VIRTUAL_TERMINAL_SEQUENCES

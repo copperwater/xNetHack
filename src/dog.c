@@ -27,6 +27,7 @@ newedog(struct monst *mtmp)
     if (!EDOG(mtmp)) {
         EDOG(mtmp) = (struct edog *) alloc(sizeof(struct edog));
         (void) memset((genericptr_t) EDOG(mtmp), 0, sizeof(struct edog));
+        EDOG(mtmp)->parentmid = mtmp->m_id;
     }
 }
 
@@ -41,25 +42,29 @@ free_edog(struct monst *mtmp)
 }
 
 void
-initedog(struct monst *mtmp)
+initedog(struct monst *mtmp, boolean everything)
 {
-    mtmp->mtame = is_domestic(mtmp->data) ? 10 : 5;
+    schar minimumtame = is_domestic(mtmp->data) ? 10 : 5;
+
+    mtmp->mtame = max(minimumtame, mtmp->mtame);
     mtmp->mpeaceful = 1;
     mtmp->mavenge = 0;
     set_malign(mtmp); /* recalc alignment now that it's tamed */
-    mtmp->mleashed = 0;
-    mtmp->meating = 0;
-    EDOG(mtmp)->droptime = 0;
-    EDOG(mtmp)->dropdist = 10000;
-    EDOG(mtmp)->apport = ACURR(A_CHA);
-    EDOG(mtmp)->whistletime = 0;
-    EDOG(mtmp)->hungrytime = 1000 + svm.moves;
-    EDOG(mtmp)->ogoal.x = -1; /* force error if used before set */
-    EDOG(mtmp)->ogoal.y = -1;
-    EDOG(mtmp)->abuse = 0;
-    EDOG(mtmp)->revivals = 0;
-    EDOG(mtmp)->mhpmax_penalty = 0;
-    EDOG(mtmp)->killed_by_u = 0;
+    if (everything) {
+        mtmp->mleashed = 0;
+        mtmp->meating = 0;
+        EDOG(mtmp)->droptime = 0;
+        EDOG(mtmp)->dropdist = 10000;
+        EDOG(mtmp)->apport = ACURR(A_CHA);
+        EDOG(mtmp)->whistletime = 0;
+        EDOG(mtmp)->hungrytime = 1000 + svm.moves;
+        EDOG(mtmp)->ogoal.x = -1; /* force error if used before set */
+        EDOG(mtmp)->ogoal.y = -1;
+        EDOG(mtmp)->abuse = 0;
+        EDOG(mtmp)->revivals = 0;
+        EDOG(mtmp)->mhpmax_penalty = 0;
+        EDOG(mtmp)->killed_by_u = 0;
+    }
     u.uconduct.pets++;
 }
 
@@ -154,7 +159,7 @@ make_familiar(struct obj *otmp, coordxy x, coordxy y, boolean quietly)
     if (is_pool(mtmp->mx, mtmp->my) && minliquid(mtmp))
         return (struct monst *) 0;
 
-    initedog(mtmp);
+    initedog(mtmp, TRUE);
     mtmp->msleeping = 0;
     if (otmp) { /* figurine; resulting monster might not become a pet */
         chance = rn2(10); /* 0==tame, 1==peaceful, 2==hostile */
@@ -191,7 +196,6 @@ struct monst *
 makedog(void)
 {
     struct monst *mtmp;
-    struct obj *otmp;
     const char *petname;
     int pettype;
 
@@ -217,7 +221,12 @@ makedog(void)
             petname = "Sirius"; /* Orion's dog */
     }
 
-    mtmp = makemon(&mons[pettype], u.ux, u.uy, MM_EDOG);
+    /* specifying NO_MINVENT prevents makemon() from having a 1% chance
+       of creating a pony with an already worn saddle; dogs and cats
+       aren't affected because they don't have any initial inventory
+       [if anybody adds stranger pets that are expected to have such,
+       they'll need to modify this] */
+    mtmp = makemon(&mons[pettype], u.ux, u.uy, MM_EDOG | NO_MINVENT);
 
     if (!mtmp)
         return ((struct monst *) 0); /* pets were genocided [how?] */
@@ -225,13 +234,11 @@ makedog(void)
     if (!svc.context.startingpet_mid) {
         svc.context.startingpet_mid = mtmp->m_id;
         if (!u.uroleplay.pauper) {
-            /* initial horses already wear saddle (unless hero is a pauper) */
-            if (pettype == PM_PONY
-                && (otmp = mksobj(SADDLE, TRUE, FALSE)) != 0) {
-                /* pseudo initial inventory; saddle is not actually in hero's
-                 * invent so assume that update_inventory() isn't needed */
-                fully_identify_obj(otmp);
-                put_saddle_on_mon(otmp, mtmp);
+            /* initial horses start wearing a saddle (pauper hero excluded) */
+            if (pettype == PM_PONY) {
+                /* NULL obj arg means put_saddle_on_mon()
+                 * will carry out the saddle creation */
+                put_saddle_on_mon((struct obj *) 0, mtmp);
             }
         }
     } else {
@@ -241,7 +248,7 @@ makedog(void)
     if (!gp.petname_used++ && *petname)
         mtmp = christen_monst(mtmp, petname);
 
-    initedog(mtmp);
+    initedog(mtmp, TRUE);
     return  mtmp;
 }
 
@@ -1256,7 +1263,9 @@ tamedog(
     /* add the pet extension */
     if (!has_edog(mtmp)) {
         newedog(mtmp);
-        initedog(mtmp);
+        initedog(mtmp, TRUE);
+    } else {
+        initedog(mtmp, FALSE);
     }
 
     if (obj) { /* thrown food */

@@ -367,6 +367,19 @@ restmon(NHFILE *nhfp, struct monst *mtmp)
             newedog(mtmp);
             if (nhfp->structlevel)
                 Mread(nhfp->fd, EDOG(mtmp), sizeof (struct edog));
+            /* sanity check to prevent rn2(0) */
+           if (EDOG(mtmp)->apport <= 0) {
+               EDOG(mtmp)->apport = 1;
+           }
+        }
+        /* ebones */
+        if (nhfp->structlevel)
+            Mread(nhfp->fd, &buflen, sizeof buflen);
+        if (buflen > 0) {
+            newebones(mtmp);
+            if (nhfp->structlevel)
+                Mread(nhfp->fd, EBONES(mtmp),
+                      sizeof (struct ebones));
         }
         /* ebones - pet */
         if (nhfp->structlevel)

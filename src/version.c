@@ -1,4 +1,4 @@
-/* NetHack 3.7	version.c	$NHDT-Date: 1655402415 2022/06/16 18:00:15 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.92 $ */
+/* NetHack 3.7	version.c	$NHDT-Date: 1737622664 2025/01/23 00:57:44 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.105 $ */
 /* Copyright (c) Stichting Mathematisch Centrum, Amsterdam, 1985. */
 /*-Copyright (c) Michael Allison, 2018. */
 /* NetHack may be freely redistributed.  See license for details. */
@@ -416,6 +416,8 @@ uptodate(NHFILE *nhfp, const char *name, unsigned long utdflags)
 
     if (nhfp->structlevel) {
         rlen = read(nhfp->fd, (genericptr_t) &indicator, sizeof indicator);
+        if (rlen != sizeof indicator)
+            return FALSE;
         rlen = read(nhfp->fd, (genericptr_t) &filecmc, sizeof filecmc);
         if (rlen == 0)
             return FALSE;

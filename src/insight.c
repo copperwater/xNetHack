@@ -1863,6 +1863,23 @@ attributes_enlightenment(
         enlght_halfdmg(HALF_SPDAM, final);
     if (Half_gas_damage)
         enl_msg(You_, "take", "took", " reduced poison gas damage", "");
+    if (spellid(0) > NO_SPELL) { /* skip if no spells are known yet */
+        /* greatly simplified edition of percent_success(spell.c)--may need
+           to be suppressed if oversimplification leads to player confusion */
+        char cast_adj[QBUFSZ];
+        boolean suit = uarm && is_metallic(uarm),
+                robe = uarmc && uarmc->otyp == ROBE;
+
+        *cast_adj = '\0';
+        if (suit) /* omit "wearing" to shorten the text */
+            Sprintf(cast_adj, " impaired by metallic armor%s",
+                    robe ? ", mitigated by your robe" : "");
+        else if (robe)
+            Strcpy(cast_adj, " enhanced by wearing a robe");
+
+        if (*cast_adj)
+            enl_msg("Your spell casting ", "is", "was", cast_adj, "");
+    }
     /* polymorph and other shape change */
     if (Protection_from_shape_changers)
         you_are("protected from shape changers",

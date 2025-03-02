@@ -1,4 +1,4 @@
-NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.1484 $ $NHDT-Date: 1726862062 2024/09/20 19:54:22 $
+NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.1535 $ $NHDT-Date: 1740629713 2025/02/26 20:15:13 $
 
 General Fixes and Modified Features
 -----------------------------------
@@ -1499,6 +1499,13 @@ when you hear a monster incant a scroll, ensure that the 'I' invisible
 	monster indicator doesn't trump telepathy briefly
 proceed with showpaths option even if the sysconf file is missing
 angry shopkeeper was not charging for thrown items
+avoid "You fall down a deep shaft!" if deliberately flying down
+since introduction in 3.1.0, the definition for Mitre of Holiness has specified
+	that carrying it provides fire resistance, but that had never been
+	implemented; wearing it didn't confer fire resistance either--there is
+	no 'defends' capability for it since carrying should encompass that
+if a tree and a boulder or statue were at the same location, applying an axe
+	would break the boulder or statue rather than chop the tree
 
 
 Fixes to 3.7.0-x General Problems Exposed Via git Repository
@@ -2088,6 +2095,9 @@ shop bug: buying a container with unpaid items in it could produce impossible
 	"unpaid_cost: object not on any bill" warnings
 when walking into/against a locked closed door, 'autounlock'==kick didn't
 	execute kick when player answered yes to "Door is locked.  Kick it?"
+having a 1% chance of creating rideable monsters with worn saddle gave knights
+	a 1% chance of creating an extra saddle for starting pony; it wasn't
+	tracked with other objects so produced a trivial memory leak
 
 
 Fixes to 3.7.0-x Platform and/or Interface Problems Exposed Via git Repository
@@ -2763,6 +2773,7 @@ healers gain experience by healing pets
 blessed scroll of destroy armor asks which armor to destroy
 archeologists' fedora is lucky
 telepathic hero can discern which particular monster just read a scroll
+add "make fetch-docs" to download pre-formatted documentation
 
 
 Platform- and/or Interface-Specific New Features

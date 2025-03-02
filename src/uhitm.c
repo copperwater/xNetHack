@@ -2051,8 +2051,10 @@ hmon_hitmon(
 
     hmon_hitmon_msg_hit(&hmd, mon, obj);
 
-    if (hmd.dryit) /* dryit implies wet towel, so 'obj' is still intact */
+    if (hmd.dryit) { /* dryit implies wet towel, so 'obj' is still intact */
+        assert(obj != NULL);
         dry_a_towel(obj, -1, TRUE);
+    }
 
     if (hmd.hated_obj && ((hmd.artimsg & ARTIFACTHIT_INSTAKILLMSG) == 0)) {
         searmsg(&gy.youmonst, mon, hmd.hated_obj, FALSE);
@@ -2065,8 +2067,10 @@ hmon_hitmon(
        obj->opoisoned was cleared above and any message referring to
        "poisoned <obj>" has now been given; we want just "<obj>" for
        last message, so reformat while obj is still accessible */
-    if (hmd.unpoisonmsg)
+    if (hmd.unpoisonmsg) {
+        assert(obj != NULL);
         Strcpy(hmd.saved_oname, cxname(obj));
+    }
 
     /* [note: thrown obj might go away during killed()/xkilled() call
        (via 'thrownobj'; if swallowed, it gets added to engulfer's
@@ -3842,6 +3846,7 @@ mhitm_ad_slim(
             mhm->damage = 0;
         }
     }
+    nhUse(pd);
 }
 
 void
@@ -3883,7 +3888,7 @@ mhitm_ad_ench(
                     break;
                 }
             }
-            if (drain_item(obj, FALSE)) {
+            if (obj && drain_item(obj, FALSE)) {
                 pline("%s less effective.", Yobjnam2(obj, "seem"));
             }
         }
@@ -6897,10 +6902,13 @@ flash_hits_mon(
 void
 light_hits_gremlin(struct monst *mon, int dmg)
 {
-    if (canspotmon(mon)) {
+    if (!Deaf && mdistu(mon) <= 90) {
+        /* cry of pain can be heard somewhat farther than the waking radius */
         pline_mon(mon, "%s %s!", Monnam(mon),
                   (dmg > mon->mhp / 2) ? "wails in agony"
                                        : "cries out in pain");
+    } else if (canseemon(mon)) {
+        pline_mon(mon, "%s recoils from the light!", Monnam(mon));
     }
     mon->mhp -= dmg;
     wake_nearto(mon->mx, mon->my, 30);

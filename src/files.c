@@ -1,4 +1,4 @@
-/* NetHack 3.7	files.c	$NHDT-Date: 1737346561 2025/01/19 20:16:01 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.416 $ */
+/* NetHack 3.7	files.c	$NHDT-Date: 1740532826 2025/02/25 17:20:26 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.417 $ */
 /* Copyright (c) Stichting Mathematisch Centrum, Amsterdam, 1985. */
 /*-Copyright (c) Derek S. Ray, 2015. */
 /* NetHack may be freely redistributed.  See license for details. */
@@ -2410,18 +2410,28 @@ fopen_config_file(const char *filename, int src)
     set_configfile_name(tmp_config);
     if ((fp = fopen(configfile, "r")) != (FILE *) 0)
         return fp;
-#if defined(__APPLE__) /* UNIX+__APPLE__ => MacOSX */
+#if defined(__APPLE__) /* UNIX+__APPLE__ => OSX || MacOS */
     /* try an alternative */
     if (envp) {
+        /* keep 'tmp_config' intact here; if alternates fail, use it to
+           restore configfile[] to its preferred setting (".nethackrc") */
+        char alt_config[sizeof tmp_config];
+
         /* OSX-style configuration settings */
-        Sprintf(tmp_config, "%s/%s", envp,
-                "Library/Preferences/xNetHack Defaults");
-        set_configfile_name(tmp_config);
+        Snprintf(alt_config, sizeof alt_config, "%s/%s", envp,
+                 "Library/Preferences/xNetHack Defaults");
+        set_configfile_name(alt_config);
         if ((fp = fopen(configfile, "r")) != (FILE *) 0)
             return fp;
         /* may be easier for user to edit if filename has '.txt' suffix */
-        Sprintf(tmp_config, "%s/%s", envp,
-                "Library/Preferences/xNetHack Defaults.txt");
+        Snprintf(alt_config, sizeof alt_config, "%s/%s", envp,
+                 "Library/Preferences/xNetHack Defaults.txt");
+        set_configfile_name(alt_config);
+        if ((fp = fopen(configfile, "r")) != (FILE *) 0)
+            return fp;
+        /* couldn't open either of the alternate names; for use in
+           messages, put 'configfile' back to the normal value rather than
+           leaving it set to last alternate; retry open() to reset 'errno' */
         set_configfile_name(tmp_config);
         if ((fp = fopen(configfile, "r")) != (FILE *) 0)
             return fp;
@@ -4781,7 +4791,7 @@ reveal_paths(int code)
     if (code == 1) {
         raw_printf("NOTE: The %s above is missing or inaccessible!",
                    SYSCONFFILE);
-	skip_sysopt = TRUE;
+        skip_sysopt = TRUE;
     }
 #else /* !SYSCF */
     raw_printf("No system configuration file.");
@@ -4863,8 +4873,8 @@ reveal_paths(int code)
 #ifdef SYSCF
     if (!skip_sysopt) {
         fqn = sysopt.dumplogfile;
-	if (!fqn)
-	    nodumpreason = "DUMPLOGFILE is not set in " SYSCONFFILE;
+        if (!fqn)
+            nodumpreason = "DUMPLOGFILE is not set in " SYSCONFFILE;
     } else {
         nodumpreason = SYSCONFFILE " is missing; no DUMPLOGFILE setting";
     }

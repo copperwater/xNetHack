@@ -1813,8 +1813,8 @@ m_move(struct monst *mtmp, int after)
     if (is_covetous(ptr)) { /* [should this include
                              *  '&& mtmp->mstrategy != STRAT_NONE'?] */
         int covetousattack;
-        coordxy tx = STRAT_GOALX(mtmp->mstrategy),
-                ty = STRAT_GOALY(mtmp->mstrategy);
+        coordxy tx = mtmp->mgoal.x,
+                ty = mtmp->mgoal.y;
         struct monst *intruder = isok(tx, ty) ? m_at(tx, ty) : NULL;
         /*
          * if there's a monster on the object or in possession of it,

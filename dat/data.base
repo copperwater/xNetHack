@@ -1,5 +1,5 @@
 # NetHack 3.7	data.base
-# $NHDT-Date: 1684001509 2023/05/13 18:11:49 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.106 $
+# $NHDT-Date: 1737609388 2025/01/22 21:16:28 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.141 $
 #	Copyright (c) 1994, 1995, 1996 by the NetHack Development Team
 #	Copyright (c) 1994 by Boudewijn Wayers
 #	NetHack may be freely redistributed.  See license for details.
@@ -5578,6 +5578,7 @@ squeaky board
 	additionally gives the wielder the power of regeneration.
 	When invoked it performs healing magic.
 stair*
+branch stair*
 	Up he went -- very quickly at first -- then more slowly -- then
 	in a little while even more slowly than that -- and finally,
 	after many minutes of climbing up the endless stairway, one

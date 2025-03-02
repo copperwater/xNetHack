@@ -353,6 +353,7 @@ sub do_dir_hooksdir {
 
 sub do_file_nhgitset {
     my $infile = "DEVEL/nhgitset.pl";
+    $infile = "$DEVhooksdir/../nhgitset.pl" unless(-f $infile);
     my $outfile = ".git/hooks/gitsetdocs";
     open IN, "<", $infile or die "Can't open $infile:$!";
     open OUT, ">", $outfile or die "Can't open $outfile:$!";

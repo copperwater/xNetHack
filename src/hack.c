@@ -4278,7 +4278,7 @@ saving_grace(int dmg)
            to phrase this though; classifying it as a spoiler will hide it
            from #chronicle during play but show it to livelog observers */
         livelog_printf(LL_CONDUCT | LL_SPOILER, "%s (%d damage, %d/%d HP)",
-                       "survived one-shot death via saving-grave",
+                       "survived one-shot death via saving-grace",
                        dmg, u.uhp, u.uhpmax);
 
         /* note: this could reduce dmg to 0 if u.uhpmax==1 */

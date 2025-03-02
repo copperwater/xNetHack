@@ -1,4 +1,4 @@
-/* NetHack 3.7	sp_lev.c	$NHDT-Date: 1709921020 2024/03/08 18:03:40 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.359 $ */
+/* NetHack 3.7	sp_lev.c	$NHDT-Date: 1737610109 2025/01/22 21:28:29 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.373 $ */
 /*      Copyright (c) 1989 by Jean-Christophe Collet */
 /* NetHack may be freely redistributed.  See license for details. */
 
@@ -2390,7 +2390,7 @@ create_object(object *o, struct mkroom *croom)
                 ; /* ['otmp' remains on floor] */
             } else {
                 remove_object(otmp);
-                if (otmp->otyp == SADDLE)
+                if (otmp->otyp == SADDLE && can_saddle(invent_carrying_monster))
                     put_saddle_on_mon(otmp, invent_carrying_monster);
                 else
                     (void) mpickobj(invent_carrying_monster, otmp);
@@ -2598,9 +2598,8 @@ search_door(
         yy = croom->ly;
         break;
     default:
-        dx = dy = xx = yy = 0;
         panic("search_door: Bad wall!");
-        break;
+        /*NOTREACHED*/
     }
     while (xx <= croom->hx + 1 && yy <= croom->hy + 1) {
         if (IS_DOOR(levl[xx][yy].typ) || levl[xx][yy].typ == SDOOR) {

@@ -506,6 +506,14 @@ pick_lock(
         boolean it;
         int count;
 
+        /*
+         * FIXME:
+         *  (chest->otrapped && chest->tknown) is handled, to skip
+         *  checking for a trap and continue with asking about disarm;
+         *  (chest->tknown && !chest->otrapped) ignores tknown and will
+         *  ask about checking for non-existant trap.
+         */
+
         if (u.dz < 0 && !autounlock) { /* beware stale u.dz value */
             There("isn't any sort of lock up %s.",
                   Levitation ? "here" : "there");

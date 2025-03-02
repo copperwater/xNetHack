@@ -890,12 +890,12 @@ xx|.....|xx
             local itmcls = itm:class()
             local box
             if itmcls[ "material" ] == "glass" then
-                  -- explicitly force chest to be unlocked
-                  box = des.object({ id = "chest", coord = chest_spots[1],
-                                    olocked = "no" });
+               -- explicitly force chest to be unlocked
+               box = des.object({ id = "chest", coord = chest_spots[1],
+                                  olocked = "no" });
             else
-                  -- accept random locked/unlocked state
-                  box = des.object({ id = "chest", coord = chest_spots[1] });
+               -- accept random locked/unlocked state
+               box = des.object({ id = "chest", coord = chest_spots[1] });
             end;
             box:addcontent(itm);
 
@@ -1494,6 +1494,7 @@ xxxx----xx----xxxx]], contents=function(m)
             end
          end })
       end
+   },
    {
       name = "Anti swimming pool", -- (ring of water surrounding a dry platform)
       mindiff = 14,

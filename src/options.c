@@ -1,4 +1,4 @@
-/* NetHack 3.7	options.c	$NHDT-Date: 1710792444 2024/03/18 20:07:24 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.723 $ */
+/* NetHack 3.7	options.c	$NHDT-Date: 1737556914 2025/01/22 06:41:54 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.753 $ */
 /* Copyright (c) Stichting Mathematisch Centrum, Amsterdam, 1985. */
 /*-Copyright (c) Michael Allison, 2008. */
 /* NetHack may be freely redistributed.  See license for details. */
@@ -7928,7 +7928,7 @@ parse_role_opt(
     char **opp)
 {
     static char neg_opt[] = "!"; /* not 'const' but never modified */
-    char *preval, *op = *opp;
+    char *preval, *op;
     int which = (optidx == opt_role) ? RS_ROLE
                 : (optidx == opt_race) ? RS_RACE
                   : (optidx == opt_gender) ? RS_GENDER
@@ -8015,7 +8015,7 @@ parse_role_opt(
                    if it's ok, replace it with canonical form */
                 saveoptstr(optidx, op);
                 *opp = op;
-                ok = TRUE;
+                /*ok = TRUE; // redundant*/
                 /* don't return yet; value might be a list that follows
                    this with something else which might make it invalid */
             }
@@ -9281,7 +9281,6 @@ handle_add_list_remove(const char *optname, int numtotal)
     };
     int clr = NO_COLOR;
 
-    opt_idx = 0;
     tmpwin = create_nhwindow(NHW_MENU);
     start_menu(tmpwin, MENU_BEHAVE_STANDARD);
     any = cg.zeroany;
@@ -9801,7 +9800,7 @@ next_opt(winid datawin, const char *str)
     if (!*str) {
         s = eos(buf);
         if (s > &buf[1] && s[-2] == ',')
-            Strcpy(s - 2, "."); /* replace last ", " */
+            s[-2] = '.', s[-1] = '\0'; /* replace ending ", " with "." */
         i = COLNO;              /* (greater than COLNO - 2) */
     } else {
         i = Strlen(buf) + Strlen(str) + 2;

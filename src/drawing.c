@@ -70,8 +70,9 @@ const struct symdef defsyms[MAXPCHARS + 1] = {
 
 /*
  * Convert the given character to an object class.  If the character is not
- * recognized, then MAXOCLASSES is returned.  Used in detect.c, invent.c,
- * objnam.c, options.c, pickup.c, sp_lev.c, lev_main.c, and tilemap.c.
+ * recognized, then MAXOCLASSES is returned.  Used in detect.c, drawing.c,
+ * invent.c, o_init.c, objnam.c, options.c, pickup.c, sp_lev.c, and
+ * windows.c.
  */
 int
 def_char_to_objclass(char ch)
@@ -87,7 +88,8 @@ def_char_to_objclass(char ch)
 /*
  * Convert a character into a monster class.  This returns the _first_
  * match made.  If there are no matches, return MAXMCLASSES.
- * Used in detect.c, options.c, read.c, sp_lev.c, and lev_main.c
+ * Used in detect.c, drawing.c, mondata.c, options.c, pickup.c,
+ * sp_lev.c, and windows.c.
  */
 int
 def_char_to_monclass(char ch)

@@ -4981,6 +4981,9 @@ end_of_input(void)
     program_state.something_worth_saving = 0; /* don't save */
 #endif
 
+    if (In_tutorial(&u.uz))
+        program_state.something_worth_saving = 0; /* don't save in tutorial */
+
 #ifndef SAFERHANGUP
     if (!program_state.done_hup++)
 #endif

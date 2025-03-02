@@ -1,4 +1,4 @@
-/* NetHack 3.7	mhitu.c	$NHDT-Date: 1721844072 2024/07/24 18:01:12 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.318 $ */
+/* NetHack 3.7	mhitu.c	$NHDT-Date: 1740534854 2025/02/25 17:54:14 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.327 $ */
 /* Copyright (c) Stichting Mathematisch Centrum, Amsterdam, 1985. */
 /*-Copyright (c) Robert Patrick Rankin, 2012. */
 /* NetHack may be freely redistributed.  See license for details. */
@@ -655,7 +655,9 @@ mattacku(struct monst *mtmp)
 
     if (!ranged)
         nomul(0);
-    if (DEADMONSTER(mtmp) || (Underwater && !is_swimmer(mtmp->data)))
+    if (DEADMONSTER(mtmp))
+        return 1;
+    if (Underwater && !is_swimmer(mtmp->data))
         return 0;
 
     /* If swallowed, can only be affected by u.ustuck */
@@ -896,6 +898,9 @@ mattacku(struct monst *mtmp)
 
     for (i = 0; i < NATTK; i++) {
         sum[i] = M_ATTK_MISS;
+        /* counterattack against attack [i-1] might have been fatal */
+        if (DEADMONSTER(mtmp))
+            return 1;
         if (i > 0) {
             /* recalc in case prior attack moved hero; mtmp doesn't make
                another attempt to guess your location but might have
@@ -2817,7 +2822,7 @@ cloneu(void)
         return NULL;
     mon->mcloned = 1;
     mon = christen_monst(mon, svp.plname);
-    initedog(mon);
+    initedog(mon, TRUE);
     mon->m_lev = gy.youmonst.data->mlevel;
     mon->mhpmax = u.mhmax;
     mon->mhp = u.mh / 2;

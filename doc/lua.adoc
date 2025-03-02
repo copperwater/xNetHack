@@ -792,7 +792,7 @@ The hash parameter accepts the following keys:
 | adjacentok     | boolean | is adjacent location ok, if given one is not suitable?
 | ignorewater    | boolean | ignore water when choosing location for the monster
 | countbirth     | boolean | do we count this monster as generated
-| appear_as      | string | monster can appear as object, monster, or terrain. Add "obj:", "mon:", or "ter:" prefix to the value. |
+| appear_as      | string | monster can appear as object, monster, or terrain. Add "obj:", "mon:", or "ter:" prefix to the value.
 | inventory      | function | objects generated in the function are given to the monster (any random inventory it gets is discarded unless keep_default_invent is true)
 | keep_default_invent | boolean | if inventory is specified and this is true, those items are in addition to random inventory for this species; if inventory is not specified and this is false, monster gets no starting inventory
 |===

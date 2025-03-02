@@ -213,8 +213,9 @@ curses_message_win_puts(const char *message, boolean recursed)
             mvwadd_wch(win, my, mx, mixed_leadin_cchar);
             ++mx;
             message_length--;
-            have_mixed_leadin = FALSE;
             mesg_mixed = 0;
+            have_mixed_leadin = FALSE;
+            nhUse(have_mixed_leadin);
         }
 #endif
         mvwprintw(win, my, mx, "%s", tmpstr), mx += (int) strlen(tmpstr);
@@ -234,8 +235,9 @@ curses_message_win_puts(const char *message, boolean recursed)
             mvwadd_wch(win, my, mx, mixed_leadin_cchar);
             ++mx;
             message_length--;
-            have_mixed_leadin = FALSE;
             mesg_mixed = 0;
+            have_mixed_leadin = FALSE;
+            nhUse(have_mixed_leadin);
         }
 #endif
         mvwprintw(win, my, mx, "%s", message), mx += message_length;
@@ -941,6 +943,8 @@ mesg_add_line(const char *mline)
     } else {
         /* instead of discarding list element being forced out, reuse it */
         current_mesg = first_mesg;
+        assert(current_mesg != NULL);
+        assert(current_mesg->str != NULL);
         /* whenever new 'mline' is shorter, extra allocation size of the
            original element will be frittered away, until eventually we'll
            discard this 'str' and dupstr() a replacement; we could easily

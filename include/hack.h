@@ -457,6 +457,7 @@ enum earlyarg {
     , ARG_DUMPENUMS
 #endif
     , ARG_DUMPGLYPHIDS
+    , ARG_DUMPMONGEN
 #ifdef WIN32
     , ARG_WINDOWS
 #endif

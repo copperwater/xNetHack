@@ -1239,7 +1239,7 @@ pleased(aligntyp g_align)
             fix_worst_trouble(trouble);
             FALLTHROUGH;
             /*FALLTHRU*/
-	    case 2:
+        case 2:
             /* up to 9 troubles */
             while ((trouble = in_trouble()) > 0 && (++tryct < 10))
                 fix_worst_trouble(trouble);
@@ -1887,6 +1887,7 @@ bestow_artifact(uchar max_giftvalue)
 
     if (do_bestow) {
         struct obj *otmp;
+        /* mk_artifact() with NULL obj and a_align() arg can return NULL */
         otmp = mk_artifact((struct obj *) 0, a_align(u.ux, u.uy),
                            max_giftvalue, TRUE);
         if (otmp) {

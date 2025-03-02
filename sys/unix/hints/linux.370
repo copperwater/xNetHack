@@ -360,10 +360,10 @@ POSTINSTALL+= sed -i -e 's;^GDBPATH=/usr/bin/gdb;\#GDBPATH=/usr/bin/gdb;' \
 		-e 's;PANICTRACE_GDB=1;PANICTRACE_GDB=0;' $(INSTDIR)/sysconf;
 endif
 
-ifeq 'USENONOSTATICFN' '1'
+ifeq '$(USE_NONOSTATICFN)' '1'
 CFLAGS += -DNONOSTATICFN
 else
-ifeq 'USE_NOSTATICFN' '1'
+ifeq '$(USE_NOSTATICFN)' '1'
 CFLAGS += -DNOSTATICFN
 endif
 endif

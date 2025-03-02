@@ -20,6 +20,7 @@ newepri(struct monst *mtmp)
     if (!EPRI(mtmp)) {
         EPRI(mtmp) = (struct epri *) alloc(sizeof(struct epri));
         (void) memset((genericptr_t) EPRI(mtmp), 0, sizeof(struct epri));
+        EPRI(mtmp)->parentmid = mtmp->m_id;
     }
 }
 

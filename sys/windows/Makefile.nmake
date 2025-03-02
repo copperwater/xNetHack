@@ -9,7 +9,7 @@
 #
 #       Visual Studio Compilers Tested:
 #            - Microsoft Visual Studio 2019 Community Edition v 16.11.42
-#            - Microsoft Visual Studio 2022 Community Edition v 17.12.4
+#            - Microsoft Visual Studio 2022 Community Edition v 17.13.0
 #
 #==============================================================================
 #   This is used for building two distinct executables of xNetHack:
@@ -1196,7 +1196,7 @@ rc=Rc.exe
 #
 # Recently tested versions:
 TESTEDVS2019 = 14.29.30157.0
-TESTEDVS2022 = 14.42.34436.0
+TESTEDVS2022 = 14.43.34808.0
 
 VS2019CUR = $(TESTEDVS2019:.=)
 VS2022CUR = $(TESTEDVS2022:.=)
@@ -1750,11 +1750,10 @@ binary.tag: 	$(DAT)data $(DAT)rumors $(DAT)oracles $(DLB) \
 	copy $(DAT)bogusmon $(GAMEDIR)
 	copy $(DAT)cmdhelp $(GAMEDIR)
 	copy $(DAT)data $(GAMEDIR)
-	copy $(DAT)dungeon $(GAMEDIR)
 	copy $(DAT)engrave $(GAMEDIR)
 	copy $(DAT)epitaph $(GAMEDIR)
 	copy $(DAT)help $(GAMEDIR)
-	copy $(DAT)hh $(GAMDEDIR)
+	copy $(DAT)hh $(GAMEDIR)
 	copy $(DAT)history $(GAMEDIR)
 	copy $(DAT)license $(GAMEDIR)
 	copy $(DAT)optmenu $(GAMEDIR)
