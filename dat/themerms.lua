@@ -123,6 +123,7 @@ themeroom_fills = {
 
    {
       name = "Garden",
+      mindiff = nh.mon_difficulty('wood nymph') + 2;
       eligible = function(rm) return rm.lit == true; end,
       contents = function(rm)
          local s = selection.room();
@@ -131,6 +132,9 @@ themeroom_fills = {
             des.monster({ id = "wood nymph", asleep = true });
             if (percent(30)) then
                des.feature("fountain");
+            end
+            if percent(30) then
+               des.object({ id = 'statue', montype = 'gnome', material = "stone" })
             end
          end
          table.insert(postprocess, { handler = make_garden_walls, data = { sel = selection.room() } });
@@ -353,6 +357,98 @@ themeroom_fills = {
             for i = 1, d(4)-2 do
                des.terrain(interior:rndcoord(), 'T')
             end
+         end
+      end,
+   },
+
+   {
+      name = 'Minesweeper',
+      mindiff = 7,
+      eligible = function(rm)
+         return selection.room():filter_mapchar('.'):numpoints() >= 40
+      end,
+      contents = function(rm)
+         local pts = selection.room():filter_mapchar('.')
+         local ptscopy = pts:clone()
+         local mines = {}
+         -- first, lay down the mines
+         -- mine percentage in beginner is roughly 10%, intermediate 15%, and
+         -- expert 20%. Beginner might make only a couple mines and be
+         -- trivial; expert will probably make too many mines and leave the
+         -- whole room covered in markers. Use intermediate.
+         local nummines = math.floor(ptscopy:numpoints() * 15 / 100)
+         for i = 1, nummines do
+            local coord = ptscopy:rndcoord(1)
+            mines[coord.x..','..coord.y] = true
+            des.trap({ type = 'land mine', coord = coord })
+         end
+         -- second pass: for all spaces, calculate number of adjacent mines and
+         -- engrave a number (no engraving for 0s). Mines get an X engraving;
+         -- they need some engraving otherwise they would be obvious.
+         -- If the hero ever becomes capable of reading adjacent engravings this
+         -- will sadly stop working...
+         pts:iterate(function(x, y)
+            if mines[x..','..y] then
+               des.engraving({ type = 'burn', coord = {x, y}, text = 'X' })
+               return
+            end
+            local adj = 0
+            for xx = x-1, x+1 do
+               for yy = y-1, y+1 do
+                  if mines[xx..','..yy] then
+                     adj = adj + 1
+                  end
+               end
+            end
+            if adj > 0 then
+               des.engraving({ type='burn', coord = {x, y}, text = tostring(adj) })
+            end
+         end)
+      end
+   },
+   {
+      name = 'Monster sauna',
+      mindiff = nh.mon_difficulty('steam vortex'),
+      -- no large saunas
+      eligible = function(rm) return selection.room():numpoints() < 20; end,
+      contents = function(rm)
+         local npts = selection.room():numpoints()
+         for i = 1, npts / 4 do
+            des.monster({ id = 'steam vortex', waiting = 1 })
+         end
+         for i = 1, npts / 3 do
+            des.monster({ id = 'fog cloud', waiting = 1 })
+         end
+         for i = 1, d(2) do
+            des.monster()
+         end
+         for i = 1, d(3) do
+            des.object('towel')
+         end
+         -- steam
+         selection.room():iterate(function(x, y)
+            if percent(40) then
+               des.terrain(x, y, 'C')
+            end
+         end)
+         -- cooling pool
+         des.terrain(selection.room():rndcoord(), 'P')
+      end,
+   },
+   {
+      name = 'Scattered gems',
+      contents = function(rm)
+         local room = selection.room():filter_mapchar('.')
+         local ngems = room:numpoints() / 3
+         for i = 1, ngems do
+            -- rule out gray stones so we only get gems and glass
+            local gem
+            repeat
+               gem = obj.new("*")
+            until obj.class(gem)['material'] ~= 'stone'
+            -- use rndcoord(1) to avoid stacks
+            local coord = room:rndcoord(1)
+            gem:placeobj(coord.x, coord.y)
          end
       end,
    },
@@ -1293,27 +1389,41 @@ xxxxx-----]], contents = function(rm) filler_region(7,1) end })
       name = "Mini maze",
       mindiff = 6,
       contents = function()
-         -- Warning: x and y must be odd for mazewalk not to break out of the walls.
-         -- The formulas for obtaining them assume ROWNO=21 and COLNO=80.
-         -- (FIXME: ROWNO and COLNO should be available in lua, rewrite
-         -- the x/y formulas to use them instead of assuming.)
-         -- Unfortunately, this does not work with a des.room() of varying size
-         -- because the room borders are the outer wall and it tries to connect doors
-         -- to that and fails, and there's no way to get it to unmake the room.
          des.map({ map = [[
 -----------
------------
-||.- - - ||
-||-------||
-|| - - - ||
-||-------||
-|| - - - ||
-||-------||
-|| - - - ||
------------
------------]], x = 3 + nh.rn2(32)*2, y = 3 + nh.rn2(4)*2, contents = function()
-            des.mazewalk({ x = 2, y = 2, dir = "east", stocked = false })
-            des.region({ region={2,2,2,2}, type="themed", irregular=true,
+|.|.|.|.|.|
+|---------|
+|.|.|.|.|.|
+|---------|
+|.|.|.|.|.|
+|---------|
+|.|.|.|.|.|
+-----------]], contents = function(map)
+            -- des.mazewalk is not intended for only a small area in the level
+            -- to be a maze, and has a number of pitfalls and weird breakages
+            -- that make it more trouble than it's worth to use here.
+            -- Instead, do a bare reimplementation of a mazewalk and simply
+            -- break down walls until every maze space is connected.
+            local connected = {}
+            mazewalk_step = function(x, y)
+               local nsew = { { 0, -1 }, { 0, 1 }, { 1, 0 }, { -1, 0 } }
+               shuffle(nsew)
+               for i = 1, #nsew do
+                  local dx = nsew[i][1]
+                  local dy = nsew[i][2]
+                  local cx = x + (nsew[i][1] * 2)
+                  local cy = y + (nsew[i][2] * 2)
+                  if (cx > 0 and cy > 0 and cx < map.width and cy < map.height
+                      and not connected[cx..','..cy]) then
+                     des.terrain(x + dx, y + dy, '.')
+                     connected[cx..','..cy] = true
+                     mazewalk_step(cx, cy)
+                  end
+               end
+            end
+            connected['5,3'] = true
+            mazewalk_step(5, 3)
+            des.region({ region={3,3,3,3}, type="themed", irregular=true,
                          filled=1, joined=true, lit=1 })
          end })
       end
@@ -1933,6 +2043,207 @@ x------------xx]], contents = function()
          end })
       end
    },
+   {
+      name = 'The Casque of Amontillado',
+      mindiff = 8, -- arbitrary
+      contents = function()
+         des.map({ map = [[
+----------xx
+|........|xx
+|........|--
+|........|.|
+------------]], contents = function()
+            des.region({ region = {01,01,08,03}, type="themed", filled=1 })
+            des.region({ region = {10,03,10,03}, type="themed", filled=0, joined = false })
+            des.engraving({10,03}, "engrave", "Amontillado!");
+            des.object({ id = "corpse", montype = "human", coord = {10,03} })
+            des.object({ class = "!", id = "booze", coord = {10,03} })
+         end })
+      end
+   },
+   {
+      name = 'Triple Rhombus v2',
+      contents = function()
+         des.map({ map = [[
+xxx---xxxxx---xxxxx---xxx
+xxx|.|xxxxx|.|xxxxx|.|xxx
+xx--.--xxx--.--xxx--.--xx
+xx|...|xxx|...|xxx|...|xx
+---...-----...-----...---
+|.......|.......|.......|
+|.......................|
+|.......|.......|.......|
+---...-----...-----...---
+xx|...|xxx|...|xxx|...|xx
+xx--.--xxx--.--xxx--.--xx
+xxx|.|xxxxx|.|xxxxx|.|xxx
+xxx---xxxxx---xxxxx---xxx]], contents = function()
+            -- originally this had boundary syms in the gaps and did 3 separate
+            -- filler_regions, but that causes some very strange things to
+            -- happen when the rooms attempt to join. So just make it 1 big
+            -- region.
+            filler_region(04,06);
+         end })
+      end,
+   },
+   {
+      name = 'Spikes',
+      contents = function()
+         des.map({ map = [[
+xx---xxx---xxx---xx
+xx|.|xxx|.|xxx|.|xx
+x--.--x--.--x--.--x
+x|...|x|...|x|...|x
+x|...|x|...|x|...|x
+--...---...---...--
+|.....|.....|.....|
+|.................|
+-------------------]], contents = function()
+            if percent(90) then
+               filler_region(03,03);
+            else
+               -- not an "ordinary" region because we don't want it to get
+               -- spiked pits and then become a shop
+               des.region({ region={03,03,03,03}, irregular = true,
+                            type="themed", filled=1 })
+               for i = 1, 5 do
+                  des.trap('spiked pit')
+               end
+            end
+         end })
+      end,
+   },
+   {
+      name = 'Pennants',
+      contents = function()
+         des.map({ map = [[
+-------------------
+|.................|
+|.....|.....|.....|
+--...---...---...--
+x|...|x|...|x|...|x
+x|...|x|...|x|...|x
+x--.--x--.--x--.--x
+xx|.|xxx|.|xxx|.|xx
+xx---xxx---xxx---xx]], contents = function()
+            if percent(10) then
+               local poss_x = {3, 9, 15}
+               shuffle(poss_x)
+               local cloth = obj.new('piece of cloth')
+               cloth:placeobj(poss_x[1], 7)
+            end
+            filler_region(03,03);
+         end })
+      end,
+   },
+   {
+      name = 'Wizard study',
+      mindiff = 14, -- arbitrary but should be fairly deep
+      contents = function()
+         des.room({ type = 'themed', w = 3, h = 3, filled = 0, joined = false,
+                    contents = function()
+            local sel = selection.room()
+            sel:set(01, 01, 0) -- leave the center free
+            des.trap({ type = 'teleport', coord = sel:rndcoord(1) })
+            if percent(10) then
+               if percent(50) then
+                  des.object({ id = 'magic marker', coord = sel:rndcoord(1) })
+               else
+                  des.object({ id = 'cloak of magic resistance',
+                               coord = sel:rndcoord(1) })
+               end
+            end
+            -- the remaining items don't use rndcoord(1); they can be stacked on
+            -- top of each other, but won't appear on top of the other items
+            -- which do use rndcoord(1)
+            for i = 1, 3 do
+               des.object({ class = '+', coord = sel:rndcoord() })
+            end
+            des.object({ class = '?', coord = sel:rndcoord() })
+            for i = 1, 3 do
+               local choice = d(4)
+               if choice == 1 then
+                  des.object({ class = '?', coord = sel:rndcoord() })
+               elseif choice == 2 then
+                  des.object({ class = '=', coord = sel:rndcoord() })
+               elseif choice == 3 then
+                  des.object({ class = '/', coord = sel:rndcoord() })
+               elseif choice == 4 then
+                  des.object({ class = '"', coord = sel:rndcoord() })
+               end
+            end
+         end })
+      end,
+   },
+   -- there is no "Ring, small" room because it would only block 1 single tile
+   -- in the center
+   {
+      name = 'Ring, medium',
+      contents = function()
+         des.map({ map = [[
+xx-----xx
+x--...--x
+--..|..--
+|..---..|
+|.-| |-.|
+|..---..|
+--..|..--
+x--...--x
+xx-----xx]], contents = function(m) filler_region(04,01); end });
+      end,
+   },
+   {
+      name = 'Ring, big',
+      contents = function()
+         des.map({ map = [[
+xxx-----xxx
+x---...---x
+x-...|...-x
+--.-----.--
+|..|   |..|
+|.-|   |-.|
+|..|   |..|
+--.-----.--
+x-...|...-x
+x---...---x
+xxx-----xxx]], contents = function(m) filler_region(05,01); end });
+      end,
+   },
+   {
+      -- ported from a gehennom special room (originally named just "statuary"
+      -- but that exists already as a themeroom fill name): room eerily lined
+      -- with empty statues of the player
+      name = "Player statuary",
+      mindiff = 15, -- arbitrary, but this shouldn't appear early
+      contents = function()
+         -- artificially increase the rarity of this fill even more than the
+         -- default frequency = 1; originally this room had only a 1% chance
+         -- among Gehennom special rooms
+         local donothing = percent(75)
+         des.room({ type = "themed", filled = donothing and 1 or 0,
+                    contents = function(rm)
+            if donothing then
+               return
+            end
+            local mkstatue = function(x, y)
+               des.object({ id = 'statue', montype = u.role, name = u.name,
+                            contents = function() end, coord = {x, y} })
+            end
+            -- pick the longer dimension to place statues (vertical if equal)
+            if rm.width > rm.height then
+               for x = 0, rm.width - 1 do
+                  mkstatue(x, 0)
+                  mkstatue(x, rm.height - 1)
+               end
+            else
+               for y = 0, rm.height - 1 do
+                  mkstatue(0, y)
+                  mkstatue(rm.width-1, y)
+               end
+            end
+         end })
+      end
+   }
 };
 
 -- store these at global scope, they will be reinitialized in

@@ -125,10 +125,6 @@ changes:
 - Bone items now have a +1 damage bonus against ghosts and shades.
 - Saving grace will not alleviate death from falling into open air and
   splattering on the ground below.
-- Several xNetHack themed rooms have been converted to fills, allowing them to
-  fill the oddly shaped rooms rather than only appearing in rectangular rooms.
-- The xNetHack "garden" themed room is removed (but the vanilla "garden" themed
-  room fill is still present).
 - Grappling hooks can no longer generate as plastic or glass.
 - Glass weapons as well as armor are subject to the 3-stages-of-cracking system,
   instead of randomly shattering. Like armor, a glass weapon taking a light
@@ -170,6 +166,38 @@ changes:
   lawful.
 - You can now play a Tourist as a gnome.
 - You can now play a Rogue as an elf.
+- Several xNetHack themed rooms have been converted into themed room fills
+  so that they can appear in rooms of varying shape, not just rectangles:
+  - "Graffiti room"
+  - "Scummy moldy room"
+  - "Gas spore den"
+  - "Water temple"
+  - "Meadow"
+- The xNetHack "Garden" themed room is removed (but the vanilla "Garden" themed
+  room fill is still present).
+- The "Garden" themed room, which contains wood nymphs, now only generates a
+  couple levels after wood nymphs can start appearing, and it may contain some
+  gnome statues.
+- 3 new themed room fills:
+  - "Minesweeper": contains buried land mines and engravings which denote how
+    many mines there are adjacent to that spot.
+  - "Monster sauna": steam vortices, fog clouds, clouds of steam, towels, and a
+    few random monsters
+  - "Scattered gems": contains a number of gems (but no rocks or gray stones)
+    strewn about
+- 7 new themed rooms:
+  - "The Casque of Amontillado": contains a walled-off closet in which an
+    unfortunate has been imprisoned until their death
+  - "Triple Rhombus V2": three rhombi connected in a horizontal row. Eligible
+    for random fills.
+  - "Spikes": three upward pointing connected triangles. Eligible for random
+    fills.
+  - "Pennants": three downward pointing connected triangles. Eligible for random
+    fills.
+  - "Wizard study": a disconnected 3x3 vault-like room containing some
+    spellbooks, scrolls, other magic items, and a teleportation trap.
+  - "Ring, medium": a circular 1-space-wide ring. Eligible for random fills.
+  - "Ring, large": a larger version of the above circular ring.
 
 ### Interface changes
 
