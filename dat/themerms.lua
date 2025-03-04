@@ -1989,7 +1989,7 @@ x------------xx]], contents = function()
       name = "Abandoned shop",
       mindiff = 16,
       contents = function()
-         des.room({ type = "shop", filled = 0, contents = function(rm)
+         des.room({ type = "shop", filled = 2, contents = function(rm)
             local size = rm.width * rm.height
             for i = 1, math.floor(size / 5) + d(3) do
                des.monster('m')
