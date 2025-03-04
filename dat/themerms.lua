@@ -1785,7 +1785,7 @@ xxxx---xxxx]], contents = function(m)
    },
    {
       name = "Dragon hall",
-      mindiff = nh.mon_difficulty('black dragon') + 3,
+      mindiff = nh.mon_difficulty('black dragon') + 1,
       contents = function()
          des.map({ map = [[
 xxxxxx----xx----xxx

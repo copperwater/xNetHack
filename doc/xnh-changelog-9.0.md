@@ -199,6 +199,8 @@ changes:
   - "Ring, medium": a circular 1-space-wide ring. Eligible for random fills.
   - "Ring, large": a larger version of the above circular ring.
 - The "Mini maze" themed room has a slightly larger maze.
+- The "Dragon hall" themed room can now appear when the level difficulty is 21,
+  rather than 23.
 
 ### Interface changes
 
