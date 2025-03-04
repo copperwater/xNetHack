@@ -1539,9 +1539,11 @@ add_obj_info(winid datawin, short otyp)
      * subject to description shuffling that includes materials. If the player
      * has already discovered this object, though, then it's fine to show the
      * material.
-     * Object classes where this may matter: rings, wands. All randomized tools
-     * share materials, and all scrolls and potions are the same material. */
-    if (!(olet == RING_CLASS || olet == WAND_CLASS) || oc.oc_name_known) {
+     * Object classes where this may matter: rings, wands, spellbooks (leather
+     * vs cloth vs paper...). All randomized tools share materials, and all
+     * scrolls and potions are the same material. */
+    if (!(olet == RING_CLASS || olet == WAND_CLASS || olet == SPBOOK_CLASS)
+        || oc.oc_name_known) {
         /* char array converting materials to strings; if this is ever needed
         * anywhere else it should be externified. Corresponds exactly to the
         * materials defined in objclass.h.
