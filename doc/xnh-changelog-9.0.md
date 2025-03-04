@@ -198,6 +198,7 @@ changes:
     spellbooks, scrolls, other magic items, and a teleportation trap.
   - "Ring, medium": a circular 1-space-wide ring. Eligible for random fills.
   - "Ring, large": a larger version of the above circular ring.
+- The "Mini maze" themed room has a slightly larger maze.
 
 ### Interface changes
 
