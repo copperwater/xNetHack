@@ -616,6 +616,14 @@ maketrap(coordxy x, coordxy y, int typ)
         if (Sokoban)
             maybe_finish_sokoban();
     }
+
+    /* It's possible to create a trap on the same square as a monster which is
+     * already hiding under an object (e.g. if the monster and object are
+     * created as part of a themeroom, and the trap is just added as ordinary
+     * room fill). This would cause it to fail a sanity check since the trap
+     * makes it no longer a valid hiding position. Force it to un-hide. */
+    maybe_unhide_at(x, y);
+
     return ttmp;
 }
 
