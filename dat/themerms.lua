@@ -2054,6 +2054,9 @@ x------------xx]], contents = function()
 |........|.|
 ------------]], contents = function()
             des.region({ region = {01,01,08,03}, type="themed", filled=1 })
+            -- FIXME: Despite leaving the right room edge open for joining,
+            -- corridors can sometimes still just fail to connect, leaving
+            -- either this room isolated or the level somehow unconnected
             des.region({ region = {10,03,10,03}, type="themed", filled=0, joined = false })
             des.engraving({10,03}, "engrave", "Amontillado!");
             des.object({ id = "corpse", montype = "human", coord = {10,03} })
