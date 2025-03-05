@@ -269,7 +269,7 @@ mk_artifact(
                non-weapons, which always have a gen_spe of 0, and for many
                weapons, too.) The result is clamped into the "normal" range to
                prevent an outside chance of +12 artifacts generating. */
-            new_spe = (int)otmp->spe + a->gen_spe;
+            new_spe = (int) otmp->spe + a->gen_spe;
             if (new_spe >= -10 && new_spe < 10)
                 otmp->spe = new_spe;
         }
