@@ -2830,6 +2830,7 @@ parse_status_hl2(char (*s)[QBUFSZ], boolean from_configfile)
         else
             hilite.behavior = BL_TH_NONE;
 
+        assert(dt >= 0);
         hilite.anytype = dt;
 
         if (hilite.behavior == BL_TH_TEXTMATCH && txt) {
