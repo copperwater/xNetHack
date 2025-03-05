@@ -97,7 +97,7 @@ struct symsetentry {
 
 #define is_cmap_trap(i) ((i) >= S_arrow_trap && (i) < S_arrow_trap + MAXTCHARS)
 #define is_cmap_drawbridge(i) ((i) >= S_vodbridge && (i) <= S_hcdbridge)
-#define is_cmap_door(i) ((i) >= S_vodoor && (i) <= S_hcdoor)
+#define is_cmap_door(i) ((i) >= S_vodoor && (i) <= S_hcidoor)
 #define is_cmap_wall(i) ((i) >= S_stone && (i) <= S_trwall)
 #define is_cmap_room(i) ((i) >= S_room && (i) <= S_darkroom)
 #define is_cmap_corr(i) ((i) >= S_corr && (i) <= S_litcorr)

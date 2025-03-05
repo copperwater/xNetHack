@@ -4665,13 +4665,13 @@ dfeature_at(coordxy x, coordxy y, char *buf)
             cmap = S_ndoor;
             break; /* "doorway" */
         case D_ISOPEN:
-            cmap = S_vodoor;
+            cmap = door_is_iron(lev) ? S_voidoor : S_vodoor;
             break; /* "open door" */
         case D_BROKEN:
             dfeature = "broken door";
             break;
         case D_CLOSED:
-            cmap = S_vcdoor;
+            cmap = door_is_iron(lev) ? S_vcidoor : S_vcdoor;
             break; /* "closed door" */
         default:
             impossible("dfeature_at: bad door state %d", lev->doormask);

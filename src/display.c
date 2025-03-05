@@ -2344,10 +2344,16 @@ back_to_defsym(coordxy x, coordxy y)
     case DOOR:
         switch(doorstate(ptr)) {
         case D_CLOSED:
-            idx = (ptr->horizontal) ? S_hcdoor : S_vcdoor;
+            if (door_is_iron(ptr))
+                idx = (ptr->horizontal) ? S_hcidoor : S_vcidoor;
+            else
+                idx = (ptr->horizontal) ? S_hcdoor : S_vcdoor;
             break;
         case D_ISOPEN:
-            idx = (ptr->horizontal) ? S_hodoor : S_vodoor;
+            if (door_is_iron(ptr))
+                idx = (ptr->horizontal) ? S_hoidoor : S_voidoor;
+            else
+                idx = (ptr->horizontal) ? S_hodoor : S_vodoor;
             break;
         case D_NODOOR:
         case D_BROKEN:
@@ -2722,15 +2728,6 @@ map_glyphinfo(
                 impossible("no visible object at (%d, %d)?",
                            x, y);
             */
-        }
-        /* iron door
-         * (only check closed door defsym range, not S_ndoor) */
-        else if (gmap->sym.symidx >= S_vodoor + SYM_OFF_P
-                 && gmap->sym.symidx <= S_hcdoor + SYM_OFF_P) {
-            if (levl[x][y].typ != DOOR)
-                impossible("no visible door at (%d, %d)?", x, y);
-            else if (door_is_iron(&levl[x][y]))
-                glyphinfo->gm.sym.color = CLR_CYAN;
         }
         /* colored walls - some of these are handled as separate glyphs in
          * wallcolors[] and don't appear here; currently no glyphs exist for all

@@ -1301,11 +1301,15 @@ cmap_to_type(int sym)
     case S_trwall:
         typ = TRWALL;
         break;
-    case S_ndoor:  /* no door (empty doorway) */
-    case S_vodoor: /* open door in vertical wall */
-    case S_hodoor: /* open door in horizontal wall */
-    case S_vcdoor: /* closed door in vertical wall */
+    case S_ndoor:   /* no door (empty doorway) */
+    case S_vodoor:  /* open door in vertical wall */
+    case S_voidoor: /* iron counterpart */
+    case S_hodoor:  /* open door in horizontal wall */
+    case S_hoidoor: /* iron counterpart */
+    case S_vcdoor:  /* closed door in vertical wall */
+    case S_vcidoor: /* iron counterpart */
     case S_hcdoor:
+    case S_hcidoor:
         typ = DOOR;
         break;
     case S_bars:

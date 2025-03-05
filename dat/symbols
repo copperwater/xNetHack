@@ -125,8 +125,10 @@ start: Blank
         S_hbeam: \032
         S_hcdbridge: \032
         S_hcdoor: \032
+        S_hcidoor: \032
         S_hodbridge: \032
         S_hodoor: \032
+        S_hoidoor: \032
         S_hole: \032
         S_human: \032
         S_humanoid: \032
@@ -220,10 +222,12 @@ start: Blank
         S_vbeam: \032
         S_vcdbridge: \032
         S_vcdoor: \032
+        S_vcidoor: \032
         S_venom: \032
         S_vibrating_square: \032
         S_vodbridge: \032
         S_vodoor: \032
+        S_voidoor: \032
         S_vortex: \032
         S_vwall: \032
         S_wand: \032
@@ -257,7 +261,9 @@ start: IBMgraphics
 	S_trwall: \xc3			# meta-C, T right
 	S_ndoor: \xfa			# meta-z, centered dot
 	S_vodoor: \xfe			# meta-~, small centered square
+	S_voidoor: \xfe			# meta-~, small centered square
 	S_hodoor: \xfe			# meta-~, small centered square
+	S_hoidoor: \xfe			# meta-~, small centered square
 	S_engroom: \xee                 # epsilon
 	S_bars: \xf0			# equivalence symbol
 	S_tree: \xf1			# plus or minus symbol
@@ -409,7 +415,9 @@ start: IBMGraphics_2
 	S_tlwall: \xb4			# meta-4, T left
 	S_trwall: \xc3			# meta-C, T right
 	S_vodoor: \xfe			# meta-~, small centered square
+	S_voidoor: \xfe			# meta-~, small centered square
 	S_hodoor: \xfe			# meta-~, small centered square
+	S_hoidoor: \xfe			# meta-~, small centered square
 	S_engroom: \xee                 # epsilon
 	S_corr: \xb0			# meta-0, light shading
 	S_litcorr: \xb1			# meta-1, medium shading
@@ -561,7 +569,9 @@ start: DECgraphics
 	S_trwall: \xf4			# meta-t, T right
 	S_ndoor: \xfe			# meta-~, centered dot
 	S_vodoor: \xe1			# meta-a, checkerboard
+	S_voidoor: \xe1			# meta-a, checkerboard
 	S_hodoor: \xe1			# meta-a, checkerboard
+	S_hoidoor: \xe1			# meta-a, checkerboard
 	S_bars: \xfc			# meta-|, not-equals (used to be pi)
 	S_tree: \xe7			# meta-g, plus-or-minus
 	S_room: \xfe			# meta-~, centered dot
@@ -650,9 +660,13 @@ start: MACgraphics
 	S_trwall: \xcc
 	S_ndoor: \xb0
 	S_vodoor: \xee
+	S_voidoor: \xee
 	S_hodoor: \xee
+	S_hoidoor: \xee
 	S_vcdoor: \xef
+	S_vcidoor: \xef
 	S_hcdoor: \xef
+	S_hcidoor: \xef
 	S_bars: \xf0			# equivalency symbol
 	S_tree: \xf1			# plus-or-minus
 	S_corr: \xb0
@@ -678,7 +692,9 @@ start: Enhanced1
 	S_trwall: U+251c                    # BOX DRAWINGS LIGHT VERTICAL AND RIGHT
 	S_ndoor: U+00b7                     # MIDDLE DOT
 	S_vodoor: U+2592                    # MEDIUM SHADE
+	S_voidoor: U+2592                    # MEDIUM SHADE
 	S_hodoor: U+2592                    # MEDIUM SHADE
+	S_hoidoor: U+2592                    # MEDIUM SHADE
 	S_bars: U+2261                      # IDENTICAL TO
 	S_tree: U+03a8                      # GREEK CAPITAL LETTER PSI
 	S_room: U+00b7                      # MIDDLE DOT

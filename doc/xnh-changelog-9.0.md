@@ -260,6 +260,14 @@ changes:
   fully identified.
 - Attribute display from enlightenment shows whether and how much you ever
   abused your alignment (in wizard mode, you are also shown the exact amount).
+- Iron doors have distinct defsyms and tiles from ordinary doors.
+  - The new symbols are S_voidoor (vertical open iron), S_vcidoor (vertical
+    closed iron), S_hoidoor (horizontal open iron), and S_hcidoor (horizontal
+    closed iron).
+  - Like all other symbols, these can be redefined with SYMBOLS in the
+    configuration options.
+  - The new default tiles have the same shape as regular doors, but use the iron
+    color palette instead of brown.
 
 ### Architectural changes
 

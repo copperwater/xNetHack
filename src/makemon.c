@@ -2608,6 +2608,8 @@ set_mimic_sym(struct monst *mtmp)
             appear = S_hcdoor;
         else
             appear = S_vcdoor;
+        /* they don't currently mimic iron doors; if they do at some point,
+         * remember to update is_lightblocker_mappear, is_door_mappear, etc */
     } else if (svl.level.flags.is_maze_lev
                && !(In_mines(&u.uz) && in_town(u.ux, u.uy))
                && !In_sokoban(&u.uz) && rn2(2)) {

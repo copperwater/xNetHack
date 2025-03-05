@@ -1635,6 +1635,8 @@ findone(coordxy zx, coordxy zy, genericptr_t whatfound)
 
     if (lev->typ == SDOOR) {
         nhsym sym = lev->horizontal ? S_hcdoor : S_vcdoor;
+        if (door_is_iron(lev))
+            sym = lev->horizontal ? S_hcidoor : S_vcidoor;
 
         flash_glyph_at(zx, zy, cmap_to_glyph(sym), FOUND_FLASH_COUNT);
         cvt_sdoor_to_door(lev); /* set lev->typ = DOOR */

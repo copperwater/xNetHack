@@ -770,12 +770,15 @@ lookat(coordxy x, coordxy y, char *buf, char *monbuf)
                 Strcpy(buf, "doorway");
             break;
         case S_vcdoor:
+        case S_vcidoor:
         case S_hcdoor:
+        case S_hcidoor:
             if (IS_DOOR(levl[x][y].typ) && next2u(x, y)) {
+                const char *iron = door_is_iron(&levl[x][y]) ? "iron " : "";
                 if (door_is_locked(&levl[x][y]))
-                    Strcpy(buf, "locked door");
+                    Sprintf(buf, "locked %sdoor", iron);
                 else
-                    Strcpy(buf, "unlocked door");
+                    Sprintf(buf, "unlocked %sdoor", iron);
             } else {
                 Strcpy(buf, defsyms[symidx].explanation);
             }
@@ -2369,6 +2372,11 @@ do_screen_description(
         /* cmap includes beams, shield effects, swallow boundaries, and
            explosions; skip all of those */
         if (!*x_str)
+            continue;
+
+        /* suppress iron door symbols to avoid "a spellbook or a closed door or
+         * a closed iron door" etc. */
+        if (alt_i >= S_voidoor && alt_i <= S_hcidoor)
             continue;
 
         if (sym == (looked ? gs.showsyms[alt_i] : defsyms[alt_i].sym)) {
