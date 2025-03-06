@@ -158,12 +158,16 @@ NHCFLAGS+=-DSELF_RECOVER
 # it builds with
 NHCFLAGS+=-DDUMPHTML
 NHCFLAGS+=-DDGAMELAUNCH
-NHCFLAGS+=-DTTY_TILES_ESCCODES
-NHCFLAGS+=-DLIVELOG
 NHCFLAGS+=-DEDIT_GETLIN
+#NHCFLAGS+=-DLIVELOG # this is compiled in by default in the base game
+# -DTTY_TILES_ESCCODES must be kept synced with the custom note for
+# TTY_TILES_ESCCODES below to include tile.c and tile.o, but note it will not
+# link correctly when building a tiled windowport due to redefined symbols
+NHCFLAGS+=-DTTY_TILES_ESCCODES
 
-# extra sanity checks can't hurt
-NHCFLAGS+=-DEXTRA_SANITY_CHECKS
+# extra sanity checks can't hurt (left undefined because this is added in by
+# default unless NH_DEVEL_STATUS is NH_STATUS_RELEASED)
+#NHCFLAGS+=-DEXTRA_SANITY_CHECKS
 
 # don't optimize out anything
 NHCFLAGS+=-O0
@@ -441,10 +445,13 @@ DLLIB = -ldl
 # Only needed for GLIBC stack trace:
 LFLAGS+=-rdynamic
 
-# if TTY_TILES_ESCCODES
-#WINSRC += tile.c
-#WINOBJ += tile.o
-# endif
+# CUSTOM! turn this on whenever turning TTY_TILES_ESCCODES on
+ifndef WANT_WIN_X11
+ifndef QTDIR
+WINSRC += tile.c
+WINOBJ += tile.o
+endif # ! QTDIR
+endif # ! WANT_WIN_X11
 
 CHOWN=true
 CHGRP=true
