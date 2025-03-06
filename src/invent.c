@@ -2918,7 +2918,6 @@ enum item_action_actions {
     IA_FIRE_OBJ, /* 'f' */
     IA_ADJUST_OBJ, /* 'i' #adjust inventory letter */
     IA_ADJUST_STACK, /* 'I' #adjust with count to split stack */
-    IA_LOOKUP_OBJ, /* 'l' look up in encyclopedia' */
     IA_SACRIFICE, /* 'O' offer sacrifice */
     IA_BUY_OBJ, /* 'p' pay shopkeeper */
     IA_QUAFF_OBJ,
@@ -3357,10 +3356,6 @@ itemactions(struct obj *otmp)
     if (otmp->quan > 1L && otmp->oclass != COIN_CLASS)
         ia_addmenu(win, IA_ADJUST_STACK, 'I',
                    "Adjust inventory by splitting this stack");
-
-    /* l: look up item in the encyclopedia */
-    ia_addmenu(win, IA_LOOKUP_OBJ, 'l',
-               "Look this item up in the encyclopedia");
 
     /* O: offer sacrifice */
     if (IS_ALTAR(levl[u.ux][u.uy].typ) && !u.uswallow) {
