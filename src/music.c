@@ -159,7 +159,7 @@ calm_nymphs(int distance)
 
 /* Awake soldiers anywhere the level (and any nearby monster). */
 void
-awaken_soldiers(struct monst* bugler  /* monster that played instrument */)
+awaken_soldiers(struct monst *bugler  /* monster that played instrument */)
 {
     struct monst *mtmp;
     int distance, distm;

@@ -347,7 +347,7 @@ shuffle_all(void)
 /* Return TRUE if the provided string matches the unidentified description of
  * the provided object. */
 boolean
-objdescr_is(struct obj* obj, const char * descr)
+objdescr_is(struct obj *obj, const char *descr)
 {
     const char *objdescr;
 

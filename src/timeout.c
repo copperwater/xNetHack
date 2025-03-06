@@ -2726,7 +2726,7 @@ DISABLE_WARNING_FORMAT_NONLITERAL
 
 /* to support '#stats' wizard-mode command */
 void
-timer_stats(const char* hdrfmt, char *hdrbuf, long *count, long *size)
+timer_stats(const char *hdrfmt, char *hdrbuf, long *count, long *size)
 {
     timer_element *te;
 

@@ -1486,7 +1486,7 @@ meatmetal(struct monst *mtmp)
 
 /* monster eats a pile of objects */
 int
-meatobj(struct monst* mtmp) /* for gelatinous cubes */
+meatobj(struct monst *mtmp) /* for gelatinous cubes */
 {
     struct obj *otmp, *otmp2;
     struct permonst *ptr, *original_ptr = mtmp->data;

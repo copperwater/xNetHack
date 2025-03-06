@@ -230,7 +230,7 @@ static const struct instance_globals_a g_init_a = {
 
 static const struct instance_globals_b g_init_b = {
     /* botl.c */
-    { { { NULL, NULL, 0L, FALSE, FALSE, 0, 0U, { 0 }, { 0 }, NULL, 0, 0, 0
+    { { { NULL, NULL, 0L, FALSE, FALSE, 0, ANY_INVALID, { 0 }, { 0 }, NULL, 0, 0, 0
 #ifdef STATUS_HILITES
             , UNDEFINED_PTR, UNDEFINED_PTR
 #endif

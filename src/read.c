@@ -2323,7 +2323,7 @@ drop_boulder_on_monster(coordxy x, coordxy y, boolean confused, boolean byu)
 
 /* overcharging any wand or zapping/engraving cursed wand */
 void
-wand_explode(struct obj* obj, int chg /* recharging */)
+wand_explode(struct obj *obj, int chg /* recharging */)
 {
     const char *expl = !chg ? "suddenly" : "vibrates violently and";
     int dmg, n, k;
