@@ -1,4 +1,4 @@
-/* NetHack 3.7	wizard.c	$NHDT-Date: 1718303204 2024/06/13 18:26:44 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.110 $ */
+/* NetHack 3.7	wizard.c	$NHDT-Date: 1741407262 2025/03/07 20:14:22 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.116 $ */
 /* Copyright (c) Stichting Mathematisch Centrum, Amsterdam, 1985. */
 /*-Copyright (c) Robert Patrick Rankin, 2016. */
 /* NetHack may be freely redistributed.  See license for details. */
@@ -662,6 +662,9 @@ nasty(struct monst *summoner)
                                         bypos.x, bypos.y, mmflags)) != 0) {
                         m_cls = mtmp->data->mlet;
                         if ((difcap > 0 && mtmp->data->difficulty >= difcap
+                             /* always capping for substitutes made wanton
+                                genocide become too strong in the endgame */
+                             && rn2(In_endgame(&u.uz) ? 3 : 7) /* usually */
                              && attacktype(mtmp->data, AT_MAGC))
                             || (s_cls == S_DEMON && m_cls == S_ANGEL)
                             || (s_cls == S_ANGEL && m_cls == S_DEMON))
@@ -670,10 +673,11 @@ nasty(struct monst *summoner)
                 }
 
                 if (mtmp) {
-                    /* create at most one arch-lich or Archon regardless
-                       of who is doing the summoning (note: Archon is
-                       not in nasties[] but could be chosen as random
-                       replacement for a genocided selection) */
+                    /* if creating an arch-lich or Archon, further directly
+                       selected nasties will have to be less difficult, and
+                       substitues for geno victims will usually be less
+                       (note: Archon is not in nasties[] but could be chosen
+                       as random replacement for a genocided selection) */
                     if (mtmp->data == &mons[PM_ARCH_LICH]
                         || mtmp->data == &mons[PM_ARCHON]) {
                         tmp = min(mons[PM_ARCHON].difficulty, /* A:26 */
