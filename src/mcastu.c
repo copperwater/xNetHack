@@ -736,6 +736,7 @@ cast_wizard_spell(struct monst *mtmp, int dmg, int spellnum)
                     && !svl.level.objects[x][y] && !t_at(x, y)) {
                     levl[x][y].typ = rn2(2) ? HWALL : VWALL;
                     levl[x][y].wall_info &= ~W_NONDIGGABLE;
+                    block_point(x, y);
                     newsym(x, y);
                 }
                 else {
