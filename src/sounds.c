@@ -1409,6 +1409,8 @@ dochat(void)
         for (dy = -1; dy <= +1; dy++) {
             if (dx == 0 && dy == 0)
                 continue;
+            if (!isok(u.ux + dx, u.uy + dy))
+                continue;
             mtmp = m_at(u.ux + dx, u.uy + dy);
             /* Ideally we would also have a condition here for "monster is
              * reasonable to chat to" so that this won't act like #chat had no
