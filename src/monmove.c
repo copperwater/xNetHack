@@ -2484,6 +2484,7 @@ mon_open_door(struct monst * mtmp, coordxy x, coordxy y)
     struct rm *here = &levl[x][y];
     boolean can_open = can_open_doors(mtmp->data);
     boolean can_unlock = can_unlock(mtmp);
+    boolean can_smash = is_giant(mtmp->data);
 
     /* allow this function to be called on arbitrary positions */
     if (!IS_DOOR(here->typ))
@@ -2498,8 +2499,10 @@ mon_open_door(struct monst * mtmp, coordxy x, coordxy y)
         return FALSE;
 
     /* is it actually capable of interacting?
-     * note: can_open should be a superset of can_unlock, so check only it */
-    if (!can_open)
+     * can_open should be a superset of can_unlock, so no need to check the
+     * latter, but must check ability to smash door because giant zombies can
+     * smash but not open */
+    if (!can_open && !can_smash)
         return FALSE;
 
     /* monsters won't attempt to interact with special Demogorgon level doors
@@ -2562,8 +2565,14 @@ mon_open_door(struct monst * mtmp, coordxy x, coordxy y)
         }
         return TRUE;
     }
-    else if (is_giant(mtmp->data) && !door_is_iron(here)) {
+    else if (can_smash) {
         /* smashing down a door */
+        if (door_is_iron(here)) {
+            /* mfndpos should prevent an iron door from being a valid
+             * door-smashing spot in the first place */
+            impossible("monster attempting to smash iron door at %d, %d", x, y);
+            return FALSE;
+        }
         if (predoortrapped(x, y, mtmp, HAND, D_BROKEN)
             == DOORTRAPPED_NOCHANGE) {
             if (DEADMONSTER(mtmp))
