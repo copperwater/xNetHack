@@ -45,7 +45,7 @@
 #  define HASH_OFLAGS O_RDONLY
 #  define HASH_BINFILE_DECL char *binfile = argv[0];
 #  if (NH_DEVEL_STATUS == NH_STATUS_BETA)
-#   define HASH_BINFILE \
+#   define HASH_BINFILE() \
     if (!binfile || !*binfile) {                                        \
         /* If this triggers, investigate CFBundleGetMainBundle */       \
         /* or CFBundleCopyExecutableURL. */                             \
