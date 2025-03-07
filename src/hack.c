@@ -4526,7 +4526,8 @@ nauseating_loc_effects(void)
         struct monst *mtmp;
         x = u.ux + xdir[i];
         y = u.uy + ydir[i];
-        if ((mtmp = m_at(x, y)) && mtmp->data == &mons[PM_HEZROU]) {
+        if (isok(x, y) && (mtmp = m_at(x, y))
+            && mtmp->data == &mons[PM_HEZROU]) {
             hezrous++;
             if (canspotmon(mtmp)) {
                 spotted++;
