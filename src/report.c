@@ -1,4 +1,4 @@
-/* NetHack 3.7	report.c	$NHDT-Date: 1710525914 2024/03/15 18:05:14 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.7 $ */
+/* NetHack 3.7	report.c	$NHDT-Date: 1741406837 2025/03/07 20:07:17 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.16 $ */
 /* Copyright (c) Kenneth Lorber, Kensington, Maryland, 2024 */
 /* NetHack may be freely redistributed.  See license for details. */
 
@@ -253,10 +253,18 @@ swr_add_uricoded(
                     *out = markp, *remaining = 0;
                 **out = '\0';
                 return TRUE;
+            } else {
+                char chr[40]; /* [4] should suffice */
+                int x;
+
+                Sprintf(chr, "%%%02X", *in);
+                x = (int) strlen(chr);
+                if (x <= *remaining) {
+                    Strcpy(*out, chr);
+                    *out += x;
+                    *remaining -= x;
+                }
             }
-            int x = snprintf(*out, *remaining, "%%%02X", *in);
-            *out += x;
-            *remaining -= x;
         }
         in++;
         if (!*remaining) {
@@ -289,15 +297,20 @@ submit_web_report(int cos, const char *msg, const char *why)
     if (!sysopt.crashreporturl)
         return FALSE;
     SWR_ADD(sysopt.crashreporturl);
+    /*
+     * Note: all snprintf() calls here changed to sprintf() to avoid
+     *       complaints from static analyzer.  All but one were unnecessary
+     *       since they were formatting int or unsigned into a large buffer.
+     */
         /* cos - operation, v - version */
-    Snprintf(temp, sizeof temp, "?cos=%d&v=1", cos);
+    Sprintf(temp, "?cos=%d&v=1", cos);
     SWR_ADD(temp);
 
         /* msg==NULL for #bugreport */
     if (msg) {
         SWR_ADD("&subject=");
-        Snprintf(temp, sizeof temp, "%s report for NetHack %s",
-                 msg, version_string(temp2, sizeof temp2 ));
+        Sprintf(temp, "%.40s report for NetHack %.40s",
+                msg, version_string(temp2, sizeof temp2 ));
         SWR_ADD_URIcoded(temp);
     }
 
@@ -352,7 +365,7 @@ submit_web_report(int cos, const char *msg, const char *why)
 #  if 0 // __linux__
 // not needed for MacOS
 // XXX is it actually needed for linux?  TBD
-            Snprintf(temp2, sizeof temp2, "[%02lu]\n", (unsigned long) x);
+            Sprintf(temp2, "[%02lu]\n", (unsigned long) x);
             uend--;    // remove the \n we added above
             SWR_ADD_URIcoded(temp2);
 #  endif // linux
@@ -384,7 +397,7 @@ submit_web_report(int cos, const char *msg, const char *why)
                 // detailrows: Guess since we can't know the
                 //     width of the window.
         SWR_ADD("&detailrows=");
-        Snprintf(temp, sizeof temp, "%d", min(count + countpp, 30));
+        Sprintf(temp, "%d", min(count + countpp, 30));
         SWR_ADD_URIcoded(temp);
 
  full:
@@ -403,7 +416,7 @@ printf("ShellExecute returned: %p\n",rv);   // >32 is ok
         int pid = fork();
         extern char **environ;
         if (pid == 0) {
-            char err[100];
+            char err[400];
 #  ifdef CRASHREPORT_EXEC_NOSTDERR
             int devnull;
                 /* Keep the output clean - firefox spews useless errors on
@@ -413,7 +426,10 @@ printf("ShellExecute returned: %p\n",rv);   // >32 is ok
 #  endif
 
             (void) execve(CRASHREPORT, (char * const *) xargv, environ);
-            Sprintf(err, "Can't start " CRASHREPORT ": %s", strerror(errno));
+            Sprintf(err, "Can't start " CRASHREPORT ": %.*s",
+                    (int) (sizeof err
+                           - sizeof "Can't start " CRASHREPORT ": "),
+                    strerror(errno));
             raw_print(err);
 #  ifdef CRASHREPORT_EXEC_NOSTDERR
             (void) close(devnull);
@@ -446,7 +462,7 @@ dobugreport(void)
         pline("Unable to send bug report.  Please visit %s instead.",
               (sysopt.crashreporturl && *sysopt.crashreporturl)
               ? sysopt.crashreporturl
-              : "https://www.nethack.org"
+              : DEVTEAM_URL
         );
     }
     return ECMD_OK;
@@ -523,15 +539,15 @@ NH_panictrace_gdb(void)
     if (greppath == NULL || greppath[0] == 0)
         return FALSE;
 
-    sprintf(buf, "%s -n -q %s %d 2>&1 | %s '^#'",
-            gdbpath, ARGV0, getpid(), greppath);
+    Snprintf(buf, sizeof buf, "%s -n -q %s %d 2>&1 | %s '^#'",
+             gdbpath, ARGV0, getpid(), greppath);
     gdb = popen(buf, "w");
     if (gdb) {
         raw_print("  Generating more information you may report:\n");
-        fprintf(gdb, "bt\nquit\ny");
-        fflush(gdb);
+        (void) fprintf(gdb, "bt\nquit\ny");
+        (void) fflush(gdb);
         sleep(4); /* ugly */
-        pclose(gdb);
+        (void) pclose(gdb);
         return TRUE;
     } else {
         return FALSE;
@@ -555,6 +571,7 @@ get_saved_pline(int lineno USED_if_dumplog)
 #ifdef DUMPLOG_CORE
     int p;
     int limit = DUMPLOG_MSG_COUNT;
+
     if (lineno >= DUMPLOG_MSG_COUNT)
         return NULL;
     p = (gs.saved_pline_index - 1) % DUMPLOG_MSG_COUNT;
@@ -638,5 +655,9 @@ panictrace_setsignals(boolean set)
 }
 # endif /* NO_SIGNAL */
 #endif /* PANICTRACE */
+
+/*
+ * FIXME: this should have a lot of '#undef's for onefile support.
+ */
 
 /*report.c*/
