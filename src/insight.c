@@ -156,7 +156,11 @@ enlght_line(
 
 /* format increased chance to hit or damage or defense (Protection) */
 staticfn char *
-enlght_combatinc(const char *inctyp, int incamt, int final, char *outbuf)
+enlght_combatinc(
+    const char *inctyp, /* "to hit" or "damage" or "defense" */
+    int incamt,         /* amount of increment (negative if decrement) */
+    int final,          /* ENL_{GAMEINPROGRESS,GAMEOVERALIVE,GAMEOVERDEAD} */
+    char *outbuf)
 {
     const char *modif, *bonus;
     boolean invrt;
@@ -405,9 +409,13 @@ enlightenment(
         }
 
         if (!flags.bones) {
-            you_have_X("disabled loading of bones levels");
+            /* mention not saving bones iff hero just died */
+            Sprintf(buf, "disabled loading%s of bones levels",
+                    (final == ENL_GAMEOVERDEAD) ? " and storing" : "");
+            you_have_X(buf);
         } else if (!u.uroleplay.numbones) {
-            you_have_never("encountered a bones level");
+            enl_msg(You_, "haven't encountered", "didn't encounter",
+                    " any bones levels", "");
         } else {
             Sprintf(buf, "encountered %ld bones level%s",
                     u.uroleplay.numbones, plur(u.uroleplay.numbones));
