@@ -16,7 +16,7 @@ staticfn long mm_displacement(struct monst *, struct monst *);
 staticfn void mon_leaving_level(struct monst *);
 staticfn void m_detach(struct monst *, struct permonst *, boolean);
 staticfn void set_mon_min_mhpmax(struct monst *, int);
-staticfn void lifesaved_monster(struct monst *);
+staticfn void lifesaved_monster(struct monst *, boolean);
 staticfn void juiblex_transferral(void);
 staticfn boolean vamprises(struct monst *);
 staticfn void logdeadmon(struct monst *, int);
@@ -3179,7 +3179,7 @@ mlifesaver(struct monst *mon)
 }
 
 staticfn void
-lifesaved_monster(struct monst *mtmp)
+lifesaved_monster(struct monst *mtmp, boolean offlevel)
 {
     boolean surviver;
     struct obj *lifesave = mlifesaver(mtmp);
@@ -3190,7 +3190,7 @@ lifesaved_monster(struct monst *mtmp)
          * to show this for a long worm with only a tail visible.
          * Nor do you check invisibility, because glowing and
          * disintegrating amulets are always visible. */
-        if (cansee(mtmp->mx, mtmp->my)) {
+        if (cansee(mtmp->mx, mtmp->my) && !offlevel) {
             pline("But wait...");
             pline("%s medallion begins to glow!", s_suffix(Monnam(mtmp)));
             makeknown(AMULET_OF_LIFE_SAVING);
@@ -3234,7 +3234,7 @@ lifesaved_monster(struct monst *mtmp)
 
         if (!surviver) {
             /* genocided monster can't be life-saved */
-            if (cansee(mtmp->mx, mtmp->my))
+            if (cansee(mtmp->mx, mtmp->my) && !offlevel)
                 pline("Unfortunately, %s is still genocided...",
                       mon_nam(mtmp));
             mtmp->mhp = 0;
@@ -3471,7 +3471,7 @@ mondead(struct monst *mtmp)
     iflags.sad_feeling = FALSE;
 
     mtmp->mhp = 0; /* in case caller hasn't done this */
-    lifesaved_monster(mtmp);
+    lifesaved_monster(mtmp, FALSE);
     if (!DEADMONSTER(mtmp))
         return;
 
@@ -3686,7 +3686,7 @@ monstone(struct monst *mdef)
      * making the statue....
      */
     mdef->mhp = 0; /* in case caller hasn't done this */
-    lifesaved_monster(mdef);
+    lifesaved_monster(mdef, FALSE);
     if (!DEADMONSTER(mdef))
         return;
 
