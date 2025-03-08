@@ -281,7 +281,7 @@ castmu(
     boolean thinks_it_foundyou,    /* might be mistaken if displaced */
     boolean foundyou)              /* knows hero's precise location */
 {
-    int dmg, ml = mtmp->m_lev;
+    int dmg, orig_dmg, ml = mtmp->m_lev;
     int ret;
     int spellnum = 0;
 
@@ -402,6 +402,7 @@ castmu(
     if (Half_spell_damage)
         dmg = (dmg + 1) / 2;
 
+    orig_dmg = dmg;
     ret = M_ATTK_HIT;
     /*
      * FIXME: none of these hit the steed when hero is riding, nor do
@@ -424,6 +425,22 @@ castmu(
         break;
     case AD_COLD:
         sheer_cold(&dmg);
+        break;
+    case AD_ELEC:
+        if (Shock_resistance)
+            dmg = 0;
+        You("are blasted with electricity%s", exclam(dmg));
+        if (Shock_resistance) {
+            shieldeff(u.ux, u.uy);
+            pline("But you resist the effects.");
+            monstseesu(M_SEEN_ELEC);
+        }
+        else {
+            monstunseesu(M_SEEN_ELEC);
+        }
+        ugolemeffects(AD_ELEC, orig_dmg);
+        /* creates a lightning-like flash */
+        (void) flashburn((long) rnd(100), TRUE);
         break;
     case AD_MAGM:
         You("are hit by a shower of missiles!");
