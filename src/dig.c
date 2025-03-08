@@ -1464,26 +1464,30 @@ mdig_tunnel(struct monst *mtmp)
     if (here->typ == SDOOR)
         cvt_sdoor_to_door(here); /* ->typ = DOOR */
 
-    /* Eats away door if present & closed or locked */
+    /* Eats away door if present & closed */
     if (closed_door(mtmp->mx, mtmp->my)) {
         if (door_is_iron(here) && (withpick || !metallivorous(mtmp->data)))
             return FALSE;
         (void) predoortrapped(mtmp->mx, mtmp->my, mtmp,
                               (withpick ? ARM : FACE), D_BROKEN);
-        if (!DEADMONSTER(mtmp)) {
-            if (*in_rooms(mtmp->mx, mtmp->my, SHOPBASE))
-                add_damage(mtmp->mx, mtmp->my, 0L);
-            (void) postdoortrapped(mtmp->mx, mtmp->my, mtmp,
-                                   (withpick ? ARM : FACE), D_BROKEN);
-            set_doorstate(here, D_BROKEN);
-            recalc_block_point(mtmp->mx, mtmp->my); /* vision */
-            newsym(mtmp->mx, mtmp->my);
-            if (!Unaware && flags.verbose && !rn2(3)) {
-                /* not too often.. */
-                draft_message(TRUE); /* "You feel an unexpected draft." */
-            }
+        if (DEADMONSTER(mtmp))
+            /* dead monster won't finish eating the door */
+            return TRUE;
+        if (!closed_door(mtmp->mx, mtmp->my))
+            /* trap made it no longer closed, no reason to eat through it */
+            return FALSE;
+        set_doorstate(here, D_BROKEN);
+        recalc_block_point(mtmp->mx, mtmp->my); /* vision */
+        newsym(mtmp->mx, mtmp->my);
+        if (*in_rooms(mtmp->mx, mtmp->my, SHOPBASE))
+            add_damage(mtmp->mx, mtmp->my, 0L);
+        (void) postdoortrapped(mtmp->mx, mtmp->my, mtmp,
+                                (withpick ? ARM : FACE), D_BROKEN);
+        if (!Unaware && flags.verbose && !rn2(3)) {
+            /* not too often.. */
+            draft_message(TRUE); /* "You feel an unexpected draft." */
         }
-        return FALSE;
+        return DEADMONSTER(mtmp); /* in case postdoortrapped killed it */
     } else if (here->typ == SCORR) {
         here->typ = CORR, here->flags = 0;
         unblock_point(mtmp->mx, mtmp->my);
