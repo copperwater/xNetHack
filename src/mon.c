@@ -6520,6 +6520,16 @@ mon_aireffects(struct monst *mtmp)
     mtmp->mhp -= d(20, 12);
     mtmp->mstun = 1;
 
+    /* need to try life-saving the monster here; if it happens during xkilled(),
+     * the monster won't actually leave the level and will still be inexplicably
+     * hovering in the air. Suppress messages since the life-saving happens
+     * after it splatters.
+     * If falling to nowhere, lifesaving won't help it. Hero gets a teleport
+     * attempt, but not monsters. */
+    if (DEADMONSTER(mtmp)) {
+        lifesaved_monster(mtmp, TRUE);
+    }
+
     if (DEADMONSTER(mtmp) || to_nowhere) {
         /* Send items to the lower floor (possibly breaking them) silently,
          * rather than letting xkilled() drop them noisily */
