@@ -6536,7 +6536,7 @@ mon_aireffects(struct monst *mtmp)
         struct obj *otmp, *nobj;
         for (otmp = mtmp->minvent; otmp; otmp = nobj) {
             nobj = otmp->nobj;
-            obj_extract_self(otmp);
+            extract_from_minvent(mtmp, otmp, FALSE, FALSE);
             (void) obj_aireffects(otmp, FALSE);
         }
         /* No corpse is dropped here, because it would give a message about the
