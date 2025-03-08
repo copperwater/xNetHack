@@ -2656,9 +2656,10 @@ special_juiblex_actions(struct monst *juib)
     else if (rn2(2)) {
         const char classes[] = { S_BLOB, S_JELLY, S_PUDDING };
         m2 = makemon(mkclass(ROLL_FROM(classes), 0), juib->mx, juib->my,
-                        MM_ADJACENTOK | MM_ANGRY | MM_NOMSG);
-        pline("Some ooze rolls off %s and becomes %s.",
-                mon_nam(juib), a_monnam(m2));
+                     MM_ADJACENTOK | MM_ANGRY | MM_NOMSG);
+        if (m2)
+            pline("Some ooze rolls off %s and becomes %s.",
+                  mon_nam(juib), a_monnam(m2));
     }
     return FALSE;
 }
