@@ -1622,7 +1622,12 @@ xxxx----xx----xxxx]], contents=function(m)
       name = "Thin long horizontal room",
       contents = function()
          local width = 14 + d(6)
-         des.room({ type="ordinary", filled=1, w=14+d(6), h=d(2) })
+         local height = d(2)
+         -- only make an ordinary room if it's 2 spaces high; otherwise it might
+         -- turn into a shop with its door on the top/bottom and have nowhere to
+         -- put items
+         local typ = (height == 1) and "themed" or "ordinary"
+         des.room({ type=typ, filled=1, w=width, h=height })
       end,
    },
    {
