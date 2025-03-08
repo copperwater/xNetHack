@@ -3183,6 +3183,7 @@ lifesaved_monster(struct monst *mtmp)
 {
     boolean surviver;
     struct obj *lifesave = mlifesaver(mtmp);
+    boolean faulty = (lifesave && faulty_lifesaver(lifesave));
 
     if (lifesave) {
         /* not canseemon; amulets are on the head, so you don't want
@@ -3193,7 +3194,7 @@ lifesaved_monster(struct monst *mtmp)
             pline("But wait...");
             pline("%s medallion begins to glow!", s_suffix(Monnam(mtmp)));
             makeknown(AMULET_OF_LIFE_SAVING);
-            if (faulty_lifesaver(lifesave)) {
+            if (faulty) {
                 pline("But the chain breaks and it falls to the %s!",
                       surface(mtmp->mx, mtmp->my));
                 m_useup(mtmp, lifesave);
@@ -3212,6 +3213,11 @@ lifesaved_monster(struct monst *mtmp)
                 }
                 pline_The("medallion crumbles to dust!");
             }
+        }
+        /* still need to check if lifesaver fails if we can't see it happen */
+        else if (faulty) {
+            m_useup(mtmp, lifesave);
+            return;
         }
         m_useup(mtmp, lifesave);
         /* equip replacement amulet, if any, on next move */
