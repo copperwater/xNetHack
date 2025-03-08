@@ -45,9 +45,9 @@
         const char *    ordin           (int)
         char *          sitoa           (int)
         int             sgn             (int)
-        int             distmin         (int, int, int, int)
-        int             dist2           (int, int, int, int)
-        boolean         online2         (int, int)
+        int             distmin         (coordxy, coordxy, coordxy, coordxy)
+        int             dist2           (coordxy, coordxy, coordxy, coordxy)
+        boolean         online2         (coordxy, coordxy)
         int             strncmpi        (const char *, const char *, int)
         char *          strstri         (const char *, const char *)
         boolean         fuzzymatch      (const char *, const char *,
