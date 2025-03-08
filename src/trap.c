@@ -7015,6 +7015,12 @@ doortrapped(int x, int y, struct monst * mon, int bodypart, int action,
     }
     else if (selected_trap == SELF_LOCK && after) {
         boolean do_lock = FALSE;
+        if (saved_doorstate == D_BROKEN || action == D_BROKEN) {
+            /* possible to hit this with a door already broken by digging;
+             * obviously the trap won't do anything any longer */
+            set_door_trap(door, FALSE);
+            return DOORTRAPPED_NOCHANGE;
+        }
         if (action == D_ISOPEN) {
             if (byu || canseedoor) {
                 pline_xy(x, y, "But it swings closed again!");
@@ -7036,7 +7042,7 @@ doortrapped(int x, int y, struct monst * mon, int bodypart, int action,
                 You("disarm a self-locking mechanism.");
             }
             set_door_trap(door, FALSE);
-            return DOORTRAPPED_NOCHANGE; /* not changed at all */
+            return DOORTRAPPED_NOCHANGE; /* still closed */
         }
         /* no case for action == D_LOCKED
          * not much point doing anything when the player *wants* to lock it */
@@ -7046,13 +7052,12 @@ doortrapped(int x, int y, struct monst * mon, int bodypart, int action,
             }
             set_doorstate(door, D_CLOSED);
             set_door_lock(door, TRUE);
+            if (byu)
+                feel_newsym(x, y); /* the hero knows it is closed */
+            block_point(x, y); /* vision: no longer see there */
+            return DOORTRAPPED_CHANGED;
         }
-        /* trap not disarmed, except if trying to unlock */
-        feel_newsym(x, y); /* the hero knows it is closed */
-        block_point(x, y); /* vision: no longer see there */
-        return DOORTRAPPED_CHANGED; /* apart from disarming, all of these
-                                     * effects change door state even
-                                     * temporarily */
+        return DOORTRAPPED_NOCHANGE;
     }
     else if (selected_trap == STATIC_SHOCK && before && bodypart == FINGER
              && mon && (action == D_ISOPEN || action == D_CLOSED
@@ -7102,11 +7107,11 @@ doortrapped(int x, int y, struct monst * mon, int bodypart, int action,
         set_door_trap(door, FALSE); /* trap is gone */
     }
     else if ((selected_trap == HINGELESS_FORWARD && before
-             && (action == D_ISOPEN || action == D_BROKEN
-                 || action == -D_TRAPPED))
-            /* if you're trying to *break* the door, and it doesn't have
-             * hinges, it's going to fall backward regardless of which way it
-             * was rigged. */
+              && (action == D_ISOPEN || action == D_BROKEN
+                  || action == -D_TRAPPED))
+             /* if you're trying to *break* the door, and it doesn't have
+              * hinges, it's going to fall backward regardless of which way it
+              * was rigged. */
              || (selected_trap == HINGELESS_BACKWARD && before
                  && action == D_BROKEN)) {
         dmg = rnd((lvl/4) + 1);
