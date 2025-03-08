@@ -3543,7 +3543,7 @@ launch_obj(
                 set_doorstate(&levl[x][y],
                               door_is_iron(&levl[x][y]) ? D_ISOPEN : D_BROKEN);
                 if (dist)
-                    unblock_point(x, y);
+                    recalc_block_point(x, y);
             }
             else {
                 /* boulder hits locked iron door, stop the boulder */
@@ -7113,7 +7113,7 @@ doortrapped(int x, int y, struct monst * mon, int bodypart, int action,
         /* necessary to set this up front; otherwise we hurtle into the closed
          * door and don't actually move */
         set_doorstate(door, D_BROKEN);
-        unblock_point(x, y);
+        recalc_block_point(x, y);
         if (byu) {
             pline_xy(x, y, "The door %s forward off its hinges!",
                      (action == D_BROKEN ? "is knocked" : "falls"));
@@ -7295,16 +7295,12 @@ doortrapped(int x, int y, struct monst * mon, int bodypart, int action,
             add_damage(x, y, (byu ? SHOP_DOOR_COST : 0L));
         }
         newsym(x, y);
-        unblock_point(x, y); /* can now see through it */
+        recalc_block_point(x, y); /* can now see through it */
         return DOORTRAPPED_DESTROYED;
     }
     else if (saved_doorstate != doorstate(door)) {
         newsym(x, y);
-        /* take care of vision */
-        if (!door_is_closed(door))
-            unblock_point(x, y);
-        else
-            block_point(x, y);
+        recalc_block_point(x, y); /* take care of vision */
         return DOORTRAPPED_CHANGED;
     }
     else {

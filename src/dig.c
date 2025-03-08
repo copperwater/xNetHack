@@ -1476,7 +1476,7 @@ mdig_tunnel(struct monst *mtmp)
             (void) postdoortrapped(mtmp->mx, mtmp->my, mtmp,
                                    (withpick ? ARM : FACE), D_BROKEN);
             set_doorstate(here, D_BROKEN);
-            unblock_point(mtmp->mx, mtmp->my); /* vision */
+            recalc_block_point(mtmp->mx, mtmp->my); /* vision */
             newsym(mtmp->mx, mtmp->my);
             if (!Unaware && flags.verbose && !rn2(3)) {
                 /* not too often.. */

@@ -1018,7 +1018,7 @@ doopen_indir(coordxy x, coordxy y)
         == DOORTRAPPED_NOCHANGE) {
         set_doorstate(door, D_ISOPEN);
         feel_newsym(cc.x, cc.y); /* the hero knows she opened it */
-        unblock_point(cc.x, cc.y); /* vision: new see through there */
+        recalc_block_point(cc.x, cc.y); /* vision: new see through there */
     }
 
     return ECMD_TIME;
@@ -1303,7 +1303,7 @@ doorlock(struct obj *otmp, struct monst *mon, coordxy x, coordxy y)
             }
             sawit = cansee(x, y);
             set_doorstate(door, D_BROKEN);
-            unblock_point(x, y);
+            recalc_block_point(x, y);
             seeit = cansee(x, y);
             newsym(x, y);
             if (flags.verbose) {

@@ -3341,7 +3341,7 @@ vamprises(struct monst *mtmp)
             else
                 set_doorstate(door, D_BROKEN);
 
-            unblock_point(x, y);
+            recalc_block_point(x, y);
             if (DEADMONSTER(mtmp) && canspotmon(mtmp) && !Unaware) {
                 /* if the booby trap has killed the monster, mondied() will
                    have been called but no message about its death given yet;

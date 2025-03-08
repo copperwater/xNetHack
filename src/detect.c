@@ -1747,7 +1747,7 @@ openone(coordxy zx, coordxy zy, genericptr_t num)
             set_doorstate(&levl[zx][zy], D_ISOPEN);
             (*num_p)++;
         }
-        unblock_point(zx, zy);
+        recalc_block_point(zx, zy);
         newsym(zx, zy);
     } else if (levl[zx][zy].typ == SCORR) {
         levl[zx][zy].typ = CORR;

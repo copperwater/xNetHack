@@ -2559,7 +2559,7 @@ mon_open_door(struct monst * mtmp, coordxy x, coordxy y)
             }
             if (!door_is_closed(here)) {
                 newsym(x,y);
-                unblock_point(x, y);
+                recalc_block_point(x, y);
                 vision_recalc(0);
             }
         }
@@ -2597,7 +2597,7 @@ mon_open_door(struct monst * mtmp, coordxy x, coordxy y)
             }
             if (!door_is_closed(here)) {
                 newsym(x,y);
-                unblock_point(x, y);
+                recalc_block_point(x, y);
                 vision_recalc(0);
             }
         }

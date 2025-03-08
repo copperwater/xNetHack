@@ -972,7 +972,7 @@ kick_door(coordxy x, coordxy y, int avrg_attrib)
                 set_doorstate(gm.maploc, D_BROKEN);
             }
             feel_newsym(x, y); /* we know we broke it */
-            unblock_point(x, y); /* vision */
+            recalc_block_point(x, y); /* vision */
             (void) postdoortrapped(x, y, &gy.youmonst, FOOT, D_BROKEN);
             if (shopdoor) {
                 add_damage(x, y, SHOP_DOOR_COST);
