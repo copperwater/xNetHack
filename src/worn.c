@@ -1373,10 +1373,12 @@ extract_from_minvent(
     obj->owornmask = 0L;
     if (unwornmask) {
         obj->owt = weight(obj); /* reset armor to base weight */
-        if (!DEADMONSTER(mon) && do_extrinsics) {
-            update_mon_extrinsics(mon, obj, FALSE, silently);
+        if (!DEADMONSTER(mon)) {
+            if (do_extrinsics) {
+                update_mon_extrinsics(mon, obj, FALSE, silently);
+            }
+            mselftouch(mon, NULL, !svc.context.mon_moving);
         }
-        mselftouch(mon, NULL, TRUE);
         mon->misc_worn_check &= ~unwornmask;
         /* give monster a chance to wear other equipment on its next
            move instead of waiting until it picks something up */
