@@ -787,7 +787,7 @@ still_chewing(coordxy x, coordxy y)
         lev->typ = CORR;
     }
 
-    unblock_point(x, y); /* vision */
+    recalc_block_point(x, y); /* vision */
     newsym(x, y);
     if (digtxt)
         You1(digtxt); /* after newsym */
