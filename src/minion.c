@@ -498,7 +498,7 @@ demon_talk(struct monst *mtmp)
     else if (items_given == 0 && (cash == 0 || gm.multi < 0)) {
         /* you have no gold or can't move */
         pline("%s roars:", Amonnam(mtmp));
-        verbalize("You bring me no tribute?  Then you must die!");
+        verbalize("Thou bringest me no tribute?  Then thou shalt die!");
         mtmp->mpeaceful = 0;
         set_malign(mtmp);
         newsym(mtmp->mx, mtmp->my);
