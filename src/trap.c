@@ -1849,10 +1849,11 @@ trapeffect_cold_trap(
         } else {
             if (thitm(0, mtmp, (struct obj *) 0, dmg, FALSE))
                 trapkilled = TRUE;
-            else
-                /* we know mhp is at least `dmg' below mhpmax,
-                   so no (mhp > mhpmax) check is needed here */
+            else {
                 mtmp->mhpmax -= rn2(dmg + 1);
+                if (mtmp->mhp > mtmp->mhpmax)
+                    mtmp->mhp = mtmp->mhpmax;
+            }
         }
         if (rn2(3)) {
             int xtradmg = destroy_items(mtmp, AD_COLD, dmg);
