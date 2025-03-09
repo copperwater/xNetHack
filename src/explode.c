@@ -1123,6 +1123,8 @@ mon_explodes_nodmg(struct monst *magr, struct attack *mattk)
 
     for (y = cy - 1; y <= cy + 1; y++) {
         for (x = cx - 1; x <= cx + 1; x++) {
+            if (!isok(x, y))
+                continue;
             if (x == cx && y == cy)
                 continue; /* doesn't affect itself */
             else if (u_at(x, y)) {
