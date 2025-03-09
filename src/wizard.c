@@ -943,6 +943,9 @@ wizpuzzle_close_space(coordxy x, coordxy y,
 
     delallobj(x, y); /* does not harm unique items */
     levl[x][y].typ = newtyp;
+    /* don't assume nondig/nonpasswall flags remained set when this was ROOM;
+     * also, these flags won't be set for the initial gap in the walls */
+    levl[x][y].flags |= (W_NONDIGGABLE | W_NONPASSWALL);
     block_point(x,y);
     newsym(x,y);
 }
@@ -963,7 +966,6 @@ wizpuzzle_open_space(coordxy x, coordxy y, boolean *gavemsg)
     levl[x][y].typ = ROOM;
     unblock_point(x,y);
     newsym(x,y);
-
 }
 
 /* In the Wizard's Tower puzzle, the gaps have just moved; give a clue about the
