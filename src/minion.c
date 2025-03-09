@@ -523,7 +523,11 @@ demon_talk(struct monst *mtmp)
         else if (canseemon(mtmp))
             pline("%s seems to be demanding your money.", Amonnam(mtmp));
 
-        offer = bribe(mtmp);
+        if (cash < 1)
+            pline("But you have no money.");
+        else
+            offer = bribe(mtmp);
+
         if (offer >= demand) {
             verbalize("Very well, mortal. I shall not impede thy quest.");
             pline("%s vanishes, laughing about cowardly mortals.",
