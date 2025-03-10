@@ -293,6 +293,11 @@ dlb:	$(DLBOBJS) $(HACKLIB)
 dlb_main.o: dlb_main.c $(CONFIG_H) ../include/dlb.h
 	$(CC) $(CFLAGS) $(CSTD) -c dlb_main.c -o $@
 
+stripbs: stripbs.o
+	$(CC) $(LFLAGS) -o stripbs stripbs.o
+
+stripbs.o: stripbs.c
+	$(CC) $(CFLAGS) -c stripbs.c
 
 #	dependencies for tile utilities
 #

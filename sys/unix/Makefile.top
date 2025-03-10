@@ -416,6 +416,12 @@ fetch-docs:
 	  shift; \
 	done
 
+makedefs:
+	( cd util ; $(MAKE) makedefs )
+
+stripbs:
+	( cd util ; $(MAKE) stripbs )
+
 # 'make update' can be used to install a revised version after making
 # customizations or such.  Unlike 'make install', it doesn't delete everything
 # from the target directory to have a clean start.

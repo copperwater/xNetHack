@@ -194,6 +194,20 @@ CPLUSPLUS_NEEDED = 1
 endif
 endif
 
+ifeq "$(musl)" "1"
+MUSL=1
+endif
+ifeq "$(MUSL)" "1"
+ifneq "$(NOCRASHREPORT)" "1"
+NOCRASHREPORT=1
+endif
+WINCFLAGS += -DMUSL_LIBC
+# use this instead of col -bx
+COLCMD = ../util/stripbs
+else
+WINCFLAGS += -DGNU_LIBC
+endif
+
 ifeq "$(NOCRASHREPORT)" "1"
 WINCFLAGS += -DNOCRASHREPORT
 endif
