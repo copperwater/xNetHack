@@ -1956,9 +1956,11 @@ domove_attackmon_at(
                                    && bad_rock(gy.youmonst.data, x, u.uy0))))
                       && goodpos(u.ux0, u.uy0, mtmp, GP_ALLOW_U));
         /* if not displacing, try to attack; note that it might evade;
-           also, we don't attack tame when _safepet_ */
-        if (!*displaceu && do_attack(mtmp))
-            return TRUE;
+           also, we don't attack tame or peaceful when safemon() */
+        if (!*displaceu) {
+            if (do_attack(mtmp))
+                return TRUE;
+        }
     }
     return FALSE;
 }
@@ -2696,119 +2698,122 @@ domove_core(void)
             return;
     }
 
-    if (domove_fight_ironbars(x, y))
-        return;
+    if (!displaceu) {
 
-    if (domove_fight_web(x, y))
-        return;
+        if (domove_fight_ironbars(x, y))
+            return;
 
-    if (domove_fight_empty(x, y))
-        return;
+        if (domove_fight_web(x, y))
+            return;
 
-    (void) unmap_invisible(x, y);
-    /* not attacking an animal, so we try to move */
-    if ((u.dx || u.dy) && u.usteed && stucksteed(FALSE)) {
-        nomul(0);
-        return;
-    }
+        if (domove_fight_empty(x, y))
+            return;
 
-    if (u_rooted())
-        return;
-
-    /* treat entering a visible gas cloud region like entering a trap;
-       there could be a known trap as well as a region at the target spot;
-       if so, ask about entring the region first; even though this could
-       lead to two consecutive confirmation prompts, the situation seems to
-       be too uncommon to warrant a separate case with combined trap+region
-       confirmation */
-    if (ParanoidTrap && !Blind && !Stunned && !Confusion && !Hallucination
-        /* skip if player used 'm' prefix or is moving recklessly */
-        && (!svc.context.nopick || svc.context.run)
-        /* check for region(s) */
-        && (newreg = visible_region_at(x, y)) != 0
-        && ((oldreg = visible_region_at(u.ux, u.uy)) == 0
-            /* if moving from one region into another, only ask for
-               confirmation if the one potentially being entered inflicts
-               damage (poison gas) and the one being exited doesn't (vapor) */
-            || (reg_damg(newreg) > 0 && reg_damg(oldreg) == 0))
-        /* check whether attempted move will be viable */
-        && test_move(u.ux, u.uy, u.dx, u.dy, TEST_MOVE)
-        /* we don't override confirmation for poison resistance since the
-           region also hinders hero's vision even if/when no damage is done */
-        ) {
-        char qbuf[QBUFSZ];
-
-        Snprintf(qbuf, sizeof qbuf, "%s into that %s cloud?",
-                 u_locomotion("step"),
-                 (reg_damg(newreg) > 0) ? "poison gas" : "vapor");
-        if (!paranoid_query(ParanoidConfirm, upstart(qbuf))) {
+        (void) unmap_invisible(x, y);
+        /* not attacking an animal, so we try to move */
+        if ((u.dx || u.dy) && u.usteed && stucksteed(FALSE)) {
             nomul(0);
-            svc.context.move = 0;
             return;
         }
-    }
-    /* maybe ask player for confirmation before walking into known traps */
-    if (ParanoidTrap && !Stunned && !Confusion
-        /* skip if player used 'm' prefix or is moving recklessly */
-        && (!svc.context.nopick || svc.context.run)
-        /* check for discovered trap */
-        && (trap = t_at(x, y)) != 0 && trap->tseen
-        /* check whether attempted move will be viable */
-    /*
-     * FIXME:
-     *  this will result in "Really step into trap?" if there is a
-     *  peaceful or tame monster already there.
-     */
-        && test_move(u.ux, u.uy, u.dx, u.dy, TEST_MOVE)
-        /* override confirmation if the trap is harmless to the hero */
-        && (immune_to_trap(&gy.youmonst, trap->ttyp) != TRAP_CLEARLY_IMMUNE
-            /* Hallucination: all traps still show as ^, but the
-               hero can't tell what they are, so treat as dangerous */
-            || Hallucination)) {
-        char qbuf[QBUFSZ];
-        int traptype = (Hallucination ? rnd(TRAPNUM - 1) : (int) trap->ttyp);
-        boolean into = into_vs_onto(traptype);
 
-        Snprintf(qbuf, sizeof qbuf, "Really %s %s that %s?",
-                 u_locomotion("step"), into ? "into" : "onto",
-                 defsyms[trap_to_defsym(traptype)].explanation);
-        /* handled like paranoid_confirm:pray; when paranoid_confirm:trap
-           isn't set, don't ask at all but if it is set (checked above),
-           ask via y/n if parnoid_confirm:confirm isn't also set or via
-           yes/no if it is */
-        if (!paranoid_query(ParanoidConfirm, qbuf)) {
-            nomul(0);
-            svc.context.move = 0;
+        if (u_rooted())
+            return;
+
+        /* treat entering a visible gas cloud region like entering a trap;
+           there could be a known trap as well as a region at the target spot;
+           if so, ask about entring the region first; even though this could
+           lead to two consecutive confirmation prompts, the situation seems
+           to be too uncommon to warrant a separate case with combined
+           trap+region confirmation */
+        if (ParanoidTrap && !Blind && !Stunned && !Confusion && !Hallucination
+            /* skip if player used 'm' prefix or is moving recklessly */
+            && (!svc.context.nopick || svc.context.run)
+            /* check for region(s) */
+            && (newreg = visible_region_at(x, y)) != 0
+            && ((oldreg = visible_region_at(u.ux, u.uy)) == 0
+                /* if moving from one region into another, only ask for
+                   confirmation if the one potentially being entered inflicts
+                   damage (poison gas) and the one being exited doesn't
+                   (vapor) */
+                || (reg_damg(newreg) > 0 && reg_damg(oldreg) == 0))
+            /* check whether attempted move will be viable */
+            && test_move(u.ux, u.uy, u.dx, u.dy, TEST_MOVE)
+            /* we don't override confirmation for poison resistance since
+               the region also hinders hero's vision even if/when no damage
+               is done */
+            ) {
+            char qbuf[QBUFSZ];
+
+            Snprintf(qbuf, sizeof qbuf, "%s into that %s cloud?",
+                     u_locomotion("step"),
+                     (reg_damg(newreg) > 0) ? "poison gas" : "vapor");
+            if (!paranoid_query(ParanoidConfirm, upstart(qbuf))) {
+                nomul(0);
+                svc.context.move = 0;
+                return;
+            }
+        }
+        /* maybe ask player for confirmation before walking into known trap */
+        if (ParanoidTrap && !Stunned && !Confusion
+            /* skip if player used 'm' prefix or is moving recklessly */
+            && (!svc.context.nopick || svc.context.run)
+            /* check for discovered trap */
+            && (trap = t_at(x, y)) != 0 && trap->tseen
+            /* check whether attempted move will be viable */
+            && test_move(u.ux, u.uy, u.dx, u.dy, TEST_MOVE)
+            /* override confirmation if the trap is harmless to the hero */
+            && (immune_to_trap(&gy.youmonst, trap->ttyp) != TRAP_CLEARLY_IMMUNE
+                /* Hallucination: all traps still show as ^, but the
+                   hero can't tell what they are, so treat as dangerous */
+                || Hallucination)) {
+            char qbuf[QBUFSZ];
+            int traptype = (Hallucination ? rnd(TRAPNUM - 1)
+                                          : (int) trap->ttyp);
+            boolean into = into_vs_onto(traptype);
+
+            Snprintf(qbuf, sizeof qbuf, "Really %s %s that %s?",
+                     u_locomotion("step"), into ? "into" : "onto",
+                     defsyms[trap_to_defsym(traptype)].explanation);
+            /* handled like paranoid_confirm:pray; when paranoid_confirm:trap
+               isn't set, don't ask at all but if it is set (checked above),
+               ask via y/n if parnoid_confirm:confirm isn't also set or via
+               yes/no if it is */
+            if (!paranoid_query(ParanoidConfirm, qbuf)) {
+                nomul(0);
+                svc.context.move = 0;
+                return;
+            }
+        }
+
+        if (u.utrap) { /* when u.utrap is True, displaceu is False */
+            boolean moved = trapmove(x, y, trap);
+
+            if (!u.utrap) {
+                disp.botl = TRUE;
+                reset_utrap(TRUE); /* might resume levitation or flight */
+            }
+            /* might not have escaped, or did escape but remain in the same
+               spot */
+            if (!moved)
+                return;
+        }
+
+        if (!test_move(u.ux, u.uy, x - u.ux, y - u.uy, DO_MOVE)) {
+            if (!svc.context.door_opened) {
+                svc.context.move = 0;
+                nomul(0);
+            }
             return;
         }
-    }
 
-    if (u.utrap) {
-        boolean moved = trapmove(x, y, trap);
-
-        if (!u.utrap) {
-            disp.botl = TRUE;
-            reset_utrap(TRUE); /* might resume levitation or flight */
-        }
-        /* might not have escaped, or did escape but remain in same spot */
-        if (!moved)
-            return;
-    }
-
-    if (!test_move(u.ux, u.uy, x - u.ux, y - u.uy, DO_MOVE)) {
-        if (!svc.context.door_opened) {
+        /* Is it dangerous to swim in water or lava? */
+        if (swim_move_danger(x, y)) {
             svc.context.move = 0;
             nomul(0);
+            return;
         }
-        return;
-    }
 
-    /* Is it dangerous to swim in water or lava? */
-    if (swim_move_danger(x, y)) {
-        svc.context.move = 0;
-        nomul(0);
-        return;
-     }
+    } /* !dislacedu */
 
     /* Move ball and chain.  */
     if (Punished)
