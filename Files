@@ -573,6 +573,7 @@ test_sel.lua  test_shk.lua  test_src.lua  testmove.lua  testwish.lua
 util:
 (files for all versions)
 dlb_main.c  makedefs.c  mdgrep.h    mdgrep.pl   panic.c     recover.c
+stripbs.c
 
 win/Qt:
 (files for the Qt 4 or 5 widget library - X11, Windows, Mac OS X)
