@@ -203,7 +203,8 @@ NOCRASHREPORT=1
 endif
 WINCFLAGS += -DMUSL_LIBC
 # use this instead of col -bx
-COLCMD = ../util/stripbs
+COLCMD=../util/stripbs
+STRIPBS=../util/stripbs
 else
 WINCFLAGS += -DGNU_LIBC
 endif
