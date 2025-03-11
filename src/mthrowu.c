@@ -185,8 +185,12 @@ drop_throw(
     /* glass and other fragile objects */
     if (!IS_SOFT(levl[x][y].typ) && breaktest(obj)) {
         breakmsg(obj, cansee(x, y));
-        breakobj(obj, x, y, FALSE, FALSE);
-        return TRUE; /* it's already deleted */
+        if (breakobj(obj, x, y, FALSE, FALSE))
+            /* object was already deleted; return early */
+            return TRUE;
+        /* if breakobj returned 0 (e.g. glass cracked but didn't fully shatter),
+         * don't set broken to FALSE even so. if it did, glass ammo would
+         * weirdly be exempt from mulching. */
     }
     if (broken) {
         delobj(obj);
