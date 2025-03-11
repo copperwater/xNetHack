@@ -45,6 +45,11 @@ make WANT_DEFAULT=X11         Make X11 the default interface if multiple window
 make WANT_DEFAULT=Qt          Make Qt the default interface if multiple window
                               interfaces were specified.
 
+make musl=1                   Build with settings appropriate for linking with
+                              musl libc, instead of glibc. This causes
+                              NOCRASHREPORT to be defined, and avoids the use
+                              of 'col' during the build.
+
 make CROSS_TO_MSDOS=1 package Cross-compile for an MSDOS target package.
 make CROSS_TO_WASM=1          Cross-compile for a WASM target.
 make CROSS_TO_MIPS=1          Cross-compile for a mips target.
@@ -72,3 +77,4 @@ make WANT_SOURCE_INSTALL=1    Place the results of the install/update portion
                               tree, rather than in a system-wide shared area.
 make VIEWDEPRECATIONS=1       Turn off the suppression of -Wdeprecated and
                               -Wdeprecated-declarations warnings
+
