@@ -12,7 +12,13 @@
 #include <string.h>
 #include <errno.h>
 
-int main(int argc, char *argv[])
+#if defined(__GNUC__)
+#define UNUSED __attribute__((unused))
+#else
+#define UNUSED
+#endif
+
+int main(int argc UNUSED, char *argv[] UNUSED)
 {
     int stop = 0, trouble = 0;
     char buf[2];
