@@ -2098,7 +2098,7 @@ when walking into/against a locked closed door, 'autounlock'==kick didn't
 having a 1% chance of creating rideable monsters with worn saddle gave knights
 	a 1% chance of creating an extra saddle for starting pony; it wasn't
 	tracked with other objects so produced a trivial memory leak
-hen attacking a displacer beast, using the 'F' forcefight prefix prevented it
+when attacking a displacer beast, using the 'F' forcefight prefix prevented it
 	from swapping places with the hero
 
 
