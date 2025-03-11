@@ -4,7 +4,7 @@
 
 /*
  * a simple filter to strip character-backspace-character
- * from stdin and write the results to stdout.
+ * from stdin and write the final character to stdout.
  */
 
 #include <stdio.h>
