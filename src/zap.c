@@ -5307,6 +5307,7 @@ zap_over_floor(
         }
         else if (IS_GRASS(lev->typ)) {
             lev->typ = ROOM;
+            maybe_unhide_at(x, y);
             if (see_it) {
                 pline("The grass is scorched away!");
                 newsym(x, y);
