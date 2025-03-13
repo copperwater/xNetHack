@@ -1366,7 +1366,8 @@ extract_from_minvent(
     }
     /* handle gold dragon scales/scale-mail (lit when worn) before clearing
        obj->owornmask because artifact_light() expects that to be W_ARM */
-    if ((unwornmask & W_ARM) != 0 && obj->lamplit && artifact_light(obj))
+    if ((unwornmask & (W_ARM | W_ARMC)) != 0 && obj->lamplit
+        && artifact_light(obj))
         end_burn(obj, FALSE);
 
     obj_extract_self(obj);
