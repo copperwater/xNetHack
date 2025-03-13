@@ -573,11 +573,13 @@ maketrap(coordxy x, coordxy y, int typ)
         otmp = mksobj(ROCK, TRUE, FALSE);
         /* TODO: Scale this with depth. */
         otmp->quan = 5 + rnd(10);
+        otmp->owt = weight(otmp);
         set_trap_ammo(ttmp, otmp);
         break;
     case DART_TRAP:
         otmp = mksobj(DART, TRUE, FALSE);
         otmp->quan = 15 + rnd(20);
+        otmp->owt = weight(otmp);
         /* darts are poisoned 1/6 of the time on level 7+ */
         otmp->opoisoned = (level_difficulty() > 6 && !rn2(6));
         set_trap_ammo(ttmp, otmp);
@@ -585,6 +587,7 @@ maketrap(coordxy x, coordxy y, int typ)
     case ARROW_TRAP:
         otmp = mksobj(ARROW, TRUE, FALSE);
         otmp->quan = 15 + rnd(20);
+        otmp->owt = weight(otmp);
         /* arrows are not poisoned */
         otmp->opoisoned = 0;
         set_trap_ammo(ttmp, otmp);
