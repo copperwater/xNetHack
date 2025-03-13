@@ -1866,7 +1866,8 @@ mon_wounds(struct monst *mon,
             "dinged up", "totaled", "wrecked", "beaten up", "defaced",
             "pulverized", "battered", "tarnished", "ruined", "mangled",
             "trashed", "smashed up", "crumpled", "scratched", "scraped",
-            "cracked", "creased", "shredded", "shattered", "notched"
+            "cracked", "creased", "shredded", "shattered", "notched",
+            "thrashed", "ripped"
         };
         adverb = ROLL_FROM(wound_adverbs);
         adjective = ROLL_FROM(wound_adjectives);

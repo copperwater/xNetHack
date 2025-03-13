@@ -24,6 +24,7 @@ Alas, poor Yorick!
 Algernon
 All else failed
 All hail RNG
+All shall join me one day
 All those who trod on my grave shall be cursed evermore.
 All's well that ends well
 Alone at last!
@@ -118,6 +119,7 @@ Did you know that death rays bounce?
 Died from not forwarding a chain letter to 10 people
 Died when this very tombstone fell and crushed his head
 Dig here for a wand of wishing.
+Dig up this stone to find the secret passage to level 22
 Do not open until Christmas
 Do not write anything on my tombstone except my name.
 Don't be daft, they couldn't hit an elephant at this dist-
@@ -203,6 +205,7 @@ Help, I can't wake up!
 Here lies Patient Zero
 Here lies Bob - decided to try an acid blob
 Here lies Bugs Bunny. His doc couldn't figure out what was up.
+Here lies Dave, killed by eating a tainted cream pie he found in a musty old chest.
 Here lies Dr. Ango, discoverer of the death ray, who also discovered that it bounces.
 Here lies Dudley, killed by another !&#@#& newt.
 Here lies Elric, killed by touching Stormbringer
@@ -218,6 +221,8 @@ Here lies Sid, ascended... and cracked his skull on the ceiling.
 Here lies The Lady's maid, died of a Vorpal Blade
 Here lies Tim Burr. Smashed by a tree.
 Here lies a programmer.  Killed by a fatal error.
+Here lies a rogue. In the end, his last breath was stolen from him.
+Here lies a troublesome necromancer. Stay dead this time.
 Here lies an atheist, all dressed up and no place to go
 Here lies expert gardener Pete Moss; he is now enriching the soil.
 Here lies the body of Jonathan Blake.  Stepped on the gas instead of the brake.
@@ -260,6 +265,7 @@ I like it better in the dark.
 I made an ash of myself
 I may rise but I refuse to shine.
 I never get any either.
+I rest with the knowledge that my death provides much gossip.
 I said hit HIM with the fireball, not me!
 I thought I could be like Adeon.  Guess not.
 I thought the name "killer bees" was just hyperbole.
@@ -269,6 +275,7 @@ I used up all my sick days, so now I'm calling in dead.
 I was hoping for a pyramid
 I was killed by <illegible scrawl>
 I was somebody.  Who, is no business of yours.
+I was too poor to afford a proper epitaph.
 I was wanted dead or alive.  Turned out it was dead.
 I will not go quietly.
 I wonder what deleting 'system32' does?
@@ -306,6 +313,7 @@ Last words are for wimps.
 Let her RIP
 Let it be; I am dead.
 Let me out of here!
+Let this stone be a warning to all who would trouble Minetown
 Let's play Hide the Corpse
 Life is NOT a dream
 Little Timmy drank a potion. Now he is no more. Cause what he thought was H2O was H2SO4.
@@ -378,6 +386,7 @@ Someone set us up the bomb!
 Soon ripe.  Soon rotten.  Soon gone.  But not forgotten.
 Soon you'll join this fellow in hell! -- the Wizard of Yendor
 Sparky -- he was a very good dog
+Stole from the rich, gave to the needy; met his end when he got greedy
 Stop by whenever.  I'm here all day.
 Sum quod eris
 Take my stuff, I don't need it anymore
@@ -392,6 +401,7 @@ The frog's dead.  He Kermitted suicide.
 The only way two people can keep a secret is if one of them is dead.
 The reports of my demise are completely accurate
 The treasure is buried three spaces to the left.
+There is a fine line between bravery and foolishness. Francois here crossed it.
 This dungeon is a pushover
 This elevator doesn't go to Heaven
 This grave is empty because I was killed by a horde of cannibals
@@ -410,6 +420,7 @@ This was actually just a pit, but since there was a corpse, we filled it
 This way to the crypt
 Time Capsule: Do not open until T:4283852
 Tone it down a bit, I'm trying to get some rest here.
+Topple this headstone at your peril.
 Tu quoque, Brute?
 Upgrade to a mausoleum with our premium membership package
 VACANCY

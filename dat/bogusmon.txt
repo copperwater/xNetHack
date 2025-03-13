@@ -11,6 +11,11 @@
 # plus          +  male, personal name
 # vertical bar  |  male, general name
 # equals        =  gender not specified, personal name
+#
+# Personal names won't be treated as a species, which means in most messages
+# they won't automatically get "the" prepended. Imagine the message "You hit
+# [the] [foo]!" If "the" wouldn't make sense there, it should probably be a
+# personal name.
 
 ## Section 1 - stuff derived directly from NetHack
 
@@ -73,12 +78,14 @@ master lichen
 mithril piercer
 mysterious horse
 other hallucinating NetHack character
+rare earth elemental
 rock 'n roll mole
 sergeant ant
 spelling bee
 thoroughly rusty thoroughly corroded iron golem
 violent gem
 voluptuous ampersand
+vrockatrice
 
 # NetHack community: tournaments, webcomics, etc
 +Dudley
@@ -416,7 +423,7 @@ Borg
 Death Star
 Force
 Jedi
-Luke Skywalker
++Luke Skywalker
 animated lightsaber
 astromech droid
 bothan
@@ -726,6 +733,7 @@ flying ice cream truck
 # Dune
 +Baron Harkonnen
 +Muad-Dib
++Kwisatz Haderach
 
 # Yu-Gi-Oh
 blue-eyes white dragon
@@ -796,6 +804,7 @@ Krell
 # A Series of Unfortunate Events
 Incredibly Deadly Viper
 snow gnat
+cakesniffer
 
 # The Far Side
 Tyrannosaurus Mex
@@ -822,7 +831,7 @@ red spider
 
 # Stephen King
 =Captain Tripps
-+Pennywise
++Pennywise the Dancing Clown
 +Randall Flagg
 # not actually from but prominent in "'Salem's Lot"
 Emperor of Ice-Cream
@@ -833,6 +842,7 @@ antagonistic undecagonstring
 
 # Schlock Mercenary
 carbosilicate amorph
+unioc
 
 # The Demented Cartoon Movie
 kamikaze watermelon
@@ -870,6 +880,11 @@ chair of the department of antiquarian esquivalience
 
 # Jojo
 enemy stand
+
+# Dungeon Meshi
+walking mushroom
+dungeon rabbit
+Lord of the Dungeon
 
 ## Section 4 - miscellaneous non-reference things
 
@@ -925,6 +940,7 @@ hippogriff
 jackalope
 kelpie
 monster
+ograbme
 phantom
 phoenix
 wendigo

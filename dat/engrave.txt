@@ -14,7 +14,6 @@ Frodo Lives!
 
 # Helpful guiding
 <--- Go right
-BEWARB
 Do not feed the elephant
 Don't go this way
 Don't look behind you.
@@ -54,6 +53,9 @@ For a good time call 867-5309
 All your castle are belong to us
 Please Excuse The Mess
 You lost The Game.
+Free GoLd IN Next ROOm!!!
+Where is the exit?!
+If you can read this you probably can't see the goblin sneaking up behind you
 
 # Advertising
 Cancel this engraving and win a free prize!
@@ -67,6 +69,7 @@ Team Ant getting you down?  Call Nero's Extermination Service today!
 Got milky potions?
 Try Pengalengan's Green Slime Meringue Pies - The Combustible Comestible
 Lonely? Try one of Madame Ruth's Patented Love Potions - "Taming in a Bottle"
+Visit GutHub - the number one stop for open-source entrails!
 
 # Journey to the Center of the Earth
 A.S. ->
@@ -167,3 +170,12 @@ I write these words in steel, for anything not set in metal cannot be trusted.
 
 # They Might Be Giants
 There's only one thing that you know how to do well, and that's be you
+
+# The Shining
+REDRUM
+
+# Gravity Falls
+BEWARB
+
+# Stand Still, Stay Silent
+Go back. I have bad breath from eating you.
