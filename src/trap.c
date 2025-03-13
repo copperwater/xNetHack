@@ -1,4 +1,4 @@
-/* NetHack 3.7	trap.c	$NHDT-Date: 1720128169 2024/07/04 21:22:49 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.602 $ */
+/* NetHack 3.7	trap.c	$NHDT-Date: 1741926700 2025/03/13 20:31:40 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.621 $ */
 /* Copyright (c) Stichting Mathematisch Centrum, Amsterdam, 1985. */
 /*-Copyright (c) Robert Patrick Rankin, 2013. */
 /* NetHack may be freely redistributed.  See license for details. */
@@ -5711,7 +5711,7 @@ disarm_box(struct obj *box, boolean force, boolean confused)
         } else {
             You("disarm it!");
             box->otrapped = 0;
-            box->tknown = 0;
+            box->tknown = 1;
             more_experienced(8, 0);
             newexplevel();
         }
@@ -6194,7 +6194,8 @@ openfallingtrap(
     return result;
 }
 
-/* only called when the player is doing something to the chest directly */
+/* only called when the player is doing something to the chest directly;
+   returns True if chest is destroyed, False if it remains in play */
 boolean
 chest_trap(
     struct obj *obj,
@@ -6209,9 +6210,9 @@ chest_trap(
     if (get_obj_location(obj, &cc.x, &cc.y, 0)) /* might be carried */
         obj->ox = cc.x, obj->oy = cc.y;
 
-    otmp->tknown = 0;
+    otmp->tknown = 0;   /* for xname(); will be set to 1 below */
     otmp->otrapped = 0; /* trap is one-shot; clear flag first in case
-                           chest kills you and ends up in bones file */
+                         * chest kills you and ends up in bones file */
     You(disarm ? "set it off!" : "trigger a trap!");
     display_nhwindow(WIN_MESSAGE, FALSE);
     if (Luck > -13 && rn2(13 + Luck) > 7) { /* saved by luck */
@@ -6256,7 +6257,7 @@ chest_trap(
         case 21: {
             struct monst *shkp = 0;
             long loss = 0L;
-            boolean costly, insider;
+            boolean costly, insider, chestgone;
             coordxy ox = obj->ox, oy = obj->oy;
 
             /* the obj location need not be that of player */
@@ -6286,28 +6287,35 @@ chest_trap(
                                  && uball->ox == ox && uball->oy == oy)))
                 unpunish();
             /* destroy everything at the spot (the Amulet, the
-               invocation tools, and Rider corpses will remain intact) */
+               invocation tools, and Rider corpses will remain intact);
+               usually the chest will be destroyed along with the stuff at
+               this spot, but not if it is being carried */
+            chestgone = FALSE;
             for (otmp = svl.level.objects[ox][oy]; otmp; otmp = otmp2) {
                 otmp2 = otmp->nexthere;
                 if (costly)
                     loss += stolen_value(otmp, otmp->ox, otmp->oy,
                                          (boolean) shkp->mpeaceful, TRUE);
+                if (otmp == obj)
+                    chestgone = TRUE;
                 delobj(otmp);
             }
             wake_nearby(FALSE);
             losehp(Maybe_Half_Phys(d(6, 6)), buf, KILLED_BY_AN);
             exercise(A_STR, FALSE);
             if (costly && loss) {
-                if (insider)
+                if (insider) {
                     You("owe %ld %s for objects destroyed.", loss,
                         currency(loss));
-                else {
+                } else {
                     You("caused %ld %s worth of damage!", loss,
                         currency(loss));
                     make_angry_shk(shkp, ox, oy);
                 }
             }
-            return TRUE;
+            if (chestgone)
+                return TRUE;
+            break; /* set tknown and return False */
         } /* case 21 */
         case 20:
         case 19:
@@ -6392,6 +6400,7 @@ chest_trap(
         bot(); /* to get immediate botl re-display */
     }
 
+    otmp->tknown = 1; /* hero knows chest is no longer trapped */
     return FALSE;
 }
 

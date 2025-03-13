@@ -2100,6 +2100,9 @@ having a 1% chance of creating rideable monsters with worn saddle gave knights
 	tracked with other objects so produced a trivial memory leak
 when attacking a displacer beast, using the 'F' forcefight prefix prevented it
 	from swapping places with the hero
+successfully disarming a chest trap was clearing the chest's 'tknown' bit
+	instead of setting it; likewise when failing to disarm triggered and
+	used up the trap
 
 
 Fixes to 3.7.0-x Platform and/or Interface Problems Exposed Via git Repository
