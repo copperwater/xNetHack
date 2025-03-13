@@ -85,7 +85,7 @@ $(MAKEDEFS)	: ../util/makedefs.c ../include/config.h ../src/mdlib.c \
 		  ../util/mdgrep.h
 	( cd .. ; make makedefs )
 
-../util/stripbx: ../util/stripbs.c
+../util/stripbs: ../util/stripbs.c
 	( cd .. ; $(MAKE) stripbs )
 
 GAME	= nethack
