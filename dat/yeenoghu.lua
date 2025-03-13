@@ -33,7 +33,7 @@ des.replace_terrain({ fromterrain='.', toterrain='F', chance=3 })
 -- Define areas
 local everything = selection.area(00,00,74,17)
 local allfloor = everything:filter_mapchar('.')
-local yeen_area = selection.circle(67,09, 5, 0)
+local yeen_area = selection.circle(67,09, 5, 0):filter_mapchar('.')
 
 -- Teleport region to constrain arrival to near the stairs
 des.teleport_region({ region={00,00,05,17} })
