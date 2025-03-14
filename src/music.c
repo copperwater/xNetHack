@@ -463,7 +463,7 @@ do_earthquake(int force)
                 }
                 /* wasn't doorless, now it will be */
                 levl[x][y].doormask = D_NODOOR;
-                unblock_point(x, y);
+                recalc_block_point(x, y);
                 newsym(x, y); /* before pline */
                 if (cansee(x, y))
                     pline_The("door collapses.");

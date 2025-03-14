@@ -949,7 +949,7 @@ kick_door(coordxy x, coordxy y, int avrg_attrib)
             gm.maploc->doormask = D_BROKEN;
         }
         feel_newsym(x, y); /* we know we broke it */
-        unblock_point(x, y); /* vision */
+        recalc_block_point(x, y); /* vision */
         if (shopdoor) {
             add_damage(x, y, SHOP_DOOR_COST);
             pay_for_damage("break", FALSE);

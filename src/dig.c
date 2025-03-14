@@ -1435,7 +1435,7 @@ mdig_tunnel(struct monst *mtmp)
         sawit = canseemon(mtmp); /* before door state change and unblock_pt */
         trapped = (here->doormask & D_TRAPPED) ? TRUE : FALSE;
         here->doormask = trapped ? D_NODOOR : D_BROKEN;
-        unblock_point(mtmp->mx, mtmp->my); /* vision */
+        recalc_block_point(mtmp->mx, mtmp->my); /* vision */
         newsym(mtmp->mx, mtmp->my);
         if (trapped) {
             seeit = canseemon(mtmp);

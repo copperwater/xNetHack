@@ -3862,14 +3862,7 @@ wizterrainwish(struct _readobjnam_data *d)
         } else {
             if (u.utrap && u.utraptype == TT_LAVA && !is_lava(u.ux, u.uy))
                 reset_utrap(FALSE);
-
-            if (does_block(x, y, lev)) {
-                if (!didblock)
-                    block_point(x, y);
-            } else {
-                if (didblock)
-                    unblock_point(x, y);
-            }
+            recalc_block_point(x, y);
         }
 
         /* fixups for replaced terrain that aren't handled above */

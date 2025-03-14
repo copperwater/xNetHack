@@ -3443,7 +3443,7 @@ launch_obj(
             }
             levl[x][y].doormask = D_BROKEN;
             if (dist)
-                unblock_point(x, y);
+                recalc_block_point(x, y);
         }
 
         /* if about to hit something, do so now */
