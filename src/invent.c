@@ -3875,8 +3875,8 @@ display_pickinv(
         Sprintf(invheading, "Inventory: %d/%d weight (%d/52 slots)",
                 inv_weight() + wcap, wcap, inv_cnt(FALSE));
         any = cg.zeroany;
-        add_menu(win, &nul_glyphinfo, &any, 0, 0, ATR_BOLD, 0, invheading,
-                 MENU_ITEMFLAGS_NONE);
+        add_menu(win, &nul_glyphinfo, &any, 0, 0, ATR_BOLD, NO_COLOR,
+                 invheading, MENU_ITEMFLAGS_NONE);
     }
 
  nextclass:
