@@ -3215,6 +3215,7 @@ set_trap(void)
         if (otmp->quan > 1) {
             otmp = splitobj(otmp, 1);
         }
+        setnotworn(otmp); /* in case it was wielded or uswapwep */
         freeinv(otmp);
         set_trap_ammo(ttmp, otmp);
 
