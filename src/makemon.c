@@ -1907,6 +1907,7 @@ cmp_init_mongen_order(const void *p1, const void *p2)
 staticfn void
 check_mongen_order(void)
 {
+#if (NH_DEVEL_STATUS != NH_STATUS_RELEASED)
     int i, diff = 0;
     char mlet = '\0';
     for (i = LOW_PM; i < SPECIAL_PM; i++) {
@@ -1924,6 +1925,7 @@ check_mongen_order(void)
             diff = 0;
         }
     }
+#endif // (NH_DEVEL_STATUS != NH_STATUS_RELEASED)
 }
 
 /* initialize monster order for mkclass */
@@ -1942,13 +1944,9 @@ init_mongen_order(void)
         if ((xint8) (mons[i].geno & G_FREQ) > mclass_maxf[mlet])
             mclass_maxf[mlet] = (xint8) (mons[i].geno & G_FREQ);
     }
-#if (NH_DEVEL_STATUS != NH_STATUS_RELEASED)
     check_mongen_order();
-#endif
     qsort((genericptr_t) mongen_order, SPECIAL_PM, sizeof(int), cmp_init_mongen_order);
-#if (NH_DEVEL_STATUS != NH_STATUS_RELEASED)
     check_mongen_order();
-#endif
 }
 
 #define MONSi(i) (mongen_order[i])
