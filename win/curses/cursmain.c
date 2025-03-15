@@ -976,11 +976,6 @@ curses_print_glyph(
         ch = curses_convert_glyph(ch, glyph);
 
     if (wid == NHW_MAP) {
-/* hilite stairs not in 3.6, yet
-        if ((special & MG_STAIRS) && iflags.hilite_hidden_stairs) {
-            color = 16 + (color * 2);
-        } else
-*/
         if ((special & MG_OBJPILE) && iflags.hilite_pile) {
             if (iflags.wc_color)
                 color = get_framecolor(color, CLR_BLUE);
@@ -1006,7 +1001,7 @@ curses_print_glyph(
 #ifdef ENHANCED_SYMBOLS
                  (SYMHANDLING(H_UTF8)
                   && glyphinfo->gm.u && glyphinfo->gm.u->utf8str)
-                      ? glyphinfo->gm.u : NULL, 
+                      ? glyphinfo->gm.u : NULL,
 #endif
                  (nhcolor != 0) ? nhcolor : color,
                  bkglyphinfo->framecolor, attr);

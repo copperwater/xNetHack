@@ -1114,8 +1114,7 @@ enum glyph_offsets {
 #define MG_FEMALE  0x02000  /* represents a female mon or statue of one */
 #define MG_BADXY   0x04000  /* bad coordinates were passed */
 /* xNetHack added ones start here */
-#define MG_STAIRS  0x08000  /* hidden stairs */
-#define MG_PEACEFUL 0x10000 /* peaceful monster */
+#define MG_PEACEFUL 0x08000 /* peaceful monster */
 
 /* docrt(): re-draw whole screen; docrt_flags(): docrt() with more control */
 enum docrt_flags_bits {

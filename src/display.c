@@ -2686,13 +2686,14 @@ map_glyphinfo(
     /* NetHack 3.7 commit 1f6c1d0 instated a system in which variants of a
      * single S_foo defsym that should render as different colors in text
      * windowports now need to be their own glyphs, optionally allowing each
-     * glyph to be its own tile. (This is how altars are now treated.)
-     * xNetHack has additional color variants of a single defsym (iron doors and
-     * most notably object materials) which were not covered by this change, so
-     * for the time being the on-the-fly color computations have been re-added
-     * here. Likely the ones for object materials will be permanent, since
-     * adding glyphs and tiles for every material variant of every object would
-     * be an enormous amount of work. */
+     * glyph to be its own tile. (This is how altars are now treated, and in
+     * xNetHack magic platforms and engravings also use that method.)
+     * xNetHack has additional color variants of a single defsym (most notably
+     * object materials, but also colored walls and floors) which were not
+     * covered by this change, so for the time being, the on-the-fly color
+     * computations have been re-added here. Likely the ones for object
+     * materials will be permanent, since adding glyphs and tiles for every
+     * material variant of every object would be an enormous amount of work. */
     /* isok is used because this is sometimes called with 0,0 */
     if (iflags.use_color && isok(x, y)) {
         /* object or statue, which might be made of a non-default material or on
@@ -2703,8 +2704,6 @@ map_glyphinfo(
             if (otmp) {
                 if (otmp && otmp->material != objects[otmp->otyp].oc_material)
                     glyphinfo->gm.sym.color = materialclr[otmp->material];
-                if (On_stairs(x,y))
-                    glyphinfo->gm.glyphflags |= MG_STAIRS;
             }
             /* !otmp is not actually impossible, because this is called from
              * tmp_at(), in which an object is flying through the air above
