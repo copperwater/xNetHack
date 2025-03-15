@@ -438,7 +438,8 @@ demon_talk(struct monst *mtmp)
      * has reached them, since they do not want to end up dead. */
     demand = d(50,1000);
     cash = money_cnt(gi.invent);
-    verbalize("Mortal, if thou canst pay, I shall not hinder thee later.");
+    verbalize("Mortal, if thou canst pay, I shall not hinder thee %s.",
+              u.uevent.uamultouch ? "further" : "later");
 
     /* First, they may want some of your valuables more than gold. See if they
      * do. */
