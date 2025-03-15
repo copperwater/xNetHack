@@ -662,6 +662,9 @@ early_options(int *argc_p, char ***argv_p, char **hackdir_p)
             } else if (argcheck(argc, argv, ARG_DUMPMONGEN) == 2) {
                 opt_terminate();
                 /*NOTREACHED*/
+            } else if (argcheck(argc, argv, ARG_DUMPWEIGHTS) == 2) {
+                opt_terminate();
+                /*NOTREACHED*/
             } else {
 #ifdef CHDIR
                 oldargc = argc;
