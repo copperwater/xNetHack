@@ -2972,7 +2972,7 @@ extern void flip_level_rnd(int, boolean);
 extern boolean check_room(coordxy *, coordxy *, coordxy *, coordxy *, boolean) NONNULLPTRS;
 extern boolean create_room(coordxy, coordxy, coordxy, coordxy,
                            coordxy, coordxy, xint16, xint16);
-extern boolean dig_corridor(coord *, coord *, boolean, schar, schar) NONNULLARG12;
+extern boolean dig_corridor(coord *, coord *, int *, boolean, schar, schar) NONNULLARG12;
 extern void fill_special_room(struct mkroom *) NO_NNARGS;
 extern void wallify_map(coordxy, coordxy, coordxy, coordxy);
 extern boolean load_special(const char *) NONNULLARG1;

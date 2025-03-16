@@ -2535,10 +2535,12 @@ search_door(
  * Dig a corridor between two points, using terrain ftyp.
  * if nxcor is TRUE, he corridor may be blocked by a boulder,
  * or just end without reaching the destination.
+ * if not null, npoints has the number of map locations used
  */
 boolean
 dig_corridor(
     coord *org, coord *dest,
+    int *npoints,
     boolean nxcor,
     schar ftyp, schar btyp)
 {
@@ -2546,6 +2548,8 @@ dig_corridor(
     struct rm *crm;
     int tx, ty, xx, yy;
 
+    if (npoints)
+        *npoints = 0;
     xx = org->x;
     yy = org->y;
     tx = dest->x;
@@ -2582,8 +2586,12 @@ dig_corridor(
         crm = &levl[xx][yy];
         if (crm->typ == btyp) {
             if (ftyp == CORR && maybe_sdoor(100)) {
+                if (npoints)
+                    (*npoints)++;
                 crm->typ = SCORR;
             } else {
+                if (npoints)
+                    (*npoints)++;
                 crm->typ = ftyp;
                 if (nxcor && !rn2(50))
                     (void) mksobj_at(BOULDER, xx, yy, TRUE, FALSE);
@@ -2704,7 +2712,7 @@ create_corridor(corridor *c)
             dest.x++;
             break;
         }
-        (void) dig_corridor(&org, &dest, FALSE, CORR, STONE);
+        (void) dig_corridor(&org, &dest, NULL, FALSE, CORR, STONE);
     }
 }
 
