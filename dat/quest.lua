@@ -36,7 +36,7 @@ function written_in_Book()
    elseif role == 'Caveman' then
       return 'painted in the Sacred Caves'
    elseif role == 'Healer' then
-      return 'taught in the School'
+      return 'taught in the Schools'
    elseif role == 'Knight' then
       return 'told in the Legends'
    elseif role == 'Monk' then
@@ -44,9 +44,9 @@ function written_in_Book()
    elseif role == 'Priest' then
       return 'catechized in the Temples'
    elseif role == 'Ranger' then
-      return 'remembered in the Grove'
+      return 'remembered in the Groves'
    elseif role == 'Rogue' then
-      return 'whispered in the Secret History'
+      return 'whispered in the Secret Histories'
    elseif role == 'Samurai' then
       return 'illustrated in the Emakimono'
    elseif role == 'Tourist' then
