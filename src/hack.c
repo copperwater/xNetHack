@@ -4348,6 +4348,8 @@ dump_weights(void)
                     ? "wand of "
                 : objects[weightlist[cnt].idx].oc_class == SCROLL_CLASS
                     ? "scroll of "
+                : objects[weightlist[cnt].idx].oc_class == RING_CLASS
+                    ? "ring of "
                 : (objects[weightlist[cnt].idx].oc_class == SPBOOK_CLASS
                     && objects[weightlist[cnt].idx].oc_name_idx != SPE_BOOK_OF_THE_DEAD)
                     ? "spellbook of "
