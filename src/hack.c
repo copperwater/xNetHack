@@ -4296,7 +4296,7 @@ check_capacity(const char *str)
 
 struct weight_table_entry {
     unsigned wtyp; /* 1 = monst, 2 = obj */
-    const char *nm;
+    const char *nm; /* 0-6 = weight in ascii; 7 - end = name */
     int wt, idx;
     boolean unique;
 };
@@ -4308,34 +4308,56 @@ dump_weights(void)
 {
     int i, cnt = 0, nmwidth = 49, mcount = NUMMONS, ocount = NUM_OBJECTS;
     char nmbuf[BUFSZ], nmbufbase[BUFSZ];
-    struct obj o = cg.zeroobj;
 
     weightlist = (struct weight_table_entry *) alloc(sizeof(struct weight_table_entry)
                                                * (mcount + ocount));
     decl_globals_init();
     init_objects();
-    o.quan = 1;
-    o.known = o.dknown == 1;
     for (i = 0; i < mcount; ++i) {
         if (i != PM_LONG_WORM_TAIL) {
+            boolean cm;
+
+            weightlist[cnt].wt = (int) mons[i].cwt;
             weightlist[cnt].idx = i;
             weightlist[cnt].wtyp = 1;
-            weightlist[cnt].nm = dupstr(mons[i].pmnames[NEUTRAL]);
-            weightlist[cnt].wt = (int) mons[i].cwt;
             weightlist[cnt].unique = ((mons[i].geno & G_UNIQ) != 0);
+            Snprintf(nmbuf, sizeof nmbuf, "%07u", weightlist[cnt].wt);
+            cm = CapitalMon(mons[i].pmnames[NEUTRAL]);
+            Snprintf(&nmbuf[7], sizeof nmbuf - 7, "%s%s", "the body of ",
+                     (cm)                     ? the(mons[i].pmnames[NEUTRAL])
+                     : weightlist[cnt].unique ? mons[i].pmnames[NEUTRAL]
+                                              : an(mons[i].pmnames[NEUTRAL]));
+            weightlist[cnt].nm = dupstr(nmbuf);
             cnt++;
         }
     }
     for (i = 0; i < ocount; ++i) {
         int wt = (int) objects[i].oc_weight;
+
         if (wt && i != SLIME_MOLD && obj_descr[i].oc_name) {
             weightlist[cnt].idx = i;
-            o.otyp = i;
-            o.oclass = objects[i].oc_class;
+            weightlist[cnt].wt = wt;
             weightlist[cnt].wtyp = 2;
-            weightlist[cnt].nm = dupstr(obj_descr[i].oc_name);
             weightlist[cnt].wt = wt;
             weightlist[cnt].unique = (objects[i].oc_unique != 0);
+            Snprintf(
+                nmbufbase, sizeof nmbufbase, "%s%s",
+                objects[weightlist[cnt].idx].oc_class == POTION_CLASS
+                    ? "potion of "
+                : objects[weightlist[cnt].idx].oc_class == WAND_CLASS
+                    ? "wand of "
+                : objects[weightlist[cnt].idx].oc_class == SCROLL_CLASS
+                    ? "scroll of "
+                : (objects[weightlist[cnt].idx].oc_class == SPBOOK_CLASS
+                    && objects[weightlist[cnt].idx].oc_name_idx != SPE_BOOK_OF_THE_DEAD)
+                    ? "spellbook of "
+                    : "",
+               obj_descr[weightlist[cnt].idx].oc_name);
+            Snprintf(nmbuf, sizeof nmbuf, "%07u", wt);
+            Snprintf(&nmbuf[7], sizeof nmbuf - 7, "%s",
+                        (weightlist[cnt].unique) ? the(nmbufbase)
+                                            : an(nmbufbase));
+            weightlist[cnt].nm = dupstr(nmbuf);
             cnt++;
         }
     }
@@ -4343,32 +4365,12 @@ dump_weights(void)
           sizeof (struct weight_table_entry), cmp_weights);
     raw_printf("int all_weights[] = {");
     for (i = 0; i < cnt; ++i) {
-        if (weightlist[i].wtyp == 1) {
-            boolean cm = CapitalMon(weightlist[i].nm);
-
-            Snprintf(nmbuf, sizeof nmbuf, "%s%s", "the body of ",
-                     (cm)                   ? the(weightlist[i].nm)
-                     : weightlist[i].unique ? weightlist[i].nm
-                                            : an(weightlist[i].nm));
-        } else {
-            Snprintf(nmbufbase, sizeof nmbufbase, "%s%s",
-                     objects[weightlist[i].idx].oc_class == POTION_CLASS
-                         ? "potion of "
-                     : objects[weightlist[i].idx].oc_class == WAND_CLASS
-                         ? "wand of "
-                     : objects[weightlist[i].idx].oc_class == SCROLL_CLASS
-                         ? "scroll of " 
-                     : objects[weightlist[i].idx].oc_class == SPBOOK_CLASS
-                         ? "spellbook of "
-                         : "",
-                     weightlist[i].nm);
-            Snprintf(nmbuf, sizeof nmbuf, "%s",
-                     (weightlist[i].unique) ? the(nmbufbase) : an(nmbufbase));
-        }
-        raw_printf("    %7u%s /* %*s */", weightlist[i].wt,
-                   (i == cnt - 1) ? " " : ",", -nmwidth, nmbuf);
-        if (weightlist[i].nm)
+        if (weightlist[i].nm) {
+            raw_printf("    %7u%s /* %*s */", weightlist[i].wt,
+                       (i == cnt - 1) ? " " : ",", -nmwidth,
+                       &weightlist[i].nm[7]);
             free((genericptr_t) weightlist[i].nm), weightlist[i].nm = 0;
+        }
     }
     raw_print("};");
     raw_print("");
@@ -4381,17 +4383,9 @@ cmp_weights(const void *p1, const void *p2)
 {
     struct weight_table_entry *i1 = (struct weight_table_entry *) p1,
                               *i2 = (struct weight_table_entry *) p2;
-    int x1 = i1->wt << 17, x2 = i2->wt << 17,
-        t1 = ((i1->wtyp == 1) ? 0 : 1) << 16,
-        t2 = ((i2->wtyp == 1) ? 0 : 1) << 16;
 
-    x1 |= t1 | ((i1->nm != 0) ? i1->nm[0] : 0) << 8;
-    x2 |= t2 | ((i2->nm != 0) ? i2->nm[0] : 0) << 8;
-
-    x1 |= ((i1->nm != 0) ? i1->nm[1] : 0);
-    x2 |= ((i2->nm != 0) ? i2->nm[1] : 0);
-
-    return (x1 - x2);
+   /* return (i1->wt - i2->wt); */
+    return strcmp(i1->nm, i2->nm);
 }
 
 int
