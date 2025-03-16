@@ -868,6 +868,12 @@ enum stoning_checks {
     st_all = (st_gloves | st_corpse | st_petrifies | st_resists)
 };
 
+struct throw_and_return_weapon {
+    short otyp;
+    int range;
+    Bitfield(tethered, 1);
+};
+
 struct trapinfo {
     struct obj *tobj;
     coordxy tx, ty;

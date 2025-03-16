@@ -493,20 +493,37 @@ oselect(struct monst *mtmp, int type)
     return (struct obj *) 0;
 }
 
-/* TODO: have monsters use aklys' throw-and-return */
 static NEARDATA const int rwep[] = {
     DWARVISH_SPEAR, SILVER_SPEAR, ELVEN_SPEAR, SPEAR, ORCISH_SPEAR, JAVELIN,
     SHURIKEN, YA, SILVER_ARROW, ELVEN_ARROW, ARROW, ORCISH_ARROW,
     CROSSBOW_BOLT, SILVER_DAGGER, ELVEN_DAGGER, DAGGER, ORCISH_DAGGER, KNIFE,
-    FLINT, ROCK, LOADSTONE, LUCKSTONE, DART,
-    /* BOOMERANG, */ CREAM_PIE
+    FLINT, ROCK, LOADSTONE, LUCKSTONE, DART, CREAM_PIE,
 };
 
+/* polearms */
 static NEARDATA const int pwep[] = { HALBERD,       BARDICHE, SPETUM,
                                      BILL_GUISARME, VOULGE,   RANSEUR,
                                      GUISARME,      GLAIVE,   LUCERN_HAMMER,
                                      BEC_DE_CORBIN, FAUCHARD, PARTISAN,
                                      LANCE };
+
+/* throw-and-return weapons */
+static NEARDATA const struct throw_and_return_weapon arwep[] = {
+    /* { BOOMERANG, 5, 0 }, */
+    { AKLYS, (BOLT_LIM / 2), 1 },
+};
+
+const struct throw_and_return_weapon *
+autoreturn_weapon(struct obj *otmp)
+{
+    int i;
+
+    for (i = 0; i < SIZE(arwep); i++) {
+        if (otmp->otyp == arwep[i].otyp)
+            return &arwep[i];
+    }
+    return (struct throw_and_return_weapon *) 0;
+}
 
 /* select a ranged weapon for the monster */
 struct obj *
@@ -557,9 +574,31 @@ select_rwep(struct monst *mtmp)
             }
         }
     }
+    /* Next, try to select a throw-and-return weapon, since they are
+     * also not as expendable. Again, don't pick one if monster's
+     * weapon is welded.
+     */
+    for (i = 0; i < SIZE(arwep); i++) {
+        const struct throw_and_return_weapon *arw = &arwep[i];
+
+        if (!mindless(mtmp->data) && !is_animal(mtmp->data) && !mweponly
+            && dist2(mtmp->mx, mtmp->my, mtmp->mux, mtmp->muy) <= arw->range
+            && couldsee(mtmp->mx, mtmp->my)) {
+            if ((((mtmp->misc_worn_check & W_ARMS) == 0)
+                 || !objects[arw->otyp].oc_bimanual)
+                && (objects[arw->otyp].oc_material != SILVER
+                    || !mon_hates_silver(mtmp))) {
+                if ((otmp = oselect(mtmp, arw->otyp)) != 0
+                    && (otmp == mwep || !mweponly)) {
+                    gp.propellor = otmp; /* force the monster to wield it */
+                    return otmp;
+                }
+            }
+        }
+    }
 
     /*
-     * other than these two specific cases, always select the
+     * other than the specific cases above, always select the
      * most potent ranged weapon to hand.
      */
     for (i = 0; i < SIZE(rwep); i++) {
@@ -840,10 +879,15 @@ mon_wield_item(struct monst *mon)
         mon->weapon_check = NEED_WEAPON;
         if (canseemon(mon)) {
             boolean newly_welded;
+            const struct throw_and_return_weapon *arw;
 
             pline_mon(mon, "%s wields %s%c",
                       Monnam(mon), doname(obj),
                       exclaim ? '!' : '.');
+            if ((arw = autoreturn_weapon(obj)) != 0 && arw->tethered != 0)
+                pline_mon(mon, "%s secures the tether on %s.", Monnam(mon),
+                          the(xname(obj)));
+
             /* 3.6.3: mwelded() predicate expects the object to have its
                W_WEP bit set in owormmask, but the pline here and for
                artifact_light don't want that because they'd have '(weapon

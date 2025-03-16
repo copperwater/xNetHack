@@ -23,7 +23,7 @@ staticfn int postmov(struct monst *, struct permonst *, coordxy, coordxy, int,
                      unsigned, boolean, boolean, boolean) NONNULLPTRS;
 staticfn boolean leppie_avoidance(struct monst *);
 staticfn void leppie_stash(struct monst *);
-staticfn boolean m_balks_at_approaching(struct monst *);
+staticfn int m_balks_at_approaching(int, struct monst *, int *, int *);
 staticfn boolean stuff_prevents_passage(struct monst *);
 staticfn int vamp_shift(struct monst *, struct permonst *, boolean);
 staticfn void maybe_spin_web(struct monst *);
@@ -1170,32 +1170,57 @@ leppie_stash(struct monst *mtmp)
     }
 }
 
-/* does monster want to avoid you? */
-staticfn boolean
-m_balks_at_approaching(struct monst *mtmp)
+/* does monster want to avoid you? 
+ *  returns the original value of appr if not.
+ *  returns -1 if so.
+ *  returns -2 if monster wants to adhere to a particular range,
+ *             which may actually be further away,
+ *             and sets *pdistmin and *pdistmax to describe that range
+ */
+staticfn int
+m_balks_at_approaching(int oldappr, struct monst *mtmp, int *pdistmin,
+                       int *pdistmax)
 {
+    struct obj *mwep = MON_WEP(mtmp);
+    coordxy x = mtmp->mx, y = mtmp->my, ux = mtmp->mux, uy = mtmp->muy;
+    int edist = dist2(x, y, ux, uy);
+    const struct throw_and_return_weapon *arw;
+
+    if (pdistmin)
+        *pdistmin = 0;
+    if (pdistmax)
+        *pdistmax = 0;
+
     /* peaceful, far away, or can't see you */
-    if (mtmp->mpeaceful
-        || (dist2(mtmp->mx, mtmp->my, mtmp->mux, mtmp->muy) >= 5*5)
-        || !m_canseeu(mtmp))
-        return FALSE;
+    if (mtmp->mpeaceful || (edist >= 5 * 5) || !m_canseeu(mtmp))
+        return oldappr;
 
     /* has ammo+launcher */
     if (m_has_launcher_and_ammo(mtmp))
-        return TRUE;
+        return -1;
 
     /* is using a polearm and in range */
     if (MON_WEP(mtmp) && is_pole(MON_WEP(mtmp))
-        && dist2(mtmp->mx, mtmp->my, mtmp->mux, mtmp->muy) <= MON_POLE_DIST)
-        return TRUE;
+        && edist <= MON_POLE_DIST)
+        return -1;
+
+    /* is using a throw-and-return weapon; provide min and max preferred range
+     */
+    if (mwep && (arw = autoreturn_weapon(mwep)) != 0) {
+        if (pdistmin)
+            *pdistmin = 2 * 2;
+        if (pdistmax)
+            *pdistmax = arw->range * arw->range;
+        return -2;
+    }
 
     /* can attack from distance, and hp loss or attack not used */
     if (ranged_attk_available(mtmp)
         && ((mtmp->mhp < (mtmp->mhpmax+1) / 3)
             || !mtmp->mspec_used))
-        return TRUE;
+        return -1;
 
-    return FALSE;
+    return oldappr; /* leaves appr unchanged */
 }
 
 staticfn boolean
@@ -1697,7 +1722,8 @@ m_move(struct monst *mtmp, int after)
     boolean better_with_displacing = FALSE;
     unsigned seenflgs;
     struct permonst *ptr;
-    int chi, mmoved = MMOVE_NOTHING; /* not strictly nec.: chi >= 0 will do */
+    int chi, mmoved = MMOVE_NOTHING, /* not strictly nec.: chi >= 0 will do */
+        preferredrange_min = 0, preferredrange_max = 0; 
     long info[9];
     long flag;
     coordxy omx = mtmp->mx, omy = mtmp->my;
@@ -1848,8 +1874,7 @@ m_move(struct monst *mtmp, int after)
             appr = -1;
 
         /* hostiles with ranged weapon or attack try to stay away */
-        if (m_balks_at_approaching(mtmp))
-            appr = -1;
+        appr = m_balks_at_approaching(appr, mtmp, &preferredrange_min, &preferredrange_max);
 
         if (!should_see && can_track(ptr)) {
             coord *cp;
@@ -1942,7 +1967,11 @@ m_move(struct monst *mtmp, int after)
             nearer = ((ndist = dist2(nx, ny, ggx, ggy)) < nidist);
 
             if ((appr == 1 && nearer) || (appr == -1 && !nearer)
-                || (!appr && !rn2(++chcnt)) || (mmoved == MMOVE_NOTHING)) {
+                || (!appr && !rn2(++chcnt))
+                || (appr == -2
+                    && ((ndist <= preferredrange_min && !nearer)
+                        || (ndist >= preferredrange_max && nearer)))
+                || (mmoved == MMOVE_NOTHING)) {
                 nix = nx;
                 niy = ny;
                 nidist = ndist;

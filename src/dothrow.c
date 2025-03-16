@@ -1476,10 +1476,11 @@ throwit(struct obj *obj,
 {
     struct monst *mon;
     int range, urange;
+    const struct throw_and_return_weapon *arw = autoreturn_weapon(obj);
     boolean crossbowing,
             impaired = (Confusion || Stunned || Blind
                         || Hallucination || Fumbling),
-            tethered_weapon = (obj->otyp == AKLYS && (wep_mask & W_WEP) != 0);
+            tethered_weapon = (arw && arw->tethered && (wep_mask & W_WEP) != 0);
 
     gn.notonhead = FALSE; /* reset potentially stale value */
     if ((obj->cursed || obj->greased) && (u.dx || u.dy) && !rn2(7)) {
@@ -1616,9 +1617,9 @@ throwit(struct obj *obj,
         else if (is_art(obj, ART_MJOLLNIR))
             range = (range + 1) / 2; /* it's heavy */
         else if (tethered_weapon) /* primary weapon is aklys */
-            /* if an aklys is going to return, range is limited by the
+            /* range of a tethered_weapon is limited by the
                length of the attached cord [implicit aspect of item] */
-            range = min(range, BOLT_LIM / 2);
+            range = min(range, arw->range);
         else if (obj == uball && u.utrap && u.utraptype == TT_INFLOOR)
             range = 1;
 

@@ -3648,6 +3648,8 @@ extern int weapon_hit_bonus(struct obj *) NO_NNARGS;
 extern int weapon_dam_bonus(struct obj *) NO_NNARGS;
 extern void skill_init(const struct def_skill *) NONNULLARG1;
 extern void setmnotwielded(struct monst *, struct obj *) NONNULLARG1;
+extern const struct throw_and_return_weapon *autoreturn_weapon(struct obj *)
+    NONNULLARG1;
 
 /* ### were.c ### */
 

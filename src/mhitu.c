@@ -470,7 +470,7 @@ mattacku(struct monst *mtmp)
     struct permonst *mdat = mtmp->data;
     /*
      * ranged: Is it near you?  Affects your actions.
-     * ranged2: Does it think it's near you?  Affects its actions.
+     * range2: Does it think it's near you?  Affects its actions.
      * foundyou: Is it attacking you or your image?
      * youseeit: Can you observe the attack?  It might be attacking your
      *     image around the corner, or invisible, or you might be blind.
@@ -497,11 +497,10 @@ mattacku(struct monst *mtmp)
             return 0;
         u.ustuck->mux = u.ux;
         u.ustuck->muy = u.uy;
-        range2 = 0;
-        foundyou = 1;
         if (u.uinvulnerable)
             return 0; /* stomachs can't hurt you! */
-
+        range2 = 0;
+        foundyou = 1;
     } else if (u.usteed) {
         if (mtmp == u.usteed)
             /* Your steed won't attack you */
