@@ -642,9 +642,9 @@ m_throw(
              * X rn2(100) chance of returning to thrower's location.
              * X if impaired and rn2(100) == 0,
              *      -50/50 chance of landing on the ground.
-             *      -50/50 chance of hitting the thrower and causing 
+             *      -50/50 chance of hitting the thrower and causing
              *       rnd(3) damage.
-             * 
+             *
              */
         }
     }
