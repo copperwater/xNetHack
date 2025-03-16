@@ -94,7 +94,7 @@ good_rm_wall_doorpos(coordxy x, coordxy y, int dir, struct mkroom *room)
 
     rmno = (room - svr.rooms) + ROOMOFFSET;
 
-    if (rmno != levl[tx][ty].roomno)
+    if (rmno != (int) levl[tx][ty].roomno)
         return FALSE;
 
     return TRUE;
