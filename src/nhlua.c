@@ -1021,9 +1021,18 @@ char *
 get_table_str_opt(lua_State *L, const char *name, char *defval)
 {
     const char *ret;
+    int ltyp;
 
     lua_getfield(L, -1, name);
-    ret = luaL_optstring(L, -1, defval);
+    ltyp = lua_type(L, -1);
+    if (ltyp == LUA_TSTRING || ltyp == LUA_TNIL) {
+        ret = luaL_optstring(L, -1, defval);
+    } else if (ltyp == LUA_TFUNCTION) {
+        nhl_pcall_handle(L, 0, 1, "get_table_str_opt", NHLpa_panic);
+        ret = luaL_optstring(L, -1, defval);
+    } else {
+        nhl_error(L, "get_table_str_opt: no string");
+    }
     if (ret) {
         lua_pop(L, 1);
         return dupstr(ret);
