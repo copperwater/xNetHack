@@ -1210,7 +1210,7 @@ m_balks_at_approaching(int oldappr, struct monst *mtmp, int *pdistmin,
         if (pdistmin)
             *pdistmin = 2 * 2;
         if (pdistmax)
-            *pdistmax = arw->range * arw->range;
+            *pdistmax = arw->range;
         return -2;
     }
 

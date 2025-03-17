@@ -507,10 +507,11 @@ static NEARDATA const int pwep[] = { HALBERD,       BARDICHE, SPETUM,
                                      BEC_DE_CORBIN, FAUCHARD, PARTISAN,
                                      LANCE };
 
+#define AKLYS_LIM (BOLT_LIM / 2)
 /* throw-and-return weapons */
 static NEARDATA const struct throw_and_return_weapon arwep[] = {
     /* { BOOMERANG, 5, 0 }, */
-    { AKLYS, (BOLT_LIM / 2), 1 },
+    { AKLYS, AKLYS_LIM * AKLYS_LIM, 1 },
 };
 
 const struct throw_and_return_weapon *
@@ -1778,5 +1779,20 @@ setmnotwielded(struct monst *mon, struct obj *obj)
         MON_NOWEP(mon);
     obj->owornmask &= ~W_WEP;
 }
+
+#undef PN_BARE_HANDED
+#undef PN_RIDING
+#undef PN_POLEARMS
+#undef PN_SABER
+#undef PN_HAMMER
+#undef PN_WHIP
+#undef PN_ATTACK_SPELL
+#undef PN_HEALING_SPELL
+#undef PN_DIVINATION_SPELL
+#undef PN_ENCHANTMENT_SPELL
+#undef PN_CLERIC_SPELL
+#undef PN_ESCAPE_SPELL
+#undef PN_MATTER_SPELL
+#undef AKLYS_LIM
 
 /*weapon.c*/
