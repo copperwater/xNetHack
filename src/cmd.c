@@ -5473,6 +5473,8 @@ doholidays(void)
         putstr(win, 0, "Valentine's Day");
     if (holidays & HOLIDAY_PI_DAY)
         putstr(win, 0, "Pi Day");
+    if (holidays & HOLIDAY_PI_DAY)
+        putstr(win, 0, "The Ides of March");
     if (holidays & HOLIDAY_APRIL_FOOLS)
         putstr(win, 0, "April Fools' Day");
     if (holidays & HOLIDAY_EASTER)

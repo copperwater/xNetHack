@@ -912,6 +912,9 @@ maybe_festive_fruit(void)
         foods[idx++] = "irrational pie";
         foods[idx++] = "perfectly circular pie";
     }
+    if (holiday & HOLIDAY_IDES_OF_MARCH) {
+        foods[idx++] = "Caesar salad";
+    }
     if (holiday & HOLIDAY_EASTER) {
         foods[idx++] = "easter egg";
         foods[idx++] = "chocolate bunny";

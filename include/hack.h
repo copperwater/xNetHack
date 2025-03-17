@@ -1493,6 +1493,7 @@ typedef uint32_t mmflags_nht;     /* makemon MM_ flags */
 #define HOLIDAY_LOS_MUERTOS    0x08000
 #define HOLIDAY_MARDI_GRAS     0x10000
 #define HOLIDAY_GROUNDHOG_DAY  0x20000
+#define HOLIDAY_IDES_OF_MARCH  0x40000
 
 /* message flags for dump_container() */
 #define DUMPCONT_NORMAL 0x0

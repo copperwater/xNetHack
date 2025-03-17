@@ -22,6 +22,8 @@ changes:
 
 ### Gameplay changes
 
+- The Ides of March (March 15th) is recognized as one of the in-game holidays,
+  and slime molds will generate as "Caesar salads" on that day.
 
 ### Interface changes
 
