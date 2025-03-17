@@ -622,11 +622,14 @@ doengrave_sfx_item_WAN(struct _doengrave_ctx *de)
             de->dengr = TRUE;
         }
         break;
+    case WAN_PROBING:
+        Sprintf(de->post_engr_text, "You probe the bugs on the floor.");
+        de->postknown = TRUE;
+        break;
     case WAN_NOTHING:
     case WAN_UNDEAD_TURNING:
     case WAN_OPENING:
     case WAN_LOCKING:
-    case WAN_PROBING:
         break;
         /* RAY wands */
     case WAN_MAGIC_MISSILE:
