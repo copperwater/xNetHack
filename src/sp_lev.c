@@ -653,6 +653,8 @@ flip_level(
         if (flp & 2)
             mtmp->mx = FlipX(mtmp->mx);
 
+        Flip_coord(mtmp->mgoal);
+
         if (mtmp->ispriest) {
             Flip_coord(EPRI(mtmp)->shrpos);
         } else if (mtmp->isshk) {
