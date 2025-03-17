@@ -1619,7 +1619,7 @@ throwit(struct obj *obj,
         else if (tethered_weapon) /* primary weapon is aklys */
             /* range of a tethered_weapon is limited by the
                length of the attached cord [implicit aspect of item] */
-            range = min(range, arw->range);
+            range = min(range, isqrt(arw->range));
         else if (obj == uball && u.utrap && u.utraptype == TT_INFLOOR)
             range = 1;
 
