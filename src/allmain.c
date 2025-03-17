@@ -1,4 +1,4 @@
-/* NetHack 3.7	allmain.c	$NHDT-Date: 1726894914 2024/09/21 05:01:54 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.261 $ */
+/* NetHack 3.7	allmain.c	$NHDT-Date: 1742207239 2025/03/17 02:27:19 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.275 $ */
 /* Copyright (c) Stichting Mathematisch Centrum, Amsterdam, 1985. */
 /*-Copyright (c) Robert Patrick Rankin, 2012. */
 /* NetHack may be freely redistributed.  See license for details. */
@@ -687,7 +687,7 @@ init_sound_disp_gamewindows(void)
 
     WIN_MESSAGE = create_nhwindow(NHW_MESSAGE);
     if (VIA_WINDOWPORT()) {
-        status_initialize(0);
+        status_initialize(FALSE);
     } else {
         WIN_STATUS = create_nhwindow(NHW_STATUS);
     }
