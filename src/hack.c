@@ -4309,8 +4309,8 @@ dump_weights(void)
     int i, cnt = 0, nmwidth = 49, mcount = NUMMONS, ocount = NUM_OBJECTS;
     char nmbuf[BUFSZ], nmbufbase[BUFSZ];
 
-    weightlist = (struct weight_table_entry *) alloc(sizeof(struct weight_table_entry)
-                                               * (mcount + ocount));
+    weightlist = (struct weight_table_entry *)
+                alloc(sizeof (struct weight_table_entry) * (mcount + ocount));
     decl_globals_init();
     init_objects();
     for (i = 0; i < mcount; ++i) {
@@ -4332,33 +4332,29 @@ dump_weights(void)
         }
     }
     for (i = 0; i < ocount; ++i) {
-        int wt = (int) objects[i].oc_weight;
+        int wt = (int) objects[i].oc_weight,
+            ocls = objects[i].oc_class;
 
         if (wt && i != SLIME_MOLD && obj_descr[i].oc_name) {
             weightlist[cnt].idx = i;
             weightlist[cnt].wt = wt;
             weightlist[cnt].wtyp = 2;
-            weightlist[cnt].wt = wt;
             weightlist[cnt].unique = (objects[i].oc_unique != 0);
-            Snprintf(
-                nmbufbase, sizeof nmbufbase, "%s%s",
-                objects[weightlist[cnt].idx].oc_class == POTION_CLASS
-                    ? "potion of "
-                : objects[weightlist[cnt].idx].oc_class == WAND_CLASS
-                    ? "wand of "
-                : objects[weightlist[cnt].idx].oc_class == SCROLL_CLASS
-                    ? "scroll of "
-                : objects[weightlist[cnt].idx].oc_class == RING_CLASS
-                    ? "ring of "
-                : (objects[weightlist[cnt].idx].oc_class == SPBOOK_CLASS
-                    && objects[weightlist[cnt].idx].oc_name_idx != SPE_BOOK_OF_THE_DEAD)
-                    ? "spellbook of "
-                    : "",
-               obj_descr[weightlist[cnt].idx].oc_name);
+            Snprintf(nmbufbase, sizeof nmbufbase, "%s%s",
+                     (ocls == POTION_CLASS) ? "potion of "
+                     : (ocls == WAND_CLASS) ? "wand of "
+                       : (ocls == SCROLL_CLASS) ? "scroll of "
+                         : (ocls == RING_CLASS) ? "ring of "
+                           : (ocls == SPBOOK_CLASS
+                              && objects[i].oc_name_idx != SPE_BOOK_OF_THE_DEAD
+                              && objects[i].oc_name_idx != SPE_NOVEL)
+                             ? "spellbook of "
+                             : "",
+                     obj_descr[i].oc_name);
             Snprintf(nmbuf, sizeof nmbuf, "%07u", wt);
             Snprintf(&nmbuf[7], sizeof nmbuf - 7, "%s",
-                        (weightlist[cnt].unique) ? the(nmbufbase)
-                                            : an(nmbufbase));
+                     (weightlist[cnt].unique) ? the(nmbufbase)
+                                              : an(nmbufbase));
             weightlist[cnt].nm = dupstr(nmbuf);
             cnt++;
         }
