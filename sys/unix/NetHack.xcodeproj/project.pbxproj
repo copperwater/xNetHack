@@ -164,6 +164,7 @@
 		5462D14823E7B19200969423 /* insight.c in Sources */ = {isa = PBXBuildFile; fileRef = 5462D14723E7B19200969423 /* insight.c */; };
 		5493735A277AAE830031FE02 /* alloc.c in Sources */ = {isa = PBXBuildFile; fileRef = 31B8A36521A238040055BD01 /* alloc.c */; };
 		54A3D3EC282C55A900143F8C /* utf8map.c in Sources */ = {isa = PBXBuildFile; fileRef = 54A3D3EB282C55A900143F8C /* utf8map.c */; };
+		54BD340D2D8B70350073C484 /* hacklib.c in Sources */ = {isa = PBXBuildFile; fileRef = 31B8A36421A238040055BD01 /* hacklib.c */; };
 		54FB2B4B246310A600397C0E /* symbols.c in Sources */ = {isa = PBXBuildFile; fileRef = 54FB2B4A246310A600397C0E /* symbols.c */; };
 		54FCE8292223261F00F393C8 /* isaac64.c in Sources */ = {isa = PBXBuildFile; fileRef = 54FCE8282223261F00F393C8 /* isaac64.c */; };
 		BAB57DB527C1C3E200FCF150 /* libnhlua.a in Frameworks */ = {isa = PBXBuildFile; fileRef = BAE8010A27B97760002B3786 /* libnhlua.a */; };
@@ -528,7 +529,6 @@
 		544768B523995488004B9739 /* nhlua.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = nhlua.h; path = ../../include/nhlua.h; sourceTree = "<group>"; };
 		544768B923995BB7004B9739 /* liblua.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = liblua.a; path = ../../lib/lua/liblua.a; sourceTree = "<group>"; };
 		5462D14723E7B19200969423 /* insight.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = insight.c; path = ../../src/insight.c; sourceTree = "<group>"; };
-		546A4E5A29AAB2DA00E02495 /* seffects.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = seffects.h; sourceTree = "<group>"; };
 		548FB9F9297F2B03000D04CF /* sndprocs.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = sndprocs.h; path = ../../include/sndprocs.h; sourceTree = "<group>"; };
 		548FB9FA297F2BBD000D04CF /* optlist.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = optlist.h; path = ../../include/optlist.h; sourceTree = "<group>"; };
 		548FB9FB297F2BBD000D04CF /* hacklib.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = hacklib.h; path = ../../include/hacklib.h; sourceTree = "<group>"; };
@@ -540,6 +540,11 @@
 		548FBA01297F2BBD000D04CF /* monsters.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = monsters.h; path = ../../include/monsters.h; sourceTree = "<group>"; };
 		54A3D3EB282C55A900143F8C /* utf8map.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = utf8map.c; path = ../../src/utf8map.c; sourceTree = "<group>"; };
 		54AEB885297EE7C4005F1B13 /* macsound.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; name = macsound.m; path = ../../sound/macsound/macsound.m; sourceTree = "<group>"; };
+		54BD340E2D8B711E0073C484 /* nhregex.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = nhregex.h; path = /Users/mikeallison/Documents/devel/git/NHsource/include/nhregex.h; sourceTree = "<absolute>"; };
+		54BD340F2D8B711E0073C484 /* seffects.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = seffects.h; path = /Users/mikeallison/Documents/devel/git/NHsource/include/seffects.h; sourceTree = "<absolute>"; };
+		54BD34102D8B711E0073C484 /* selvar.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = selvar.h; path = /Users/mikeallison/Documents/devel/git/NHsource/include/selvar.h; sourceTree = "<absolute>"; };
+		54BD34112D8B711E0073C484 /* stairs.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = stairs.h; path = /Users/mikeallison/Documents/devel/git/NHsource/include/stairs.h; sourceTree = "<absolute>"; };
+		54BD34122D8B711E0073C484 /* weight.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = weight.h; path = /Users/mikeallison/Documents/devel/git/NHsource/include/weight.h; sourceTree = "<absolute>"; };
 		54FB2B4A246310A600397C0E /* symbols.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = symbols.c; path = ../../src/symbols.c; sourceTree = "<group>"; };
 		54FCE8282223261F00F393C8 /* isaac64.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = isaac64.c; path = ../../src/isaac64.c; sourceTree = "<group>"; };
 		BAE8010A27B97760002B3786 /* libnhlua.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = libnhlua.a; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -797,18 +802,6 @@
 		3189579621A2046700FB2ABE /* include */ = {
 			isa = PBXGroup;
 			children = (
-				546A4E5A29AAB2DA00E02495 /* seffects.h */,
-				548FB9FD297F2BBD000D04CF /* defsym.h */,
-				548FB9FE297F2BBD000D04CF /* fnamesiz.h */,
-				548FB9FB297F2BBD000D04CF /* hacklib.h */,
-				548FBA01297F2BBD000D04CF /* monsters.h */,
-				548FB9FF297F2BBD000D04CF /* objects.h */,
-				548FB9FA297F2BBD000D04CF /* optlist.h */,
-				548FBA00297F2BBD000D04CF /* tile.h */,
-				548FB9FC297F2BBD000D04CF /* warnings.h */,
-				548FB9F9297F2B03000D04CF /* sndprocs.h */,
-				544768B523995488004B9739 /* nhlua.h */,
-				544768B423995447004B9739 /* isaac64.h */,
 				3186A3B721A4B0FD0052BF02 /* align.h */,
 				3186A38821A4B0FB0052BF02 /* artifact.h */,
 				3186A3AB21A4B0FD0052BF02 /* artilist.h */,
@@ -819,8 +812,10 @@
 				3186A3C621A4B0FE0052BF02 /* config1.h */,
 				3186A37121A4B0FA0052BF02 /* context.h */,
 				3186A3C521A4B0FE0052BF02 /* coord.h */,
+				3186A38A21A4B0FB0052BF02 /* cstd.h */,
 				3186A3B021A4B0FD0052BF02 /* date.h */,
 				3186A3D021A4B0FE0052BF02 /* decl.h */,
+				548FB9FD297F2BBD000D04CF /* defsym.h */,
 				3186A3A021A4B0FD0052BF02 /* dgn_file.h */,
 				3186A3A921A4B0FD0052BF02 /* display.h */,
 				3186A38E21A4B0FC0052BF02 /* dlb.h */,
@@ -828,10 +823,13 @@
 				3186A3A221A4B0FD0052BF02 /* engrave.h */,
 				3186A37021A4B0FA0052BF02 /* extern.h */,
 				3186A3B521A4B0FD0052BF02 /* flag.h */,
+				548FB9FE297F2BBD000D04CF /* fnamesiz.h */,
 				3186A37321A4B0FA0052BF02 /* func_tab.h */,
 				3186A3C121A4B0FD0052BF02 /* global.h */,
 				3186A3A521A4B0FD0052BF02 /* hack.h */,
+				548FB9FB297F2BBD000D04CF /* hacklib.h */,
 				3186A37A21A4B0FA0052BF02 /* integer.h */,
+				544768B423995447004B9739 /* isaac64.h */,
 				3186A3BC21A4B0FD0052BF02 /* lint.h */,
 				3186A3B821A4B0FD0052BF02 /* mail.h */,
 				3186A38521A4B0FB0052BF02 /* mextra.h */,
@@ -842,10 +840,13 @@
 				3186A3C821A4B0FE0052BF02 /* mondata.h */,
 				3186A38F21A4B0FC0052BF02 /* monflag.h */,
 				3186A3BB21A4B0FD0052BF02 /* monst.h */,
-				3186A38421A4B0FB0052BF02 /* sym.h */,
-				3186A39B21A4B0FD0052BF02 /* windconf.h */,
+				548FBA01297F2BBD000D04CF /* monsters.h */,
+				544768B523995488004B9739 /* nhlua.h */,
+				54BD340E2D8B711E0073C484 /* nhregex.h */,
 				3186A39521A4B0FC0052BF02 /* obj.h */,
 				3186A3A821A4B0FD0052BF02 /* objclass.h */,
+				548FB9FF297F2BBD000D04CF /* objects.h */,
+				548FB9FA297F2BBD000D04CF /* optlist.h */,
 				3186A37521A4B0FA0052BF02 /* patchlevel.h */,
 				3186A38121A4B0FB0052BF02 /* pcconf.h */,
 				3186A38321A4B0FB0052BF02 /* permonst.h */,
@@ -854,12 +855,17 @@
 				3186A37C21A4B0FA0052BF02 /* rect.h */,
 				3186A37B21A4B0FA0052BF02 /* region.h */,
 				3186A39721A4B0FC0052BF02 /* rm.h */,
+				54BD340F2D8B711E0073C484 /* seffects.h */,
+				54BD34102D8B711E0073C484 /* selvar.h */,
 				3186A38221A4B0FB0052BF02 /* skills.h */,
+				548FB9F9297F2B03000D04CF /* sndprocs.h */,
 				3186A3B621A4B0FD0052BF02 /* sp_lev.h */,
 				3186A3A321A4B0FD0052BF02 /* spell.h */,
+				54BD34112D8B711E0073C484 /* stairs.h */,
+				3186A38421A4B0FB0052BF02 /* sym.h */,
 				3186A3CB21A4B0FE0052BF02 /* sys.h */,
-				3186A38A21A4B0FB0052BF02 /* cstd.h */,
 				3186A3C321A4B0FE0052BF02 /* tcap.h */,
+				548FBA00297F2BBD000D04CF /* tile.h */,
 				3186A3A121A4B0FD0052BF02 /* tile2x11.h */,
 				3186A39421A4B0FC0052BF02 /* tileset.h */,
 				3186A3CA21A4B0FE0052BF02 /* timeout.h */,
@@ -868,8 +874,11 @@
 				3186A3AD21A4B0FD0052BF02 /* unixconf.h */,
 				3186A37E21A4B0FA0052BF02 /* vision.h */,
 				3186A3BE21A4B0FD0052BF02 /* vmsconf.h */,
+				548FB9FC297F2BBD000D04CF /* warnings.h */,
+				54BD34122D8B711E0073C484 /* weight.h */,
 				3186A3AA21A4B0FD0052BF02 /* winami.h */,
 				3186A37621A4B0FA0052BF02 /* wincurs.h */,
+				3186A39B21A4B0FD0052BF02 /* windconf.h */,
 				3186A36F21A4B0FA0052BF02 /* winprocs.h */,
 				3186A39A21A4B0FD0052BF02 /* wintty.h */,
 				3186A3C021A4B0FD0052BF02 /* wintype.h */,
@@ -1196,6 +1205,7 @@
 			outputFileListPaths = (
 			);
 			outputPaths = (
+				"${NH_LIB_DIR}/libnhlua.a",
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/sh;
@@ -1222,6 +1232,7 @@
 		};
 		059660C22C80B0FD00398EDE /* Codesign dlb */ = {
 			isa = PBXShellScriptBuildPhase;
+			alwaysOutOfDate = 1;
 			buildActionMask = 2147483647;
 			files = (
 			);
@@ -1251,6 +1262,7 @@
 			outputFileListPaths = (
 			);
 			outputPaths = (
+				"$(NH_UTIL_DIR}/recover",
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/sh;
@@ -1362,7 +1374,7 @@
 		};
 		317E7C5421A3804400F6E4E5 /* Build Guidebook */ = {
 			isa = PBXShellScriptBuildPhase;
-			buildActionMask = 2147483647;
+			buildActionMask = 8;
 			files = (
 			);
 			inputFileListPaths = (
@@ -1379,7 +1391,7 @@
 			outputPaths = (
 				"$(NH_DOC_DIR)/Guidebook",
 			);
-			runOnlyForDeploymentPostprocessing = 0;
+			runOnlyForDeploymentPostprocessing = 1;
 			shellPath = /bin/sh;
 			shellScript = "cd \"${NH_DOC_DIR}\"\ncat Guidebook.mn | ${NH_UTIL_DIR}/makedefs --grep --input - --output - | tbl tmac.n - | nroff -c -Tascii | col -bx > Guidebook\n";
 		};
@@ -1874,7 +1886,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				059660BE2C80B00400398EDE /* hacklib.c in Sources */,
+				54BD340D2D8B70350073C484 /* hacklib.c in Sources */,
 				31B8A45221A26A750055BD01 /* recover.c in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -2151,6 +2163,7 @@
 				INSTALL_PATH = "$(NH_INSTALL_DIR)";
 				MACOSX_DEPLOYMENT_TARGET = "$(RECOMMENDED_MACOSX_DEPLOYMENT_TARGET)";
 				OTHER_CFLAGS = (
+					"-Wno-ambiguous-macro",
 					"-DNOMAIL",
 					"-DNOTPARMDECL",
 					"-DDEFAULT_WINDOW_SYS=\\\"tty\\\"",
@@ -2182,6 +2195,7 @@
 				INSTALL_PATH = "$(NH_INSTALL_DIR)";
 				MACOSX_DEPLOYMENT_TARGET = "$(RECOMMENDED_MACOSX_DEPLOYMENT_TARGET)";
 				OTHER_CFLAGS = (
+					"-Wno-ambiguous-macro",
 					"-DNOMAIL",
 					"-DNOTPARMDECL",
 					"-DDEFAULT_WINDOW_SYS=\\\"tty\\\"",
@@ -2278,6 +2292,7 @@
 				CODE_SIGN_STYLE = Automatic;
 				DEAD_CODE_STRIPPING = YES;
 				DEVELOPMENT_TEAM = 6978C4Q2VB;
+				ENABLE_USER_SCRIPT_SANDBOXING = NO;
 				EXECUTABLE_PREFIX = lib;
 				GCC_C_LANGUAGE_STANDARD = gnu11;
 				GCC_NO_COMMON_BLOCKS = YES;
@@ -2314,6 +2329,7 @@
 				CODE_SIGN_STYLE = Automatic;
 				DEAD_CODE_STRIPPING = YES;
 				DEVELOPMENT_TEAM = 6978C4Q2VB;
+				ENABLE_USER_SCRIPT_SANDBOXING = NO;
 				EXECUTABLE_PREFIX = lib;
 				GCC_C_LANGUAGE_STANDARD = gnu11;
 				GCC_NO_COMMON_BLOCKS = YES;
