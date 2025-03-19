@@ -1121,14 +1121,14 @@ HACK_H = $(CONFIG_H) $(INCL)align.h $(INCL)artilist.h \
 	$(INCL)hack.h $(INCL)lint.h $(INCL)mextra.h \
 	$(INCL)mkroom.h $(INCL)monattk.h $(INCL)mondata.h \
 	$(INCL)monflag.h $(INCL)monst.h $(INCL)monsters.h \
-	$(INCL)nhconst.h $(INCL)nhlua.h $(INCL)obj.h \
-	$(INCL)objclass.h $(INCL)objects.h $(INCL)permonst.h \
-	$(INCL)prop.h $(INCL)quest.h $(INCL)rect.h \
-	$(INCL)region.h $(INCL)rm.h $(INCL)seffects.h \
-	$(INCL)selvar.h $(INCL)skills.h $(INCL)sndprocs.h \
-	$(INCL)spell.h $(INCL)stairs.h $(INCL)sym.h \
-	$(INCL)sys.h $(INCL)timeout.h $(INCL)trap.h \
-	$(INCL)vision.h $(INCL)winprocs.h $(INCL)wintype.h \
+	$(INCL)nhlua.h $(INCL)obj.h $(INCL)objclass.h \
+	$(INCL)objects.h $(INCL)permonst.h $(INCL)prop.h \
+	$(INCL)quest.h $(INCL)rect.h $(INCL)region.h \
+	$(INCL)rm.h $(INCL)seffects.h $(INCL)selvar.h \
+	$(INCL)skills.h $(INCL)sndprocs.h $(INCL)spell.h \
+	$(INCL)stairs.h $(INCL)sym.h $(INCL)sys.h \
+	$(INCL)timeout.h $(INCL)trap.h $(INCL)vision.h \
+	$(INCL)\weight.h $(INCL)winprocs.h $(INCL)wintype.h \
 	$(INCL)you.h $(INCL)youprop.h
 
 TILE_H      = $(WSHR)tile.h

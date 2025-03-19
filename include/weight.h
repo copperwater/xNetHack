@@ -29,14 +29,6 @@ enum weight_constants {
     WT_DRAGON            = 4500,  /* weight of dragon body */
 };
 
-enum monster_speeds {
-    VERY_SLOW    =  3,
-    SLOW_SPEED   =  9,
-    NORMAL_SPEED = 12, /* movement rates */
-    FAST_SPEED   = 15,
-    VERY_FAST    = 24,
-};
-
 #endif /* NHCONST_H */
 
 

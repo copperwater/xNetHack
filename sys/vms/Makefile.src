@@ -393,7 +393,7 @@ $(HACK_H) : $(INC)hack.h $(CONFIG_H) $(INC)align.h \
 		$(INC)dungeon.h $(INC)sym.h $(INC)defsym.h $(INC)mkroom.h \
 		$(INC)objclass.h $(INC)youprop.h $(INC)prop.h \
 		$(INC)permonst.h $(INC)monattk.h \
-		$(INC)monflag.h $(INC)mondata.h $(INC)nhconst.h $(INC)pm.h \
+		$(INC)monflag.h $(INC)mondata.h $(INC)pm.h \
 		$(INC)wintype.h $(INC)context.h $(INC)decl.h $(INC)quest.h \
 		$(INC)spell.h $(INC)color.h $(INC)obj.h \
 		$(INC)you.h $(INC)attrib.h $(INC)monst.h \
@@ -401,7 +401,7 @@ $(HACK_H) : $(INC)hack.h $(CONFIG_H) $(INC)align.h \
 		$(INC)monsters.h $(INC)timeout.h $(INC)trap.h \
 		$(INC)flag.h $(INC)rm.h $(INC)vision.h \
 		$(INC)display.h $(INC)engrave.h $(INC)rect.h $(INC)region.h \
-		$(INC)winprocs.h $(INC)wintty.h $(INC)sys.h
+		$(INC)weight.h $(INC)winprocs.h $(INC)wintty.h $(INC)sys.h
 	$(TOUCH) $(HACK_H)
 #	VMS-specific code
 vmsmain.obj :	$(VMS)vmsmain.c $(HACK_H) $(INC)dlb.h

@@ -77,6 +77,8 @@ struct permonst {
     uchar mcolor;               /* color to use */
 };
 
+#define NORMAL_SPEED 12
+
 extern NEARDATA struct permonst mons[NUMMONS + 1]; /* the master list of
                                                     * monster types */
 

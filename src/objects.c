@@ -3,7 +3,7 @@
 /* NetHack may be freely redistributed.  See license for details. */
 
 #include "config.h"
-#include "nhconst.h"
+#include "weight.h"
 #include "obj.h"
 
 #include "prop.h"

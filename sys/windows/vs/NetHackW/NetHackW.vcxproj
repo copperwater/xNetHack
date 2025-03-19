@@ -341,6 +341,7 @@
     <ClInclude Include="$(IncDir)unixconf.h" />
     <ClInclude Include="$(IncDir)vision.h" />
     <ClInclude Include="$(IncDir)vmsconf.h" />
+    <ClInclude Include="$(IncDir)weight.h" />
     <ClInclude Include="$(IncDir)winami.h" />
     <ClInclude Include="$(IncDir)wincurs.h" />
     <ClInclude Include="$(IncDir)winprocs.h" />

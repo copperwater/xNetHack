@@ -12,7 +12,7 @@
 #include "lint.h"
 
 #include "align.h"
-#include "nhconst.h"
+#include "weight.h"
 #include "dungeon.h"
 #include "stairs.h"
 #include "objclass.h"

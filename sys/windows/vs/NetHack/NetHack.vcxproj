@@ -279,6 +279,7 @@
     <ClInclude Include="$(IncDir)tradstdc.h" />
     <ClInclude Include="$(IncDir)trap.h" />
     <ClInclude Include="$(IncDir)vision.h" />
+    <ClInclude Include="$(IncDir)weight.h" />
     <ClInclude Include="$(IncDir)winprocs.h" />
     <ClInclude Include="$(IncDir)wintty.h" />
     <ClInclude Include="$(IncDir)wintype.h" />

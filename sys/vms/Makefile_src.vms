@@ -750,7 +750,8 @@ $(TARGETPFX)mdlib.obj: mdlib.c $(CONFIG_H) $(INCL)permonst.h \
 		$(INCL)sndprocs.h $(INCL)seffects.h $(INCL)obj.h \
 		$(INCL)monst.h $(INCL)mextra.h $(INCL)you.h \
 		$(INCL)attrib.h $(INCL)prop.h $(INCL)skills.h \
-		$(INCL)context.h $(INCL)flag.h $(INCL)dlb.h
+		$(INCL)context.h $(INCL)flag.h $(INCL)dlb.h \
+		$(INCL)weight.h
 $(TARGETPFX)mhitm.obj: mhitm.c $(HACK_H) $(INCL)artifact.h
 $(TARGETPFX)mhitu.obj: mhitu.c $(HACK_H) $(INCL)artifact.h
 $(TARGETPFX)minion.obj: minion.c $(HACK_H)
@@ -766,7 +767,7 @@ $(TARGETPFX)monmove.obj: monmove.c $(HACK_H) $(INCL)mfndpos.h \
 $(TARGETPFX)monst.obj: monst.c $(CONFIG_H) $(INCL)permonst.h \
 		$(INCL)align.h $(INCL)monattk.h $(INCL)monflag.h \
 		$(INCL)monsters.h $(INCL)wintype.h $(INCL)sym.h \
-		$(INCL)defsym.h $(INCL)color.h
+		$(INCL)defsym.h $(INCL)color.h $(INCL)weight.h
 $(TARGETPFX)mplayer.obj: mplayer.c $(HACK_H)
 $(TARGETPFX)mthrowu.obj: mthrowu.c $(HACK_H)
 $(TARGETPFX)muse.obj: muse.c $(HACK_H)
