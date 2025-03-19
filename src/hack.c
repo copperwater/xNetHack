@@ -135,7 +135,8 @@ revive_nasty(coordxy x, coordxy y, const char *msg)
     return revived;
 }
 
-#define squeezeablylightinvent() (!gi.invent || inv_weight() <= -850)
+#define squeezeablylightinvent() (!gi.invent \
+    || inv_weight() <= (WT_SQUEEZABLE_INV * -1))
 
 /* can hero move onto a spot containing one or more boulders?
    used for m<dir> and travel and during boulder push failure */
@@ -4195,7 +4196,8 @@ weight_cap(void)
        functions enough in that situation to enhance carrying capacity */
     BLevitation &= ~I_SPECIAL;
 
-    carrcap = 25 * (ACURRSTR + ACURR(A_CON)) + 50;
+    carrcap = (WT_WEIGHTCAP_STRCON * (ACURRSTR + ACURR(A_CON)))
+               + WT_WEIGHTCAP_SPARE;
     if (Upolyd) {
         /* consistent with can_carry() in mon.c */
         if (gy.youmonst.data->mlet == S_NYMPH)
@@ -4216,9 +4218,9 @@ weight_cap(void)
             carrcap = MAX_CARR_CAP;
         if (!Flying) {
             if (EWounded_legs & LEFT_SIDE)
-                carrcap -= 100;
+                carrcap -= WT_WOUNDEDLEG_REDUCT;
             if (EWounded_legs & RIGHT_SIDE)
-                carrcap -= 100;
+                carrcap -= WT_WOUNDEDLEG_REDUCT;
         }
     }
 

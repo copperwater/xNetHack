@@ -12,6 +12,7 @@
 #include "lint.h"
 
 #include "align.h"
+#include "nhconst.h"
 #include "dungeon.h"
 #include "stairs.h"
 #include "objclass.h"
@@ -46,7 +47,6 @@
 #define ON 1
 #define OFF 0
 #define BOLT_LIM 8        /* from this distance ranged attacks will be made */
-#define MAX_CARR_CAP 1000 /* so that boulders can be heavier */
 #define DUMMY { 0 }       /* array initializer, letting [1..N-1] default */
 #define DEF_NOTHING ' '   /* default symbol for NOTHING and UNEXPLORED  */
 
@@ -64,9 +64,6 @@
 #define CXN_PFX_THE 4   /* prefix with "the " (unless pname) */
 #define CXN_ARTICLE 8   /* include a/an/the prefix */
 #define CXN_NOCORPSE 16 /* suppress " corpse" suffix */
-
-/* weight increment of heavy iron ball */
-#define IRON_BALL_W_INCR 160
 
 /* number of turns it takes for vault guard to show up */
 #define VAULT_GUARD_TIME 30

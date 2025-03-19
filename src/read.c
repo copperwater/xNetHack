@@ -2938,7 +2938,7 @@ punish(struct obj *sobj)
         You("are being punished for your misbehavior!");
     if (Punished) {
         Your("iron ball gets heavier.");
-        uball->owt += IRON_BALL_W_INCR * (1 + cursed_levy);
+        uball->owt += WT_IRON_BALL_INCR * (1 + cursed_levy);
         return;
     }
     if (amorphous(gy.youmonst.data) || is_whirly(gy.youmonst.data)

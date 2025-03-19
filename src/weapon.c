@@ -310,7 +310,7 @@ dmgval(struct obj *otmp, struct monst *mon)
         int wt = (int) objects[HEAVY_IRON_BALL].oc_weight;
 
         if ((int) otmp->owt > wt) {
-            wt = ((int) otmp->owt - wt) / IRON_BALL_W_INCR;
+            wt = ((int) otmp->owt - wt) / WT_IRON_BALL_INCR;
             tmp += rnd(4 * wt);
             if (tmp > 25)
                 tmp = 25; /* objects[].oc_wldam */

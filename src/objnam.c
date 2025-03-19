@@ -5357,7 +5357,7 @@ readobjnam(char *bp, struct obj *no_wish)
     }
     d.otmp->owt = weight(d.otmp);
     if (d.very && d.otmp->otyp == HEAVY_IRON_BALL)
-        d.otmp->owt += IRON_BALL_W_INCR;
+        d.otmp->owt += WT_IRON_BALL_INCR;
 
     return d.otmp;
 }

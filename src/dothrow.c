@@ -823,7 +823,7 @@ hurtle_step(genericptr_t arg, coordxy x, coordxy y)
                    && bad_rock(gy.youmonst.data, u.ux, y)
                    && bad_rock(gy.youmonst.data, x, u.uy)) {
             boolean too_much = (gi.invent
-                                && (inv_weight() + weight_cap() > 600));
+                       && (inv_weight() + weight_cap() > WT_TOOMUCH_DIAGONAL));
 
             if (bigmonst(gy.youmonst.data) || too_much) {
                 why = "wedging into a narrow crevice";
@@ -1347,7 +1347,7 @@ toss_up(struct obj *obj, boolean hitsroof)
                                    &dmg, rn1(18, 2));
 
         if (!dmg) { /* probably wasn't a weapon; base damage on weight */
-            dmg = ((int) obj->owt + 99) / 100;
+            dmg = ((int) obj->owt + (WT_TO_DMG - 1)) / WT_TO_DMG;
             dmg = (dmg <= 1) ? 1 : rnd(dmg);
             if (dmg > 6)
                 dmg = 6;
@@ -1770,7 +1770,8 @@ throwit(struct obj *obj,
                 || (is_lava(gb.bhitpos.x, gb.bhitpos.y)
                     && !is_flammable(obj))) {
                 Soundeffect(se_splash, 50);
-                pline((weight(obj) > 9) ? "Splash!" : "Plop!");
+                pline((weight(obj) > WT_SPLASH_THRESHOLD)
+                      ? "Splash!" : "Plop!");
             }
         }
         if (flooreffects(obj, gb.bhitpos.x, gb.bhitpos.y, "fall")) {

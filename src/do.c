@@ -275,7 +275,7 @@ flooreffects(
          * noise.  Stuff dropped near fountains always misses */
         if ((Blind || (Levitation || Flying)) && !Deaf && u_at(x, y)) {
             if (!Underwater) {
-                if (weight(obj) > 9) {
+                if (weight(obj) > WT_SPLASH_THRESHOLD) {
                     pline("Splash!");
                 } else if (Levitation || Flying) {
                     pline("Plop!");

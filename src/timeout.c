@@ -910,7 +910,7 @@ nh_timeout(void)
                      * are to make noise when you fumble.  Adjustments
                      * to this number must be thoroughly play tested.
                      */
-                    if ((inv_weight() > -500)) {
+                    if ((inv_weight() > (WT_NOISY_INV * -1))) {
                         if (!Deaf)
                             You("make a lot of noise!");
                         wake_nearby(FALSE);

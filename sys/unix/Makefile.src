@@ -564,11 +564,11 @@ HACKINCL = align.h artifact.h artilist.h attrib.h botl.h \
 	display.h dlb.h dungeon.h engrave.h extern.h flag.h fnamesiz.h \
 	func_tab.h global.h warnings.h hack.h lint.h mextra.h mfndpos.h \
 	micro.h mkroom.h monattk.h mondata.h monflag.h monst.h monsters.h \
-	nhmd4.h obj.h objects.h objclass.h optlist.h patchlevel.h pcconf.h \
-	permonst.h prop.h rect.h region.h selvar.h sym.h defsym.h rm.h sp_lev.h \
-	spell.h sndprocs.h seffects.h stairs.h sys.h tcap.h timeout.h \
-	tradstdc.h trap.h unixconf.h vision.h vmsconf.h wintty.h wincurs.h \
-	winX.h winprocs.h wintype.h you.h youprop.h cstd.h
+	nhconst.h nhmd4.h obj.h objects.h objclass.h optlist.h patchlevel.h \
+	pcconf.h permonst.h prop.h rect.h region.h selvar.h sym.h defsym.h \
+	rm.h sp_lev.h spell.h sndprocs.h seffects.h stairs.h sys.h tcap.h \
+	timeout.h tradstdc.h trap.h unixconf.h vision.h vmsconf.h wintty.h \
+	wincurs.h winX.h winprocs.h wintype.h you.h youprop.h cstd.h
 
 HSOURCES = $(HACKINCL) dgn_file.h
 
@@ -883,15 +883,15 @@ $(HACK_H): $(CONFIG_H) ../include/align.h ../include/artilist.h \
 		../include/hack.h ../include/lint.h ../include/mextra.h \
 		../include/mkroom.h ../include/monattk.h ../include/mondata.h \
 		../include/monflag.h ../include/monst.h ../include/monsters.h \
-		../include/nhlua.h ../include/obj.h ../include/objclass.h \
-		../include/objects.h ../include/permonst.h ../include/prop.h \
-		../include/quest.h ../include/rect.h ../include/region.h \
-		../include/rm.h ../include/seffects.h ../include/selvar.h \
-		../include/skills.h ../include/sndprocs.h ../include/spell.h \
-		../include/stairs.h ../include/sym.h ../include/sys.h \
-		../include/timeout.h ../include/trap.h ../include/vision.h \
-		../include/winprocs.h ../include/wintype.h ../include/you.h \
-		../include/youprop.h
+		../include/nhconst.h ../include/nhlua.h ../include/obj.h \
+		../include/objclass.h ../include/objects.h ../include/permonst.h \
+		../include/prop.h ../include/quest.h ../include/rect.h \
+		../include/region.h ../include/rm.h ../include/seffects.h \
+		../include/selvar.h ../include/skills.h ../include/sndprocs.h \
+		../include/spell.h ../include/stairs.h ../include/sym.h \
+		../include/sys.h ../include/timeout.h ../include/trap.h \
+		../include/vision.h ../include/winprocs.h ../include/wintype.h \
+		../include/you.h ../include/youprop.h
 	touch $(HACK_H)
 #
 $(TARGETPFX)cppregex.o: ../sys/share/cppregex.cpp $(CONFIG_H)
