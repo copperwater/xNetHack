@@ -1170,7 +1170,7 @@ leppie_stash(struct monst *mtmp)
     }
 }
 
-/* does monster want to avoid you? 
+/* does monster want to avoid you?
  *  returns the original value of appr if not.
  *  returns -1 if so.
  *  returns -2 if monster wants to adhere to a particular range,
@@ -1723,7 +1723,7 @@ m_move(struct monst *mtmp, int after)
     unsigned seenflgs;
     struct permonst *ptr;
     int chi, mmoved = MMOVE_NOTHING, /* not strictly nec.: chi >= 0 will do */
-        preferredrange_min = 0, preferredrange_max = 0; 
+        preferredrange_min = 0, preferredrange_max = 0;
     long info[9];
     long flag;
     coordxy omx = mtmp->mx, omy = mtmp->my;
