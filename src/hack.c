@@ -4332,10 +4332,12 @@ dump_weights(void)
         }
     }
     for (i = 0; i < ocount; ++i) {
+        const char *oc_name = (i == SLIME_MOLD) ? "slime mold"
+                              : obj_descr[i].oc_name;
         int wt = (int) objects[i].oc_weight,
             ocls = objects[i].oc_class;
 
-        if (wt && i != SLIME_MOLD && obj_descr[i].oc_name) {
+        if (wt && oc_name) {
             weightlist[cnt].idx = i;
             weightlist[cnt].wt = wt;
             weightlist[cnt].wtyp = 2;
@@ -4350,9 +4352,8 @@ dump_weights(void)
                               && objects[i].oc_name_idx != SPE_NOVEL)
                              ? "spellbook of "
                              : "",
-                     obj_descr[i].oc_name);
-            Snprintf(nmbuf, sizeof nmbuf, "%07u", wt);
-            Snprintf(&nmbuf[7], sizeof nmbuf - 7, "%s",
+                     oc_name);
+            Snprintf(nmbuf, sizeof nmbuf, "%07u%s", wt,
                      (weightlist[cnt].unique) ? the(nmbufbase)
                                               : an(nmbufbase));
             weightlist[cnt].nm = dupstr(nmbuf);
