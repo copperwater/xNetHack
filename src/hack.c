@@ -38,6 +38,7 @@ staticfn boolean impaired_movement(coordxy *, coordxy *) NONNULLPTRS;
 staticfn boolean avoid_moving_on_trap(coordxy, coordxy, boolean);
 staticfn boolean avoid_moving_on_liquid(coordxy, coordxy, boolean);
 staticfn boolean avoid_running_into_trap_or_liquid(coordxy, coordxy);
+staticfn boolean avoid_trap_andor_region(coordxy, coordxy);
 staticfn boolean move_out_of_bounds(coordxy, coordxy);
 staticfn boolean carrying_too_much(void);
 staticfn boolean escape_from_sticky_mon(coordxy, coordxy);
@@ -2481,6 +2482,79 @@ avoid_running_into_trap_or_liquid(coordxy x, coordxy y)
     return FALSE;
 }
 
+/* if paranoid_confirm:Trap is enabled, check whether the next step forward
+   needs player confirmation due to visible region or discovered trap;
+   result: True => stop moving, False => proceed */
+staticfn boolean
+avoid_trap_andor_region(coordxy x, coordxy y)
+{
+    char qbuf[QBUFSZ];
+    NhRegion *newreg, *oldreg;
+    struct trap *trap = NULL;
+
+    /* treat entering a visible gas cloud region like entering a trap;
+       there could be a known trap as well as a region at the target spot;
+       if so, ask about entring the region first; even though this could
+       lead to two consecutive confirmation prompts, the situation seems
+       to be too uncommon to warrant a separate case with combined
+       trap+region confirmation */
+    if (ParanoidTrap && !Blind && !Stunned && !Confusion && !Hallucination
+        /* skip if player used 'm' prefix or is moving recklessly */
+        && (!svc.context.nopick || svc.context.run)
+        /* check for region(s) */
+        && (newreg = visible_region_at(x, y)) != 0
+        && ((oldreg = visible_region_at(u.ux, u.uy)) == 0
+            /* if moving from one region into another, only ask for
+               confirmation if the one potentially being entered inflicts
+               damage (poison gas) and the one being exited doesn't (vapor) */
+            || (reg_damg(newreg) > 0 && reg_damg(oldreg) == 0))
+        /* check whether attempted move will be viable */
+        && test_move(u.ux, u.uy, u.dx, u.dy, TEST_MOVE)
+        /* we don't override confirmation for poison resistance since the
+           region also hinders hero's vision even if/when no damage is done */
+    ) {
+        Snprintf(qbuf, sizeof qbuf, "%s into that %s cloud?",
+                 u_locomotion("step"),
+                 (reg_damg(newreg) > 0) ? "poison gas" : "vapor");
+        if (!paranoid_query(ParanoidConfirm, upstart(qbuf))) {
+            nomul(0);
+            svc.context.move = 0;
+            return TRUE;
+        }
+    }
+
+    /* maybe ask player for confirmation before walking into known trap */
+    if (ParanoidTrap && !Stunned && !Confusion
+        /* skip if player used 'm' prefix or is moving recklessly */
+        && (!svc.context.nopick || svc.context.run)
+        /* check for discovered trap */
+        && (trap = t_at(x, y)) != 0 && trap->tseen
+        /* check whether attempted move will be viable */
+        && test_move(u.ux, u.uy, u.dx, u.dy, TEST_MOVE)
+        /* override confirmation if the trap is harmless to the hero */
+        && (immune_to_trap(&gy.youmonst, trap->ttyp) != TRAP_CLEARLY_IMMUNE
+            /* Hallucination: all traps still show as ^, but the
+               hero can't tell what they are, so treat as dangerous */
+            || Hallucination)) {
+        int traptype = (Hallucination ? rnd(TRAPNUM - 1) : (int) trap->ttyp);
+        boolean into = into_vs_onto(traptype);
+
+        Snprintf(qbuf, sizeof qbuf, "Really %s %s that %s?",
+                 u_locomotion("step"), into ? "into" : "onto",
+                 defsyms[trap_to_defsym(traptype)].explanation);
+        /* handled like paranoid_confirm:pray; when paranoid_confirm:trap
+           isn't set, don't ask at all but if it is set (checked above),
+           ask via y/n if parnoid_confirm:confirm isn't also set or via
+           yes/no if it is */
+        if (!paranoid_query(ParanoidConfirm, qbuf)) {
+            nomul(0);
+            svc.context.move = 0;
+            return TRUE;
+        }
+    }
+    return FALSE;
+}
+
 /* trying to move out-of-bounds? */
 staticfn boolean
 move_out_of_bounds(coordxy x, coordxy y)
@@ -2612,9 +2686,7 @@ domove_core(void)
 {
     struct monst *mtmp;
     struct rm *tmpr;
-    NhRegion *newreg, *oldreg;
     coordxy x, y;
-    struct trap *trap = NULL;
     int glyph;
     coordxy chainx = 0, chainy = 0,
             ballx = 0, bally = 0;       /* ball&chain new positions */
@@ -2721,74 +2793,15 @@ domove_core(void)
         if (u_rooted())
             return;
 
-        /* treat entering a visible gas cloud region like entering a trap;
-           there could be a known trap as well as a region at the target spot;
-           if so, ask about entring the region first; even though this could
-           lead to two consecutive confirmation prompts, the situation seems
-           to be too uncommon to warrant a separate case with combined
-           trap+region confirmation */
-        if (ParanoidTrap && !Blind && !Stunned && !Confusion && !Hallucination
-            /* skip if player used 'm' prefix or is moving recklessly */
-            && (!svc.context.nopick || svc.context.run)
-            /* check for region(s) */
-            && (newreg = visible_region_at(x, y)) != 0
-            && ((oldreg = visible_region_at(u.ux, u.uy)) == 0
-                /* if moving from one region into another, only ask for
-                   confirmation if the one potentially being entered inflicts
-                   damage (poison gas) and the one being exited doesn't
-                   (vapor) */
-                || (reg_damg(newreg) > 0 && reg_damg(oldreg) == 0))
-            /* check whether attempted move will be viable */
-            && test_move(u.ux, u.uy, u.dx, u.dy, TEST_MOVE)
-            /* we don't override confirmation for poison resistance since
-               the region also hinders hero's vision even if/when no damage
-               is done */
-            ) {
-            char qbuf[QBUFSZ];
-
-            Snprintf(qbuf, sizeof qbuf, "%s into that %s cloud?",
-                     u_locomotion("step"),
-                     (reg_damg(newreg) > 0) ? "poison gas" : "vapor");
-            if (!paranoid_query(ParanoidConfirm, upstart(qbuf))) {
-                nomul(0);
-                svc.context.move = 0;
+        /* handling for paranoid_confirm:Trap which doubles as
+           paranoid_confirm:Region */
+        if (ParanoidTrap) {
+            if (avoid_trap_andor_region(x, y))
                 return;
-            }
-        }
-        /* maybe ask player for confirmation before walking into known trap */
-        if (ParanoidTrap && !Stunned && !Confusion
-            /* skip if player used 'm' prefix or is moving recklessly */
-            && (!svc.context.nopick || svc.context.run)
-            /* check for discovered trap */
-            && (trap = t_at(x, y)) != 0 && trap->tseen
-            /* check whether attempted move will be viable */
-            && test_move(u.ux, u.uy, u.dx, u.dy, TEST_MOVE)
-            /* override confirmation if the trap is harmless to the hero */
-            && (immune_to_trap(&gy.youmonst, trap->ttyp) != TRAP_CLEARLY_IMMUNE
-                /* Hallucination: all traps still show as ^, but the
-                   hero can't tell what they are, so treat as dangerous */
-                || Hallucination)) {
-            char qbuf[QBUFSZ];
-            int traptype = (Hallucination ? rnd(TRAPNUM - 1)
-                                          : (int) trap->ttyp);
-            boolean into = into_vs_onto(traptype);
-
-            Snprintf(qbuf, sizeof qbuf, "Really %s %s that %s?",
-                     u_locomotion("step"), into ? "into" : "onto",
-                     defsyms[trap_to_defsym(traptype)].explanation);
-            /* handled like paranoid_confirm:pray; when paranoid_confirm:trap
-               isn't set, don't ask at all but if it is set (checked above),
-               ask via y/n if parnoid_confirm:confirm isn't also set or via
-               yes/no if it is */
-            if (!paranoid_query(ParanoidConfirm, qbuf)) {
-                nomul(0);
-                svc.context.move = 0;
-                return;
-            }
         }
 
         if (u.utrap) { /* when u.utrap is True, displaceu is False */
-            boolean moved = trapmove(x, y, trap);
+            boolean moved = trapmove(x, y, (struct trap *) NULL);
 
             if (!u.utrap) {
                 disp.botl = TRUE;
