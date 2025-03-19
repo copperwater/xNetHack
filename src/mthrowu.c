@@ -1439,8 +1439,8 @@ hit_bars(
         if (your_fault && (otmp->otyp == WAR_HAMMER
                            || otmp->otyp == HEAVY_IRON_BALL)) {
             /* iron ball isn't a weapon or wep-tool so doesn't use obj->spe;
-               weight is normally 48000 but can be increased by increments
-               of 16000 (scrolls of punishment read while already punished) */
+               weight is normally 480 but can be increased by increments
+               of 160 (scrolls of punishment read while already punished) */
             int spe = ((otmp->otyp == HEAVY_IRON_BALL) /* 3+ for iron ball */
                        ? ((int) otmp->owt / WT_IRON_BALL_INCR)
                        : otmp->spe);
