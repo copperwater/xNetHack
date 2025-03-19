@@ -1,9 +1,9 @@
-/* NetHack 3.7	nhconst.h	$NHDT-Date: 1725653014 2024/09/06 20:03:34 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.26 $ */
+/* NetHack 3.7	weight.h	$NHDT-Date: 1742427965 2025/03/19 23:46:05 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.1 $ */
 /* Copyright (c) Michael Allison, 2025. */
 /* NetHack may be freely redistributed.  See license for details. */
 
-#ifndef NHCONST_H
-#define NHCONST_H
+#ifndef WEIGHT_H
+#define WEIGHT_H
 
 /* weight-related constants and thresholds */
 enum weight_constants {
@@ -29,6 +29,6 @@ enum weight_constants {
     WT_DRAGON            = 4500,  /* weight of dragon body */
 };
 
-#endif /* NHCONST_H */
+#endif /* WEIGHT_H */
 
 
