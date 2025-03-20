@@ -1622,6 +1622,8 @@ consume_tin(const char *mesg)
     pline1(mesg); /* "You succeed in opening the tin." */
 
     if (r != SPINACH_TIN) {
+        boolean bless = tin->blessed;
+        boolean curse = tin->cursed;
         mnum = tin->corpsenm;
         if (mnum == NON_PM) {
             pline("It turns out to be empty.");
@@ -1715,8 +1717,8 @@ consume_tin(const char *mesg)
 
         if (!strcmp(tintxts[r].txt, "szechuan") && rn2(2)) {
             struct obj* cookie = mksobj(FORTUNE_COOKIE, TRUE, FALSE);
-            cookie->blessed = tin->blessed;
-            cookie->cursed = tin->cursed;
+            cookie->blessed = bless;
+            cookie->cursed = curse;
             pline("There is a free fortune cookie inside!");
             hold_another_object(cookie, "It falls to the floor.", NULL, NULL);
         }
