@@ -220,8 +220,7 @@ obj_typename(int otyp)
     buf[0] = '\0'; /* redundant */
     switch (ocl->oc_class) {
     case COIN_CLASS:
-        Strcpy(buf, "coin");
-        break;
+        return strcpy(buf, actualn); /* "gold piece" */
     case POTION_CLASS:
         Strcpy(buf, "potion");
         break;
@@ -252,9 +251,17 @@ obj_typename(int otyp)
         if (dn)
             Sprintf(eos(buf), " (%s)", dn);
         return buf;
+    case ARMOR_CLASS:
+        if (objects[otyp].oc_armcat == ARM_GLOVES
+            || objects[otyp].oc_armcat == ARM_BOOTS)
+            Strcpy(buf, "pair of ");
+        else if (otyp >= GRAY_DRAGON_SCALES && otyp <= YELLOW_DRAGON_SCALES)
+            Strcpy(buf, "set of ");
+        FALLTHROUGH;
+        /*FALLTHRU*/
     default:
         if (nn) {
-            Strcpy(buf, actualn);
+            Strcat(buf, actualn);
             if (GemStone(otyp))
                 Strcat(buf, " stone");
             if (un) /* 3: length of " (" + ")" which will enclose 'dn' */
@@ -262,7 +269,7 @@ obj_typename(int otyp)
             if (dn)
                 Sprintf(eos(buf), " (%s)", dn);
         } else {
-            Strcpy(buf, dn ? dn : actualn);
+            Strcat(buf, dn ? dn : actualn);
             if (ocl->oc_class == GEM_CLASS)
                 Strcat(buf,
                        (ocl->oc_material == MINERAL) ? " stone" : " gem");

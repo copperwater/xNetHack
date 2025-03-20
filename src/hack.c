@@ -4349,25 +4349,15 @@ dump_weights(void)
     for (i = 0; i < ocount; ++i) {
         const char *oc_name = (i == SLIME_MOLD) ? "slime mold"
                               : obj_descr[i].oc_name;
-        int wt = (int) objects[i].oc_weight,
-            ocls = objects[i].oc_class;
+        int wt = (int) objects[i].oc_weight;
 
         if (wt && oc_name) {
             weightlist[cnt].idx = i;
             weightlist[cnt].wt = wt;
             weightlist[cnt].wtyp = 2;
             weightlist[cnt].unique = (objects[i].oc_unique != 0);
-            Snprintf(nmbufbase, sizeof nmbufbase, "%s%s",
-                     (ocls == POTION_CLASS) ? "potion of "
-                     : (ocls == WAND_CLASS) ? "wand of "
-                       : (ocls == SCROLL_CLASS) ? "scroll of "
-                         : (ocls == RING_CLASS) ? "ring of "
-                           : (ocls == SPBOOK_CLASS
-                              && objects[i].oc_name_idx != SPE_BOOK_OF_THE_DEAD
-                              && objects[i].oc_name_idx != SPE_NOVEL)
-                             ? "spellbook of "
-                             : "",
-                     oc_name);
+            objects[i].oc_name_known = 1;
+            Strcpy(nmbufbase, simple_typename(i));
             Snprintf(nmbuf, sizeof nmbuf, "%07u%s", wt,
                      (weightlist[cnt].unique) ? the(nmbufbase)
                                               : an(nmbufbase));
