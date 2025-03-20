@@ -540,11 +540,11 @@
 		548FBA01297F2BBD000D04CF /* monsters.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = monsters.h; path = ../../include/monsters.h; sourceTree = "<group>"; };
 		54A3D3EB282C55A900143F8C /* utf8map.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = utf8map.c; path = ../../src/utf8map.c; sourceTree = "<group>"; };
 		54AEB885297EE7C4005F1B13 /* macsound.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; name = macsound.m; path = ../../sound/macsound/macsound.m; sourceTree = "<group>"; };
-		54BD340E2D8B711E0073C484 /* nhregex.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = nhregex.h; path = /Users/mikeallison/Documents/devel/git/NHsource/include/nhregex.h; sourceTree = "<absolute>"; };
-		54BD340F2D8B711E0073C484 /* seffects.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = seffects.h; path = /Users/mikeallison/Documents/devel/git/NHsource/include/seffects.h; sourceTree = "<absolute>"; };
-		54BD34102D8B711E0073C484 /* selvar.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = selvar.h; path = /Users/mikeallison/Documents/devel/git/NHsource/include/selvar.h; sourceTree = "<absolute>"; };
-		54BD34112D8B711E0073C484 /* stairs.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = stairs.h; path = /Users/mikeallison/Documents/devel/git/NHsource/include/stairs.h; sourceTree = "<absolute>"; };
-		54BD34122D8B711E0073C484 /* weight.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = weight.h; path = /Users/mikeallison/Documents/devel/git/NHsource/include/weight.h; sourceTree = "<absolute>"; };
+		54BD340E2D8B711E0073C484 /* nhregex.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = nhregex.h; path = ../../include/nhregex.h; sourceTree = "<absolute>"; };
+		54BD340F2D8B711E0073C484 /* seffects.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = seffects.h; path = ../../include/seffects.h; sourceTree = "<absolute>"; };
+		54BD34102D8B711E0073C484 /* selvar.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = selvar.h; path = ../../include/selvar.h; sourceTree = "<absolute>"; };
+		54BD34112D8B711E0073C484 /* stairs.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = stairs.h; path = ../../include/stairs.h; sourceTree = "<absolute>"; };
+		54BD34122D8B711E0073C484 /* weight.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = weight.h; path = ../../include/weight.h; sourceTree = "<absolute>"; };
 		54FB2B4A246310A600397C0E /* symbols.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = symbols.c; path = ../../src/symbols.c; sourceTree = "<group>"; };
 		54FCE8282223261F00F393C8 /* isaac64.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = isaac64.c; path = ../../src/isaac64.c; sourceTree = "<group>"; };
 		BAE8010A27B97760002B3786 /* libnhlua.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = libnhlua.a; sourceTree = BUILT_PRODUCTS_DIR; };
