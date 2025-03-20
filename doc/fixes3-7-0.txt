@@ -2781,6 +2781,7 @@ blessed scroll of destroy armor asks which armor to destroy
 archeologists' fedora is lucky
 telepathic hero can discern which particular monster just read a scroll
 add "make fetch-docs" to download pre-formatted documentation
+monsters will use throw-and-return weapons such as an aklys
 
 
 Platform- and/or Interface-Specific New Features
