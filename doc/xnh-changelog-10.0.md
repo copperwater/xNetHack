@@ -30,3 +30,6 @@ changes:
 
 ### Architectural changes
 
+- Refactored the bit of common logic for "is this a weapon, armor, weptool, or
+  charged ring - an object that is + or - something?" into a macro,
+  spe_means_plus.

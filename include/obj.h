@@ -538,6 +538,12 @@ struct obj {
 #define thiefstone_ledger_valid(stone) \
     ((stone)->keyed_ledger > 0 && (stone)->keyed_ledger <= maxledgerno())
 
+/* Does this object have a +/- charge or enchantment? */
+#define spe_means_plus(otmp) \
+    ((otmp)->oclass == WEAPON_CLASS || (otmp)->oclass == ARMOR_CLASS \
+     || is_weptool(otmp)                                             \
+     || ((otmp)->oclass == RING_CLASS && objects[(otmp)->otyp].oc_charged))
+
 /*
  *  Notes for adding new oextra structures:
  *

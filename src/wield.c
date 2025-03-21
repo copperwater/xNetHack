@@ -928,10 +928,7 @@ chwepon(struct obj *otmp, int amount)
     boolean multiple;
     int otyp = STRANGE_OBJECT;
 
-    if (!uwep || (uwep->oclass != WEAPON_CLASS && !is_weptool(uwep)
-                  && uwep->oclass != TOOL_CLASS
-                  && !(uwep->oclass == RING_CLASS
-                       && objects[uwep->otyp].oc_charged))) {
+    if (!uwep || !spe_means_plus(uwep)) {
         char buf[BUFSZ];
 
         if (amount >= 0 && uwep && will_weld(uwep)) { /* cursed tin opener */

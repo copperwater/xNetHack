@@ -1391,10 +1391,7 @@ drain_item(struct obj *obj, boolean by_you)
     boolean u_ring;
 
     /* Is this a charged/enchanted object? */
-    if (!obj
-        || (!objects[obj->otyp].oc_charged && obj->oclass != WEAPON_CLASS
-            && obj->oclass != ARMOR_CLASS && !is_weptool(obj))
-        || obj->spe <= 0)
+    if (!obj || !spe_means_plus(obj) || obj->spe <= 0)
         return FALSE;
     if (defends(AD_DRLI, obj) || defends_when_carried(AD_DRLI, obj)
         || obj_resists(obj, 10, 90))
