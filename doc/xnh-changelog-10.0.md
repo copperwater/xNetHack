@@ -24,6 +24,12 @@ changes:
 
 - The Ides of March (March 15th) is recognized as one of the in-game holidays,
   and slime molds will generate as "Caesar salads" on that day.
+- Items with negative enchantment or charges can be dipped in a noncursed potion
+  of restore ability to raise their enchantment, to 0 if the potion is blessed
+  or by 1 point if not. If the item is eroded, that will be fixed first and a
+  second potion will be required to address any negative enchantment.
+- Spellbooks can be dipped in a noncursed potion of restore ability to fully
+  refresh the ink on their pages.
 
 ### Interface changes
 

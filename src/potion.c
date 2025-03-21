@@ -3020,14 +3020,52 @@ potion_dip(struct obj *obj, struct obj *potion)
         return ECMD_TIME;
     }
 
-    /* removing erosion from items */
-    if (potion->otyp == POT_RESTORE_ABILITY && !potion->cursed
-        && erosion_matters(obj) && (obj->oeroded || obj->oeroded2)) {
-        obj->oeroded = obj->oeroded2 = 0;
-        pline("%s as good as new!", Yobjnam2(obj, Blind ? "feel" : "look"));
-        if (potion->dknown)
+    /* Restore ability has many uses.
+     * Like with quaffing it, it generally doesn't have any negative effects
+     * if cursed; it just won't do anything.
+     * If it could do multiple things to an item (rusty -1 weapon for instance),
+     * it will only fix the first case. */
+    if (potion->otyp == POT_RESTORE_ABILITY && !potion->cursed) {
+        boolean did_something = FALSE;
+        boolean learn_it = FALSE;
+
+        /* removing erosion from items */
+        if (erosion_matters(obj) && (obj->oeroded || obj->oeroded2)) {
+            obj->oeroded = obj->oeroded2 = 0;
+            pline("%s as good as new!", Yobjnam2(obj, Blind ? "feel" : "look"));
+            learn_it = TRUE;
+            did_something = TRUE;
+        }
+        /* undoing a negative enchantment */
+        else if (spe_means_plus(obj) && obj->spe < 0) {
+            obj->spe = (potion->blessed ? 0 : obj->spe + 1);
+            pline("%s %smore effective.",
+                  Yobjnam2(obj, Blind ? "feel" : "look"),
+                  obj->spe < 0 ? "a little " : "");
+            if (obj->known)
+                learn_it = TRUE;
+            else
+                trycall(potion);
+            did_something = TRUE;
+        }
+        /* refreshing a faded spellbook */
+        else if (obj->oclass == SPBOOK_CLASS
+                 && obj->otyp != SPE_BOOK_OF_THE_DEAD
+                 && obj->otyp != SPE_BLANK_PAPER && obj->otyp != SPE_NOVEL
+                 && obj->spestudied > 0) {
+            obj->spestudied = 0;
+            if (Blind)
+                pline("The pages of %s feel crisper.", yname(obj));
+            else
+                pline("The ink in %s becomes sharp and fresh again!",
+                      yname(obj));
+            learn_it = TRUE;
+            did_something = TRUE;
+        }
+        if (learn_it && potion->dknown)
             makeknown(POT_RESTORE_ABILITY);
-        useup(potion);
+        if (did_something)
+            useup(potion);
         return ECMD_TIME;
     }
 
