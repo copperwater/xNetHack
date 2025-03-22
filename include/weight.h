@@ -25,7 +25,7 @@ enum weight_constants {
     MAX_CARR_CAP         = 1000,  /* max carrying capacity, so that
                                    * boulders can be heavier */
     WT_HUMAN             = 1450,  /* weight of human body */
-    WT_BABY_DRAGON       = 1500,  /* weight ob baby dragon body */
+    WT_BABY_DRAGON       = 1500,  /* weight of baby dragon body */
     WT_DRAGON            = 4500,  /* weight of dragon body */
 };
 
