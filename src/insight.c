@@ -2580,7 +2580,7 @@ show_gamelog(int final)
             continue;
         if (!eventcnt++)
             putstr(win, 0, " Turn");
-        Sprintf(buf, "%5ld: %s", llmsg->turn, llmsg->text);
+        Snprintf(buf, sizeof buf, "%5ld: %s", llmsg->turn, llmsg->text);
         putstr(win, 0, buf);
     }
     /* since start of game is logged as a major event, 'eventcnt' should
