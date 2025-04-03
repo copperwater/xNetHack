@@ -2636,14 +2636,6 @@ escape_from_sticky_mon(coordxy x, coordxy y)
              * guaranteed escape.
              */
             switch (rn2(!u.ustuck->mcanmove ? 8 : 40)) {
-            case 0:
-            case 1:
-            case 2:
- pull_free:
-                mtmp = u.ustuck;
-                set_ustuck((struct monst *) 0);
-                You("pull free from %s.", y_monnam(mtmp));
-                break;
             case 3:
                 if (!u.ustuck->mcanmove) {
                     /* it's free to move on next turn */
@@ -2653,11 +2645,20 @@ escape_from_sticky_mon(coordxy x, coordxy y)
                 FALLTHROUGH;
                 /*FALLTHRU*/
             default:
-                if (u.ustuck->mtame && !Conflict && !u.ustuck->mconf)
-                    goto pull_free;
-                You("cannot escape from %s!", y_monnam(u.ustuck));
-                nomul(0);
-                return TRUE;
+                if (Conflict || u.ustuck->mconf || !u.ustuck->mtame) {
+                    You("cannot escape from %s!", y_monnam(u.ustuck));
+                    nomul(0);
+                    return TRUE;
+                }
+                FALLTHROUGH;
+                /*FALLTHRU*/
+            case 0:
+            case 1:
+            case 2:
+                mtmp = u.ustuck;
+                set_ustuck((struct monst *) 0);
+                You("pull free from %s.", y_monnam(mtmp));
+                break;
             }
         }
     }
