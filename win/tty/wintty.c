@@ -1461,6 +1461,13 @@ process_menu_window(winid window, struct WinDesc *cw)
                                 (void) putchar('+'); /* all selected */
                             else
                                 (void) putchar('#'); /* count selected */
+                        } else if (iflags.use_menu_glyphs && n == 2 
+                                    && curr->identifier.a_void != 0 
+                                    && curr->glyphinfo.glyph != NO_GLYPH) {
+                            /* tty_print_glyph could be used, but is overkill and requires referencing the cursor location */
+                            toggle_menu_attr(TRUE, curr->glyphinfo.gm.sym.color, ATR_NONE);
+                            (void) putchar(curr->glyphinfo.ttychar);
+                            toggle_menu_attr(FALSE, curr->glyphinfo.gm.sym.color, ATR_NONE);
                         } else
                             (void) putchar(*cp);
                     } /* for *cp */
@@ -2537,8 +2544,8 @@ tty_start_menu(winid window, unsigned long mbehavior)
 void
 tty_add_menu(
     winid window,  /* window to use, must be of type NHW_MENU */
-    const glyph_info *glyphinfo UNUSED, /* glyph info with glyph to
-                                         * display with item */
+    const glyph_info *glyphinfo, /* glyph info with glyph to
+                                  * display with item */
     const anything *identifier, /* what to return if selected */
     char ch,                /* selector letter (0 = pick our own) */
     char gch,               /* group accelerator (0 = no group) */
@@ -2595,6 +2602,7 @@ tty_add_menu(
     item->attr = attr;
     item->color = clr;
     item->str = dupstr(newstr);
+    item->glyphinfo = *glyphinfo;
 
     item->next = cw->mlist;
     cw->mlist = item;

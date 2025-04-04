@@ -80,6 +80,7 @@ travel         enables travelling via mouse click if supported;    [True]
                attempting to move the hero; does not affect travel via '_'
 use_darkgray   use bold black instead of blue for black glyphs.    [True]
 use_inverse    display detected monsters in highlighted manner    [False]
+use_menu_glyphs show object glyphs in menu items (tty, curses)     [True]
 verbose        print more commentary during the game               [True]
 whatis_menu    show menu when getting a map location              [False]
 whatis_moveskip skip same glyphs when getting a map location      [False]

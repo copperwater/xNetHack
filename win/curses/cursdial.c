@@ -1060,11 +1060,9 @@ menu_win_size(nhmenu *menu)
         } else {
             /* Add space for accelerator (selector letter) */
             curentrywidth += 4;
-#if 0 /* FIXME: menu glyphs */
             if (menu_item_ptr->glyphinfo.glyph != NO_GLYPH
                 && iflags.use_menu_glyphs)
                 curentrywidth += 2;
-#endif
         }
         if (curentrywidth > maxentrywidth) {
             maxentrywidth = curentrywidth;
@@ -1283,19 +1281,16 @@ menu_display_page(
             entry_cols -= 4;
             start_col += 4;
         }
-#if 0
-        /* FIXME: menuglyphs not implemented yet */
         if (menu_item_ptr->glyphinfo.glyph != NO_GLYPH
             && iflags.use_menu_glyphs) {
-            color = (int) menu_item_ptr->glyphinfo.color;
+            color = menu_item_ptr->glyphinfo.gm.sym.color;
             curses_toggle_color_attr(win, color, NONE, ON);
-            mvwaddch(win, menu_item_ptr->line_num + 1, start_col, curletter);
+            mvwaddch(win, menu_item_ptr->line_num + 1, start_col, menu_item_ptr->glyphinfo.ttychar);
             curses_toggle_color_attr(win, color, NONE, OFF);
             mvwaddch(win, menu_item_ptr->line_num + 1, start_col + 1, ' ');
             entry_cols -= 2;
             start_col += 2;
         }
-#endif
 	color = menu_item_ptr->color;
         if (color == NO_COLOR)
             color = NONE;

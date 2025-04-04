@@ -181,6 +181,9 @@
 # acts as an accelerator key to select items of that class.
 #OPTIONS=menu_objsyms
 
+# Show object glyphs in menus if supported by the windowport (tty, curses)
+#OPTIONS=use_menu_glyphs
+
 # Do not clear the screen before drawing menus, and align menus to right
 #OPTIONS=menu_overlay
 

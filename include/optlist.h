@@ -789,6 +789,9 @@ static int optfn_##a(int, int, boolean, char *, char *);
     NHOPTB(use_inverse, Advanced, 0, opt_out, set_in_game,
            On, Yes, No, No, NoAlias, &iflags.wc_inverse, Term_False,
            "display detected monsters in inverse")
+    NHOPTB(use_menu_glyphs, Advanced, 0, opt_out, set_in_game,
+           On, Yes, No, No, NoAlias, &iflags.use_menu_glyphs,
+           Term_False, "show object glyphs in menu items")
     NHOPTB(use_truecolor, Advanced, 0, opt_in, set_in_config,
                 Off, Yes, No, No, "use_truecolour",
            &iflags.use_truecolor, Term_False,
