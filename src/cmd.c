@@ -3738,16 +3738,36 @@ getdir(const char *s)
 
  retry:
     program_state.input_state = getdirInp;
-    if (gi.in_doagain || *readchar_queue)
+    if (gi.in_doagain || *readchar_queue) {
         dirsym = readchar();
-    else
+    } else {
         dirsym = yn_function((s && *s != '^') ? s : "In what direction?",
                              (char *) 0, '\0', FALSE);
+
+        /* for the fuzzer, usually force the result to be a valid direction,
+           but sometimes let it exercise the invalid direction code; we
+           don't try to enforce no-diagonal for hero in grid bug form since
+           things like '^' to look at adjacent trap shouldn't be bound by
+           that (caller is expected to handle situations where it matters) */
+        if (iflags.debug_fuzzer && rn2(20)) {
+            switch (rn2(20)) {
+            case 0:
+                dirsym = gc.Cmd.spkeys[rn2(2) ? NHKF_GETDIR_SELF : NHKF_ESC];
+                break;
+            case 1:
+                dirsym = gc.Cmd.dirchars[rn2(2) ? DIR_DOWN : DIR_UP];
+                break;
+            default:
+                dirsym = gc.Cmd.dirchars[rn2(N_DIRS)];
+                break;
+            }
+        }
+    }
     /* remove the prompt string so caller won't have to */
     clear_nhwindow(WIN_MESSAGE);
 
     if (redraw_cmd(dirsym)) { /* ^R */
-        docrt();              /* redraw */
+        docrt_flags(docrtRefresh); /* redraw */
         goto retry;
     }
     if (!gi.in_doagain)
@@ -5240,6 +5260,28 @@ yn_function(
             res = cq.key;
         else
             cmdq_clear(CQ_CANNED); /* 'res' is ESC */
+        addcmdq = FALSE;
+
+    /* for the fuzzer, usually force a valid response, but sometimes let
+       it exercise windowport yn_function and invalid response handling */
+    } else if (iflags.debug_fuzzer && resp && *resp && rn2(20)) {
+        int ln = (int) strlen(resp), ridx = rn2(ln);
+
+        res = resp[ridx];
+        /* if valid-responses includes ESC followed by unshown candidates
+           and we randomly picked the ESC, try again with only whatever is
+           before it; be careful to avoid rn2(0) */
+        if (res == '\033') {
+            if (ln > 1) {
+                /* if ESC is at start (ridx==0), pick something after it */
+                ridx = (ridx == 0) ? (1 + rn2(ln - 1)) : rn2(ridx);
+                res = resp[ridx];
+            } else {
+                /* ESC is the only thing (ln==1); something is strange... */
+                res = def; /* might be '\0' */
+            }
+        }
+
     } else {
 #ifdef SND_SPEECH
         if ((gp.pline_flags & PLINE_SPEECH) != 0) {
@@ -5250,9 +5292,9 @@ yn_function(
         if (!yn_function_menu(query, resp, def, &res)) {
             res = (*windowprocs.win_yn_function)(query, resp, def);
         }
-        if (addcmdq)
-            cmdq_add_key(CQ_REPEAT, res);
     }
+    if (addcmdq)
+        cmdq_add_key(CQ_REPEAT, res);
 
 #ifdef DUMPLOG_CORE
     if (idx == gs.saved_pline_index) {
