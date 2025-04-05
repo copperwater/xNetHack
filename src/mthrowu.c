@@ -313,7 +313,7 @@ monshoot(struct monst *mtmp, struct obj *otmp, struct obj *mwep)
 }
 
 /* an object launched by someone/thing other than player attacks a monster;
-   return 1 if the object has stopped moving (hit or its range used up)
+   return 1 if the object has stopped moving (hit or its range used up);
    can anger the monster, if this happened due to hero (eg. exploding
    bag of holding throwing the items) */
 boolean
@@ -323,7 +323,7 @@ ohitmon(
     int range,          /* how much farther will object travel if it misses;
                          * use -1 to signify to keep going even after hit,
                          * unless it's gone (for rolling_boulder_traps) */
-    boolean verbose)/* give messages even when you can't see what happened */
+    boolean verbose) /* give messages even when you can't see what happened */
 {
     int damage, tmp;
     boolean vis, ismimic, objgone;
@@ -456,8 +456,8 @@ ohitmon(
                           (nonliving(mtmp->data) || is_vampshifter(mtmp)
                            || !canspotmon(mtmp)) ? "destroyed" : "killed");
                 /* don't blame hero for unknown rolling boulder trap */
-                if (!svc.context.mon_moving && (otmp->otyp != BOULDER
-                                            || range >= 0 || otmp->otrapped))
+                if (!svc.context.mon_moving
+                   && (otmp->otyp != BOULDER || range >= 0 || otmp->otrapped))
                     xkilled(mtmp, XKILL_NOMSG);
                 else
                     mondied(mtmp);
@@ -531,7 +531,7 @@ ucatchgem(
     (/* missile hits edge of screen */                                 \
      !isok(gb.bhitpos.x + dx, gb.bhitpos.y + dy)                       \
      /* missile hits the wall */                                       \
-     || IS_OBSTRUCTED(levl[gb.bhitpos.x + dx][gb.bhitpos.y + dy].typ)        \
+     || IS_OBSTRUCTED(levl[gb.bhitpos.x + dx][gb.bhitpos.y + dy].typ)  \
      /* missile hit closed door */                                     \
      || closed_door(gb.bhitpos.x + dx, gb.bhitpos.y + dy)              \
      /* missile might hit iron bars */                                 \
@@ -549,8 +549,8 @@ ucatchgem(
 void
 m_throw(
     struct monst *mon,      /* launching monster */
-    coordxy x, coordxy y,           /* launch point */
-    coordxy dx, coordxy dy,         /* direction */
+    coordxy x, coordxy y,   /* launch point */
+    coordxy dx, coordxy dy, /* direction */
     int range,              /* maximum distance */
     struct obj *obj)        /* missile (or stack providing it) */
 {
@@ -575,7 +575,7 @@ m_throw(
          * with 0 daggers?  (This caused the infamous 2^32-1 orcish
          * dagger bug).
          *
-         * VENOM is not in minvent - it should already be OBJ_FREE.
+         * VENOM is not in minvent--it should already be OBJ_FREE.
          * The extract below does nothing.
          */
 
@@ -593,7 +593,7 @@ m_throw(
     /* global pointer for missile object in OBJ_FREE state */
     gt.thrownobj = singleobj;
 
-    singleobj->owornmask = 0; /* threw one of multiple weapons in hand? */
+    singleobj->owornmask = 0L; /* threw one of multiple weapons in hand? */
     if (!canseemon(mon))
         clear_dknown(singleobj); /* singleobj->dknown = 0; */
 
@@ -630,7 +630,7 @@ m_throw(
         } else {
             tmp_at(DISP_TETHER, obj_to_glyph(singleobj, rn2_on_display_rng));
             /*
-             * Considerations for a tethered object based on in throwit()/bhit() :
+             * Considerations for a tethered object based on throwit()/bhit() :
              * - wall of water/lava will stop items, and triggers return.
              * - iron bars will stop items, and triggers return.
              * - pass harmlessly through shades.
@@ -784,7 +784,8 @@ m_throw(
                              || (gm.marcher && canseemon(gm.marcher))))
                     pline("%s misses.", The(mshot_xname(singleobj)));
                 if (!tethered_weapon) {
-                    (void) drop_throw(singleobj, 0, gb.bhitpos.x, gb.bhitpos.y);
+                    (void) drop_throw(singleobj, 0,
+                                      gb.bhitpos.x, gb.bhitpos.y);
                 } else {
                     /*ready for return journey */
                     return_flightpath = TRUE;
@@ -818,7 +819,10 @@ m_throw(
 #undef MT_FLIGHTCHECK
 
 staticfn void
-return_from_mtoss(struct monst *magr, struct obj *otmp, boolean tethered_weapon)
+return_from_mtoss(
+    struct monst *magr,
+    struct obj *otmp,
+    boolean tethered_weapon)
 {
     boolean impaired = (magr->mconf || magr->mstun || magr->mblinded),
             notcaught = FALSE, hits_thrower = FALSE;
@@ -847,11 +851,12 @@ return_from_mtoss(struct monst *magr, struct obj *otmp, boolean tethered_weapon)
         x = magr->mx;
         y = magr->my;
         if (!impaired && rn2(100)) {
+            /* FIXME: this should be moved to struct g (gd these days) */
             static long do_not_annoy = 0;
 
-            if (!do_not_annoy || (svm.moves - do_not_annoy) > 500) {
+            if (!do_not_annoy || (svm.moves - do_not_annoy) > 500L) {
                 pline("%s to %s %s!", Tobjnam(otmp, "return"),
-                  s_suffix(mon_nam(magr)), mbodypart(magr, HAND));
+                      s_suffix(mon_nam(magr)), mbodypart(magr, HAND));
                 do_not_annoy = svm.moves;
             }
             if (otmp) {
@@ -868,7 +873,7 @@ return_from_mtoss(struct monst *magr, struct obj *otmp, boolean tethered_weapon)
 
             dmg = rn2(2);
             if (!dmg) {
-                if (!Blind) {
+                if (canseemon(magr)) {
                     pline("%s back to %s, landing %s %s %s.",
                           Tobjnam(otmp, "return"), mon_nam(magr),
                           mlevitating ? "beneath" : "at", mhis(magr),
@@ -878,12 +883,10 @@ return_from_mtoss(struct monst *magr, struct obj *otmp, boolean tethered_weapon)
                 }
             } else {
                 dmg += rnd(3);
-                if (!Blind) {
+                if (canseemon(magr)) {
                     pline("%s back toward %s, hitting %s %s!",
-                          Tobjnam(otmp, "fly"),
-                          mon_nam(magr),
-                          mhis(magr),
-                          body_part(ARM));
+                          Tobjnam(otmp, "fly"), mon_nam(magr),
+                          mhis(magr), body_part(ARM));
                 } else if (!Deaf) {
                     You_hear("%s hit %s with a thud!", something,
                              mon_nam(magr));
