@@ -904,7 +904,8 @@ return_from_mtoss(struct monst *magr, struct obj *otmp, boolean tethered_weapon)
             if (otmp->oartifact)
                 (void) artifact_hit((struct monst *) 0, magr, otmp, &dmg, 0);
             magr->mhp -= dmg;
-            /* magr could be a DEADMONSTER now */
+            if (DEADMONSTER(magr))
+                monkilled(magr, canspotmon(magr) ? "" : (char *) 0, AD_PHYS);
         }
         if (notcaught) {
             (void) snuff_candle(otmp);
