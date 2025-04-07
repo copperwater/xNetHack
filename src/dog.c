@@ -44,6 +44,8 @@ free_edog(struct monst *mtmp)
 void
 initedog(struct monst *mtmp, boolean everything)
 {
+    struct edog *edogp = EDOG(mtmp);
+    long minhungry = svm.moves + 1000L;
     schar minimumtame = is_domestic(mtmp->data) ? 10 : 5;
 
     mtmp->mtame = max(minimumtame, mtmp->mtame);
@@ -53,18 +55,22 @@ initedog(struct monst *mtmp, boolean everything)
     if (everything) {
         mtmp->mleashed = 0;
         mtmp->meating = 0;
-        EDOG(mtmp)->droptime = 0;
-        EDOG(mtmp)->dropdist = 10000;
-        EDOG(mtmp)->apport = ACURR(A_CHA);
-        EDOG(mtmp)->whistletime = 0;
-        EDOG(mtmp)->hungrytime = 1000 + svm.moves;
-        EDOG(mtmp)->ogoal.x = -1; /* force error if used before set */
-        EDOG(mtmp)->ogoal.y = -1;
-        EDOG(mtmp)->abuse = 0;
-        EDOG(mtmp)->revivals = 0;
-        EDOG(mtmp)->mhpmax_penalty = 0;
-        EDOG(mtmp)->killed_by_u = 0;
+        edogp->droptime = 0;
+        edogp->dropdist = 10000;
+        edogp->apport = ACURR(A_CHA);
+        edogp->whistletime = 0;
+        /* edogp->hungrytime = 0L; // set below */
+        edogp->ogoal.x = -1; /* force error if used before set */
+        edogp->ogoal.y = -1;
+        edogp->abuse = 0;
+        edogp->revivals = 0;
+        edogp->mhpmax_penalty = 0;
+        edogp->killed_by_u = 0;
     }
+    /* always set for newly tamed pet or feral former pet; hungrytime might
+       already be higher when taming magic affects already tame monst */
+    if (edogp->hungrytime < minhungry)
+        edogp->hungrytime = minhungry;
     /* livelog first pet, but only if you didn't start with one (the starting
      * pet will be initialized before in_moveloop is true) */
     if (!u.uconduct.pets && program_state.in_moveloop) {
