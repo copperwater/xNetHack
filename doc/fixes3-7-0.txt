@@ -1506,6 +1506,7 @@ since introduction in 3.1.0, the definition for Mitre of Holiness has specified
 	no 'defends' capability for it since carrying should encompass that
 if a tree and a boulder or statue were at the same location, applying an axe
 	would break the boulder or statue rather than chop the tree
+avoid premapping outside Sokoban map to prevent showing stone glyphs
 
 
 Fixes to 3.7.0-x General Problems Exposed Via git Repository
