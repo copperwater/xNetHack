@@ -989,7 +989,7 @@ bigroom variant 3 may have some walls replaced with other terrain
 bigroom variant 4 may have two large squares of terrain in the middle
 bigroom variant 5 may have patches of ice or clouds
 some large monsters can knock back smaller monsters with a hit
-change Demonbane to a mace, make it the first sac gift for priests,
+change Demonbane to a silver mace, make it the first sac gift for priests,
 	and give it an invoke ability to banish demons
 wielding Giantslayer prevents knockback from larger monsters; likewise for
 	carried loadstone(s)
@@ -2980,6 +2980,7 @@ split making pits on do_earthquake() into a separate function and
 	eliminate some gotos on do_earthquake() (pr #1287 by argrath)
 update the WASM cross-compile to work with the current
 	code (pr #1331 by guillaumebrunerie)
+add silver maces (pr #1405 by disperse)
 
 
 Code Cleanup and Reorganization
