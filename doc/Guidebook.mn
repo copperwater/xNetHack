@@ -4988,6 +4988,9 @@ to be \fIFalse\fP.
 Use bold black instead of blue for black glyphs (TTY only).
 .lp use_inverse
 If NetHack can, it should display inverse when the game specifies it.
+.lp use_menu_glyphs
+If NetHack can, it should display glyphs next to objects in the
+inventory.
 .lp vary_msgcount
 If NetHack can, it should display this number of messages at a time in
 the message window.
