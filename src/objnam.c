@@ -5338,6 +5338,9 @@ readobjnam(char *bp, struct obj *no_wish)
         }
     }
 
+    if (permapoisoned(d.otmp))
+        d.otmp->opoisoned = 1;
+
     /* more wishing abuse: don't allow wishing for certain artifacts */
     /* and make them pay; charge them for the wish anyway! */
     if ((is_quest_artifact(d.otmp)

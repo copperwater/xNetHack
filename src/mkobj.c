@@ -1160,6 +1160,8 @@ mksobj_init(struct obj **obj, boolean artif)
     }
 
     mkobj_erosions(otmp);
+    if (permapoisoned(otmp))
+        otmp->opoisoned = 1;
 }
 
 /* mksobj(): create a specific type of object; result is always non-Null */

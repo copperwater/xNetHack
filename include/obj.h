@@ -254,10 +254,11 @@ struct obj {
     (otmp->oclass == WEAPON_CLASS                   \
      && objects[otmp->otyp].oc_skill >= -P_SHURIKEN \
      && objects[otmp->otyp].oc_skill <= -P_BOW)
-#define is_poisonable(otmp)                         \
-    (otmp->oclass == WEAPON_CLASS                   \
-     && objects[otmp->otyp].oc_skill >= -P_SHURIKEN \
-     && objects[otmp->otyp].oc_skill <= -P_BOW)
+#define is_poisonable(otmp)                          \
+    ((otmp->oclass == WEAPON_CLASS                   \
+      && objects[otmp->otyp].oc_skill >= -P_SHURIKEN \
+      && objects[otmp->otyp].oc_skill <= -P_BOW)     \
+     || permapoisoned(otmp))
 #define uslinging() (uwep && objects[uwep->otyp].oc_skill == P_SLING)
 /* 'is_quest_artifact()' only applies to the current role's artifact */
 #define any_quest_artifact(o) ((o)->oartifact >= ART_ORB_OF_DETECTION)

@@ -2595,9 +2595,10 @@ potion_dip(struct obj *obj, struct obj *potion)
             obj->opoisoned = TRUE;
             poof(potion);
             return ECMD_TIME;
-        } else if (obj->opoisoned && (potion->otyp == POT_HEALING
-                                      || potion->otyp == POT_EXTRA_HEALING
-                                      || potion->otyp == POT_FULL_HEALING)) {
+        } else if (obj->opoisoned && !permapoisoned(obj)
+                   && (potion->otyp == POT_HEALING
+                       || potion->otyp == POT_EXTRA_HEALING
+                       || potion->otyp == POT_FULL_HEALING)) {
             pline("A coating wears off %s.", the(xname(obj)));
             obj->opoisoned = 0;
             poof(potion);

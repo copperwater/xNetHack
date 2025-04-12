@@ -13,6 +13,8 @@ staticfn boolean mhitm_mgc_atk_negated(struct monst *, struct monst *,
 staticfn boolean known_hitum(struct monst *, struct obj *, int *, int, int,
                            struct attack *, int) NONNULLARG13;
 staticfn boolean theft_petrifies(struct obj *) NONNULLARG1;
+staticfn void mhitm_really_poison(struct monst *, struct attack *,
+                                  struct monst *, struct mhitm_data *);
 staticfn void steal_it(struct monst *, struct attack *) NONNULLARG1;
 /* hitum_cleave() has contradictory information. There's a comment
  * beside the 1st arg 'target' stating non-null, but later on there
@@ -1036,6 +1038,9 @@ hmon_hitmon_weapon_melee(
         if (obj->opoisoned && is_poisonable(obj))
             hmd->ispoisoned = TRUE;
     }
+    /* permapoisoned is non-ammo/missile, limit the poison */
+    if (permapoisoned(obj) && hmd->dieroll <= 5)
+        hmd->ispoisoned = TRUE;
 }
 
 staticfn void
@@ -1484,7 +1489,7 @@ hmon_hitmon_poison(
         You_feel("like an evil coward for using a poisoned weapon.");
         adjalign(-1);
     }
-    if (!rn2(nopoison)) {
+    if (!permapoisoned(obj) && !rn2(nopoison)) {
         /* remove poison now in case obj ends up in a bones file */
         obj->opoisoned = FALSE;
         /* defer "obj is no longer poisoned" until after hit message */
@@ -3026,6 +3031,29 @@ mhitm_ad_curs(
     }
 }
 
+/* Helper for mhitm_ad_drst(), containing some code that is also called from
+ * mhitm_ad_phys (for poisoned weapons) and shouldn't be subject to magic
+ * cancellation or a 1/8 chance roll.
+ * In this specific case, the "mhitm" in the name ACTUALLY means just that -
+ * this should be called only for monster versus monster situations. */
+staticfn void
+mhitm_really_poison(struct monst *magr, struct attack *mattk,
+                    struct monst *mdef, struct mhitm_data *mhm)
+{
+    if (gv.vis && canspotmon(magr))
+        pline("%s %s was poisoned!", s_suffix(Monnam(magr)),
+              mpoisons_subj(magr, mattk));
+    if (resists_poison(mdef)) {
+        if (gv.vis && canspotmon(mdef) && canspotmon(magr))
+            pline_The("poison doesn't seem to affect %s.",
+                        mon_nam(mdef));
+    } else {
+        mhm->damage += rn1(10, 6);
+        if (mhm->damage >= mdef->mhp && gv.vis && canspotmon(mdef))
+            pline_The("poison was deadly...");
+    }
+}
+
 void
 mhitm_ad_drst(
     struct monst *magr, struct attack *mattk,
@@ -3067,22 +3095,7 @@ mhitm_ad_drst(
     } else {
         /* mhitm */
         if (!negated && !rn2(8)) {
-            if (gv.vis && canspotmon(magr))
-                pline("%s %s was poisoned!", s_suffix(Monnam(magr)),
-                      mpoisons_subj(magr, mattk));
-            if (resists_poison(mdef)) {
-                if (gv.vis && canspotmon(mdef) && canspotmon(magr))
-                    pline_The("poison doesn't seem to affect %s.",
-                              mon_nam(mdef));
-            } else {
-                if (rn2(10)) {
-                    mhm->damage += rn1(10, 6);
-                } else {
-                    if (gv.vis && canspotmon(mdef))
-                        pline_The("poison was deadly...");
-                    mhm->damage = mdef->mhp;
-                }
-            }
+            mhitm_really_poison(magr, mattk, mdef, mhm);
         }
     }
 }
@@ -3957,6 +3970,7 @@ mhitm_ad_phys(
             if (mattk->aatyp == AT_WEAP && otmp) {
                 struct obj *marmg;
                 int tmp;
+                boolean was_poisoned = (otmp->opoisoned || permapoisoned(otmp));
 
                 if (otmp->otyp == CORPSE
                     && touch_petrifies(&mons[otmp->corpsenm])) {
@@ -4015,6 +4029,21 @@ mhitm_ad_phys(
                         You("divide as %s hits you!", mon_nam(magr));
                 }
                 rustm(&gy.youmonst, otmp);
+                if (was_poisoned && gm.mhitu_dieroll <= 5) {
+                    char buf[BUFSZ];
+
+                    /* similar to mhitm_really_poison, but we don't use the
+                     * exact same values, nor do we want the same 1/8 chance of
+                     * the poison taking (use 1/4, same as in the mhitm case). */
+                    Sprintf(buf, "%s %s", s_suffix(Monnam(magr)),
+                            mpoisons_subj(magr, mattk));
+                    /* arbitrary, but most poison sources in the game are
+                     * strength-based. With hpdamchance = 10, HP damage occurs
+                     * 1/2 of the time and it will hit Str the rest of the time.
+                     * (This is the same as poisoned ammo.) */
+                    poisoned(buf, A_STR, pmname(magr->data, Mgender(magr)),
+                             10, FALSE);
+                }
             } else if (mattk->aatyp != AT_TUCH || mhm->damage != 0
                        || magr != u.ustuck) {
                 hitmsg(magr, mattk);
@@ -4077,6 +4106,13 @@ mhitm_ad_phys(
             }
             if (mhm->damage)
                 rustm(mdef, mwep);
+            if ((mwep->opoisoned || permapoisoned(mwep)) && !rn2(4)) {
+                /* 1/4 chance of weapon poison applying is the same as in
+                 * uhitm and mhitu cases. But since we don't need to call
+                 * any special functions or go through tangled hmon_hitmon
+                 * code, we can just jump straight to the poisoning. */
+                mhitm_really_poison(magr, mattk, mdef, mhm);
+            }
         } else if (pa == &mons[PM_PURPLE_WORM] && pd == &mons[PM_SHRIEKER]) {
             /* hack to enhance mm_aggression(); we don't want purple
                worm's bite attack to kill a shrieker because then it
