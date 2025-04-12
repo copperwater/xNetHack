@@ -121,7 +121,8 @@ tribute (Discworld snippets) typos, in book order rather than fix order:
 	 quote, passage #6 first footnote, insert omitted "be", passage #7
 	 last paragraph, "to" -> "be"
 	Men at Arms passage #1, italicize /for/, passage #2, insert omitted
-	 word "had": 'it was /fate/ that _had_ let Edward'
+	 word "had": 'it was /fate/ that _had_ let Edward', #9, fix name typo
+	 "Noddy" -> "Nobby"
 	Interesting Times passage #1, italicize several words
 	Feet of Clay passage #1, second "does not need" -> "doesn't even need"
 	Hogfather passage #7 missing initial double quote for "Oh, just ...",
@@ -131,7 +132,8 @@ tribute (Discworld snippets) typos, in book order rather than fix order:
 	 missing opening single quote on second sentence of Lord Downey's
 	 line, passage #11 both in footnote:  "genious" -> "genius",
 	 "was, oddly enough, was one [...]" -> "was, oddly enough, one [...]"
-	The Fifth Elephant #1, italicize /always/, #9, "dublet" -> "doublet"
+	The Fifth Elephant #1, italicize /always/, #9, "dublet" -> "doublet",
+	  #12, fix name typo, "Vines" -> "Vimes"
 	The Truth #1, italicize several words
 	Thief of Time #2, "gold starts" -> "gold stars"
 	A Hat Full of Sky passage #9 "though" -> "thought"
