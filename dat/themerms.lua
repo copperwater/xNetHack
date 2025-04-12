@@ -1,26 +1,27 @@
--- NetHack themerms.lua	$NHDT-Date: 1652196294 2022/05/10 15:24:54 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.16 $
+-- NetHack themerms.lua	$NHDT-Date: 1744445274 2025/04/12 00:07:54 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.40 $
 --	Copyright (c) 2020 by Pasi Kallinen
 -- NetHack may be freely redistributed.  See license for details.
 --
 -- themerooms is an array of tables.
 -- the tables define "name", "frequency", "contents", "mindiff" and "maxdiff".
--- * "name" is not shown in-game; it is so that developers can specify a certain
---   room to generate by using the THEMERM or THEMERMFILL environment variable.
---   While technically optional, it should be provided on all the rooms; if it
---   isn't, the room can't be directly specified.
+-- * "name" is not shown in-game; it is so that developers can specify a
+--   certain room to generate by using the THEMERM or THEMERMFILL environment
+--   variable. While technically optional, it should be provided on all the
+--   rooms; if it isn't, the room can't be directly specified.
 -- * "frequency" is optional; if omitted, 1 is assumed.
 -- * "contents" is a function describing what gets put into the room.
--- * "mindiff" and "maxdiff" are optional and independent; if omitted, the room
---    is not constrained by level difficulty.
+-- * "mindiff" and "maxdiff" are optional and independent; if omitted, the
+--    room is not constrained by level difficulty.
+-- * "eligible" is optional; if omitted, True is assumed.
 --
 -- themeroom_fills is an array of tables with the exact same structure as
 -- themerooms. It is used for contents of a room that are independent of its
 -- shape, so that interestingly-shaped themerooms can be filled with a variety
 -- of contents.
--- * The "contents" functions in themeroom_fills take the room they are filling as
---   an argument.
--- * Frequency of themeroom_fills is a separate pool from themerooms, and has no
---   effect on how likely it is that any given room will receive a themeroom_fill.
+-- * The "contents" functions in themeroom_fills take the room they are
+--   filling as an argument.
+-- * Frequency of themeroom_fills is a separate pool from themerooms, and has
+--   no effect on how likely that any given room will receive a themeroom_fill.
 --
 -- des.room({ type = "ordinary", filled = 1 })
 --   - ordinary rooms can be converted to shops or any other special rooms.
@@ -124,7 +125,8 @@ themeroom_fills = {
                des.feature("fountain");
             end
          end
-         table.insert(postprocess, { handler = make_garden_walls, data = { sel = selection.room() } });
+         table.insert(postprocess, { handler = make_garden_walls,
+                                     data = { sel = selection.room() } });
       end
    },
 
@@ -135,7 +137,8 @@ themeroom_fills = {
             local xobj = otmp:totable();
             -- keep track of the last buried treasure
             if (xobj.NO_OBJ == nil) then
-               table.insert(postprocess, { handler = make_dig_engraving, data = { x = xobj.ox, y = xobj.oy }});
+               table.insert(postprocess, { handler = make_dig_engraving,
+                                        data = { x = xobj.ox, y = xobj.oy }});
             end
             for i = 1, d(3,4) do
                des.object();
@@ -219,7 +222,8 @@ themeroom_fills = {
       name = "Ghost of an Adventurer",
       contents = function(rm)
          local loc = selection.room():rndcoord(0);
-         des.monster({ id = "ghost", asleep = true, waiting = true, coord = loc });
+         des.monster({ id = "ghost", asleep = true, waiting = true,
+                       coord = loc });
          if percent(65) then
             des.object({ id = "dagger", coord = loc, buc = "not-blessed" });
          end
@@ -266,7 +270,9 @@ themeroom_fills = {
             if (pos.x > 0) then
                pos.x = pos.x + rm.region.x1 - 1;
                pos.y = pos.y + rm.region.y1;
-               table.insert(postprocess, { handler = make_a_trap, data = { type = "teleport", seen = true, coord = pos, teledest = 1 } });
+               table.insert(postprocess, { handler = make_a_trap,
+                                      data = { type = "teleport", seen = true,
+                                               coord = pos, teledest = 1 } });
             end
          end
       end,
@@ -279,7 +285,7 @@ themerooms = {
       frequency = 1000,
       contents = function()
          des.room({ type = "ordinary", filled = 1 });
-         end
+      end
    },
 
    {
@@ -287,10 +293,11 @@ themerooms = {
       contents = function()
          des.room({ type = "ordinary", w = 11,h = 9, filled = 1,
                   contents = function()
-                     des.room({ type = "ordinary", x = 4,y = 3, w = 3,h = 3, filled = 1,
-                                 contents = function()
-                                    des.door({ state="random", wall="all" });
-                                 end
+                     des.room({ type = "ordinary", x = 4,y = 3, w = 3,h = 3,
+                                filled = 1,
+                                contents = function()
+                                   des.door({ state="random", wall="all" });
+                                end
                      });
                   end
          });
@@ -303,9 +310,9 @@ themerooms = {
          des.room({ type = "ordinary", filled = 1,
                   contents = function()
                      des.room({ type = "ordinary",
-                                 contents = function()
-                                    des.door({ state="random", wall="all" });
-                                 end
+                                contents = function()
+                                   des.door({ state="random", wall="all" });
+                                end
                      });
                   end
          });
@@ -315,19 +322,20 @@ themerooms = {
    {
       name = "Huge room with another room inside",
       contents = function()
-         des.room({ type = "ordinary", w = nh.rn2(10)+11,h = nh.rn2(5)+8, filled = 1,
-                  contents = function()
-                     if (percent(90)) then
-                     des.room({ type = "ordinary", filled = 1,
-                                 contents = function()
-                                    des.door({ state="random", wall="all" });
-                                    if (percent(50)) then
-                                       des.door({ state="random", wall="all" });
-                                    end
-                                 end
-                     });
-                     end
-                  end
+         des.room({ type = "ordinary", w = nh.rn2(10)+11,h = nh.rn2(5)+8,
+                    filled = 1,
+            contents = function()
+               if (percent(90)) then
+                  des.room({ type = "ordinary", filled = 1,
+                             contents = function()
+                                des.door({ state="random", wall="all" });
+                                   if (percent(50)) then
+                                      des.door({ state="random", wall="all" });
+                                   end
+                              end
+                  });
+               end
+            end
          });
       end,
    },
@@ -335,29 +343,31 @@ themerooms = {
    {
       name = "Nesting rooms",
       contents = function()
-         des.room({ type = "ordinary", w = 9 + nh.rn2(4), h = 9 + nh.rn2(4), filled = 1,
-                  contents = function(rm)
-                     local wid = math.random(math.floor(rm.width / 2), rm.width - 2);
-                     local hei = math.random(math.floor(rm.height / 2), rm.height - 2);
-                     des.room({ type = "ordinary", w = wid,h = hei, filled = 1,
-                                 contents = function()
-                                    if (percent(90)) then
-                                       des.room({ type = "ordinary", filled = 1,
-                                                   contents = function()
-                                                      des.door({ state="random", wall="all" });
-                                                      if (percent(15)) then
-                                                         des.door({ state="random", wall="all" });
-                                                      end
-                                                   end
-                                       });
-                                    end
-                                    des.door({ state="random", wall="all" });
-                                    if (percent(15)) then
-                                       des.door({ state="random", wall="all" });
-                                    end
-                                 end
-                     });
+         des.room({ type = "ordinary", w = 9 + nh.rn2(4), h = 9 + nh.rn2(4),
+                    filled = 1,
+            contents = function(rm)
+               local wid = math.random(math.floor(rm.width / 2), rm.width - 2);
+               local hei = math.random(math.floor(rm.height / 2),
+                                       rm.height - 2);
+               des.room({ type = "ordinary", w = wid,h = hei, filled = 1,
+                  contents = function()
+                     if (percent(90)) then
+                        des.room({ type = "ordinary", filled = 1,
+                           contents = function()
+                              des.door({ state="random", wall="all" });
+                              if (percent(15)) then
+                                 des.door({ state="random", wall="all" });
+                              end
+                           end
+                        });
+                     end
+                     des.door({ state="random", wall="all" });
+                     if (percent(15)) then
+                        des.door({ state="random", wall="all" });
+                     end
                   end
+               });
+            end
          });
       end,
    },
@@ -526,7 +536,9 @@ xxx-----]], contents = function(m) filler_region(1,1); end });
             if (percent(30)) then
                local terr = { "-", "P" };
                shuffle(terr);
-               des.replace_terrain({ region = {1,1, 9,9}, fromterrain = "L", toterrain = terr[1] });
+               des.replace_terrain({ region = {1,1, 9,9},
+                                     fromterrain = "L",
+                                     toterrain = terr[1] });
             end
             filler_region(1,1);
          end });
@@ -758,13 +770,15 @@ xx|.....|xx
 }|..|}
 }|..|}
 }----}
-}}}}}}]], contents = function(m) des.region({ region={3,3,3,3}, type="themed", irregular=true, filled=0, joined=false });
+}}}}}}]], contents = function(m)
+            des.region({ region={3,3,3,3}, type="themed", irregular=true,
+                         filled=0, joined=false });
             local nasty_undead = { "giant zombie", "ettin zombie", "vampire lord" };
             local chest_spots = { { 2, 2 }, { 3, 2 }, { 2, 3 }, { 3, 3 } };
 
             shuffle(chest_spots)
-            -- Guarantee an escape item inside one of the chests, to prevent the
-            -- hero falling in from above and becoming permanently stuck
+            -- Guarantee an escape item inside one of the chests, to prevent
+            -- the hero falling in from above and becoming permanently stuck
             -- [cf. generate_way_out_method(sp_lev.c)].
             -- If the escape item is made of glass or crystal, make sure that
             -- the chest isn't locked so that kicking it to gain access to its
