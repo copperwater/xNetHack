@@ -990,7 +990,7 @@ nhl_get_debug_themerm_name(lua_State *L)
         lua_pop(L, 1);
         if (wizard)
             dbg_themerm = getenv(is_fill ? "THEMERMFILL" : "THEMERM");
-        if (!dbg_themerm || strlen(dbg_themerm) == 0) {
+        if (!dbg_themerm || !*dbg_themerm) {
             lua_pushnil(L);
         } else {
             lua_pushstring(L, dbg_themerm);

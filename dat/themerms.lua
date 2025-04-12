@@ -982,15 +982,22 @@ end
 function pre_themerooms_generate()
    local debug_themerm = nh.debug_themerm(false)
    local debug_fill = nh.debug_themerm(true)
+   local xtrainfo = ""
    debug_rm_idx = lookup_by_name(debug_themerm, false)
    debug_fill_idx = lookup_by_name(debug_fill, true)
    if debug_themerm ~= nil and debug_rm_idx == nil then
+      if lookup_by_name(debug_themerm, true) ~= nil then
+         xtrainfo = "; it is a fill type"
+      end
       pline("Warning: themeroom '"..debug_themerm
-            .."' not found in themerooms", true)
+            .."' not found in themerooms"..xtrainfo, true)
    end
    if debug_fill ~= nil and debug_fill_idx == nil then
+      if lookup_by_name(debug_fill, false) ~= nil then
+         xtrainfo = "; it is a room type"
+      end
       pline("Warning: themeroom fill '"..debug_fill
-            .."' not found in themeroom_fills", true)
+            .."' not found in themeroom_fills"..xtrainfo, true)
    end
 end
 
