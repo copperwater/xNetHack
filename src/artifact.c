@@ -2024,6 +2024,18 @@ arti_invoke(struct obj *obj)
                 obj->age = svm.moves;
             }
             break;
+        case SNOWSTORM:
+        case FIRESTORM:
+            {
+                int storm = oart->inv_prop == SNOWSTORM ? SPE_CONE_OF_COLD : SPE_FIREBALL;
+                int skill = spell_skilltype(storm);
+                int expertise = P_SKILL(skill);
+
+                P_SKILL(skill) = P_EXPERT;
+                (void) spelleffects(storm, FALSE, TRUE);
+                P_SKILL(skill) = expertise;
+            }
+            break;
         case BLINDING_RAY:
             if (getdir((char *) 0)) {
                 if (u.dx || u.dy) {

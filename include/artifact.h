@@ -68,6 +68,8 @@ enum invoke_prop_types {
     CREATE_AMMO,
     BANISH,
     FLING_POISON,
+    FIRESTORM,
+    SNOWSTORM,
     BLINDING_RAY
 };
 
