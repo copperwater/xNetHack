@@ -3197,7 +3197,14 @@ mhitm_ad_drin(
         }
         /* adjattrib gives dunce cap message when appropriate */
         (void) adjattrib(A_INT, -rnd(2), FALSE);
-
+        if (!rn2(5)) {
+            losespells();
+            gs.skipdrin = TRUE;
+        }
+        if (!rn2(5)) {
+            drain_weapon_skill(rnd(2));
+            gs.skipdrin = TRUE;
+        }
     } else {
         /* mhitm */
         char buf[BUFSZ];
