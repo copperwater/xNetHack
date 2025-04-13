@@ -201,6 +201,7 @@ Returns a table with the following elements:
 | ttyp_name   | text    | name of trap type
 | tseen       | boolean | trap seen by you?
 | madeby_u    | boolean | trap made by you?
+| once        | boolean | trap is deleted once triggered
 | tnote       | integer | note of a squeaky board trap
 | launchx, launchy, launch2x, launch2y | integer | coordinates of a boulder for a rolling boulder trap
 | conjoined   | integer | encoded directions for a [spiked] pit.

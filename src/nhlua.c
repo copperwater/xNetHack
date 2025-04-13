@@ -432,6 +432,7 @@ nhl_gettrap(lua_State *L)
                                     get_trapname_bytype(ttmp->ttyp));
             nhl_add_table_entry_bool(L, "tseen", ttmp->tseen);
             nhl_add_table_entry_bool(L, "madeby_u", ttmp->madeby_u);
+            nhl_add_table_entry_bool(L, "once", ttmp->once);
             switch (ttmp->ttyp) {
             case SQKY_BOARD:
                 nhl_add_table_entry_int(L, "tnote", ttmp->tnote);
