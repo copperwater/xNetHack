@@ -3124,6 +3124,7 @@ extern int collect_coords(coord *, coordxy, coordxy, int, unsigned,
                           boolean (*)(coordxy, coordxy)) NONNULLARG1;
 extern boolean safe_teleds(int);
 extern boolean teleport_pet(struct monst *, boolean) NONNULLARG1;
+extern void tele_to_rnd_pet(void);
 extern void tele(void);
 extern void scrolltele(struct obj *) NO_NNARGS;
 extern int dotelecmd(void);

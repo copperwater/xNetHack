@@ -1510,6 +1510,7 @@ if a tree and a boulder or statue were at the same location, applying an axe
 	would break the boulder or statue rather than chop the tree
 avoid premapping outside Sokoban map to prevent showing stone glyphs
 Grimtooth is permanently poisoned, protects from poison, and can fling poison
+cursed magic whistle can teleport you to your pet
 
 
 Fixes to 3.7.0-x General Problems Exposed Via git Repository

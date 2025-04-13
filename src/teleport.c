@@ -804,6 +804,28 @@ teleport_pet(struct monst *mtmp, boolean force_it)
     return TRUE;
 }
 
+/* teleport to random pet, if valid location next to it */
+void
+tele_to_rnd_pet(void)
+{
+    struct monst *mtmp, *pet = (struct monst *) 0;
+    int cnt = 0;
+
+    for (mtmp = fmon; mtmp; mtmp = mtmp->nmon)
+        if (!DEADMONSTER(mtmp) && mtmp->mtame && !mon_offmap(mtmp)) {
+            cnt++;
+            if (!rn2(cnt))
+                pet = mtmp;
+        }
+    if (pet && !m_next2u(pet)) {
+        coordxy tx = pet->mx + rn2(3) - 1,
+                ty = pet->my + rn2(3) - 1;
+
+        if (isok(tx, ty) && teleok(tx, ty, FALSE))
+            teleds(tx, ty, TELEDS_TELEPORT);
+    }
+}
+
 /* teleport the hero via some method other than scroll of teleport */
 void
 tele(void)

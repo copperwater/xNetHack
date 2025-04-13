@@ -498,6 +498,8 @@ use_magic_whistle(struct obj *obj)
         You("produce a %shigh-%s.", Underwater ? "very " : "",
             Deaf ? "frequency vibration" : "pitched humming noise");
         wake_nearby(TRUE);
+        if (!rn2(2))
+            tele_to_rnd_pet();
     } else {
         /* it's magic!  it works underwater too (at a higher pitch) */
         You(Deaf ? alt_whistle_str : whistle_str,
