@@ -219,6 +219,9 @@ struct rm {
 #define D_LOCKED  0x08
 
 #define D_TRAPPED 0x10
+/* secret doors aren't trapped or nonpasswall; overload D_TRAPPED and
+   W_NONPASSWALL for 'arboreal' secret doors (in garden theme room) */
+#define D_ARBOREAL D_TRAPPED
 #define D_SECRET  0x20 /* only used by sp_lev.c, NOT in rm-struct */
 
 /*

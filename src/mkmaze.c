@@ -76,8 +76,16 @@ boolean
 set_levltyp(coordxy x, coordxy y, schar newtyp)
 {
     if (isok(x, y) && newtyp >= STONE && newtyp < MAX_TYPE) {
-        if (CAN_OVERWRITE_TERRAIN(levl[x][y].typ)) {
-            schar oldtyp = levl[x][y].typ;
+        schar oldtyp = levl[x][y].typ;
+
+        /* hack for secret doors in garden theme rooms */
+        if (oldtyp == SDOOR && newtyp == AIR) {
+            /* levl[][].typ stays SDOOR rather than change to AIR */
+            levl[x][y].doormask |= D_ARBOREAL;
+            return TRUE;
+        }
+
+        if (CAN_OVERWRITE_TERRAIN(oldtyp)) {
             /* typ==ICE || (typ==DRAWBRIDGE_UP && drawbridgemask==DB_ICE) */
             boolean was_ice = is_ice(x, y);
 

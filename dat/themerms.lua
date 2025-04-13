@@ -1071,7 +1071,10 @@ end
 -- postprocess callback: turn room walls into trees
 function make_garden_walls(data)
    local sel = data.sel:grow();
+   -- change walls to trees
    des.replace_terrain({ selection = sel, fromterrain="w", toterrain = "T" });
+   -- update secret doors; attempting to change to AIR will set arboreal flag
+   des.replace_terrain({ selection = sel, fromterrain="S", toterrain = "A" });
 end
 
 -- postprocess callback: make a trap

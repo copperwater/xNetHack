@@ -1588,7 +1588,7 @@ do_vicinity_map(
 void
 cvt_sdoor_to_door(struct rm *lev)
 {
-    int newmask = lev->doormask & ~WM_MASK;
+    int newmask = lev->doormask & ~(WM_MASK | D_ARBOREAL);
 
     if (Is_rogue_level(&u.uz)) {
         /* rogue didn't have doors, only doorways */
