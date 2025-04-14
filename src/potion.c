@@ -769,8 +769,7 @@ peffect_restore_ability(struct obj *otmp)
         int i, ii;
 
         /* unlike unicorn horn, overrides Fixed_abil;
-           does not recover temporary strength loss due to hunger
-           or temporary dexterity loss due to wounded legs */
+           does not recover temporary strength loss due to hunger */
         pline("Wow!  This makes you feel %s!",
               (!otmp->blessed) ? "good"
               : unfixable_trouble_count(FALSE) ? "better"
@@ -802,6 +801,19 @@ peffect_restore_ability(struct obj *otmp)
                 pluslvl(FALSE);
             } while (u.ulevel < u.ulevelmax && otmp->blessed);
         }
+
+        /* also heal wounded legs and most status ailments ("restoring your
+         * faculties"), and even illness if blessed, but not sliming.
+         * Note: spell of restore ability will also cure these (except illness),
+         * but if you're confused or stunned you can't cast it in the first
+         * place. */
+        if (Wounded_legs)
+            heal_legs(0);
+        make_confused(0L, TRUE);
+        make_stunned(0L, TRUE);
+        make_hallucinated(0L, TRUE, 0L);
+        if (otmp->otyp == POT_RESTORE_ABILITY && otmp->blessed)
+            make_sick(0L, (char *) 0, TRUE, SICK_ALL);
     }
 }
 
@@ -1968,10 +1980,6 @@ potionhit(struct monst *mon, struct obj *obj, int how)
                 cureblind = TRUE;
             if (mon->data == &mons[PM_PESTILENCE])
                 goto do_illness;
-            FALLTHROUGH;
-            /*FALLTHRU*/
-        case POT_RESTORE_ABILITY:
-        case POT_GAIN_ABILITY:
  do_healing:
             angermon = FALSE;
             if (mon->mhp < mon->mhpmax) {
@@ -1981,6 +1989,16 @@ potionhit(struct monst *mon, struct obj *obj, int how)
             }
             if (cureblind)
                 mcureblindness(mon, canseemon(mon));
+            break;
+        case POT_RESTORE_ABILITY:
+        case POT_GAIN_ABILITY:
+            mcureblindness(mon, canseemon(mon));
+            if (mon->mconf || mon->mstun) {
+                mon->mconf = 0;
+                mon->mstun = 0;
+                if (canseemon(mon))
+                    pline("%s looks steady again.", Monnam(mon));
+            }
             break;
         case POT_SICKNESS:
             if (mon->data == &mons[PM_PESTILENCE])

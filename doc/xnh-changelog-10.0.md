@@ -30,6 +30,12 @@ changes:
   second potion will be required to address any negative enchantment.
 - Spellbooks can be dipped in a noncursed potion of restore ability to fully
   refresh the ink on their pages.
+- Quaffing restore ability will heal wounded legs, confusion, stunning, and
+  hallucinating (unless you are perma-hallucinating). If it's blessed, it will
+  also cure illness.
+- The spell of restore ability has the same effects, except for curing illness.
+- Monsters hit by a potion of restore ability get cured of any blindness,
+  confusion, or stunning, instead of being healed to full HP.
 
 ### Interface changes
 
