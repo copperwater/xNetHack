@@ -246,14 +246,16 @@ ifdef MAKEFILE_UTL
 $(TARGETPFX)recover.o: recover.c $(CONFIG_H)
 	$(TARGET_CC) $(TARGET_CFLAGS) $(CSTD) -c recover.c -o $@
 ifdef CROSS_TO_MSDOS
-$(TARGETPFX)recover.exe : $(TARGETPFX)recover.o $(TARGETPFX)hacklib.a
+$(TARGETPFX)recover.exe : $(TARGETPFX)recover.o $(TARGETPFX)rversion.o $(TARGETPFX)hacklib.a
 	$(TARGET_LINK) $(TARGET_LFLAGS) \
-	$(TARGETPFX)recover.o $(TARGETPFX)hacklib.a -o $@
+	$(TARGETPFX)recover.o $(TARGETPFX)rversion.o $(TARGETPFX)hacklib.a -o $@
 else
-$(TARGETPFX)recover : $(TARGETPFX)recover.o $(TARGETPFX)hacklib.a
+$(TARGETPFX)recover : $(TARGETPFX)recover.o $(TARGETPFX)rversion.o $(TARGETPFX)hacklib.a
 	$(TARGET_LINK) $(TARGET_LFLAGS) \
-	$(TARGETPFX)recover.o $(TARGETPFX)hacklib.a -o $@
+	$(TARGETPFX)recover.o $(TARGETPFX)rversion.o $(TARGETPFX)hacklib.a -o $@
 endif
+$(TARGETPFX)rversion.o: ../src/version.c $(HACK_H)
+	$(TARGET_CC) $(TARGET_CFLAGS) -DMINIMAL_FOR_RECOVER  $(CSTD) -c ../src/version.c -o $@
 endif  # MAKEFILE_UTL
 endif  # CROSS
 
