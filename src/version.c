@@ -3,8 +3,11 @@
 /*-Copyright (c) Michael Allison, 2018. */
 /* NetHack may be freely redistributed.  See license for details. */
 
+
 #include "hack.h"
 #include "dlb.h"
+
+#ifndef MINIMAL_FOR_RECOVER
 
 #ifndef OPTIONS_AT_RUNTIME
 #define OPTIONS_AT_RUNTIME
@@ -513,6 +516,7 @@ dump_version_info(void)
     release_runtime_info();
     return;
 }
+#endif /* MINIMAL_FOR_RECOVER */
 
 struct critical_sizes_with_names {
     uchar ucsize;
@@ -647,6 +651,7 @@ get_critical_size_count(void)
     return SIZE(critical_sizes);
 }
 
+#ifndef MINIMAL_FOR_RECOVER
 void
 store_critical_bytes(NHFILE *nhfp)
 {
@@ -741,5 +746,6 @@ compare_critical_bytes(NHFILE *nhfp)
     }
     return 0; /* everything matched */
 }
+#endif /* MINIMAL_FOR_RECOVER */
 
 /*version.c*/

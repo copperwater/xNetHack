@@ -34,7 +34,9 @@ int restore_savefile(char *);
 void set_levelfile_name(int);
 int open_levelfile(int);
 int create_savefile(void);
-static void store_formatindicator(int);
+
+extern int get_critical_size_count(void);
+extern uchar cscbuf[];
 
 #ifndef WIN_CE
 #define Fprintf (void) fprintf
@@ -201,17 +203,15 @@ int
 restore_savefile(char *basename)
 {
     int gfd, lfd, sfd;
-    int res = 0, lev, savelev, hpid, pltmpsiz, filecmc;
+    int res = 0, lev, savelev, hpid, pltmpsiz;
     xint8 levc;
     struct version_info version_data;
-    struct savefile_info sfi;
-    char plbuf[PL_NSIZ], indicator;
+    char plbuf[PL_NSIZ], indicator, cscsize;
 
     /* level 0 file contains:
      *  pid of creating process (ignored here)
      *  level number for current level of save file
      *  name of save file nethack would have created
-     *  savefile info
      *  player name
      *  and game state
      */
@@ -252,11 +252,12 @@ restore_savefile(char *basename)
          != sizeof savename)
         || (read(gfd, (genericptr_t) &indicator, sizeof indicator)
             != sizeof indicator)
-        || (read(gfd, (genericptr_t) &filecmc, sizeof filecmc)
-            != sizeof filecmc)
+        || (read(gfd, (genericptr_t) &cscsize, sizeof cscsize)
+            != sizeof cscsize)
+        || (read(gfd, (genericptr_t) &cscbuf, cscsize)
+            != cscsize)
         || (read(gfd, (genericptr_t) &version_data, sizeof version_data)
             != sizeof version_data)
-        || (read(gfd, (genericptr_t) &sfi, sizeof sfi) != sizeof sfi)
         || (read(gfd, (genericptr_t) &pltmpsiz, sizeof pltmpsiz)
             != sizeof pltmpsiz) || (pltmpsiz > PL_NSIZ)
         || (read(gfd, (genericptr_t) plbuf, pltmpsiz) != pltmpsiz)) {
@@ -289,20 +290,35 @@ restore_savefile(char *basename)
         return -1;
     }
 
-    store_formatindicator(sfd);
-    if (write(sfd, (genericptr_t) &version_data, sizeof version_data)
-        != sizeof version_data) {
-        Fprintf(stderr, "Error writing %s; recovery failed.\n", savename);
+    if (write(sfd, (genericptr_t) &indicator, sizeof indicator)
+        != sizeof indicator) {
+        Fprintf(stderr, "Error writing %s %s; recovery failed.\n",
+                savename, "indicator");
         Close(gfd);
         Close(sfd);
         Close(lfd);
         return -1;
     }
-
-    if (write(sfd, (genericptr_t) &sfi, sizeof sfi) != sizeof sfi) {
-        Fprintf(stderr,
-                "Error writing %s; recovery failed (savefile_info).\n",
-                savename);
+    if (write(sfd, (genericptr_t) &cscsize, sizeof cscsize) != sizeof cscsize) {
+        Fprintf(stderr, "Error writing %s %s; recovery failed.\n",
+                savename, "cscsize");
+        Close(gfd);
+        Close(sfd);
+        Close(lfd);
+        return -1;
+    }
+    if (write(sfd, (genericptr_t) &cscbuf, cscsize) != cscsize) {
+        Fprintf(stderr, "Error writing %s %s; recovery failed.\n",
+                savename, "critical bytes");
+        Close(gfd);
+        Close(sfd);
+        Close(lfd);
+        return -1;
+    }
+    if (write(sfd, (genericptr_t) &version_data, sizeof version_data)
+        != sizeof version_data) {
+        Fprintf(stderr, "Error writing %s %s; recovery failed.\n",
+                savename, "version_data");
         Close(gfd);
         Close(sfd);
         Close(lfd);
@@ -398,18 +414,6 @@ restore_savefile(char *basename)
 #endif
     return res;
 }
-
-static void
-store_formatindicator(int fd)
-{
-    char indicate = 'h';      /* historical */
-    int cmc = 0;
-
-    (void) write(fd, (genericptr_t) &indicate, sizeof indicate);
-    (void) write(fd, (genericptr_t) &cmc, sizeof cmc);
-}
-
-
 
 #ifdef EXEPATH
 #ifdef __DJGPP__

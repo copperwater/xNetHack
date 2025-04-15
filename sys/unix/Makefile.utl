@@ -200,7 +200,7 @@ HACKLIBOBJ = $(OBJDIR)/hacklib.o panic.o
 MAKEOBJS = makedefs.o $(OMONOBJ) $(ODATE) $(OALLOC)
 
 # object files for recovery utility
-RECOVOBJS = recover.o
+RECOVOBJS = recover.o recover-version.o
 
 # object files for the data librarian
 DLBOBJS = dlb_main.o $(OBJDIR)/dlb.o $(OALLOC)
@@ -284,6 +284,11 @@ recover: $(RECOVOBJS) $(HACKLIB)
 recover.o: recover.c $(CONFIG_H)
 	$(CC) $(CFLAGS) $(CSTD) -c recover.c -o $@
 
+recover-version.o: ../src/version.c $(HACK_H)
+	$(CC) $(CFLAGS) $(CSTD) -DMINIMAL_FOR_RECOVER -c ../src/version.c -o $@
+
+recover-sfstruct.o: ../src/sfstruct.c $(HACK_H)
+	$(CC) $(CFLAGS) $(CSTD) -DMINIMAL_FOR_RECOVER -c ../src/sfstruct.c -o $@
 
 #	dependencies for dlb
 #
