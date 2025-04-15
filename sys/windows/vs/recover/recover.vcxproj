@@ -30,6 +30,9 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="$(UtilDir)recover.c" />
+    <ClCompile Include="..\..\..\..\src\version.c">
+      <PreprocessorDefinitions Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">WIN32CON;DLB;MSWIN_GRAPHICS;HAS_STDINT_H;MINIMAL_FOR_RECOVER;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="$(IncDir)config.h" />
