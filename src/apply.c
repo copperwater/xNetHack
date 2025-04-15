@@ -4015,6 +4015,8 @@ do_break_wand(struct obj *obj)
                     if (*in_rooms(x, y, SHOPBASE))
                         shop_damage = TRUE;
                 }
+                if (levl[x][y].typ == ICE)
+                    spot_stop_timers(x, y, MELT_ICE_AWAY);
                 /*
                  * Let liquid flow into the newly created pits.
                  * Adjust corresponding code in music.c for
