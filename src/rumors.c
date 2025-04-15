@@ -596,21 +596,29 @@ init_oracles(dlb *fp)
 void
 save_oracles(NHFILE *nhfp)
 {
+    int i;
+
     if (perform_bwrite(nhfp)) {
-            if (nhfp->structlevel)
-                bwrite(nhfp->fd, (genericptr_t) &svo.oracle_cnt,
-                       sizeof svo.oracle_cnt);
-            if (svo.oracle_cnt) {
+        if (nhfp->structlevel) {
+            bwrite(nhfp->fd, (genericptr_t) &svo.oracle_cnt,
+                   sizeof svo.oracle_cnt);
+        }
+        if (svo.oracle_cnt) {
+            for (i = 0; (unsigned) i < svo.oracle_cnt; ++i) {
                 if (nhfp->structlevel) {
-                    bwrite(nhfp->fd, (genericptr_t) go.oracle_loc,
-                           svo.oracle_cnt * sizeof (long));
+                    bwrite(nhfp->fd, (genericptr_t) &go.oracle_loc[i],
+                           sizeof (unsigned long));
                 }
             }
+        }
     }
     if (release_data(nhfp)) {
         if (svo.oracle_cnt) {
+            svo.oracle_cnt = 0, go.oracle_flg = 0;
+        }
+        if (go.oracle_loc) {
             free((genericptr_t) go.oracle_loc);
-            go.oracle_loc = 0, svo.oracle_cnt = 0, go.oracle_flg = 0;
+            go.oracle_loc = 0;
         }
     }
 }
@@ -618,14 +626,20 @@ save_oracles(NHFILE *nhfp)
 void
 restore_oracles(NHFILE *nhfp)
 {
-    if (nhfp->structlevel)
-        mread(nhfp->fd, (genericptr_t) &svo.oracle_cnt, sizeof svo.oracle_cnt);
+    int i;
 
+    if (nhfp->structlevel) {
+        mread(nhfp->fd, (genericptr_t) &svo.oracle_cnt,
+              sizeof svo.oracle_cnt);
+    }
     if (svo.oracle_cnt) {
-        go.oracle_loc = (unsigned long *) alloc(svo.oracle_cnt * sizeof(long));
-        if (nhfp->structlevel) {
-            mread(nhfp->fd, (genericptr_t) go.oracle_loc,
-                  svo.oracle_cnt * sizeof (long));
+        go.oracle_loc =
+            (unsigned long *) alloc(svo.oracle_cnt * sizeof (unsigned long));
+        for (i = 0; (unsigned) i < svo.oracle_cnt; ++i) {
+            if (nhfp->structlevel) {
+                mread(nhfp->fd, (genericptr_t) &go.oracle_loc[i],
+                      sizeof (unsigned long));
+            }
         }
         go.oracle_flg = 1; /* no need to call init_oracles() */
     }

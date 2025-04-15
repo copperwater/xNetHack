@@ -2496,22 +2496,25 @@ write_timer(NHFILE *nhfp, timer_element *timer)
     case TIMER_GLOBAL:
     case TIMER_LEVEL:
         /* assume no pointers in arg */
-        if (nhfp->structlevel)
+        if (nhfp->structlevel) {
             bwrite(nhfp->fd, (genericptr_t) timer, sizeof(timer_element));
+        }
         break;
 
     case TIMER_OBJECT:
         if (timer->needs_fixup) {
-            if (nhfp->structlevel)
+            if (nhfp->structlevel) {
                 bwrite(nhfp->fd, (genericptr_t) timer, sizeof(timer_element));
+            }
         } else {
             /* replace object pointer with id */
             arg_save.a_obj = timer->arg.a_obj;
             timer->arg = cg.zeroany;
             timer->arg.a_uint = (arg_save.a_obj)->o_id;
             timer->needs_fixup = 1;
-            if (nhfp->structlevel)
+            if (nhfp->structlevel) {
                 bwrite(nhfp->fd, (genericptr_t) timer, sizeof(timer_element));
+            }
             timer->arg.a_obj = arg_save.a_obj;
             timer->needs_fixup = 0;
         }
@@ -2519,16 +2522,18 @@ write_timer(NHFILE *nhfp, timer_element *timer)
 
     case TIMER_MONSTER:
         if (timer->needs_fixup) {
-            if (nhfp->structlevel)
+            if (nhfp->structlevel) {
                 bwrite(nhfp->fd, (genericptr_t) timer, sizeof(timer_element));
+            }
         } else {
             /* replace monster pointer with id */
             arg_save.a_monst = timer->arg.a_monst;
             timer->arg = cg.zeroany;
             timer->arg.a_uint = (arg_save.a_monst)->m_id;
             timer->needs_fixup = 1;
-            if (nhfp->structlevel)
+            if (nhfp->structlevel) {
                 bwrite(nhfp->fd, (genericptr_t) timer, sizeof(timer_element));
+            }
             timer->arg.a_monst = arg_save.a_monst;
             timer->needs_fixup = 0;
         }
@@ -2662,13 +2667,15 @@ save_timers(NHFILE *nhfp, int range)
 
     if (perform_bwrite(nhfp)) {
         if (range == RANGE_GLOBAL) {
-            if (nhfp->structlevel)
+            if (nhfp->structlevel) {
                 bwrite(nhfp->fd, (genericptr_t) &svt.timer_id,
                        sizeof svt.timer_id);
+            }
         }
         count = maybe_write_timer(nhfp, range, FALSE);
-        if (nhfp->structlevel)
+        if (nhfp->structlevel) {
             bwrite(nhfp->fd, (genericptr_t) &count, sizeof count);
+        }
         (void) maybe_write_timer(nhfp, range, TRUE);
     }
 
@@ -2703,19 +2710,22 @@ restore_timers(NHFILE *nhfp, int range, long adjust)
     boolean ghostly = (nhfp->ftype == NHF_BONESFILE); /* from a ghost level */
 
     if (range == RANGE_GLOBAL) {
-        if (nhfp->structlevel)
+        if (nhfp->structlevel) {
             mread(nhfp->fd, (genericptr_t) &svt.timer_id,
                   sizeof svt.timer_id);
+        }
     }
 
     /* restore elements */
-    if (nhfp->structlevel)
+    if (nhfp->structlevel) {
         mread(nhfp->fd, (genericptr_t) &count, sizeof count);
+    }
 
     while (count-- > 0) {
         curr = (timer_element *) alloc(sizeof(timer_element));
-        if (nhfp->structlevel)
+        if (nhfp->structlevel) {
             mread(nhfp->fd, (genericptr_t) curr, sizeof(timer_element));
+        }
         if (ghostly)
             curr->timeout += adjust;
         insert_timer(curr);

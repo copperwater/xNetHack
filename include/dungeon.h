@@ -188,66 +188,71 @@ struct linfo {
 
 /* what the player knows about a single dungeon level */
 /* initialized in mklev() */
+struct mapseen_feat {
+    /* feature knowledge that must be calculated from levl array */
+    Bitfield(nfount, 2);
+    Bitfield(nsink, 2);
+    Bitfield(naltar, 2);
+    Bitfield(nthrone, 2);
+
+    Bitfield(ngrave, 2);
+    Bitfield(ntree, 2);
+    Bitfield(water, 2);
+    Bitfield(lava, 2);
+
+    Bitfield(ice, 2);
+    /* calculated from rooms array */
+    Bitfield(nshop, 2);
+    Bitfield(ntemple, 2);
+    /* altar alignment; MSA_NONE if there is more than one and
+       they aren't all the same */
+    Bitfield(msalign, 2);
+
+    Bitfield(shoptype, 5);
+};
+struct mapseen_flags {
+    Bitfield(notreachable, 1); /* can't get back to this level */
+    Bitfield(forgot, 1);       /* player has forgotten about this level */
+    Bitfield(knownbones, 1);   /* player aware of bones */
+    Bitfield(oracle, 1);
+    Bitfield(sokosolved, 1);
+    Bitfield(bigroom, 1);
+    Bitfield(castle, 1);
+    Bitfield(castletune, 1); /* add tune hint to castle annotation */
+
+    Bitfield(valley, 1);
+    Bitfield(msanctum, 1);
+    Bitfield(ludios, 1);
+    Bitfield(roguelevel, 1);
+    /* quest annotations: quest_summons is for main dungeon level
+       with entry portal and is reset once quest has been finished;
+       questing is for quest home (level 1) */
+    Bitfield(quest_summons, 1); /* heard summons from leader */
+    Bitfield(questing, 1);      /* quest leader has unlocked quest stairs */
+    /* "gateway to sanctum" */
+    Bitfield(vibrating_square, 1); /* found vibrating square 'trap';
+                                    * flag cleared once the msanctum
+                                    * annotation has been added (on
+                                    * the next dungeon level; temple
+                                    * entered or high altar mapped) */
+    Bitfield(spare1, 1);           /* not used */
+};
+
+struct mapseen_rooms {
+    Bitfield(seen, 1);
+    Bitfield(untended, 1); /* flag for shop without shk */
+};
+
 typedef struct mapseen {
     struct mapseen *next; /* next map in the chain */
     branch *br;           /* knows about branch via taking it in goto_level */
     d_level lev;          /* corresponding dungeon level */
-    struct mapseen_feat {
-        /* feature knowledge that must be calculated from levl array */
-        Bitfield(nfount, 2);
-        Bitfield(nsink, 2);
-        Bitfield(naltar, 2);
-        Bitfield(nthrone, 2);
-
-        Bitfield(ngrave, 2);
-        Bitfield(ntree, 2);
-        Bitfield(water, 2);
-        Bitfield(lava, 2);
-
-        Bitfield(ice, 2);
-        /* calculated from rooms array */
-        Bitfield(nshop, 2);
-        Bitfield(ntemple, 2);
-        /* altar alignment; MSA_NONE if there is more than one and
-           they aren't all the same */
-        Bitfield(msalign, 2);
-
-        Bitfield(shoptype, 5);
-    } feat;
-    struct mapseen_flags {
-        Bitfield(notreachable, 1); /* can't get back to this level */
-        Bitfield(forgot, 1);      /* player has forgotten about this level */
-        Bitfield(knownbones, 1);  /* player aware of bones */
-        Bitfield(oracle, 1);
-        Bitfield(sokosolved, 1);
-        Bitfield(bigroom, 1);
-        Bitfield(castle, 1);
-        Bitfield(castletune, 1); /* add tune hint to castle annotation */
-
-        Bitfield(valley, 1);
-        Bitfield(msanctum, 1);
-        Bitfield(ludios, 1);
-        Bitfield(roguelevel, 1);
-        /* quest annotations: quest_summons is for main dungeon level
-           with entry portal and is reset once quest has been finished;
-           questing is for quest home (level 1) */
-        Bitfield(quest_summons, 1); /* heard summons from leader */
-        Bitfield(questing, 1); /* quest leader has unlocked quest stairs */
-        /* "gateway to sanctum" */
-        Bitfield(vibrating_square, 1); /* found vibrating square 'trap';
-                                        * flag cleared once the msanctum
-                                        * annotation has been added (on
-                                        * the next dungeon level; temple
-                                        * entered or high altar mapped) */
-        Bitfield(spare1, 1); /* not used */
-    } flags;
+    struct mapseen_feat feat;
+    struct mapseen_flags flags;
     /* custom naming */
     char *custom;
     unsigned custom_lth;
-    struct mapseen_rooms {
-        Bitfield(seen, 1);
-        Bitfield(untended, 1);         /* flag for shop without shk */
-    } msrooms[(MAXNROFROOMS + 1) * 2]; /* same size as svr.rooms[] */
+    struct mapseen_rooms msrooms[(MAXNROFROOMS + 1) * 2]; /* same size as svr.rooms[] */
     /* dead heroes; might not have graves or ghosts */
     struct cemetery *final_resting_place; /* same as level.bonesinfo */
 } mapseen;

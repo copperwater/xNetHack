@@ -1732,8 +1732,9 @@ save_waterlevel(NHFILE *nhfp)
             bwrite(nhfp->fd, (genericptr_t) &svy.ymax, sizeof(int));
         }
         for (b = svb.bbubbles; b; b = b->next) {
-            if (nhfp->structlevel)
+            if (nhfp->structlevel) {
                 bwrite(nhfp->fd, (genericptr_t) b, sizeof(struct bubble));
+            }
         }
     }
     if (release_data(nhfp))
@@ -1759,8 +1760,9 @@ restore_waterlevel(NHFILE *nhfp)
     for (i = 0; i < n; i++) {
         btmp = b;
         b = (struct bubble *) alloc((unsigned) sizeof *b);
-        if (nhfp->structlevel)
+        if (nhfp->structlevel) {
             mread(nhfp->fd, (genericptr_t) b, (unsigned) sizeof *b);
+        }
         if (btmp) {
             btmp->next = b;
             b->prev = btmp;

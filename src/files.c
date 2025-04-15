@@ -4258,7 +4258,6 @@ recover_savefile(void)
     struct version_info version_data;
     int processed[256];
     char savename[SAVESIZE], errbuf[BUFSZ], indicator;
-    struct savefile_info sfi;
     char tmpplbuf[PL_NSIZ_PLUS];
     const char *savewrite_failure = (const char *) 0;
 
@@ -4269,7 +4268,6 @@ recover_savefile(void)
      *  pid of creating process (ignored here)
      *  level number for current level of save file
      *  name of save file nethack would have created
-     *  savefile info
      *  player name
      *  and game state
      */
@@ -4304,7 +4302,6 @@ recover_savefile(void)
             != sizeof filecmc)
         || (read(gnhfp->fd, (genericptr_t) &version_data, sizeof version_data)
             != sizeof version_data)
-        || (read(gnhfp->fd, (genericptr_t) &sfi, sizeof sfi) != sizeof sfi)
         || (read(gnhfp->fd, (genericptr_t) &pltmpsiz, sizeof pltmpsiz)
             != sizeof pltmpsiz) || (pltmpsiz > PL_NSIZ_PLUS)
         || (read(gnhfp->fd, (genericptr_t) &tmpplbuf, pltmpsiz)
@@ -4317,8 +4314,8 @@ recover_savefile(void)
     /* save file should contain:
      *  format indicator and cmc
      *  version info
-     *  savefile info
-     *  player name
+     *  plnametmp = player name size (int, 2 bytes)
+     *  player name (PL_NSIZ_PLUS)
      *  current level (including pets)
      *  (non-level-based) game state
      *  other levels
@@ -4347,17 +4344,7 @@ recover_savefile(void)
         return FALSE;
     }
 
-    /*
-     * Our savefile output format might _not_ be structlevel.
-     * We have to check and use the correct output routine here.
-     */
-    /*store_formatindicator(snhfp); */
     store_version(snhfp);
-
-    if (snhfp->structlevel) {
-        if (write(snhfp->fd, (genericptr_t) &sfi, sizeof sfi) != sizeof sfi)
-            savewrite_failure = "savefileinfo";
-    }
     if (savewrite_failure)
         goto cleanup;
 

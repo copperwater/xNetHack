@@ -275,14 +275,14 @@ early_version_info(boolean pastebuf)
     char buf1[BUFSZ], buf2[BUFSZ];
     char *buf, *tmp;
 
-    Snprintf(buf1, sizeof(buf1), "test");
+    Snprintf(buf1, sizeof buf1, "test");
     /* this is early enough that we have to do our own line-splitting */
     getversionstring(buf1, sizeof buf1);
     tmp = strstri(buf1, " ("); /* split at start of version info */
     if (tmp) {
         /* retain one buffer so that it all goes into the paste buffer */
         *tmp++ = '\0';
-        Snprintf(buf2, sizeof(buf2), "%s\n%s", buf1, tmp);
+        Snprintf(buf2, sizeof (buf2),"%s\n%s", buf1, tmp);
         buf = buf2;
     } else {
         buf = buf1;
@@ -389,10 +389,6 @@ check_version(
             != (nomakedefs.version_features & ~nomakedefs.ignored_features)
         || ((utdflags & UTD_SKIP_SANITY1) == 0
              && version_data->entity_count != nomakedefs.version_sanity1)
-        || ((utdflags & UTD_CHECKSIZES) != 0
-            && version_data->struct_sizes1 != nomakedefs.version_sanity2)
-        || ((utdflags & UTD_CHECKSIZES) != 0
-            && version_data->struct_sizes2 != nomakedefs.version_sanity3)
         ) {
         if (complain) {
             pline("Configuration incompatibility for file \"%s\".", filename);
@@ -403,69 +399,11 @@ check_version(
     return TRUE;
 }
 
-/* this used to be based on file date and somewhat OS-dependent,
-   but now examines the initial part of the file's contents */
-boolean
-uptodate(NHFILE *nhfp, const char *name, unsigned long utdflags)
-{
-    ssize_t rlen = 0;
-    int cmc = 0, filecmc = 0;
-    struct version_info vers_info;
-    boolean verbose = name ? TRUE : FALSE;
-    char indicator;
-
-    if (nhfp->structlevel) {
-        rlen = read(nhfp->fd, (genericptr_t) &indicator, sizeof indicator);
-        if (rlen != sizeof indicator)
-            return FALSE;
-        rlen = read(nhfp->fd, (genericptr_t) &filecmc, sizeof filecmc);
-        if (rlen == 0)
-            return FALSE;
-    }
-    if (cmc != filecmc)
-        return FALSE;
-
-    rlen = read(nhfp->fd, (genericptr_t) &vers_info, sizeof vers_info);
-    minit();                /* ZEROCOMP */
-    if (rlen == 0) {
-        if (verbose) {
-            pline("File \"%s\" is empty?", name);
-            if ((utdflags & UTD_WITHOUT_WAITSYNCH_PERFILE) == 0)
-                wait_synch();
-        }
-        return FALSE;
-    }
-
-    if (!check_version(&vers_info, name, verbose, utdflags)) {
-        if (verbose) {
-            if ((utdflags & UTD_WITHOUT_WAITSYNCH_PERFILE) == 0)
-                wait_synch();
-        }
-        return FALSE;
-    }
-    return TRUE;
-}
-
-void
-store_formatindicator(NHFILE *nhfp)
-{
-    char indicate = 'u';
-    int cmc = 0;
-
-    if (nhfp->mode & WRITING) {
-        if (nhfp->structlevel) {
-            indicate = 'h';     /* historical */
-            bwrite(nhfp->fd, (genericptr_t) &indicate, sizeof indicate);
-            bwrite(nhfp->fd, (genericptr_t) &cmc, sizeof cmc);
-        }
-    }
-}
-
 void
 store_version(NHFILE *nhfp)
 {
     struct version_info version_data = {
-        0UL, 0UL, 0UL, 0UL, 0UL
+        0UL, 0UL, 0UL,
     };
 
     /* actual version number */
@@ -474,19 +412,19 @@ store_version(NHFILE *nhfp)
     version_data.feature_set = nomakedefs.version_features;
     /* # of monsters and objects */
     version_data.entity_count  = nomakedefs.version_sanity1;
-    /* size of key structs */
-    version_data.struct_sizes1 = nomakedefs.version_sanity2;
-    /* size of more key structs */
-    version_data.struct_sizes2 = nomakedefs.version_sanity3;
 
-    if (nhfp->structlevel) {
+    /* bwrite() before bufon() uses plain write() */
+    if (nhfp->structlevel)
         bufoff(nhfp->fd);
-        /* bwrite() before bufon() uses plain write() */
-        store_formatindicator(nhfp);
+
+    store_critical_bytes(nhfp);
+    if (nhfp->structlevel) {
         bwrite(nhfp->fd, (genericptr_t) &version_data,
                (unsigned) (sizeof version_data));
-        bufon(nhfp->fd);
     }
+
+    if (nhfp->structlevel)
+         bufon(nhfp->fd);
     return;
 }
 
@@ -566,16 +504,242 @@ dump_version_info(void)
     if (strlen(hname) > 33)
         hname = eos(nhStr(hname)) - 33; /* discard const for eos() */
     runtime_info_init();
-    Snprintf(buf, sizeof buf, "%-12.33s %08lx %08lx %08lx %08lx %08lx",
+    Snprintf(buf, sizeof buf, "%-12.33s %08lx %08lx %08lx",
              hname,
              nomakedefs.version_number,
              (nomakedefs.version_features & ~nomakedefs.ignored_features),
-             nomakedefs.version_sanity1,
-             nomakedefs.version_sanity2,
-             nomakedefs.version_sanity3);
+             nomakedefs.version_sanity1);
     raw_print(buf);
     release_runtime_info();
     return;
+}
+
+struct critical_sizes_with_names {
+    uchar ucsize;
+    const char *nm;
+};
+
+struct critical_sizes_with_names critical_sizes[] = {
+    { 0, "unused" },
+    /* simple types, that don't have subfields */
+    { (uchar) sizeof(short), "short" },
+    { (uchar) sizeof(int), "int" },
+    { (uchar) sizeof(long), "long" },
+    { (uchar) sizeof(long long), "long long" },
+    { (uchar) sizeof(genericptr_t), "genericptr_t" },
+    { (uchar) sizeof(aligntyp), "aligntyp" },
+    { (uchar) sizeof(boolean), "boolean" },
+    { (uchar) sizeof(coordxy), "coordxy" },
+    { (uchar) sizeof(int16), "int16" },
+    { (uchar) sizeof(int32), "int32" },
+    { (uchar) sizeof(int64), "int64" },
+    { (uchar) sizeof(schar), "schar" },
+    { (uchar) sizeof(size_t), "size_t" },
+    { (uchar) sizeof(uchar), "uchar" },
+    { (uchar) sizeof(uint16), "uint16" },
+    { (uchar) sizeof(uint32), "uint32" },
+    { (uchar) sizeof(uint64), "uint64" },
+    { (uchar) sizeof(ulong), "ulong" },
+    { (uchar) sizeof(unsigned), "unsigned" },
+    { (uchar) sizeof(ushort), "ushort" },
+    { (uchar) sizeof(xint16), "xint16" },
+    { (uchar) sizeof(xint8), "xint8" },
+    /* complex - they break down into one or more simple types */
+    { (uchar) sizeof(struct arti_info), "struct arti_info" },
+    { (uchar) sizeof(struct nhrect), "struct nhrect" },
+    { (uchar) sizeof(struct branch), "struct branch" },
+    { (uchar) sizeof(struct bubble), "struct bubble" },
+    { (uchar) sizeof(struct cemetery), "struct cemetery" },
+    { (uchar) sizeof(struct context_info), "struct context_info" },
+    { (uchar) sizeof(struct nhcoord), "struct nhcoord" },
+    { (uchar) sizeof(struct damage), "struct damage" },
+    { (uchar) sizeof(struct dest_area), "struct dest_area" },
+    { (uchar) sizeof(struct dgn_topology), "struct dgn_topology" },
+    { (uchar) sizeof(struct dungeon), "struct dungeon" },
+    { (uchar) sizeof(struct d_level), "struct d_level" },
+    { (uchar) sizeof(struct ebones), "struct ebones" },
+    { (uchar) sizeof(struct edog), "struct edog" },
+    { (uchar) sizeof(struct egd), "struct egd" },
+    { (uchar) sizeof(struct emin), "struct emin" },
+    { (uchar) sizeof(struct engr), "struct engr" },
+    { (uchar) sizeof(struct epri), "struct epri" },
+    { (uchar) sizeof(struct eshk), "struct eshk" },
+    { (uchar) sizeof(struct fe), "struct fe" },
+    { (uchar) sizeof(struct flag), "struct flag" },
+    { (uchar) sizeof(struct fruit), "struct fruit" },
+    { (uchar) sizeof(struct gamelog_line), "struct gamelog_line" },
+    { (uchar) sizeof(struct kinfo), "struct kinfo" },
+    { (uchar) sizeof(struct levelflags), "struct levelflags" },
+    { (uchar) sizeof(struct ls_t), "struct ls_t" },
+    { (uchar) sizeof(struct linfo), "struct linfo" },
+    { (uchar) sizeof(struct mapseen_feat), "struct mapseen_feat" },
+    { (uchar) sizeof(struct mapseen_flags), "struct mapseen_flags" },
+    { (uchar) sizeof(struct mapseen_rooms), "struct mapseen_rooms" },
+    { (uchar) sizeof(struct mextra), "struct mextra" },
+    { (uchar) sizeof(struct mkroom), "struct mkroom" },
+    { (uchar) sizeof(struct monst), "struct monst" },
+    { (uchar) sizeof(struct mvitals), "struct mvitals" },
+    { (uchar) sizeof(struct obj), "struct obj" },
+    { (uchar) sizeof(struct objclass), "struct objclass" },
+    { (uchar) sizeof(struct q_score), "struct q_score" },
+    { (uchar) sizeof(struct rm), "struct rm" },
+    { (uchar) sizeof(struct spell), "struct spell" },
+    { (uchar) sizeof(struct stairway), "struct stairway" },
+    { (uchar) sizeof(struct s_level), "struct s_level" },
+    { (uchar) sizeof(struct trap), "struct trap" },
+    { (uchar) sizeof(struct version_info), "struct version_info" },
+    { (uchar) sizeof(anything), "anything" },
+    /* struct you requires 2 bytes */
+    { (uchar) ((sizeof(struct you) & 0x00FF)), "you_LO" },
+    { (uchar) ((sizeof(struct you) & 0xFF00) >> 8), "you_HI" },
+#ifdef SF_INCLUDE_SUBSTRUCTS
+    /*
+     * the ones below are substructures of the ones
+     * above, so there is no need to check these directly.
+     */
+    { (uchar) sizeof(struct attribs), "struct attribs" },
+    { (uchar) sizeof(struct dig_info), "struct dig_info" },
+    { (uchar) sizeof(struct tin_info), "struct tin_info" },
+    { (uchar) sizeof(struct book_info), "struct book_info" },
+    { (uchar) sizeof(struct takeoff_info), "struct takeoff_info" },
+    { (uchar) sizeof(struct victual_info), "struct victual_info" },
+    { (uchar) sizeof(struct engrave_info), "struct engrave_info" },
+    { (uchar) sizeof(struct warntype_info), "struct warntype_info" },
+    { (uchar) sizeof(struct polearm_info), "struct polearm_info" },
+    { (uchar) sizeof(struct obj_split), "struct obj_split" },
+    { (uchar) sizeof(struct tribute_info), "struct tribute_info" },
+    { (uchar) sizeof(struct novel_tracking), "struct novel_tracking" },
+    { (uchar) sizeof(struct achievement_tracking),
+      "struct achievement_tracking" },
+    { (uchar) sizeof(struct d_flags), "struct d_flags" },
+    { (uchar) sizeof(struct mapseen), "struct mapseen" },
+    { (uchar) sizeof(struct fakecorridor), "struct fakecorridor" },
+    { (uchar) sizeof(struct bill_x), "struct bill_x" },
+    { (uchar) sizeof(union vptrs), "union vptrs" },
+    { (uchar) sizeof(struct oextra), "struct oextra" },
+    { (uchar) sizeof(struct prop), "struct prop" },
+    { (uchar) sizeof(struct skills), "struct skills" },
+    { (uchar) sizeof(union vlaunchinfo), "union vlaunchinfo" },
+    { (uchar) sizeof(struct u_have), "struct u_have" },
+    { (uchar) sizeof(struct u_event), "struct u_event" },
+    { (uchar) sizeof(struct u_realtime), "struct u_realtime" },
+    { (uchar) sizeof(struct u_conduct), "struct u_conduct" },
+    { (uchar) sizeof(struct u_roleplay), "struct u_roleplay" },
+#endif /* SF_INCLUDE_SUBSTRUCTS */
+    /* 10 for future expansion without changing array size */
+    { 0, "" },
+    { 0, "" },
+    { 0, "" },
+    { 0, "" },
+    { 0, "" },
+    { 0, "" },
+    { 0, "" },
+    { 0, "" },
+    { 0, "" },
+    { 0, "" },
+};
+
+uchar cscbuf[SIZE(critical_sizes)];
+
+int
+get_critical_size_count(void)
+{
+    return SIZE(critical_sizes);
+}
+
+void
+store_critical_bytes(NHFILE *nhfp)
+{
+    int i, cnt;
+    char indicate = 'u', csc_count = (char) SIZE(critical_sizes);
+    /* int cmc = 0; */
+
+    if (nhfp->mode & WRITING) {
+        indicate = (nhfp->structlevel)      ? 'h'
+                   : (nhfp->fnidx == ascii) ? 'a'
+                                            : 'l';
+        if (nhfp->structlevel) {
+            bwrite(nhfp->fd, (genericptr_t) &indicate,
+               (unsigned) sizeof indicate);
+        }
+        if (nhfp->structlevel) {
+            bwrite(nhfp->fd, (genericptr_t) &csc_count,
+               (unsigned) sizeof csc_count);
+        }
+        cnt = (int) csc_count;
+        for (i = 0; i < cnt; ++i) {
+            if (nhfp->structlevel) {
+                bwrite(nhfp->fd, (genericptr_t) &critical_sizes[i].ucsize,
+                       (unsigned) sizeof (uchar));
+            }
+        }
+    }
+}
+
+/* this used to be based on file date and somewhat OS-dependent,
+   but now examines the initial part of the file's contents */
+boolean
+uptodate(NHFILE *nhfp, const char *name, unsigned long utdflags)
+{
+    struct version_info vers_info;
+    char indicator;
+    boolean verbose = name ? TRUE : FALSE;
+    int ccbresult = 0;
+    /* int you_size = (int) sizeof (struct you); */
+
+    if (nhfp->structlevel) {
+        mread(nhfp->fd, (genericptr_t) &indicator, sizeof indicator);
+    }
+    if ((ccbresult = compare_critical_bytes(nhfp)) != 0) {
+        if (ccbresult > 0) {
+            raw_printf("compare of critical bytes failed at %d (%s).",
+                       critical_sizes[ccbresult].ucsize,
+                       critical_sizes[ccbresult].nm);
+        }
+        return FALSE;
+    }
+
+    if (nhfp->structlevel) {
+        mread(nhfp->fd, (genericptr_t) &vers_info, sizeof vers_info);
+    }
+    if (!check_version(&vers_info, name, verbose, utdflags)) {
+        if (verbose) {
+            if ((utdflags & UTD_WITHOUT_WAITSYNCH_PERFILE) == 0)
+                wait_synch();
+        }
+        return FALSE;
+    }
+    return TRUE;
+}
+
+int
+compare_critical_bytes(NHFILE *nhfp)
+{
+    char active_csc_count = (char) SIZE(critical_sizes),
+         file_csc_count = 0;
+    int i, cnt = (int) active_csc_count;
+
+    if (nhfp->structlevel) {
+        mread(nhfp->fd, (genericptr_t) &file_csc_count,
+              sizeof file_csc_count);
+    }
+    if (file_csc_count > cnt) {
+        raw_printf("critical byte counts do not match"
+                   ", file:%d, critical_sizes:%d.",
+                   file_csc_count, SIZE(critical_sizes));
+        return -1;
+    }
+    for (i = 0; i < (int) file_csc_count; ++i) {
+        if (nhfp->structlevel) {
+            mread(nhfp->fd, (genericptr_t) &cscbuf[i],
+                  sizeof (uchar));
+        }
+    }
+    for (i = 1; i < cnt; ++i) {
+        if (cscbuf[i] != critical_sizes[i].ucsize)
+            return i;
+    }
+    return 0; /* everything matched */
 }
 
 /*version.c*/

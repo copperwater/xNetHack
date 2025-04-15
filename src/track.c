@@ -70,12 +70,14 @@ void
 save_track(NHFILE *nhfp)
 {
     if (perform_bwrite(nhfp)) {
-        if (nhfp->structlevel) {
-            int i;
+        int i;
 
+        if (nhfp->structlevel) {
             bwrite(nhfp->fd, (genericptr_t) &utcnt, sizeof utcnt);
             bwrite(nhfp->fd, (genericptr_t) &utpnt, sizeof utpnt);
-            for (i = 0; i < utcnt; i++) {
+        }
+        for (i = 0; i < utcnt; i++) {
+            if (nhfp->structlevel) {
                 bwrite(nhfp->fd, (genericptr_t) &utrack[i].x,
                        sizeof utrack[i].x);
                 bwrite(nhfp->fd, (genericptr_t) &utrack[i].y,
@@ -91,14 +93,16 @@ save_track(NHFILE *nhfp)
 void
 rest_track(NHFILE *nhfp)
 {
-    if (nhfp->structlevel) {
-        int i;
+    int i;
 
+    if (nhfp->structlevel) {
         mread(nhfp->fd, (genericptr_t) &utcnt, sizeof utcnt);
         mread(nhfp->fd, (genericptr_t) &utpnt, sizeof utpnt);
-        if (utcnt > UTSZ || utpnt > UTSZ)
-            panic("rest_track: impossible pt counts");
-        for (i = 0; i < utcnt; i++) {
+    }
+    if (utcnt > UTSZ || utpnt > UTSZ)
+        panic("rest_track: impossible pt counts");
+    for (i = 0; i < utcnt; i++) {
+        if (nhfp->structlevel) {
             mread(nhfp->fd, (genericptr_t) &utrack[i].x, sizeof utrack[i].x);
             mread(nhfp->fd, (genericptr_t) &utrack[i].y, sizeof utrack[i].y);
         }

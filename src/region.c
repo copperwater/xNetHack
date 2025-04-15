@@ -754,25 +754,29 @@ save_regions(NHFILE *nhfp)
             bwrite(nhfp->fd, (genericptr_t) &r->nrects, sizeof (short));
         }
         for (j = 0; j < r->nrects; j++) {
-            if (nhfp->structlevel)
+            if (nhfp->structlevel) {
                 bwrite(nhfp->fd, (genericptr_t) &r->rects[j],
                        sizeof (NhRect));
+            }
         }
-        if (nhfp->structlevel)
+        if (nhfp->structlevel) {
             bwrite(nhfp->fd, (genericptr_t) &r->attach_2_u, sizeof (boolean));
-        if (nhfp->structlevel)
             bwrite(nhfp->fd, (genericptr_t) &r->attach_2_m, sizeof (unsigned));
+        }
 
         n = !r->enter_msg ? 0U : (unsigned) strlen(r->enter_msg);
-        if (nhfp->structlevel)
+        if (nhfp->structlevel) {
             bwrite(nhfp->fd, (genericptr_t) &n, sizeof n);
+        }
         if (n > 0) {
-            if (nhfp->structlevel)
+            if (nhfp->structlevel) {
                 bwrite(nhfp->fd, (genericptr_t) r->enter_msg, n);
+            }
         }
         n = !r->leave_msg ? 0U : (unsigned) strlen(r->leave_msg);
-        if (nhfp->structlevel)
+        if (nhfp->structlevel) {
             bwrite(nhfp->fd, (genericptr_t) &n, sizeof n);
+        }
         if (n > 0) {
             if (nhfp->structlevel) {
                 bwrite(nhfp->fd, (genericptr_t) r->leave_msg, n);
@@ -791,9 +795,10 @@ save_regions(NHFILE *nhfp)
             bwrite(nhfp->fd, (genericptr_t) &r->n_monst, sizeof (short));
         }
         for (j = 0; j < r->n_monst; j++) {
-            if (nhfp->structlevel)
+            if (nhfp->structlevel) {
                 bwrite(nhfp->fd, (genericptr_t) &r->monsters[j],
                        sizeof (unsigned));
+            }
         }
         if (nhfp->structlevel) {
             bwrite(nhfp->fd, (genericptr_t) &r->visible, sizeof (boolean));
@@ -818,15 +823,17 @@ rest_regions(NHFILE *nhfp)
     boolean ghostly = (nhfp->ftype == NHF_BONESFILE);
 
     clear_regions(); /* Just for security */
-    if (nhfp->structlevel)
-        mread(nhfp->fd, (genericptr_t) &tmstamp, sizeof (tmstamp));
+    if (nhfp->structlevel) {
+        mread(nhfp->fd, (genericptr_t) &tmstamp, sizeof(tmstamp));
+    }
     if (ghostly)
         tmstamp = 0;
     else
         tmstamp = (svm.moves - tmstamp);
 
-    if (nhfp->structlevel)
+    if (nhfp->structlevel) {
         mread(nhfp->fd, (genericptr_t) &svn.n_regions, sizeof svn.n_regions);
+    }
 
     gm.max_regions = svn.n_regions;
     if (svn.n_regions > 0)
@@ -842,40 +849,43 @@ rest_regions(NHFILE *nhfp)
         else
             r->rects = (NhRect *) 0;
         for (j = 0; j < r->nrects; j++) {
-            if (nhfp->structlevel)
-                mread(nhfp->fd, (genericptr_t) &r->rects[j], sizeof (NhRect));
+            if (nhfp->structlevel) {
+                mread(nhfp->fd, (genericptr_t) &r->rects[j], sizeof(NhRect));
+            }
         }
         if (nhfp->structlevel) {
             mread(nhfp->fd, (genericptr_t) &r->attach_2_u, sizeof (boolean));
             mread(nhfp->fd, (genericptr_t) &r->attach_2_m, sizeof (unsigned));
-        }
-
-        if (nhfp->structlevel)
             mread(nhfp->fd, (genericptr_t) &n, sizeof n);
+        }
         if (n > 0) {
             msg_buf = (char *) alloc(n + 1);
             if (nhfp->structlevel) {
                 mread(nhfp->fd, (genericptr_t) msg_buf, n);
             }
             msg_buf[n] = '\0';
-        } else
+        } else {
             msg_buf = (char *) 0;
+        }
         r->enter_msg = (const char *) msg_buf;
 
-        if (nhfp->structlevel)
+        if (nhfp->structlevel) {
             mread(nhfp->fd, (genericptr_t) &n, sizeof n);
+        }
          if (n > 0) {
             msg_buf = (char *) alloc(n + 1);
             if (nhfp->structlevel) {
                 mread(nhfp->fd, (genericptr_t) msg_buf, n);
             }
             msg_buf[n] = '\0';
-        } else
-            msg_buf = (char *) 0;
+         } else {
+             msg_buf = (char *) 0;
+         }
          r->leave_msg = (const char *) msg_buf;
 
-        if (nhfp->structlevel)
-            mread(nhfp->fd, (genericptr_t) &r->ttl, sizeof (long));
+        if (nhfp->structlevel) {
+             mread(nhfp->fd, (genericptr_t) &r->ttl, sizeof(long));
+         }
         /* check for expired region */
         if (r->ttl >= 0L)
             r->ttl = (r->ttl > tmstamp) ? r->ttl - tmstamp : 0L;
@@ -893,17 +903,19 @@ rest_regions(NHFILE *nhfp)
             clear_hero_inside(r);
             clear_heros_fault(r);
         }
-        if (nhfp->structlevel)
+        if (nhfp->structlevel) {
             mread(nhfp->fd, (genericptr_t) &r->n_monst, sizeof (short));
+        }
         if (r->n_monst > 0)
             r->monsters = (unsigned *) alloc(r->n_monst * sizeof (unsigned));
         else
             r->monsters = (unsigned *) 0;
         r->max_monst = r->n_monst;
         for (j = 0; j < r->n_monst; j++) {
-            if (nhfp->structlevel)
+            if (nhfp->structlevel) {
                 mread(nhfp->fd, (genericptr_t) &r->monsters[j],
-                      sizeof (unsigned));
+                      sizeof(unsigned));
+            }
         }
         if (nhfp->structlevel) {
             mread(nhfp->fd, (genericptr_t) &r->visible, sizeof (boolean));

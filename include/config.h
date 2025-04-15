@@ -398,38 +398,6 @@
 #endif
 
 /*
- *      Internal Compression Options
- *
- *      Internal compression options RLECOMP and ZEROCOMP alter the data
- *      that gets written to the save file by NetHack, in contrast
- *      to COMPRESS or ZLIB_COMP which compress the entire file after
- *      the NetHack data is written out.
- *
- *      Defining RLECOMP builds in support for internal run-length
- *      compression of level structures. If RLECOMP support is included
- *      it can be toggled on/off at runtime via the config file option
- *      rlecomp.
- *
- *      Defining ZEROCOMP builds in support for internal zero-comp
- *      compression of data. If ZEROCOMP support is included it can still
- *      be toggled on/off at runtime via the config file option zerocomp.
- *
- *      RLECOMP and ZEROCOMP support can be included even if
- *      COMPRESS or ZLIB_COMP support is included. One reason for doing
- *      so would be to provide savefile read compatibility with a savefile
- *      where those options were in effect. With RLECOMP and/or ZEROCOMP
- *      defined, NetHack can read an rlecomp or zerocomp savefile in, yet
- *      re-save without them.
- *
- *      Using any compression option will create smaller bones/level/save
- *      files at the cost of additional code and time.
- */
-
-/* # define INTERNAL_COMP */ /* defines both ZEROCOMP and RLECOMP */
-/* # define ZEROCOMP      */ /* Support ZEROCOMP compression */
-/* # define RLECOMP       */ /* Support RLECOMP compression  */
-
-/*
  *      Data librarian.  Defining DLB places most of the support files into
  *      a tar-like file, thus making a neater installation.  See *conf.h
  *      for detailed configuration.

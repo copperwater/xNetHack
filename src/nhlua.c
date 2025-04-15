@@ -1274,9 +1274,11 @@ save_luadata(NHFILE *nhfp)
     if (!lua_data)
         lua_data = dupstr(emptystr);
     lua_data_len = Strlen(lua_data) + 1; /* +1: include the terminator */
-    bwrite(nhfp->fd, (genericptr_t) &lua_data_len,
-           (unsigned) sizeof lua_data_len);
-    bwrite(nhfp->fd, (genericptr_t) lua_data, lua_data_len);
+    if (nhfp->structlevel) {
+        bwrite(nhfp->fd, (genericptr_t) &lua_data_len,
+               (unsigned) sizeof lua_data_len);
+        bwrite(nhfp->fd, (genericptr_t) lua_data, lua_data_len);
+    }
     free(lua_data);
 }
 
@@ -1284,13 +1286,16 @@ save_luadata(NHFILE *nhfp)
 void
 restore_luadata(NHFILE *nhfp)
 {
-    unsigned lua_data_len;
+    unsigned lua_data_len = 0;
     char *lua_data;
-
-    mread(nhfp->fd, (genericptr_t) &lua_data_len,
-          (unsigned) sizeof lua_data_len);
+    if (nhfp->structlevel) {
+        mread(nhfp->fd, (genericptr_t) &lua_data_len,
+              (unsigned) sizeof lua_data_len);
+    }
     lua_data = (char *) alloc(lua_data_len);
-    mread(nhfp->fd, (genericptr_t) lua_data, lua_data_len);
+    if (nhfp->structlevel) {
+        mread(nhfp->fd, (genericptr_t) lua_data, lua_data_len);
+    }
     if (!gl.luacore)
         l_nhcore_init();
     luaL_loadstring(gl.luacore, lua_data);

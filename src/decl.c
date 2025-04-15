@@ -51,29 +51,6 @@ const struct c_common_strings c_common_strings =
       { "mon", "you" }
 };
 
-static const struct savefile_info default_sfinfo = {
-#ifdef NHSTDC
-    0x00000000UL
-#else
-    0x00000000L
-#endif
-#if defined(COMPRESS) || defined(ZLIB_COMP)
-        | SFI1_EXTERNALCOMP
-#endif
-#if defined(ZEROCOMP)
-        | SFI1_ZEROCOMP
-#endif
-#if defined(RLECOMP)
-        | SFI1_RLECOMP
-#endif
-    ,
-#ifdef NHSTDC
-    0x00000000UL, 0x00000000UL
-#else
-    0x00000000L, 0x00000000L
-#endif
-};
-
 const char disclosure_options[] = "iavgco";
 char emptystr[] = {0};       /* non-const */
 
@@ -117,7 +94,6 @@ const char *materialnm[] = { "mysterious", "liquid",  "wax",        "organic",
                              "platinum",   "mithril", "plastic",    "glass",
                              "gemstone",   "stone" };
 const char quitchars[] = " \r\n\033";
-NEARDATA struct savefile_info sfcap, sfrestinfo, sfsaveinfo;
 const int shield_static[SHIELD_COUNT] = {
     S_ss1, S_ss2, S_ss3, S_ss2, S_ss1, S_ss2, S_ss4, /* 7 per row */
     S_ss1, S_ss2, S_ss3, S_ss2, S_ss1, S_ss2, S_ss4,
@@ -1165,10 +1141,6 @@ decl_globals_init(void)
     MAGICCHECK(g_init_x);
     MAGICCHECK(g_init_y);
     MAGICCHECK(g_init_z);
-
-    sfcap = default_sfinfo;
-    sfrestinfo = default_sfinfo;
-    sfsaveinfo = default_sfinfo;
 
     gs.subrooms = &svr.rooms[MAXNROFROOMS + 1];
 

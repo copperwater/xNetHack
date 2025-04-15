@@ -32,6 +32,8 @@ typedef union any {
     const char *a_string;
     int (*a_nfunc)(void);
     unsigned long a_mask32; /* used by status highlighting */
+    int64 a_int64;
+    uint64 a_uint64;
     /* add types as needed */
 } anything;
 #define ANY_P union any /* avoid typedef in prototypes

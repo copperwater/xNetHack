@@ -376,11 +376,21 @@ savenames(NHFILE *nhfp)
     unsigned int len;
 
     if (perform_bwrite(nhfp)) {
-        if (nhfp->structlevel) {
-            bwrite(nhfp->fd, (genericptr_t) svb.bases, sizeof svb.bases);
-            bwrite(nhfp->fd, (genericptr_t) svd.disco, sizeof svd.disco);
-            bwrite(nhfp->fd, (genericptr_t) objects,
-                   sizeof(struct objclass) * NUM_OBJECTS);
+        for (i = 0; i < (MAXOCLASSES + 2); ++i) {
+            if (nhfp->structlevel) {
+                bwrite(nhfp->fd, (genericptr_t) &svb.bases[i], sizeof (int));
+            }
+        }
+        for (i = 0; i < NUM_OBJECTS; ++i) {
+            if (nhfp->structlevel) {
+                bwrite(nhfp->fd, (genericptr_t) &svd.disco[i], sizeof (short));
+            }
+        }
+        for (i = 0; i < NUM_OBJECTS; ++i) {
+            if (nhfp->structlevel) {
+                bwrite(nhfp->fd, (genericptr_t) &objects[i],
+                       sizeof (struct objclass));
+            }
         }
     }
     /* as long as we use only one version of Hack we
@@ -392,7 +402,7 @@ savenames(NHFILE *nhfp)
                 len = Strlen(objects[i].oc_uname) + 1;
                 if (nhfp->structlevel) {
                     bwrite(nhfp->fd, (genericptr_t) &len, sizeof len);
-                    bwrite(nhfp->fd, (genericptr_t) objects[i].oc_uname, len);
+                    bwrite(nhfp->fd, (genericptr_t) &objects[i].oc_uname[0], len);
                 }
             }
             if (release_data(nhfp)) {
@@ -421,7 +431,7 @@ restnames(NHFILE *nhfp)
             }
             objects[i].oc_uname = (char *) alloc(len);
             if (nhfp->structlevel) {
-                mread(nhfp->fd, (genericptr_t) objects[i].oc_uname, len);
+                mread(nhfp->fd, (genericptr_t) &objects[i].oc_uname[0], len);
             }
         }
     }

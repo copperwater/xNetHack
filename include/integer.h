@@ -101,6 +101,11 @@ typedef uint32_t uint32;
 typedef int64_t int64;
 typedef uint64_t uint64;
 
+/* Also provide ushort, uint, ulong */
+typedef unsigned short ushort;
+typedef unsigned int uint;
+typedef unsigned long ulong;
+
 /* for non-negative L, calculate L * 10 + D, avoiding signed overflow;
    yields -1 if overflow would have happened;
    assumes compiler will optimize the constants */

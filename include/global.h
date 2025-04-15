@@ -357,8 +357,6 @@ struct version_info {
     unsigned long incarnation;   /* actual version number */
     unsigned long feature_set;   /* bitmask of config settings */
     unsigned long entity_count;  /* # of monsters and objects */
-    unsigned long struct_sizes1; /* size of key structs */
-    unsigned long struct_sizes2; /* size of more key structs */
 };
 
 struct savefile_info {
@@ -391,8 +389,6 @@ struct nomakedefs_s {
     unsigned long version_features;
     unsigned long ignored_features;
     unsigned long version_sanity1;
-    unsigned long version_sanity2;
-    unsigned long version_sanity3;
     unsigned long build_time;
 };
 extern struct nomakedefs_s nomakedefs;

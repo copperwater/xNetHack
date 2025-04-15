@@ -482,13 +482,15 @@ restore_light_sources(NHFILE *nhfp)
     light_source *ls;
 
     /* restore elements */
-    if (nhfp->structlevel)
+    if (nhfp->structlevel) {
         mread(nhfp->fd, (genericptr_t) &count, sizeof count);
+    }
 
     while (count-- > 0) {
         ls = (light_source *) alloc(sizeof(light_source));
-        if (nhfp->structlevel)
+        if (nhfp->structlevel) {
             mread(nhfp->fd, (genericptr_t) ls, sizeof(light_source));
+        }
         ls->next = gl.light_base;
         gl.light_base = ls;
     }
@@ -639,8 +641,9 @@ write_ls(NHFILE *nhfp, light_source *ls)
 
     if (ls->type == LS_OBJECT || ls->type == LS_MONSTER) {
         if (ls->flags & LSF_NEEDS_FIXUP) {
-            if (nhfp->structlevel)
+            if (nhfp->structlevel) {
                 bwrite(nhfp->fd, (genericptr_t) ls, sizeof(light_source));
+            }
         } else {
             /* replace object pointer with id for write, then put back */
             arg_save = ls->id;
@@ -692,8 +695,9 @@ write_ls(NHFILE *nhfp, light_source *ls)
                 /* TODO: cleanup this ls, or skip writing it */
             }
             ls->flags |= LSF_NEEDS_FIXUP;
-            if (nhfp->structlevel)
+            if (nhfp->structlevel) {
                 bwrite(nhfp->fd, (genericptr_t) ls, sizeof(light_source));
+            }
             ls->id = arg_save;
             ls->flags &= ~LSF_NEEDS_FIXUP;
             ls->flags &= ~LSF_IS_PROBLEMATIC;

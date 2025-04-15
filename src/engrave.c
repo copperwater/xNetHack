@@ -1532,9 +1532,10 @@ save_engravings(NHFILE *nhfp)
             dealloc_engr(ep);
     }
     if (perform_bwrite(nhfp)) {
-        if (nhfp->structlevel)
+        if (nhfp->structlevel) {
             bwrite(nhfp->fd, (genericptr_t) &no_more_engr,
                    sizeof no_more_engr);
+        }
     }
     if (release_data(nhfp))
         head_engr = 0;
@@ -1548,9 +1549,9 @@ rest_engravings(NHFILE *nhfp)
 
     head_engr = 0;
     while (1) {
-        if (nhfp->structlevel)
-            mread(nhfp->fd, (genericptr_t) &lth, sizeof (unsigned));
-
+        if (nhfp->structlevel) {
+            mread(nhfp->fd, (genericptr_t) &lth, sizeof(unsigned));
+        }
         if (lth == 0)
             return;
         ep = newengr(lth);

@@ -47,26 +47,15 @@ staticfn void dispose_of_orig_obj(struct obj *);
    of hit points that will fit in a 15 bit integer. */
 #define FATAL_DAMAGE_MODIFIER 200
 
-/* artifact tracking; gift and wish imply found; it also gets set for items
-   seen on the floor, in containers, and wielded or dropped by monsters */
-struct arti_info {
-    Bitfield(exists, 1); /* 1 if corresponding artifact has been created */
-    Bitfield(found, 1);  /* 1 if artifact is known by hero to exist */
-    Bitfield(gift, 1);   /* 1 iff artifact was created as a prayer reward */
-    Bitfield(wish, 1);   /* 1 iff artifact was created via wish */
-    Bitfield(named, 1);  /* 1 iff artifact was made by naming an item */
-    Bitfield(viadip, 1); /* 1 iff dipped long sword became Excalibur */
-    Bitfield(lvldef, 1); /* 1 iff created by special level definition */
-    Bitfield(bones, 1);  /* 1 iff came from bones file */
-    Bitfield(rndm, 1);   /* 1 iff randomly generated */
-};
+/* arti_info struct definition moved to artifact.h */
+
 /* array of flags tracking which artifacts exist, indexed by ART_xx;
    ART_xx values are 1..N, element [0] isn't used; no terminator needed */
 static struct arti_info artiexist[1 + NROFARTIFACTS];
 /* discovery list; for N discovered artifacts, the first N entries are ART_xx
    values in discovery order, the remaining (NROFARTIFACTS-N) slots are 0 */
 static xint16 artidisco[NROFARTIFACTS];
-/* note: artiexist[] and artidisco[] don't need to be in struct g; they
+/* note: artiexist[] and artidisco[] don't need to be in struct ga; they
  * get explicitly initialized at game start so don't need to be part of
  * bulk re-init if game restart ever gets implemented.  They are saved
  * and restored but that is done through this file so they can be local.
@@ -111,18 +100,34 @@ init_artifacts(void)
 void
 save_artifacts(NHFILE *nhfp)
 {
-    if (nhfp->structlevel) {
-        bwrite(nhfp->fd, (genericptr_t) artiexist, sizeof artiexist);
-        bwrite(nhfp->fd, (genericptr_t) artidisco, sizeof artidisco);
+    int i;
+
+    for (i = 0; i < (NROFARTIFACTS + 1); ++i) {
+        if (nhfp->structlevel)
+            bwrite(nhfp->fd, (genericptr_t) &artiexist[i],
+                   sizeof (struct arti_info));
+    }
+    for (i = 0; i < (NROFARTIFACTS); ++i) {
+        if (nhfp->structlevel)
+            bwrite(nhfp->fd, (genericptr_t) &artidisco[i],
+                   sizeof (xint16));
     }
 }
 
 void
 restore_artifacts(NHFILE *nhfp)
 {
-    if (nhfp->structlevel) {
-        mread(nhfp->fd, (genericptr_t) artiexist, sizeof artiexist);
-        mread(nhfp->fd, (genericptr_t) artidisco, sizeof artidisco);
+    int i;
+
+    for (i = 0; i < (NROFARTIFACTS + 1); ++i) {
+        if (nhfp->structlevel)
+            mread(nhfp->fd, (genericptr_t) &artiexist[i],
+                  sizeof (struct arti_info));
+    }
+    for (i = 0; i < (NROFARTIFACTS); ++i) {
+        if (nhfp->structlevel)
+            mread(nhfp->fd, (genericptr_t) &artidisco[i],
+                  sizeof (xint16));
     }
     hack_artifacts();   /* redo non-saved special cases */
 }

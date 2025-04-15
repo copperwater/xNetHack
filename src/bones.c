@@ -610,14 +610,14 @@ savebones(int how, time_t when, struct obj *corpse)
 
     nhfp->mode = WRITING;
     store_version(nhfp);
-    store_savefileinfo(nhfp);
+
+    /* if a bones pool digit is in use, it precedes the bonesid
+        string and isn't recorded in the file */
     if (nhfp->structlevel) {
-        /* if a bones pool digit is in use, it precedes the bonesid
-           string and isn't recorded in the file */
         bwrite(nhfp->fd, (genericptr_t) &c, sizeof c);
         bwrite(nhfp->fd, (genericptr_t) bonesid, (unsigned) c); /* DD.nn */
-        savefruitchn(nhfp);
     }
+    savefruitchn(nhfp);
     update_mlstmv(); /* update monsters for eventual restoration */
     savelev(nhfp, ledger_no(&u.uz));
     close_nhfile(nhfp);
@@ -668,23 +668,25 @@ getbones(void)
                 return 0;
             }
         }
+        /* if a bones pool digit is in use, it precedes the bonesid
+           string and wasn't recorded in the file */
         if (nhfp->structlevel) {
-            /* if a bones pool digit is in use, it precedes the bonesid
-               string and wasn't recorded in the file */
             mread(nhfp->fd, (genericptr_t) &c,
                   sizeof c); /* length including terminating '\0' */
-            if ((unsigned) c <= sizeof oldbonesid) {
+        }
+        if ((unsigned) c <= sizeof oldbonesid) {
+            if (nhfp->structlevel) {
                 mread(nhfp->fd, (genericptr_t) oldbonesid,
-                      (unsigned) c); /* DD.nn or Qrrr.n for role rrr */
-            } else {
-                if (wizard)
-                    debugpline2("Abandoning bones , %u > %u.",
-                                (unsigned) c, (unsigned) sizeof oldbonesid);
-                close_nhfile(nhfp);
-                compress_bonesfile();
-                /* ToDo: maybe unlink these problematic bones? */
-                return 0;
+                        (unsigned) c); /* DD.nn or Qrrr.n for role rrr */
             }
+        } else {
+            if (wizard)
+                debugpline2("Abandoning bones , %u > %u.", (unsigned) c,
+                            (unsigned) sizeof oldbonesid);
+            close_nhfile(nhfp);
+            compress_bonesfile();
+            /* ToDo: maybe unlink these problematic bones? */
+            return 0;
         }
         if (strcmp(bonesid, oldbonesid) != 0) {
             char errbuf[BUFSZ];

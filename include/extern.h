@@ -67,6 +67,10 @@
  *
  */
 
+#ifndef ARTIFACT_H
+#include "artifact.h"
+#endif
+
 /* ### alloc.c ### */
 
 #if 0
@@ -3495,6 +3499,9 @@ extern unsigned long get_current_feature_ver(void);
 extern const char *copyright_banner_line(int) NONNULL;
 extern void early_version_info(boolean);
 extern void dump_version_info(void);
+extern void store_critical_bytes(NHFILE *) NONNULLARG1;
+extern int compare_critical_bytes(NHFILE *);
+extern int get_critical_size_count(void);
 
 /* ### video.c ### */
 
