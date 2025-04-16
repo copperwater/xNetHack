@@ -537,7 +537,7 @@ $(GAMEDIR)/recover.exe: $(ROBJS) $(HLHACKLIB) | $(GAMEDIR)
 $(OR)/recover.o: $(U)recover.c | $(OR)
 	$(cc) $(CFLAGSU) $< -o$@
 $(OR)/rversion.o: $(SRC)version.c | $(OR)
-	$(cc) $(CFLAGSU) $< -o$@
+	$(cc) $(CFLAGSU) -DMINIMAL_FOR_RECOVER $< -o$@
 
 # $(OR):
 #	@mkdir -p $@
