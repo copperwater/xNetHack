@@ -19,7 +19,7 @@
   <ItemDefinitionGroup>
     <ClCompile>
       <AdditionalIncludeDirectories>$(IncDir);$(SysWindDir);$(LuaDir);%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
-      <PreprocessorDefinitions>WIN32CON;DLB;MSWIN_GRAPHICS;HAS_STDINT_H;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>WIN32CON;DLB;MSWIN_GRAPHICS;HAS_STDINT_H;MINIMAL_FOR_RECOVER;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <LanguageStandard_C Condition="'$(DefaultPlatformToolset)'!='v142'">stdclatest</LanguageStandard_C>
       <AdditionalOptions>/w45262 %(AdditionalOptions)</AdditionalOptions>
     </ClCompile>
@@ -30,7 +30,7 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="$(UtilDir)recover.c" />
-    <ClCompile Include="..\..\..\..\src\version.c">
+    <ClCompile Include="$(SrcDir)version.c">
       <PreprocessorDefinitions Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">WIN32CON;DLB;MSWIN_GRAPHICS;HAS_STDINT_H;MINIMAL_FOR_RECOVER;%(PreprocessorDefinitions)</PreprocessorDefinitions>
     </ClCompile>
   </ItemGroup>
