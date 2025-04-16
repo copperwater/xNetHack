@@ -32,14 +32,6 @@ staticfn void savegamestate(NHFILE *);
 staticfn void savelev_core(NHFILE *, xint8);
 staticfn void save_msghistory(NHFILE *);
 
-#ifdef ZEROCOMP
-staticfn void zerocomp_bufon(int);
-staticfn void zerocomp_bufoff(int);
-staticfn void zerocomp_bflush(int);
-staticfn void zerocomp_bwrite(int, genericptr_t, unsigned int);
-staticfn void zerocomp_bputc(int);
-#endif
-
 #if defined(HANGUPHANDLING)
 #define HUP if (!program_state.done_hup)
 #else
