@@ -2814,7 +2814,6 @@ extern void bufoff(int);
 extern void bflush(int);
 extern void bwrite(int, const genericptr_t, unsigned) NONNULLARG2;
 extern void mread(int, genericptr_t, unsigned) NONNULLARG2;
-extern void minit(void);
 extern void bclose(int);
 
 /* ### shk.c ### */
