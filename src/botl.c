@@ -422,7 +422,7 @@ max_rank_sz(void)
 long
 botl_score(void)
 {
-    long deepest = deepest_lev_reached(FALSE);
+    long deepest = (long) deepest_lev_reached(FALSE);
     long umoney, depthbonus;
 
     /* hidden_gold(False): only gold in containers whose contents are known */
@@ -430,10 +430,10 @@ botl_score(void)
     /* don't include initial gold; don't impose penalty if it's all gone */
     if ((umoney -= u.umoney0) < 0L)
         umoney = 0L;
-    depthbonus = 50 * (deepest - 1)
-                 + (deepest > 30) ? 10000
-                   : (deepest > 20) ? 1000 * (deepest - 20)
-                     : 0;
+    depthbonus = (50L * (deepest - 1L))
+                 + ((deepest > 30L) ? 10000L
+                    : (deepest > 20L) ? (1000L * (deepest - 20L))
+                      : 0L);
     /* neither umoney nor depthbonus can grow unusually big (gold due to
        weight); u.urexp might */
     return nowrap_add(u.urexp, umoney + depthbonus);
