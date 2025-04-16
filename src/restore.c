@@ -171,7 +171,7 @@ restdamage(NHFILE *nhfp)
         }
 
         if (ghostly)
-            tmp_dam->when += (svm.moves - go.omoves);
+            tmp_dam->when += (svm.moves - svo.omoves);
 
         tmp_dam->next = svl.level.damagelist;
         svl.level.damagelist = tmp_dam;
@@ -276,7 +276,7 @@ restobjchn(NHFILE *nhfp, boolean frozen)
          * immediately after old player died.
          */
         if (ghostly && !frozen && !age_is_relative(otmp))
-            otmp->age = svm.moves - go.omoves + otmp->age;
+            otmp->age = svm.moves - svo.omoves + otmp->age;
 
         /* get contents of a container or statue */
         if (Has_contents(otmp)) {
@@ -1081,8 +1081,8 @@ getlev(NHFILE *nhfp, int pid, xint8 lev)
                 Mread(nhfp->fd, &svl.lastseentyp[c][r], sizeof (schar));
             }
         }
-    Mread(nhfp->fd, &go.omoves, sizeof go.omoves);
-    elapsed = svm.moves - go.omoves;
+    Mread(nhfp->fd, &svo.omoves, sizeof svo.omoves);
+    elapsed = svm.moves - svo.omoves;
 
     rest_stairs(nhfp);
     if (nhfp->structlevel) {

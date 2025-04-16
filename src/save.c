@@ -316,6 +316,7 @@ savegamestate(NHFILE *nhfp)
     save_dungeon(nhfp, (boolean) !!perform_bwrite(nhfp),
                  (boolean) !!release_data(nhfp));
     savelevchn(nhfp);
+    /* svm.moves below will actually be read back into svo.omoves on restore */
     if (nhfp->structlevel) {
         bwrite(nhfp->fd, (genericptr_t) &svm.moves, sizeof svm.moves);
         bwrite(nhfp->fd, (genericptr_t) &svq.quest_status,

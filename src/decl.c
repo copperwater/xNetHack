@@ -117,7 +117,6 @@ const char ynNaqchars[] = "yn#aq";
 const char rightleftchars[] = "rl";
 const char hidespinchars[] = "hsq";
 NEARDATA long yn_number = 0L;
-
 #ifdef PANICTRACE
 const char *ARGV0;
 #endif
@@ -601,7 +600,6 @@ static const struct instance_globals_o g_init_o = {
     0,  /* oldcap */
     /* restore.c */
     UNDEFINED_PTR, /* oldfruit */
-    0L, /* omoves */
     /* rumors.c */
     0, /* oracle_flag */
     UNDEFINED_PTR, /* oracle_loc */
@@ -931,7 +929,9 @@ static const struct instance_globals_saved_n init_svn = {
 
 static const struct instance_globals_saved_o init_svo = {
     /* rumors.c */
-    0U                                   /* oracle_cnt */
+    0U,                                  /* oracle_cnt */
+    /* other */
+    0L                                   /* omoves */
 };
 
 static const struct instance_globals_saved_p init_svp = {
