@@ -207,12 +207,6 @@ bwrite(int fd, const genericptr_t loc, unsigned num)
 /*  ===================================================== */
 
 void
-minit(void)
-{
-    return;
-}
-
-void
 mread(int fd, genericptr_t buf, unsigned len)
 {
 #if defined(BSD) || defined(ULTRIX)

@@ -2664,7 +2664,6 @@ extern void get_plname_from_file(NHFILE *, char *, boolean) NONNULLARG12;
 #ifdef SELECTSAVED
 extern int restore_menu(winid);
 #endif
-extern void minit(void);
 extern boolean lookup_id_mapping(unsigned, unsigned *) NONNULLARG2;
 extern int validate(NHFILE *, const char *, boolean) NONNULLARG1;
 /* extern void reset_restpref(void); */

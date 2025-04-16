@@ -204,7 +204,6 @@ dosave0(void)
             HUP done(TRICKED);
             goto done;
         }
-        minit(); /* ZEROCOMP */
         getlev(onhfp, svh.hackpid, ltmp);
         close_nhfile(onhfp);
         if (nhfp->structlevel) {

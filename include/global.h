@@ -115,16 +115,6 @@ typedef uchar nhsym;
 #endif
 #endif
 
-#if 0
-/* comment out to test effects of each #define -- these will probably
- * disappear eventually
- */
-#ifdef INTERNAL_COMP
-#define RLECOMP  /* run-length compression of levl array - JLee */
-#define ZEROCOMP /* zero-run compression of everything - Olaf Seibert */
-#endif
-#endif
-
 /* #define SPECIALIZATION */ /* do "specialized" version of new topology */
 
 #ifdef BITFIELDS
@@ -358,21 +348,6 @@ struct version_info {
     unsigned long feature_set;   /* bitmask of config settings */
     unsigned long entity_count;  /* # of monsters and objects */
 };
-
-struct savefile_info {
-    unsigned long sfi1; /* compression etc. */
-    unsigned long sfi2; /* miscellaneous */
-    unsigned long sfi3; /* thirdparty */
-};
-#ifdef NHSTDC
-#define SFI1_EXTERNALCOMP (1UL)
-#define SFI1_RLECOMP (1UL << 1)
-#define SFI1_ZEROCOMP (1UL << 2)
-#else
-#define SFI1_EXTERNALCOMP (1L)
-#define SFI1_RLECOMP (1L << 1)
-#define SFI1_ZEROCOMP (1L << 2)
-#endif
 
 /* This is used to store some build-info data that used
    to be present in makedefs-generated header file date.h */

@@ -1708,7 +1708,6 @@ goto_level(
         }
         reseed_random(rn2);
         reseed_random(rn2_on_display_rng);
-        minit(); /* ZEROCOMP */
         getlev(nhfp, svh.hackpid, new_ledger);
         close_nhfile(nhfp);
         oinit(); /* reassign level dependent obj probabilities */
