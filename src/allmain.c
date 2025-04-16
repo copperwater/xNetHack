@@ -1,4 +1,4 @@
-/* NetHack 3.7	allmain.c	$NHDT-Date: 1742207239 2025/03/17 02:27:19 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.275 $ */
+/* NetHack 3.7	allmain.c	$NHDT-Date: 1744860497 2025/04/16 19:28:17 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.276 $ */
 /* Copyright (c) Stichting Mathematisch Centrum, Amsterdam, 1985. */
 /*-Copyright (c) Robert Patrick Rankin, 2012. */
 /* NetHack may be freely redistributed.  See license for details. */
@@ -98,6 +98,12 @@ moveloop_preamble(boolean resuming)
 
     u.uz0.dlevel = u.uz.dlevel;
     svc.context.move = 0;
+
+    /* finish processing "--debug:fuzzer" from the command line */
+    if (iflags.fuzzerpending) {
+        iflags.debug_fuzzer = fuzzer_impossible_panic;
+        iflags.fuzzerpending = FALSE;
+    }
 
     program_state.in_moveloop = 1;
     /* for perm_invent preset at startup, display persistent inventory after
@@ -1078,6 +1084,7 @@ argcheck(int argc, char *argv[], enum earlyarg e_arg)
  * immediateflips   - WIN32: turn off display performance
  *                    optimization so that display output
  *                    can be debugged without buffering.
+ * fuzzer           - enable fuzzer without debugger intervention.
  */
 staticfn void
 debug_fields(const char *opts)
@@ -1122,6 +1129,8 @@ debug_fields(const char *opts)
     if (match_optname(opts, "immediateflips", 14, FALSE))
         iflags.debug.immediateflips = negated ? FALSE : TRUE;
 #endif
+    if (match_optname(opts, "fuzzer", 4, FALSE))
+        iflags.fuzzerpending = TRUE;
     return;
 }
 

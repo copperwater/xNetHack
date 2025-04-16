@@ -1,4 +1,4 @@
-/* NetHack 3.7	flag.h	$NHDT-Date: 1715979826 2024/05/17 21:03:46 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.246 $ */
+/* NetHack 3.7	flag.h	$NHDT-Date: 1744860497 2025/04/16 19:28:17 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.251 $ */
 /* Copyright (c) Stichting Mathematisch Centrum, Amsterdam, 1985. */
 /*-Copyright (c) Michael Allison, 2006. */
 /* NetHack may be freely redistributed.  See license for details. */
@@ -237,9 +237,11 @@ enum debug_fuzzer_states {
  * and probably warrant a structure of their own elsewhere some day.
  */
 struct instance_flags {
-    boolean query_menu;    /* use a menu for yes/no queries */
-    boolean showdamage;
     boolean defer_plname;  /* X11 hack: askname() might not set svp.plname */
+    boolean fuzzerpending; /* fuzzing requested on command line but not active
+                            * yet (to allow interactive initialization prior
+                            * to input becoming taken over);
+                            * True => enable fuzzer when entering moveloop */
     boolean herecmd_menu;  /* use menu when mouseclick on yourself */
     boolean invis_goldsym; /* gold symbol is ' '? */
     boolean in_lua;        /* executing a lua script */
@@ -247,8 +249,10 @@ struct instance_flags {
     boolean nofollowers;   /* level change ignores pets (for tutorial) */
     boolean partly_eaten_hack; /* extra flag for xname() used when it's called
                                 * indirectly so we can't use xname_flags() */
+    boolean query_menu;    /* use a menu for yes/no queries */
     boolean remember_getpos; /* save getpos() positioning in do-again queue */
     boolean sad_feeling;   /* unseen pet is dying */
+    boolean showdamage;    /* extra message reporting damage hero has taken */
     xint8 debug_fuzzer;    /* fuzz testing */
     int at_midnight;       /* only valid during end of game disclosure */
     int at_night;          /* also only valid during end of game disclosure */
