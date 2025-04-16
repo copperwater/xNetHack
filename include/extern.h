@@ -2816,9 +2816,6 @@ extern void bwrite(int, const genericptr_t, unsigned) NONNULLARG2;
 extern void mread(int, genericptr_t, unsigned) NONNULLARG2;
 extern void minit(void);
 extern void bclose(int);
-#if defined(ZEROCOMP)
-extern void zerocomp_bclose(int);
-#endif
 
 /* ### shk.c ### */
 
