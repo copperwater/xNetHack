@@ -206,7 +206,7 @@ restore_savefile(char *basename)
     int res = 0, lev, savelev, hpid, pltmpsiz;
     xint8 levc;
     struct version_info version_data;
-    char plbuf[PL_NSIZ], indicator, cscsize;
+    char plbuf[PL_NSIZ_PLUS], indicator, cscsize;
 
     /* level 0 file contains:
      *  pid of creating process (ignored here)
@@ -259,7 +259,7 @@ restore_savefile(char *basename)
         || (read(gfd, (genericptr_t) &version_data, sizeof version_data)
             != sizeof version_data)
         || (read(gfd, (genericptr_t) &pltmpsiz, sizeof pltmpsiz)
-            != sizeof pltmpsiz) || (pltmpsiz > PL_NSIZ)
+            != sizeof pltmpsiz) || (pltmpsiz > PL_NSIZ_PLUS)
         || (read(gfd, (genericptr_t) plbuf, pltmpsiz) != pltmpsiz)) {
         Fprintf(stderr, "Error reading %s -- can't recover.\n", lock);
         Close(gfd);
