@@ -287,9 +287,6 @@ recover.o: recover.c $(CONFIG_H)
 recover-version.o: ../src/version.c $(HACK_H)
 	$(CC) $(CFLAGS) $(CSTD) -DMINIMAL_FOR_RECOVER -c ../src/version.c -o $@
 
-recover-sfstruct.o: ../src/sfstruct.c $(HACK_H)
-	$(CC) $(CFLAGS) $(CSTD) -DMINIMAL_FOR_RECOVER -c ../src/sfstruct.c -o $@
-
 #	dependencies for dlb
 #
 dlb:	$(DLBOBJS) $(HACKLIB)
