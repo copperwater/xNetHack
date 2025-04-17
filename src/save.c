@@ -1200,7 +1200,7 @@ freedynamicdata(void)
 
     /* move-specific data */
     dmonsfree(); /* release dead monsters */
-    dobjsfree(); /* really free deleted objects */
+    /* dobjsfree(); // handled below */
     alloc_itermonarr(0U); /* a request of 0 releases existing allocation */
 
     /* level-specific data */
@@ -1228,6 +1228,9 @@ freedynamicdata(void)
     cmdq_clear(CQ_CANNED);
     cmdq_clear(CQ_REPEAT);
     free_tutorial(); /* (only needed if quitting while in tutorial) */
+
+    /* per-turn data, but might get added to when freeing other stuff */
+    dobjsfree(); /* really free deleted objects */
 
     /* some pointers in iflags */
     if (iflags.wc_font_map)
