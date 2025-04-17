@@ -794,6 +794,7 @@ struct sinfo {
     int exiting;                /* an exit handler is executing */
     int saving;                 /* creating a save file */
     int restoring;              /* reloading a save file */
+    int freeingdata;            /* in saveobjchn(), mode FREEING */
     int in_getlev;              /* in getlev() */
     int in_moveloop;            /* normal gameplay in progress */
     int in_impossible;          /* reporting a warning */

@@ -853,7 +853,9 @@ saveobjchn(NHFILE *nhfp, struct obj **obj_p)
                 setworn((struct obj *) 0,
                         otmp->owornmask & (W_BALL | W_CHAIN));
             otmp->owornmask = 0L;   /* no longer care */
+            program_state.freeingdata++;
             dealloc_obj(otmp);
+            program_state.freeingdata--;
         }
         otmp = otmp2;
     }
