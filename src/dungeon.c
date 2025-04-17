@@ -2554,7 +2554,9 @@ query_annotation(d_level *lev)
     /* add new annotation, unless it's all spaces (which will be an
        empty string after mungspaces() above) */
     if (*nbuf && strcmp(nbuf, " ")) {
-        mptr->custom = dupstr_n(nbuf,&mptr->custom_lth);
+        mptr->custom = dupstr(nbuf);
+        /* _lth field does not include trailing '\0' in the count */
+        mptr->custom_lth = (unsigned) strlen(mptr->custom);
     }
 }
 
@@ -2668,27 +2670,24 @@ rm_mapseen(int ledger_num)
         if (svd.dungeons[mptr->lev.dnum].ledger_start + mptr->lev.dlevel
             == ledger_num)
             break;
-
     if (!mptr)
         return;
 
     if (mptr->custom)
-        free((genericptr_t) mptr->custom);
+        free((genericptr_t) mptr->custom), mptr->custom = (char *) NULL;
 
-    bp = mptr->final_resting_place;
-    while (bp) {
+    bpnext = mptr->final_resting_place;
+    while ((bp = bpnext) != NULL) {
         bpnext = bp->next;
-        free(bp);
-        bp = bpnext;
+        free((genericptr_t) bp);
     }
 
     if (mprev) {
         mprev->next = mptr->next;
-        free(mptr);
     } else {
         svm.mapseenchn = mptr->next;
-        free(mptr);
     }
+    free(mptr);
 }
 
 staticfn void
