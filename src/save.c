@@ -505,6 +505,9 @@ savelev_core(NHFILE *nhfp, xint8 lev)
            create statue trap then immediately level teleport) */
         if (iflags.purge_monsters)
             dmonsfree();
+        /* clear objs_deleted list too */
+        if (go.objs_deleted)
+            dobjsfree(); /* really free deleted objects */
 
         if (lev >= 0 && lev <= maxledgerno())
             svl.level_info[lev].flags |= VISITED;
@@ -1197,6 +1200,7 @@ freedynamicdata(void)
 
     /* move-specific data */
     dmonsfree(); /* release dead monsters */
+    dobjsfree(); /* really free deleted objects */
     alloc_itermonarr(0U); /* a request of 0 releases existing allocation */
 
     /* level-specific data */
@@ -1209,8 +1213,6 @@ freedynamicdata(void)
     free_light_sources(RANGE_GLOBAL);
     freeobjchn(gi.invent);
     freeobjchn(gm.migrating_objs);
-    if (go.objs_deleted)
-        dobjsfree(); /* really free deleted objects */
     freemonchn(gm.migrating_mons);
     freemonchn(gm.mydogs); /* ascension or dungeon escape */
     /* freelevchn();  --  [folded into free_dungeons()] */
