@@ -1184,8 +1184,8 @@ themerooms_post_level_generate(void)
     iflags.in_lua = gi.in_mk_themerooms = FALSE;
 
     wallification(1, 0, COLNO - 1, ROWNO - 1);
-    free(gc.coder);
-    gc.coder = NULL;
+    if (gc.coder)
+        free(gc.coder), gc.coder = NULL;
     lua_gc(themes, LUA_GCCOLLECT);
 }
 
