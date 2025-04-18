@@ -1,4 +1,4 @@
-/* NetHack 3.7	nhlua.c	$NHDT-Date: 1711034373 2024/03/21 15:19:33 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.141 $ */
+/* NetHack 3.7	nhlua.c	$NHDT-Date: 1744963460 2025/04/18 00:04:20 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.153 $ */
 /*      Copyright (c) 2018 by Pasi Kallinen */
 /* NetHack may be freely redistributed.  See license for details. */
 
@@ -2875,7 +2875,10 @@ nhl_alloc(void *ud, void *ptr, size_t osize UNUSED, size_t nsize)
             return NULL;
     }
 
-    return re_alloc(ptr, nsize);
+    /* realloc(NULL, size) is legitimate but confuses MONITOR_HEAP */
+    if (!ptr)
+        return alloc((unsigned) nsize);
+    return re_alloc(ptr, (unsigned) nsize);
 }
 
 DISABLE_WARNING_UNREACHABLE_CODE
