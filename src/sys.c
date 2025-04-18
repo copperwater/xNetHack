@@ -143,6 +143,13 @@ sysopt_release(void)
     if (sysopt.greppath)
         free((genericptr_t) sysopt.greppath), sysopt.greppath = (char *) 0;
 
+#ifdef CRASHREPORT
+    if (gc.crash_email)
+        free((genericptr_t) gc.crash_email), gc.crash_email = (char *) NULL;
+    if (gc.crash_name)
+        free((genericptr_t) gc.crash_name), gc.crash_name = (char *) NULL;
+#endif
+
     /* this one's last because it might be used in panic feedback, although
        none of the preceding ones are likely to trigger a controlled panic */
     if (sysopt.fmtd_wizard_list)

@@ -1238,11 +1238,11 @@ optfn_crash_email(
         return optn_ok;
     }
     if (req == do_set) {
-        if ((op = string_for_opt(opts, FALSE))
-            != empty_optstr) {
-            gc.crash_email = dupstr(op);
-        } else
+        if ((op = string_for_opt(opts, FALSE)) == empty_optstr)
             return optn_err;
+        if (gc.crash_email)
+            free((genericptr_t) gc.crash_email);
+        gc.crash_email = dupstr(op);
         return optn_ok;
     }
     if (req == get_val || req == get_cnf_val) {
@@ -1264,11 +1264,11 @@ optfn_crash_name(
         return optn_ok;
     }
     if (req == do_set) {
-        if ((op = string_for_opt(opts, FALSE))
-            != empty_optstr) {
-            gc.crash_name = dupstr(op);
-        } else
+        if ((op = string_for_opt(opts, FALSE)) == empty_optstr)
             return optn_err;
+        if (gc.crash_name)
+            free((genericptr_t) gc.crash_name);
+        gc.crash_name = dupstr(op);
         return optn_ok;
     }
     if (req == get_val || req == get_cnf_val) {
@@ -1311,6 +1311,7 @@ optfn_crash_urlmax(
     }
     return optn_ok;
 }
+
 #endif /* CRASHREPORT */
 
 #ifdef CURSES_GRAPHICS
