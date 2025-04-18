@@ -20,6 +20,7 @@ staticfn void set_mon_min_mhpmax(struct monst *, int);
 staticfn void lifesaved_monster(struct monst *);
 staticfn boolean vamprises(struct monst *);
 staticfn void logdeadmon(struct monst *, int);
+staticfn void anger_quest_guardians(struct monst *);
 staticfn boolean ok_to_obliterate(struct monst *);
 staticfn void qst_guardians_respond(void);
 staticfn void peacefuls_respond(struct monst *);
@@ -2999,6 +3000,14 @@ logdeadmon(struct monst *mtmp, int mndx)
     }
 }
 
+/* anger all the quest guards on the level */
+staticfn void
+anger_quest_guardians(struct monst *mtmp)
+{
+    if (mtmp->data == &mons[gu.urole.guardnum])
+        setmangry(mtmp, TRUE);
+}
+
 /* monster 'mtmp' has died; maybe life-save, otherwise unshapeshift and
    update vanquished stats and update map */
 void
@@ -3600,6 +3609,8 @@ xkilled(
         change_luck(-20);
         pline("That was %sa bad idea...",
               u.uevent.qcompleted ? "probably " : "");
+        if (!svc.context.mon_moving)
+            iter_mons(anger_quest_guardians);
     } else if (mdat->msound == MS_NEMESIS) { /* Real good! */
         if (!svq.quest_status.killed_leader)
             adjalign((int) (ALIGNLIM / 4));
