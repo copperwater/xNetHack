@@ -2328,6 +2328,8 @@ handler_change_autocompletions(void)
                 parseautocomplete(buf, FALSE);
             }
         }
+        if (n > 0)
+            free((genericptr_t) picks);
     }
 
     destroy_nhwindow(win);
