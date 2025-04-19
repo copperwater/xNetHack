@@ -2875,9 +2875,6 @@ nhl_alloc(void *ud, void *ptr, size_t osize UNUSED, size_t nsize)
             return NULL;
     }
 
-    /* realloc(NULL, size) is legitimate but confuses MONITOR_HEAP */
-    if (!ptr)
-        return alloc((unsigned) nsize);
     return re_alloc(ptr, (unsigned) nsize);
 }
 
