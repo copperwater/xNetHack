@@ -1,4 +1,4 @@
-/* NetHack 3.7	display.c	$NHDT-Date: 1723834773 2024/08/16 18:59:33 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.244 $ */
+/* NetHack 3.7	display.c	$NHDT-Date: 1745114235 2025/04/19 17:57:15 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.260 $ */
 /* Copyright (c) Dean Luick, with acknowledgements to Kevin Darcy */
 /* and Dave Cohrs, 1990.                                          */
 /* NetHack may be freely redistributed.  See license for details. */
@@ -2291,7 +2291,7 @@ back_to_glyph(coordxy x, coordxy y)
         idx = (ptr->waslit || flags.lit_corridor) ? S_litcorr : S_corr;
         break;
     case SDOOR:
-        if ((ptr->doormask & D_ARBOREAL) != 0) {
+        if (ptr->arboreal_sdoor) {
             idx = S_tree;
             break;
         }
@@ -3586,7 +3586,7 @@ wall_angle(struct rm *lev)
         break;
 
     case SDOOR:
-        if ((lev->doormask & D_ARBOREAL) != 0) {
+        if (lev->arboreal_sdoor) {
             idx = S_tree;
             break;
         }

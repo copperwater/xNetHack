@@ -1,4 +1,4 @@
-/* NetHack 3.7	rm.h	$NHDT-Date: 1684058570 2023/05/14 10:02:50 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.107 $ */
+/* NetHack 3.7	rm.h	$NHDT-Date: 1745114235 2025/04/19 17:57:15 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.120 $ */
 /* Copyright (c) Stichting Mathematisch Centrum, Amsterdam, 1985. */
 /*-Copyright (c) Pasi Kallinen, 2017. */
 /* NetHack may be freely redistributed.  See license for details. */
@@ -164,10 +164,11 @@ struct rm {
  *         |   bit5      |     bit4    |    bit3    |    bit2    |     bit1   |
  *         |   0x10      |      0x8    |     0x4    |     0x2    |      0x1   |
  *         +-------------+-------------+------------+------------+------------+
+ * wall    |W_NONPASSWALL|W_NONDIGGABLE| W_MASK     | W_MASK     | W_MASK     |
  * door    |D_TRAPPED    | D_LOCKED    | D_CLOSED   | D_ISOPEN   | D_BROKEN   |
  *         |D_WARNED     |             |            |            |            |
+ * sdoor   |D_TRAPPED    | D_LOCKED    | W_MASK     | W_MASK     | W_MASK     |
  * drawbr. |DB_FLOOR     | DB_ICE      | DB_LAVA    | DB_DIR     | DB_DIR     |
- * wall    |W_NONPASSWALL|W_NONDIGGABLE| W_MASK     | W_MASK     | W_MASK     |
  * sink    |             |             | S_LRING    | S_LDWASHER | S_LPUDDING |
  * tree    |             |             |            | TREE_SWARM | TREE_LOOTED|
  * throne  |             |             |            |            | T_LOOTED   |
@@ -191,8 +192,8 @@ struct rm {
  *      it isn't set to D_LOCKED (see cvt_sdoor_to_door() in detect.c).
  *
  *      D_LOCKED conflicts with W_NONDIGGABLE but the latter is not
- *      expected to be used on door locations.  D_TRAPPED conflicts
- *      with W_NONPASSWALL but secret doors aren't trapped.
+ *      expected to be used on door locations.
+ *      D_TRAPPED conflicts with W_NONPASSWALL.
  *      D_SECRET would not fit within struct rm's 5-bit 'flags' field.
  */
 
@@ -204,6 +205,10 @@ struct rm {
 #define looted     flags /* used for throne, tree, fountain, sink, door */
 #define icedpool   flags /* used for ice (in case it melts) */
 #define emptygrave flags /* no corpse in grave */
+
+/* candig is used for floor trap locations so is available for overload
+   on walls, doors, secret doors, and furniture */
+#define arboreal_sdoor candig
 
 /*
  * The 5 possible states of doors.
@@ -219,9 +224,6 @@ struct rm {
 #define D_LOCKED  0x08
 
 #define D_TRAPPED 0x10
-/* secret doors aren't trapped or nonpasswall; overload D_TRAPPED and
-   W_NONPASSWALL for 'arboreal' secret doors (in garden theme room) */
-#define D_ARBOREAL D_TRAPPED
 #define D_SECRET  0x20 /* only used by sp_lev.c, NOT in rm-struct */
 
 /*

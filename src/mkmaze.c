@@ -1,4 +1,4 @@
-/* NetHack 3.7	mkmaze.c	$NHDT-Date: 1737387068 2025/01/20 07:31:08 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.176 $ */
+/* NetHack 3.7	mkmaze.c	$NHDT-Date: 1745114235 2025/04/19 17:57:15 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.179 $ */
 /* Copyright (c) Stichting Mathematisch Centrum, Amsterdam, 1985. */
 /*-Copyright (c) Pasi Kallinen, 2018. */
 /* NetHack may be freely redistributed.  See license for details. */
@@ -81,7 +81,7 @@ set_levltyp(coordxy x, coordxy y, schar newtyp)
         /* hack for secret doors in garden theme rooms */
         if (oldtyp == SDOOR && newtyp == AIR) {
             /* levl[][].typ stays SDOOR rather than change to AIR */
-            levl[x][y].doormask |= D_ARBOREAL;
+            levl[x][y].arboreal_sdoor = 1;
             return TRUE;
         }
 

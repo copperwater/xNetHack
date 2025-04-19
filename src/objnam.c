@@ -1,4 +1,4 @@
-/* NetHack 3.7	objnam.c	$NHDT-Date: 1737528848 2025/01/21 22:54:08 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.444 $ */
+/* NetHack 3.7	objnam.c	$NHDT-Date: 1745114235 2025/04/19 17:57:15 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.453 $ */
 /* Copyright (c) Stichting Mathematisch Centrum, Amsterdam, 1985. */
 /*-Copyright (c) Robert Patrick Rankin, 2011. */
 /* NetHack may be freely redistributed.  See license for details. */
@@ -3770,10 +3770,9 @@ wizterrainwish(struct _readobjnam_data *d)
                 lev->wall_info |= (old_wall_info & WM_MASK);
             /* set up trapped flag; open door states aren't eligible */
             if (d->trapped == 2 /* 2: wish includes explicit "untrapped" */
-                || secret /* secret doors can't be trapped due to their use
-                           * of both doormask and wall_info; those both
-                           * overlay rm->flags and partially conflict */
-                || (lev->doormask & (D_LOCKED | D_CLOSED)) == 0)
+                || ((lev->doormask & (D_LOCKED | D_CLOSED)) == 0
+                    /* D_CLOSED is implicit for secret doors */
+                    && !secret))
                 d->trapped = 0;
             if (d->trapped)
                 lev->doormask |= D_TRAPPED;
