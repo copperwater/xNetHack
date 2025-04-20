@@ -165,17 +165,28 @@ endif   #WANT_WIN_CURSES
 #-INCLUDE multisnd1-pre.370
 #
 
+ifeq "$(CCISCLANG)" "1"
+# clang-specific starts
+# clang-specific ends
+else
+# gcc-specific starts
+LIBCFLAGS+=-DSIG_RET_TYPE=__sighandler_t
+# gcc-specific ends
+endif
+
 # WINCFLAGS set from multiw-2.370
 # SNDCFLAGS set from multisnd-pre.370
 CFLAGS+= $(WINCFLAGS)
 CFLAGS+= $(SNDCFLAGS)
 CFLAGS+= $(NHCFLAGS)
+CFLAGS+= $(LIBCFLAGS)
 
 # WINCFLAGS set from multiw-2.370
 # SNDCFLAGS set from multisnd-pre.370
 CCXXFLAGS+= $(WINCFLAGS)
 CCXXFLAGS+= $(SNDCFLAGS)
 CCXXFLAGS+= $(NHCFLAGS)
+CCXXFLAGS+= $(LIBCFLAGS)
 
 VARDATND =
 VARDATND0 =

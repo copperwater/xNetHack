@@ -1512,17 +1512,16 @@ typedef uint32_t mmflags_nht;     /* makemon MM_ flags */
 #define getlogin() ((char *) 0)
 #endif /* MICRO */
 
-/* The function argument to qsort() requires a particular
- * calling convention under WINCE which is not the default
- * in that environment.
- */
-#if defined(WIN_CE)
-#define QSORTCALLBACK __cdecl
-#else
+/* These may have been defined to platform-specific values in *conf.h
+ * or on the compiler command line from a hints file or Makefile */
+
+#ifndef QSORTCALLBACK
 #define QSORTCALLBACK
 #endif
 
+#ifndef SIG_RET_TYPE
 #define SIG_RET_TYPE void (*)(int)
+#endif
 
 #define DEVTEAM_EMAIL "devteam@nethack.org"
 #define DEVTEAM_URL "https://www.nethack.org/"
