@@ -1,4 +1,4 @@
-.\" $NHDT-Branch: master $:$NHDT-Revision: 1.596 $ $NHDT-Date: 1735103892 2024/12/25 00:18:12 $
+.\" $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.598 $ $NHDT-Date: 1745139202 2025/04/20 00:53:22 $
 .\"
 .\" This is an excerpt from the 'roff' man page from the 'groff' package.
 .\"+--
@@ -47,7 +47,7 @@
 .ds f0 \*(vr
 .ds f1 \" empty
 .\"DO NOT REMOVE NH_DATESUB .ds f2 Date(%B %-d, %Y)
-.ds f2 December 25, 2024
+.ds f2 April 20, 2025
 .
 .\" A note on some special characters:
 .\" \(lq = left double quote
@@ -2920,8 +2920,16 @@ magic spells on them).
 .pg
 One of the most useful of these is the \fIscroll of identify\fP, which
 can be used to determine what another object is, whether it is cursed or
-blessed, and how many uses it has left.  Some objects of subtle
-enchantment are difficult to identify without these.
+blessed, and how many uses it has left.
+Some objects of subtle enchantment are difficult to identify without these.
+.pg
+A scroll whose label is known can be read even when the hero is blind.
+If a scroll has been discovered, it will be listed in inventory by type
+rather than by label, but the label is known in that situtaion even though
+it isn't shown.
+.pg
+Many scrolls produce a different effect from usual if they are blessed or
+cursed, or read while the hero is confused.
 .pg
 A mail daemon may run up and deliver mail to you as a
 \fIscroll of mail\fP (on versions compiled with this feature).

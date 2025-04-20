@@ -1,5 +1,5 @@
 \documentstyle[titlepage,longtable]{article}
-% NetHack 3.7  Guidebook.tex $NHDT-Date: 1711040379 2024/03/21 16:59:39 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.562 $ */
+% NetHack 3.7  Guidebook.tex $NHDT-Date: 1745139202 2025/04/20 00:53:22 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.579 $ */
 %+% we're still limping along in LaTeX 2.09 compatibility mode
 %-%\documentclass{article}
 %-%\usepackage{hyperref} % before longtable
@@ -48,7 +48,7 @@
 \author{Original version - Eric S. Raymond\\
 (Edited and expanded for 3.7.0 by Mike Stephenson and others)}
 %DO NOT REMOVE NH_DATESUB \date{Date(%B %-d, %Y)}
-\date{November 16, 2024}
+\date{April 20, 2025}
 
 \maketitle
 
@@ -3158,8 +3158,18 @@ magic spells on them).
 One of the most useful of these is the %
 {\it scroll of identify}, which
 can be used to determine what another object is, whether it is cursed or
-blessed, and how many uses it has left.  Some objects of subtle
-enchantment are difficult to identify without these.
+blessed, and how many uses it has left.
+Some objects of subtle enchantment are difficult to identify without these.
+
+%.pg
+A scroll whose label is known can be read even when the hero is blind.
+If a scroll has been discovered, it will be listed in inventory by type
+rather than by label, but the label is known in that situtaion even though
+it isn't shown.
+
+%.pg
+Many scrolls produce a different effect from usual if they are blessed or
+cursed, or read while the hero is confused.
 
 %.pg
 A mail daemon may run up and deliver mail to you as a %
