@@ -343,7 +343,12 @@ curses_break_str(const char *str, int width, int line_num)
     }
 
     if (curline < line_num) {
+#if 0
         return NULL;
+#else
+        /* callers aren't prepared to handle NULL return */
+        Strcpy(curstr, "");
+#endif
     }
 
     retstr = curses_copy_of(curstr);
