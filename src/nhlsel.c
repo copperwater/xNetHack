@@ -925,7 +925,7 @@ l_selection_iterate(lua_State *L)
     if (argc == 2 && lua_type(L, 2) == LUA_TFUNCTION) {
         sel = l_selection_check(L, 1);
         selection_getbounds(sel, &rect);
-        for (y = rect.ly; y <= rect.hy; y++)
+        for (y = rect.ly; y <= rect.hy; y++) {
             for (x = max(1,rect.lx); x <= rect.hx; x++)
                 if (selection_getpoint(x, y, sel)) {
                     coordxy tmpx = x, tmpy = y;
@@ -939,6 +939,8 @@ l_selection_iterate(lua_State *L)
                         goto out;
                     }
                 }
+            lua_gc(L, LUA_GCCOLLECT, 0);
+        }
     } else {
         nhl_error(L, "wrong parameters");
         /*NOTREACHED*/
