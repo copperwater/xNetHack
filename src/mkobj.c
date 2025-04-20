@@ -2454,7 +2454,7 @@ remove_object(struct obj *otmp)
     coordxy y = otmp->oy;
 
     if (otmp->where != OBJ_FLOOR)
-        panic("remove_object: obj not on floor");
+        panic("remove_object: obj where=%d, not on floor", otmp->where);
     extract_nexthere(otmp, &svl.level.objects[x][y]);
     extract_nobj(otmp, &fobj);
     if (otmp->otyp == BOULDER)
@@ -2529,7 +2529,7 @@ obj_extract_self(struct obj *obj)
         extract_nobj(obj, &gb.billobjs);
         break;
     default:
-        panic("obj_extract_self");
+        panic("obj_extract_self, where=%d", obj->where);
         break;
     }
 }
@@ -2593,7 +2593,7 @@ add_to_minv(struct monst *mon, struct obj *obj)
     struct obj *otmp;
 
     if (obj->where != OBJ_FREE)
-        panic("add_to_minv: obj not free");
+        panic("add_to_minv: obj where=%d, not free", obj->where);
 
     /* merge if possible */
     for (otmp = mon->minvent; otmp; otmp = otmp->nobj)
@@ -2621,7 +2621,7 @@ add_to_container(struct obj *container, struct obj *obj)
     struct obj *otmp;
 
     if (obj->where != OBJ_FREE)
-        panic("add_to_container: obj not free");
+        panic("add_to_container: obj where=%d, not free", obj->where);
     if (container->where != OBJ_INVENT && container->where != OBJ_MINVENT)
         obj_no_longer_held(obj);
 
@@ -2641,7 +2641,7 @@ void
 add_to_migration(struct obj *obj)
 {
     if (obj->where != OBJ_FREE)
-        panic("add_to_migration: obj not free");
+        panic("add_to_migration: obj where=%d, not free", obj->where);
 
     if (obj->unpaid) /* caller should have changed unpaid item to stolen */
         impossible("unpaid object migrating to another level? [%s]",
@@ -2663,7 +2663,7 @@ void
 add_to_buried(struct obj *obj)
 {
     if (obj->where != OBJ_FREE)
-        panic("add_to_buried: obj not free");
+        panic("add_to_buried: obj where=%d, not free", obj->where);
 
     obj->where = OBJ_BURIED;
     obj->nobj = svl.level.buriedobjlist;
@@ -2776,12 +2776,12 @@ dobjsfree(void)
     struct obj *otmp;
 
     while (go.objs_deleted) {
-        otmp = go.objs_deleted->nobj;
-        if (go.objs_deleted->where != OBJ_DELETED)
-            panic("dobjsfree: obj where is not OBJ_DELETED");
-        obj_extract_self(go.objs_deleted);
-        dealloc_obj_real(go.objs_deleted);
-        go.objs_deleted = otmp;
+        otmp = go.objs_deleted;
+        go.objs_deleted = otmp->nobj;
+        if (otmp->where != OBJ_DELETED)
+            panic("dobjsfree: obj where=%d, not OBJ_DELETED", otmp->where);
+        obj_extract_self(otmp);
+        dealloc_obj_real(otmp);
     }
 }
 
