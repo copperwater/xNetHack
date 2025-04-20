@@ -458,8 +458,11 @@ splitobj(struct obj *obj, long num)
 {
     struct obj *otmp;
 
+    /* can't split containers */
     if (obj->cobj || num <= 0L || obj->quan <= num)
-        panic("splitobj"); /* can't split containers */
+        panic("splitobj [cobj=%s num=%ld quan=%ld]",
+              obj->cobj ? "non-empty container" : "(null)", num, obj->quan);
+
     otmp = newobj();
     *otmp = *obj; /* copies whole structure */
     otmp->oextra = (struct oextra *) 0;
