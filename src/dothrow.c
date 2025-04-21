@@ -1458,7 +1458,8 @@ throwit_return(boolean clear_thrownobj)
 }
 
 staticfn void
-swallowit(struct obj *obj){
+swallowit(struct obj *obj)
+{
     if (obj != uball) {
         (void) mpickobj(u.ustuck, obj); /* clears 'gt.thrownobj' */
         throwit_return(FALSE);
@@ -1468,7 +1469,8 @@ swallowit(struct obj *obj){
 
 /* throw an object, NB: obj may be consumed in the process */
 void
-throwit(struct obj *obj,
+throwit(
+    struct obj *obj,
     long wep_mask,       /* used to re-equip returning boomerang */
     boolean twoweap,     /* used to restore twoweapon mode if
                           * wielded weapon returns */

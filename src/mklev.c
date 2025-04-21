@@ -773,9 +773,9 @@ makeniche(int trap_type)
             dosdoor(xx, yy, aroom, SDOOR);
         } else {
             rm->typ = CORR;
-            if (rn2(7))
+            if (rn2(7)) {
                 dosdoor(xx, yy, aroom, rn2(5) ? SDOOR : DOOR);
-            else {
+            } else {
                 /* inaccessible niches occasionally have iron bars */
                 if (!rn2(5) && IS_WALL(levl[xx][yy].typ)) {
                     (void) set_levltyp(xx, yy, IRONBARS);
