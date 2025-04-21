@@ -1,8 +1,8 @@
 strategy:
   matrix:
-    linux_latest_gcc9_minimal:
+    linux_latest_gcc14_minimal:
       imageName: 'ubuntu-latest'
-      toolchainName: gcc9
+      toolchainName: gcc14
       buildTargetName: minimal
     linux_noble_clang_all:
       imageName: 'ubuntu-24.04'
@@ -69,6 +69,11 @@ steps:
     then
       echo "##vso[task.setvariable variable=CC]gcc-13"
       echo "##vso[task.setvariable variable=CXX]g++-13"
+    fi
+    if [ "$(toolchain)" == "gcc14" ]
+    then
+      echo "##vso[task.setvariable variable=CC]gcc-14"
+      echo "##vso[task.setvariable variable=CXX]g++-14"
     fi
     if [ "$(toolchain)" == "clang" ]
     then
