@@ -630,6 +630,7 @@ disclose(int how, boolean taken)
         if (c == 'y') {
             /* caller has already ID'd everything; we pass 'want_reply=True'
                to force display_pickinv() to avoid using WIN_INVENT */
+            iflags.force_invmenu = FALSE;
             (void) display_inventory((char *) 0, TRUE);
             container_contents(gi.invent, TRUE, TRUE, FALSE);
         }

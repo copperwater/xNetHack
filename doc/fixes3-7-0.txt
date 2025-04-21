@@ -2110,6 +2110,8 @@ when attacking a displacer beast, using the 'F' forcefight prefix prevented it
 successfully disarming a chest trap was clearing the chest's 'tknown' bit
 	instead of setting it; likewise when failing to disarm triggered and
 	used up the trap
+when game ended with 'force_invmenu' On, final disclosure of inventory would
+	contain spurious menu entry "? - (list likely candidates)"
 
 
 Fixes to 3.7.0-x Platform and/or Interface Problems Exposed Via git Repository
