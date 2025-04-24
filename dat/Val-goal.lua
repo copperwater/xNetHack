@@ -96,8 +96,10 @@ end
 des.monster({ id='Lord Surtur', x=66, y=13, waiting=true, inventory=function()
    des.object({ id='two-handed sword', name='Sol Valtiva' })
    des.object({ class='/', id='fire', buc='not-cursed' })
-   des.object({ id='Bell of Opening', buc='uncursed' })
-end })
+   -- bell of opening has hardcoded safeguards so specifying it here would
+   -- result in two bells; specify keep_default_invent=true so he is carrying it
+   -- rather than has dropped it
+end, keep_default_invent = true })
 
 -- Other monsters
 for i = 1, 6 + d(4) do

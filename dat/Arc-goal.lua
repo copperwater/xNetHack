@@ -90,8 +90,10 @@ des.monster({ id="Schliemann", x=53, y=09, inventory = function()
    -- nethack doesn't have explosives; this is the closest substitute...
    des.object({ id="oil", cursed=0, quantity=7+d(5) })
    des.object({ id="shield of reflection",buc="blessed",material="gold",spe=1,name="Itlachiayaque" })
-   des.object({ id="Bell of Opening", buc="uncursed" })
-end })
+   -- bell of opening has hardcoded safeguards so specifying it here would
+   -- result in two bells; specify keep_default_invent=true so he is carrying it
+   -- rather than has dropped it
+end, keep_default_invent = true })
 
 -- His crew of archeologists
 function henchman_inventory()
