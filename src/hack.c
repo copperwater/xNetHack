@@ -1728,22 +1728,25 @@ notice_all_mons(boolean reset)
         struct monst **arr = NULL;
         int j, i = 0, cnt = 0;
 
-        for (mtmp = fmon; mtmp; mtmp = mtmp->nmon)
+        for (mtmp = fmon; mtmp; mtmp = mtmp->nmon) {
+            if (DEADMONSTER(mtmp))
+                continue;
             if (canspotmon(mtmp))
                 cnt++;
             else if (reset)
                 mtmp->mspotted = FALSE;
-
+        }
         if (!cnt)
             return;
 
-        arr = (struct monst **) alloc(cnt * sizeof(struct monst *));
-
+        arr = (struct monst **) alloc(cnt * sizeof (struct monst *));
 
         for (mtmp = fmon; mtmp; mtmp = mtmp->nmon) {
+            if (DEADMONSTER(mtmp))
+                continue;
             if (!canspotmon(mtmp))
                 mtmp->mspotted = FALSE;
-            else if (!DEADMONSTER(mtmp) && i < cnt)
+            else if (i < cnt)
                 arr[i++] = mtmp;
         }
 
