@@ -99,12 +99,12 @@ struct monst {
     short mnum;           /* permanent monster index number */
     short cham;           /* if shapeshifter, orig mons[] idx goes here */
     short movement;       /* movement points (derived from permonst definition
-                             and added effects */
+                           * and added effects */
     uchar m_lev;          /* adjusted difficulty level of monster */
     aligntyp malign;      /* alignment of this monster, relative to the
-                             player (positive = good to kill) */
+                           * player (positive = good to kill) */
     coordxy mx, my;
-    coordxy mux, muy;       /* where the monster thinks you are */
+    coordxy mux, muy;     /* where the monster thinks you are */
 #define MTSZ 4
     /* mtrack[0..2] is used to keep extra data when migrating the monster */
     coord mtrack[MTSZ];   /* monster track */
@@ -112,11 +112,11 @@ struct monst {
     unsigned mappearance; /* for undetected mimics and the wiz */
     uchar m_ap_type;      /* what mappearance is describing, m_ap_types */
 
-    schar mtame;                /* level of tameness, implies peaceful */
+    schar mtame;          /* level of tameness, implies peaceful */
     unsigned short mintrinsics; /* low 8 correspond to mresists */
     unsigned short mextrinsics; /* low 8 correspond to mresists */
     unsigned long seen_resistance; /* M_SEEN_x; saw you resist an effect */
-    int mspec_used;             /* monster's special ability attack timeout */
+    int mspec_used;       /* monster's special ability attack timeout */
 
     Bitfield(female, 1);      /* is female */
     Bitfield(minvis, 1);      /* currently invisible */
@@ -156,13 +156,12 @@ struct monst {
     Bitfield(ispriest, 1);  /* is an aligned priest or high priest */
 
     Bitfield(iswiz, 1);     /* is the Wizard of Yendor */
+#define MAX_NUM_WORMS 32    /* should be 2^(wormno bitfield size) */
     Bitfield(wormno, 5);    /* at most 31 worms on any level */
     Bitfield(mtemplit, 1);  /* temporarily seen; only valid during bhit() */
     Bitfield(meverseen, 1); /* mon has been seen at some point */
 
     Bitfield(mspotted, 1);  /* mon is currently seen by hero */
-
-#define MAX_NUM_WORMS 32    /* should be 2^(wormno bitfield size) */
 
     unsigned long mstrategy; /* for monsters with mflag3: current strategy */
 #ifdef NHSTDC
