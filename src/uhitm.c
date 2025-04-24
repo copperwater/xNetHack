@@ -6103,11 +6103,13 @@ DISABLE_WARNING_FORMAT_NONLITERAL
 void
 that_is_a_mimic(
     struct monst *mtmp, /* a hidden mimic (nonnull) */
-    boolean reveal_it) /* True: remove its disguise */
+    unsigned mimic_flags) /* 0, MIM_REVEAL, MIM_OMIT_WAIT, REVEAL+OMIT */
 {
     static char generic[] = "a monster";
     char fmtbuf[BUFSZ];
     const char *what = NULL;
+    boolean reveal_it = (mimic_flags & MIM_REVEAL) != 0,
+            omit_wait = (mimic_flags & MIM_OMIT_WAIT) != 0;
 
     Strcpy(fmtbuf, "Wait!  That's %s!");
     if (Blind) {
@@ -6116,7 +6118,7 @@ that_is_a_mimic(
         else if (M_AP_TYPE(mtmp) == M_AP_MONSTER)
             what = a_monnam(mtmp); /* differs from what was sensed */
     } else {
-        coordxy x = u.ux + u.dx, y = u.uy + u.dy;
+        coordxy x = mtmp->mx, y = mtmp->my;
         int glyph = glyph_at(x, y);
 
         if (glyph_is_cmap(glyph)) {
@@ -6167,8 +6169,11 @@ that_is_a_mimic(
             what = a_monnam(mtmp);
     }
 
-    if (what)
-        pline(fmtbuf, what);
+    if (what) {
+        int i = (omit_wait && !strncmp(fmtbuf, "Wait!  ", 7)) ? 7 : 0;
+
+        pline(&fmtbuf[i], what);
+    }
     if (reveal_it)
         seemimic(mtmp);
 }
@@ -6179,7 +6184,7 @@ RESTORE_WARNING_FORMAT_NONLITERAL
 void
 stumble_onto_mimic(struct monst *mtmp)
 {
-    that_is_a_mimic(mtmp, TRUE);
+    that_is_a_mimic(mtmp, MIM_REVEAL);
 
     if (!u.ustuck && !mtmp->mflee && dmgtype(mtmp->data, AD_STCK)
         /* must be adjacent; attack via polearm could be from farther away */

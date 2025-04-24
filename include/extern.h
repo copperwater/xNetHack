@@ -1624,6 +1624,8 @@ extern void costly_alteration(struct obj *, int) NONNULLARG1;
 extern void clear_dknown(struct obj *);
 extern void unknow_object(struct obj *);
 extern struct obj *mksobj(int, boolean, boolean) NONNULL;
+extern boolean stone_object_type(unsigned);
+extern boolean stone_furniture_type(unsigned);
 extern int bcsign(struct obj *) NONNULLARG1;
 extern int weight(struct obj *) NONNULLARG1;
 extern struct obj *mkgold(long, coordxy, coordxy);
@@ -3385,7 +3387,7 @@ extern boolean mhitm_knockback(struct monst *, struct monst *,struct attack *,
 extern int passive(struct monst *, struct obj *, boolean, boolean, uchar,
                    boolean) NONNULLARG1;
 extern void passive_obj(struct monst *, struct obj *, struct attack *) NONNULLARG1;
-extern void that_is_a_mimic(struct monst *, boolean) NONNULLARG1;
+extern void that_is_a_mimic(struct monst *, unsigned) NONNULLARG1;
 extern void stumble_onto_mimic(struct monst *) NONNULLARG1;
 extern int flash_hits_mon(struct monst *, struct obj *) NONNULLARG12;
 extern void light_hits_gremlin(struct monst *, int) NONNULLARG1;

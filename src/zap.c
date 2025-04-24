@@ -365,7 +365,7 @@ bhitm(struct monst *mtmp, struct obj *otmp)
     case WAN_LOCKING:
     case SPE_WIZARD_LOCK:
         if (disguised_mimic && box_or_door(mtmp))
-            that_is_a_mimic(mtmp, TRUE); /*seemimic()*/
+            that_is_a_mimic(mtmp, MIM_REVEAL); /*seemimic()*/
         wake = closeholdingtrap(mtmp, &learn_it);
         break;
     case WAN_PROBING:
@@ -377,7 +377,7 @@ bhitm(struct monst *mtmp, struct obj *otmp)
     case WAN_OPENING:
     case SPE_KNOCK:
         if (disguised_mimic && box_or_door(mtmp))
-            that_is_a_mimic(mtmp, TRUE); /*seemimic()*/
+            that_is_a_mimic(mtmp, MIM_REVEAL); /*seemimic()*/
         wake = FALSE; /* don't want immediate counterattack */
         if (mtmp == u.ustuck) {
             /* zapping either holder/holdee or self [zapyourself()] will
@@ -483,21 +483,35 @@ bhitm(struct monst *mtmp, struct obj *otmp)
             learn_it = TRUE;
         break;
     case SPE_STONE_TO_FLESH:
-        /* FIXME: mimics disguished as stone furniture or stone object
-           should be taken out of concealment. */
-        if (monsndx(mtmp->data) == PM_STONE_GOLEM) {
-            char *name = Monnam(mtmp);
+        if (mtmp->data->mlet == S_GOLEM) {
+            const char *mesg;
+            char *name = Monnam(mtmp); /* before possible polymorph */
 
-            /* turn into flesh golem */
-            if (newcham(mtmp, &mons[PM_FLESH_GOLEM], NO_NC_FLAGS)) {
-                if (canseemon(mtmp))
-                    pline("%s turns to flesh!", name);
-            } else {
-                if (canseemon(mtmp))
-                    pline("%s looks rather fleshy for a moment.", name);
+            /* turn stone golem into flesh golem */
+            if (monsndx(mtmp->data) == PM_STONE_GOLEM
+                && newcham(mtmp, &mons[PM_FLESH_GOLEM], NO_NC_FLAGS))
+                mesg = "turns to flesh!";
+            else if (monsndx(mtmp->data) == PM_FLESH_GOLEM)
+                mesg = "seems fleshier...";
+            else
+                mesg = "looks rather fleshy for a moment.";
+
+            if (canseemon(mtmp))
+                pline("%s %s", name, mesg);
+        } else if (mtmp->data->mlet == S_MIMIC
+                   && ((M_AP_TYPE(mtmp) == M_AP_FURNITURE
+                        && stone_furniture_type(mtmp->mappearance))
+                       || (M_AP_TYPE(mtmp) == M_AP_OBJECT
+                           && stone_object_type(mtmp->mappearance)))) {
+            /* note: if that_is_a_mimic() doesn't get called to reveal the
+               mimic, wakeup() below will call seemimic() */
+            if (cansee(mtmp->mx, mtmp->my)) {
+                set_msg_xy(mtmp->mx, mtmp->my);
+                that_is_a_mimic(mtmp, MIM_REVEAL | MIM_OMIT_WAIT);
             }
-        } else
+        } else {
             wake = FALSE;
+        }
         break;
     case SPE_DRAIN_LIFE:
         if (disguised_mimic)
@@ -530,22 +544,19 @@ bhitm(struct monst *mtmp, struct obj *otmp)
         impossible("What an interesting effect (%d)", otyp);
         break;
     }
-    if (wake) {
-        if (!DEADMONSTER(mtmp)) {
-            wakeup(mtmp, helpful_gesture ? FALSE : TRUE);
-            m_respond(mtmp);
-            if (mtmp->isshk && !*u.ushops)
-                hot_pursuit(mtmp);
-        } else if (M_AP_TYPE(mtmp))
-            seemimic(mtmp); /* might unblock if mimicking a boulder/door */
+    if (wake && !DEADMONSTER(mtmp)) {
+        /* seemimic() is done by wakeup() and might unblock vision */
+        wakeup(mtmp, helpful_gesture ? FALSE : TRUE);
+        m_respond(mtmp);
+        if (mtmp->isshk && !*u.ushops)
+            hot_pursuit(mtmp);
     }
     /* note: gb.bhitpos won't be set if swallowed, but that's okay since
      * reveal_invis will be false.  We can't use mtmp->mx, my since it
      * might be an invisible worm hit on the tail.
      */
-    if (reveal_invis) {
-        if (!DEADMONSTER(mtmp) && cansee(gb.bhitpos.x, gb.bhitpos.y)
-            && !canspotmon(mtmp))
+    if (reveal_invis && !DEADMONSTER(mtmp)) {
+        if (cansee(gb.bhitpos.x, gb.bhitpos.y) && !canspotmon(mtmp))
             map_invisible(gb.bhitpos.x, gb.bhitpos.y);
     }
     /* if effect was observable then discover the wand type provided

@@ -1251,6 +1251,42 @@ mksobj(int otyp, boolean init, boolean artif)
     return otmp;
 }
 
+/* potential mimic shapes that should be undone by stone-to-flesh;
+   not used for objects that will be transformed when hit by stone-to-flesh */
+boolean
+stone_object_type(unsigned mappearance)
+{
+    int otyp = (int) mappearance;
+
+    /* we exclude wands, rings, and gems even though some qualify as stone;
+       there aren't any weapons or armor classified as made out of stone */
+    return (otyp == BOULDER || otyp == STATUE || otyp == FIGURINE);
+}
+
+/* possible mimic shapes that are affected by stone-to-flesh;
+   mappearance for furniture is a display symbol rather than a terrain type */
+boolean
+stone_furniture_type(unsigned mappearance)
+{
+    int sym = (int) mappearance;
+
+    switch (sym) {
+    case S_upstair:
+    case S_dnstair:
+    case S_brupstair:
+    case S_brdnstair:
+    case S_altar:
+    case S_throne:
+    case S_sink: /* stone sink is iffy; metal might be more appropriate */
+        return TRUE;
+    default:
+        if (sym >= S_vwall && sym <= S_trwall)
+            return TRUE;
+        break;
+    }
+    return FALSE;
+}
+
 /*
  * Several areas of the code made direct reassignments
  * to obj->corpsenm.  Because some special handling is

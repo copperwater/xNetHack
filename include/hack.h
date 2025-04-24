@@ -1155,6 +1155,10 @@ typedef uint32_t mmflags_nht;     /* makemon MM_ flags */
 #define MHID_ALTMON  4 /* if mimicking a monster, include that */
 #define MHID_REGION  8 /* include region when mon is in one */
 
+/* flags for that_is_a_mimic() */
+#define MIM_REVEAL    1 /* seemimic() */
+#define MIM_OMIT_WAIT 2 /* strip beginning from "Wait!  That is a <foo>" */
+
 /* flags for make_corpse() and mkcorpstat(); 0..7 are recorded in obj->spe */
 #define CORPSTAT_NONE     0x00
 #define CORPSTAT_GENDER   0x03 /* 0x01 | 0x02 */
