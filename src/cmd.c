@@ -3284,11 +3284,19 @@ accept_menu_prefix(const struct ext_func_tab *ec)
     return (ec && ((ec->flags & CMD_M_PREFIX) != 0));
 }
 
+/* choose a random character, biased towards movement commands, primarily
+   for debug-fuzzer testing */
 char
 randomkey(void)
 {
     static unsigned i = 0;
+    static char last_c = '\0';
     char c;
+
+    /* give ^A and ^P a high probability of being repeated */
+    if ((last_c == C('a') || last_c == C('p'))
+        && program_state.input_state == commandInp && rn2(5))
+        return last_c;
 
     switch (rn2(16)) {
     default:
@@ -3337,6 +3345,8 @@ randomkey(void)
         break;
     }
 
+    if (program_state.input_state == commandInp)
+        last_c = c;
     return c;
 }
 
