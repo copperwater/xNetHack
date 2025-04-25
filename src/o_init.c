@@ -418,11 +418,21 @@ restnames(NHFILE *nhfp)
     int i;
     unsigned int len = 0;
 
-    if (nhfp->structlevel) {
-        mread(nhfp->fd, (genericptr_t) svb.bases, sizeof svb.bases);
-        mread(nhfp->fd, (genericptr_t) svd.disco, sizeof svd.disco);
-        mread(nhfp->fd, (genericptr_t) objects,
-              NUM_OBJECTS * sizeof (struct objclass));
+    for (i = 0; i < (MAXOCLASSES + 2); ++i) {
+        if (nhfp->structlevel) {
+            mread(nhfp->fd, (genericptr_t) &svb.bases[i], sizeof(int));
+        }
+    }
+    for (i = 0; i < NUM_OBJECTS; ++i) {
+        if (nhfp->structlevel) {
+            mread(nhfp->fd, (genericptr_t) &svd.disco[i], sizeof(short));
+        }
+    }
+    for (i = 0; i < NUM_OBJECTS; ++i) {
+        if (nhfp->structlevel) {
+            mread(nhfp->fd, (genericptr_t) &objects[i],
+                  sizeof(struct objclass));
+        }
     }
     for (i = 0; i < NUM_OBJECTS; i++) {
         if (objects[i].oc_uname) {
