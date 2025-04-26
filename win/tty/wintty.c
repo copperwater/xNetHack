@@ -1461,15 +1461,19 @@ process_menu_window(winid window, struct WinDesc *cw)
                                 (void) putchar('+'); /* all selected */
                             else
                                 (void) putchar('#'); /* count selected */
-                        } else if (iflags.use_menu_glyphs && n == 2 
-                                    && curr->identifier.a_void != 0 
-                                    && curr->glyphinfo.glyph != NO_GLYPH) {
-                            /* tty_print_glyph could be used, but is overkill and requires referencing the cursor location */
-                            toggle_menu_attr(TRUE, curr->glyphinfo.gm.sym.color, ATR_NONE);
+                        } else if (iflags.use_menu_glyphs && n == 2
+                                   && curr->identifier.a_void != 0
+                                   && curr->glyphinfo.glyph != NO_GLYPH) {
+                            int gcolor = curr->glyphinfo.gm.sym.color;
+
+                            /* tty_print_glyph could be used, but is overkill
+                               and requires referencing the cursor location */
+                            toggle_menu_attr(TRUE, gcolor, ATR_NONE);
                             (void) putchar(curr->glyphinfo.ttychar);
-                            toggle_menu_attr(FALSE, curr->glyphinfo.gm.sym.color, ATR_NONE);
-                        } else
+                            toggle_menu_attr(FALSE, gcolor, ATR_NONE);
+                        } else {
                             (void) putchar(*cp);
+                        }
                     } /* for *cp */
                     if (n > attr_n && (color != NO_COLOR || attr != ATR_NONE))
                         toggle_menu_attr(FALSE, color, attr);
