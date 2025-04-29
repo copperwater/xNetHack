@@ -60,6 +60,7 @@ typedef struct nhm {
     unsigned long mbehavior;    /* menu flags */
     boolean reuse_accels;       /* Non-unique accelerators per page */
     boolean bottom_heavy;       /* display multi-page menu starting at end */
+    boolean show_obj_syms;      /* handle iflags.menuobjsyms */
     struct nhm *prev_menu;      /* Pointer to previous menu */
     struct nhm *next_menu;      /* Pointer to next menu */
 } nhmenu;
@@ -552,6 +553,7 @@ curses_create_nhmenu(winid wid, unsigned long mbehavior)
         new_menu->mbehavior = mbehavior;
         new_menu->reuse_accels = FALSE;
         new_menu->bottom_heavy = FALSE;
+        new_menu->show_obj_syms = FALSE;
         return;
     }
 
@@ -565,6 +567,7 @@ curses_create_nhmenu(winid wid, unsigned long mbehavior)
     new_menu->mbehavior = mbehavior;
     new_menu->reuse_accels = FALSE;
     new_menu->bottom_heavy = FALSE;
+    new_menu->show_obj_syms = FALSE;
     new_menu->next_menu = NULL;
 
     if (nhmenus == NULL) {      /* no menus in memory yet */
@@ -1029,6 +1032,18 @@ menu_win_size(nhmenu *menu)
     int maxentrywidth = 0;
     int maxheaderwidth = menu->prompt ? (int) strlen(menu->prompt) : 0;
     nhmenu_item *menu_item_ptr, *last_item_ptr = NULL;
+    boolean only_if_no_headers = (iflags.menuobjsyms & 4) != 0;
+
+    /* check entire menu rather than one page at a time */
+    menu->show_obj_syms = iflags.use_menu_glyphs;
+    if (only_if_no_headers) {
+        for (menu_item_ptr = menu->entries; menu_item_ptr != NULL;
+             menu_item_ptr = menu_item_ptr->next_item)
+            if (menu_item_ptr->identifier.a_void == 0) {
+                menu->show_obj_syms = FALSE;
+                break;
+            }
+    }
 
 #if 0   /* maxwidth is set below, so the value calculated here isn't used */
     if (program_state.gameover) {
@@ -1061,7 +1076,7 @@ menu_win_size(nhmenu *menu)
             /* Add space for accelerator (selector letter) */
             curentrywidth += 4;
             if (menu_item_ptr->glyphinfo.glyph != NO_GLYPH
-                && iflags.use_menu_glyphs)
+                && menu->show_obj_syms)
                 curentrywidth += 2;
         }
         if (curentrywidth > maxentrywidth) {
@@ -1282,10 +1297,11 @@ menu_display_page(
             start_col += 4;
         }
         if (menu_item_ptr->glyphinfo.glyph != NO_GLYPH
-            && iflags.use_menu_glyphs) {
+            && menu->show_obj_syms) {
             color = menu_item_ptr->glyphinfo.gm.sym.color;
             curses_toggle_color_attr(win, color, NONE, ON);
-            mvwaddch(win, menu_item_ptr->line_num + 1, start_col, menu_item_ptr->glyphinfo.ttychar);
+            mvwaddch(win, menu_item_ptr->line_num + 1, start_col,
+                     menu_item_ptr->glyphinfo.ttychar);
             curses_toggle_color_attr(win, color, NONE, OFF);
             mvwaddch(win, menu_item_ptr->line_num + 1, start_col + 1, ' ');
             entry_cols -= 2;

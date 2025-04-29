@@ -442,9 +442,9 @@ static int optfn_##a(int, int, boolean, char *, char *);
                 No, Yes, No, No, NoAlias, "jump to the last page in a menu")
     NHOPTC(menu_next_page, Advanced, 4, opt_in, set_in_config,
                 No, Yes, No, No, NoAlias, "go to the next menu page")
-    NHOPTB(menu_objsyms, Advanced, 0, opt_in, set_in_game,
-                Off, Yes, No, No, NoAlias, &iflags.menu_head_objsym,
-           Term_False, "show object symbols in menus")
+    NHOPTC(menu_objsyms, Advanced, 12, opt_in, set_in_game,
+           Yes, Yes, No, Yes, "use_menu_glyphs",
+           "show object symbols in menus")
 #ifdef TTY_GRAPHICS
     NHOPTB(menu_overlay, Advanced, 0, opt_in, set_in_game,
            On, Yes, No, No, NoAlias, &iflags.menu_overlay, Term_False,
@@ -789,9 +789,6 @@ static int optfn_##a(int, int, boolean, char *, char *);
     NHOPTB(use_inverse, Advanced, 0, opt_out, set_in_game,
            On, Yes, No, No, NoAlias, &iflags.wc_inverse, Term_False,
            "display detected monsters in inverse")
-    NHOPTB(use_menu_glyphs, Advanced, 0, opt_out, set_in_game,
-           On, Yes, No, No, NoAlias, &iflags.use_menu_glyphs,
-           Term_False, "show object glyphs in menu items")
     NHOPTB(use_truecolor, Advanced, 0, opt_in, set_in_config,
                 Off, Yes, No, No, "use_truecolour",
            &iflags.use_truecolor, Term_False,

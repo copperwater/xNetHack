@@ -4576,8 +4576,40 @@ Key to go to the next menu page.
 Implemented by the Amiga, Gem and tty ports.
 Default `\verb+>+'.
 \item[\ib{menu\verb+_+objsyms}]
-Show object symbols in menu headings in menus where
-the object symbols act as menu accelerators (default off).
+% [originally menu_objsyms was a boolean]
+% Show object symbols in menu headings in menus where
+% the object symbols act as menu accelerators (default off).
+Inventory and other object menus are normally separated by object class
+(weapons, armor, and so forth), with a menu header line at the beginning
+of each group.
+You can have menus add the display symbol for the class of objects for
+each header line.
+You can also add the display symbol for the individual item in each menu
+entry.
+For a tiles map, that would be a small rendition of an object's tile.
+For a text map, it is the same character as is used for the object's
+class, which would be most useful when there are no headers separating
+objects among classes.
+% FIXME! -- three column table may be simpler than mashing first two together
+% Possible values are
+% .PS "5\ -\ One-or-other"
+% .PL "0\ -\ None"
+% no symbols for either header lines or menu entries;
+% .PL "1\ -\ Headers"
+% show symbols on header lines but not entries;
+% .PL "2\ -\ Entries"
+% show symbols on menu entry lines but not headers;
+% .PL "3\ -\ Both"
+% show symbols on headers and entries;
+% .PL "4\ -\ Conditional"
+% only show symbols for entries if there are no headers;
+% .PL "5\ -\ One-or-other"
+% show symbols on headers, or on entries if no headers.
+% .PE
+
+Supported by tty and curses.
+When setting the value, it can be specified by digit or keyword.
+The default value is {\tt Conditional} (4).
 \item[\ib{menu\verb+_+overlay}]
 Do not clear the screen before drawing menus, and align
 menus to the right edge of the screen. Only for the tty port.

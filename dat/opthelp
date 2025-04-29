@@ -40,7 +40,6 @@ mail           enable the mail daemon                              [True]
 mention_decor  give feedback when walking across stairs, altars,  [False]
                fountains, and such even when not obscured by objects
 mention_walls  give feedback when walking against a wall          [False]
-menu_objsyms   show object symbols in menus if it is selectable   [False]
 menu_overlay   overlay menus on the screen and align to right      [True]
 menucolors     enable MENUCOLOR pattern matching to highlight     [False]
                lines in object menus like inventory; might highlight with
@@ -80,7 +79,6 @@ travel         enables travelling via mouse click if supported;    [True]
                attempting to move the hero; does not affect travel via '_'
 use_darkgray   use bold black instead of blue for black glyphs.    [True]
 use_inverse    display detected monsters in highlighted manner    [False]
-use_menu_glyphs show object glyphs in menu items (tty, curses)     [True]
 verbose        print more commentary during the game               [True]
 whatis_menu    show menu when getting a map location              [False]
 whatis_moveskip skip same glyphs when getting a map location      [False]
@@ -191,6 +189,16 @@ menustyle     user interface for selection of multiple objects:      [Full]
               only the first letter ('T','C','F','P') matters
               (With Traditional, many actions allow pseudo-class 'm' to
               request a menu for choosing items: one-shot Combination.)
+menu_objsyms  whether to include object class symbols in menus:         [5]
+              0 - none    -- don't add object symbols to menus;
+              1 - headers -- append object class symbol to menu header lines;
+              2 - entries -- show object glyphs (same as class symbol
+                             for ASCII interfaces) on each menu entry line;
+              3 - both    -- 1 and 2 combined;
+              4 - conditional  -- as 2 but only if no headers are present;
+              5 - one-or-other -- 1 and 4 combined;
+              choices 0 and 1 should work with any interface; 2 through 5
+              are supported by tty and curses
 msg_window    behavior of ^P message recall for tty interface:          [s]
               single      -- one message at a time
               full        -- full window with all saved top line messages

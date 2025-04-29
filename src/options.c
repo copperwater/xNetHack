@@ -257,6 +257,46 @@ static NEARDATA const char *perminv_modes[][3] = {
   /*8*/ { "in-use",    "inuse-only", "subset: items currently in use" },
 };
 
+struct objsymopt {
+    int num;
+    const char *nam;
+    const char *descr;
+};
+
+/*
+ * menuobjsyms:
+ *   Inventory display for the various values of menuobjsyms.
+ *   4' and 5' represent !sortpack which lacks headers; they
+ *   produce the same result.
+ *
+ *   0:                         1:
+ *        Weapons                    Weapons  (')')
+ *        a - 15 darts               a - 15 darts
+ *        Armor                      Armor    ('[')
+ *        b - Hawaiian shirt         b - Hawaiian shirt
+ *   2:                         3:
+ *        Weapons                    Weapons  (')')
+ *        a ) 15 darts               a ) 15 darts
+ *        Armor                      Armor    ('[')
+ *        b [ Hawaiian shirt         b [ Hawaiian shirt
+ *   4:                         5:
+ *        Weapons                    Weapons  (')')
+ *        a - 15 darts               a - 15 darts
+ *        Armor                      Armor    ('[')
+ *        b - Hawaiian shirt         b - Hawaiian shirt
+ *   4':                        5':
+ *        a ) 15 darts               a ) 15 darts
+ *        b [ Hawaiian shirt         b [ Hawaiian shirt
+ */
+static const struct objsymopt objsymvals[] = {
+    { 0, "none",         "don't show object symbols in menus" },
+    { 1, "headers",      "show object symbols in menu header lines" },
+    { 2, "entries",      "show object symbols in individual menu entries" },
+    { 3, "both",         "show object symbols in headers and menu entries" },
+    { 4, "conditional",  "show objsyms in entries if no headers are shown" },
+    { 5, "one-or-other", "show objsyms in header, in entries if no header" },
+};
+
 /*
  * Default menu manipulation command accelerators.  These may _not_ be:
  *
@@ -323,6 +363,7 @@ staticfn void rejectoption(const char *);
 staticfn char *string_for_opt(char *, boolean);
 staticfn char *string_for_env_opt(const char *, char *, boolean);
 staticfn void bad_negation(const char *, boolean);
+staticfn void set_menuobjsyms_flags(int);
 staticfn int change_inv_order(char *);
 staticfn boolean warning_opts(char *, const char *);
 staticfn int feature_alert_opts(char *, const char *);
@@ -368,6 +409,7 @@ staticfn int handler_align_misc(int);
 staticfn int handler_autounlock(int);
 staticfn int handler_disclose(void);
 staticfn int handler_menu_headings(void);
+staticfn int handler_menu_objsyms(void);
 staticfn int handler_menustyle(void);
 staticfn int handler_msg_window(void);
 staticfn int handler_number_pad(void);
@@ -2183,6 +2225,71 @@ optfn_menu_headings(
     }
     if (req == do_handler) {
         return handler_menu_headings();
+    }
+    return optn_ok;
+}
+
+staticfn int
+optfn_menu_objsyms(
+    int optidx, int req,
+    boolean negated,
+    char *opts, char *op)
+{
+    if (req == do_init) {
+        /* set iflags.menu_objsyms to 4, "conditional"; also sets
+           iflags.menu_head_objsym to False and
+           iflags.use_menu_glyphs True */
+        set_menuobjsyms_flags(4);
+        return optn_ok;
+    }
+    if (req == do_set) {
+        unsigned k, l;
+        int i, osyms;
+
+        if (negated) {
+            /* allow '!menu_objsyms' (and '!use_menu_glyphs') as
+               'menu_objsyms:none' (0) */
+            osyms = 0;
+        } else if (op == empty_optstr) {
+            /* treat boolean 'menu_objsyms' as 'menu_objsyms:headers' (1)
+               accept obsolete boolean 'use_menu_glyphs' as a synonym
+               for 'menu_objsyms:entries' (2) */
+            osyms = !strncmp(opts, "use_menu_glyphs", 15) ? 2 : 1;
+        } else if (digit(*op)) {
+            i = atoi(op);
+            if (i >= SIZE(objsymvals)) {
+                config_error_add("Illegal %s parameter '%s'",
+                                 allopt[optidx].name, op);
+                return optn_err;
+            }
+            osyms = i;
+        } else {
+            /* stilted "one-or-other" is used to compress the menu width */
+            static const char alt5[] = "one-or-the-other";
+            unsigned l5 = (unsigned) (sizeof alt5 - sizeof "");
+
+            osyms = 0;
+            k = (unsigned) strlen(op);
+            for (i = 0; i < SIZE(objsymvals); ++i) {
+                l = (unsigned) strlen(objsymvals[i].nam);
+                if (k >= 4)
+                    l = k;
+                if (!strncmpi(objsymvals[i].nam, op, l)
+                    || (i == 5 && !strncmpi(alt5, op, l5))) {
+                    osyms = i;
+                    break;
+                }
+            }
+        }
+        set_menuobjsyms_flags(osyms);
+        return optn_ok;
+    }
+    if (req == get_val || req == get_cnf_val) {
+        Sprintf(opts, "%s", objsymvals[iflags.menuobjsyms].nam);
+        return optn_ok;
+    }
+    if (req == do_handler) {
+        return handler_menu_objsyms();
     }
     return optn_ok;
 }
@@ -5672,6 +5779,43 @@ handler_menu_headings(void)
 }
 
 staticfn int
+handler_menu_objsyms(void)
+{
+    winid tmpwin;
+    anything any;
+    char buf[BUFSZ];
+    menu_item *picklist = (menu_item *) 0;
+    const char sep = iflags.menu_tab_sep ? '\t' : ' ';
+    int i, j, n, clr = NO_COLOR;
+
+    tmpwin = create_nhwindow(NHW_MENU);
+    start_menu(tmpwin, MENU_BEHAVE_STANDARD);
+    any = cg.zeroany;
+    for (i = 0; i < SIZE(objsymvals); ++i) {
+        Snprintf(buf, sizeof buf, "%-12.12s%c%.60s",
+                 objsymvals[i].nam, sep, objsymvals[i].descr);
+        any.a_int = i + 1;
+        j = objsymvals[i].num;
+        add_menu(tmpwin, &nul_glyphinfo, &any, '0' + i, *buf,
+                 ATR_NONE, clr, buf,
+                 (j == iflags.menuobjsyms) ? MENU_ITEMFLAGS_SELECTED
+                                           : MENU_ITEMFLAGS_NONE);
+    }
+    end_menu(tmpwin, "Set object symbols in menus to what?");
+    n = select_menu(tmpwin, PICK_ONE, &picklist);
+    if (n > 0) {
+        i = picklist[0].item.a_int - 1;
+        /* if there are two picks, use the one that wasn't pre-selected */
+        if (n > 1 && i == iflags.menuobjsyms)
+            i = picklist[1].item.a_int - 1;
+        set_menuobjsyms_flags(i);
+        free((genericptr_t) picklist);
+    }
+    destroy_nhwindow(tmpwin);
+    return optn_ok;
+}
+
+staticfn int
 handler_msg_window(void)
 {
 #if PREV_MSGS /* tty or curses */
@@ -7033,6 +7177,7 @@ initoptions_init(void)
     flags.pile_limit = PILE_LIMIT_DFLT;  /* 5 */
     flags.runmode = RUN_LEAP;
     iflags.msg_history = 20;
+
     /* msg_window has conflicting defaults for multi-interface binary */
 #ifdef TTY_GRAPHICS
     iflags.prevmsg_window = 's';
@@ -7309,6 +7454,16 @@ initoptions_finish(void)
  *
  *******************************************
  */
+
+/* iflags.menuobjsyms also controls iflags.menu_head_objsym, and
+   iflags.use_menu_glyphs; they affect execution but are no longer options */
+staticfn void
+set_menuobjsyms_flags(int newobjsyms)
+{
+    iflags.menuobjsyms = newobjsyms;
+    iflags.menu_head_objsym = ((newobjsyms & 1) != 0) ? TRUE : FALSE;
+    iflags.use_menu_glyphs = ((newobjsyms & (2 | 4)) != 0) ? TRUE : FALSE;
+}
 
 /*
  * Change the inventory order, using the given string as the new order.

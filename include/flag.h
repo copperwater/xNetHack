@@ -264,6 +264,8 @@ struct instance_flags {
     int getloc_filter;     /* GFILTER_foo */
     int in_lava_effects;   /* hack for Boots_off() */
     int last_msg;          /* indicator of last message player saw */
+    int menuobjsyms;       /* value of 'menu_objsyms' option;
+                            * ought to be in flags rather than iflags */
     int override_ID;       /* true to force full identification of objects */
     int parse_config_file_src;  /* hack for parse_config_line() */
     int purge_monsters;    /* # of dead monsters still on fmon list */
@@ -300,13 +302,13 @@ struct instance_flags {
      */
     unsigned msg_history; /* hint: # of top lines to save */
     int getpos_coords;    /* show coordinates when getting cursor position */
-    int menuinvertmode;  /* 0 = invert toggles every item;
-                            1 = invert skips 'all items' item */
+    int menuinvertmode;   /* 0 = invert toggles every item;
+                           * 1 = invert skips 'all items' item */
     color_attr menu_headings;    /* CLR_ and ATR_ for menu headings */
     uint32_t colorcount;    /* store how many colors terminal is capable of */
     boolean use_truecolor;  /* force use of truecolor */
 #ifdef ALTMETA
-    boolean altmeta;      /* Alt-c sends ESC c rather than M-c */
+    boolean altmeta;        /* Alt+c sends ESC c rather than M-c */
 #endif
     boolean autodescribe;     /* autodescribe mode in getpos() */
     boolean cbreak;           /* in cbreak mode, rogue format */
@@ -315,7 +317,8 @@ struct instance_flags {
     boolean echo;             /* 1 to echo characters */
     boolean force_invmenu;    /* always menu when handling inventory */
     boolean hilite_pile;      /* mark piles of objects with a hilite */
-    boolean menu_head_objsym; /* Show obj symbol in menu headings */
+    boolean menu_head_objsym; /* Show obj symbol in menu headings; controlled
+                               * by 'menuobjsyms' */
     boolean menu_overlay;     /* Draw menus over the map */
     boolean menu_requested;   /* Flag for overloaded use of 'm' prefix
                                * on some non-move commands */
@@ -334,7 +337,8 @@ struct instance_flags {
     boolean tux_penalty;      /* True iff hero is a monk and wearing a suit */
     boolean use_background_glyph; /* use background glyph when appropriate */
     boolean use_menu_color;   /* use color in menus; only if wc_color */
-    boolean use_menu_glyphs;  /* use object glyphs in menus, if the port supports it */
+    boolean use_menu_glyphs;  /* use object glyphs in menus, if the port
+                               * supports it; controlled by 'menuobjsyms' */
 #ifdef STATUS_HILITES
     long hilite_delta;        /* number of moves to leave a temp hilite lit */
     long unhilite_deadline; /* time when oldest temp hilite should be unlit */
