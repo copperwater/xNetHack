@@ -48,7 +48,7 @@
 \author{Original version - Eric S. Raymond\\
 (Edited and expanded for 3.7.0 by Mike Stephenson and others)}
 %DO NOT REMOVE NH_DATESUB \date{Date(%B %-d, %Y)}
-\date{April 20, 2025}
+\date{May 1, 2025}
 
 \maketitle
 
@@ -4145,7 +4145,8 @@ See {\it role\/}
 for a description of how to use negation to exclude choices.
 %.lp ""
 \\
-Default is random.
+If {\tt align} is not specified, there is no default value;
+player will be prompted unless role and/or race forces a choice for alignment.
 Cannot be set with the `{\tt O}' command.  Persistent.
 %.lp
 \item[\ib{autodescribe}]
@@ -4400,7 +4401,8 @@ See {\it role\/}
 for a description of how to use negation to exclude choices.
 %.lp ""
 \\
-Default is random.
+If {\tt gender} is not specified, there is no default value;
+player will be prompted unless role and/or race forces a choice for gender.
 Cannot be set with the `{\tt O}' command.  Persistent.
 %.lp
 \item[\ib{goldX}]
@@ -4708,6 +4710,12 @@ the role (that is, by suffixing one of
 ``{\tt -A -B -C -H -K -M -P -Ra -Ro -S -T -V -W}'').
 If ``{\tt -@}'' is used for the role, then a random one will be
 automatically chosen.
+%.lp
+\\
+On some systems, the default is the player's user name;
+on others, there is no default and the player will be prompted.
+The former can made to behave like the latter by specifying a generic name
+such as ``player''.
 Cannot be set with the `{\tt O}' command.
 %.lp
 \item[\ib{news}]
@@ -4990,7 +4998,9 @@ See {\it role\/}
 for a description of how to use negation to exclude choices.
 %.lp ""
 \\
-Default is random.
+If {\tt race} is not specified, there is no default value;
+player will be prompted unless role forces a choice for race.
+unless role forces a choice for race.
 Cannot be set with the `{\tt O}' command.  Persistent.
 %.lp
 \item[\ib{rest\verb+_+on\verb+_+space}]
@@ -5025,7 +5035,8 @@ option if they're all negations.
 %.\" negations.
 %.lp ""
 \\
-Default is random.
+If {\tt role} is not specified, there is no default value;
+player will be prompted.
 Cannot be set with the `{\tt O}' command.  Persistent.
 %.lp
 \item[\ib{roguesymset}]

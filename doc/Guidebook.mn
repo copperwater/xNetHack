@@ -47,7 +47,7 @@
 .ds f0 \*(vr
 .ds f1 \" empty
 .\"DO NOT REMOVE NH_DATESUB .ds f2 Date(%B %-d, %Y)
-.ds f2 April 20, 2025
+.ds f2 May 1, 2025
 .
 .\" A note on some special characters:
 .\" \(lq = left double quote
@@ -3788,7 +3788,8 @@ See
 .op role
 for a description of how to use negation to exclude choices.
 .lp ""
-Default is random.
+If \f(CRalign\fP is not specified, there is no default value;
+player will be prompted unless role and/or race forces a choice for alignment.
 Cannot be set with the \(oq\f(CRO\fP\(cq command.
 Persistent.
 .lp autodescribe
@@ -4014,7 +4015,8 @@ See
 .op role
 for a description of how to use negation to exclude choices.
 .lp ""
-Default is random.
+If \f(CRgender\fP is not specified, there is no default value;
+player will be prompted unless role and/or race forces a choice for gender.
 Cannot be set with the \(oq\f(CRO\fP\(cq command.
 Persistent.
 .lp "goldX   "
@@ -4284,6 +4286,11 @@ the role (that is, by suffixing one of
 If
 .op "\-@"
 is used for the role, then a random one will be automatically chosen.
+.lp ""
+On some systems, the default is the player's user name;
+on others, there is no default and the player will be prompted.
+The former can made to behave like the latter by specifying a generic name
+such as ``player''.
 Cannot be set with the \(oq\f(CRO\fP\(cq command.
 .lp "news    "
 Read the NetHack news file, if present (default on).
@@ -4544,7 +4551,8 @@ See
 .op role
 for a description of how to use negation to exclude choices.
 .lp ""
-Default is random.
+If \f(CRrace\fP is not specified, there is no default value;
+player will be prompted unless role forces a choice for race.
 Cannot be set with the \(oq\f(CRO\fP\(cq command.
 Persistent.
 .lp rest_on_space
@@ -4580,7 +4588,8 @@ option if they're all negations.
 .\" Only one positive value is allowed, and if present, it overrides any
 .\" negations.
 .lp ""
-Default is \f(CRrandom\fP.
+If \f(CRrole\fP is not specified, there is no default value;
+player will be prompted.
 Cannot be set with the \(oq\f(CRO\fP\(cq command.
 Persistent.
 .lp roguesymset
