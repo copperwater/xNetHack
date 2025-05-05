@@ -2073,7 +2073,7 @@ level_difficulty(void)
     }
     /* ring of aggravate monster */
     if (EAggravate_monster)
-        res += 15;
+        res = res > 25 ? 50 : res * 2;
     return res;
 }
 
