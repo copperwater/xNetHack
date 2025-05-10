@@ -22,6 +22,8 @@ staticfn boolean vamprises(struct monst *);
 staticfn void logdeadmon(struct monst *, int);
 staticfn void anger_quest_guardians(struct monst *);
 staticfn boolean ok_to_obliterate(struct monst *);
+staticfn void m_respond_shrieker(struct monst *);
+staticfn void m_respond_medusa(struct monst *);
 staticfn void qst_guardians_respond(void);
 staticfn void peacefuls_respond(struct monst *);
 staticfn void wake_nearto_core(coordxy, coordxy, int, boolean);
@@ -4013,36 +4015,50 @@ mnearto(
     return res;
 }
 
-/* monster responds to player action; not the same as a passive attack;
-   assumes reason for response has been tested, and response _must_ be made */
+/* shrieker special action: shriek, maybe summon monster, aggravate */
+staticfn void
+m_respond_shrieker(struct monst *mtmp)
+{
+    if (!Deaf) {
+        pline("%s shrieks.", Monnam(mtmp));
+        stop_occupation();
+    }
+    if (!rn2(10)) { /* 1/10 chance per shriek to create a monster */
+        /* new monster has a 1/13 chance to be a purple worm, random
+           otherwise; baby purple worm if adult is too difficult */
+        (void) makemon(rn2(13) ? (struct permonst *) 0
+                       : &mons[montoostrong(PM_PURPLE_WORM,
+                                            monmax_difficulty_lev())
+                               ? PM_BABY_PURPLE_WORM : PM_PURPLE_WORM],
+                       0, 0, NO_MM_FLAGS);
+    }
+    aggravate();
+}
+
+/* medusa special action: gaze at hero */
+staticfn void
+m_respond_medusa(struct monst *mtmp)
+{
+    int i;
+
+    for (i = 0; i < NATTK; i++)
+        if (mtmp->data->mattk[i].aatyp == AT_GAZE) {
+            (void) gazemu(mtmp, &mtmp->data->mattk[i]);
+            break;
+        }
+}
+
+/* monster responds to player action; not the same as a passive attack */
 void
 m_respond(struct monst *mtmp)
 {
-    if (mtmp->data->msound == MS_SHRIEK) {
-        if (!Deaf) {
-            pline("%s shrieks.", Monnam(mtmp));
-            stop_occupation();
-        }
-        if (!rn2(10)) { /* 1/10 chance per shriek to create a monster */
-            /* new monster has a 1/13 chance to be a purple worm, random
-               otherwise; baby purple worm if adult is too difficult */
-            (void) makemon(rn2(13) ? (struct permonst *) 0
-                           : &mons[montoostrong(PM_PURPLE_WORM,
-                                                monmax_difficulty_lev())
-                                   ? PM_BABY_PURPLE_WORM : PM_PURPLE_WORM],
-                           0, 0, NO_MM_FLAGS);
-        }
+    if (mtmp->data->msound == MS_SHRIEK && !um_dist(mtmp->mx, mtmp->my, 1))
+        m_respond_shrieker(mtmp);
+    if (mtmp->data == &mons[PM_MEDUSA] && couldsee(mtmp->mx, mtmp->my))
+        m_respond_medusa(mtmp);
+    /* Erinyes will inform surrounding monsters of your crimes */
+    if (mtmp->data == &mons[PM_ERINYS] && !mtmp->mpeaceful && m_canseeu(mtmp))
         aggravate();
-    }
-    if (mtmp->data == &mons[PM_MEDUSA]) {
-        int i;
-
-        for (i = 0; i < NATTK; i++)
-            if (mtmp->data->mattk[i].aatyp == AT_GAZE) {
-                (void) gazemu(mtmp, &mtmp->data->mattk[i]);
-                break;
-            }
-    }
 }
 
 /* how quest guardians respond when you attack the quest leader */
