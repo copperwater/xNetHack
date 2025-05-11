@@ -246,6 +246,9 @@ struct obj {
     ((o)->oclass == TOOL_CLASS && objects[(o)->otyp].oc_skill != P_NONE)
         /* towel is not a weptool:  spe isn't an enchantment, cursed towel
            doesn't weld to hand, and twoweapon won't work with one */
+#define is_blunt_weapon(o)                          \
+    (((o)->oclass == WEAPON_CLASS || is_weptool(o)) \
+     && ((objects[(o)->otyp].oc_dir & WHACK) != 0))
 #define is_wet_towel(o) ((o)->otyp == TOWEL && (o)->spe > 0)
 #define bimanual(otmp)                                            \
     ((otmp->oclass == WEAPON_CLASS || otmp->oclass == TOOL_CLASS) \

@@ -5189,6 +5189,8 @@ mhitm_knockback(
     boolean u_agr = (magr == &gy.youmonst);
     boolean u_def = (mdef == &gy.youmonst);
     boolean was_u = FALSE, dismount = FALSE;
+    struct obj *wep = weapon_used ? (u_agr ? uwep : MON_WEP(magr))
+                                  : (struct obj *)0;
 
     /* 1/6 chance of attack knocking back a monster */
     if (rn2(6))
@@ -5236,12 +5238,16 @@ mhitm_knockback(
     if (!(magr->data->msize > (mdef->data->msize + 1)))
         return FALSE;
 
+    /* no knockback with a flimsy or non-blunt weapon */
+    if (wep && (is_flimsy(wep) || !is_blunt_weapon(wep)))
+        return FALSE;
+
     /* only certain attacks qualify for knockback */
     if (!((mattk->adtyp == AD_PHYS)
           && (mattk->aatyp == AT_CLAW
               || mattk->aatyp == AT_KICK
               || mattk->aatyp == AT_BUTT
-              || (mattk->aatyp == AT_WEAP && !weapon_used))))
+              || mattk->aatyp == AT_WEAP)))
         return FALSE;
 
     /* needs a solid physical hit */
