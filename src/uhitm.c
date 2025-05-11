@@ -1724,6 +1724,7 @@ hmon_hitmon(
     int dieroll)
 {
     struct _hitmon_data hmd;
+    boolean maybe_knockback = FALSE;
 
     hmd.dmg = 0;
     hmd.thrown = thrown;
@@ -1790,6 +1791,9 @@ hmon_hitmon(
         hmon_hitmon_jousting(&hmd, mon, obj);
     } else if (hmd.unarmed && hmd.dmg > 1 && !thrown && !obj && !Upolyd) {
         hmon_hitmon_stagger(&hmd, mon, obj);
+    } else if (!hmd.unarmed && hmd.dmg > 1 && !thrown && !Upolyd
+               && !u.twoweap && uwep) {
+        maybe_knockback = TRUE;
     }
 
     if (!hmd.already_killed) {
@@ -1869,9 +1873,17 @@ hmon_hitmon(
         Your("%s %s no longer poisoned.", hmd.saved_oname,
              vtense(hmd.saved_oname, "are"));
 
-    if (!hmd.destroyed)
-        wakeup(mon, TRUE);
+    if (!hmd.destroyed) {
+        int hitflags = M_ATTK_HIT;
 
+        wakeup(mon, TRUE);
+        if (maybe_knockback
+            && mhitm_knockback(&gy.youmonst, mon, gy.youmonst.data->mattk,
+                               &hitflags, TRUE)) {
+            if ((hitflags & M_ATTK_DEF_DIED) != 0)
+                hmd.destroyed = TRUE;
+        }
+    }
     return hmd.destroyed ? FALSE : TRUE;
 }
 
