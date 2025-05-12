@@ -5198,14 +5198,17 @@ mhitm_knockback(
     const char *knockedhow;
     coordxy dx, dy, defx, defy;
     int knockdistance = rn2(3) ? 1 : 2; /* 67%: 1 step, 33%: 2 steps */
+    int chance = 6; /* 1/6 chance of attack knocking back a monster */
     boolean u_agr = (magr == &gy.youmonst);
     boolean u_def = (mdef == &gy.youmonst);
     boolean was_u = FALSE, dismount = FALSE;
     struct obj *wep = weapon_used ? (u_agr ? uwep : MON_WEP(magr))
                                   : (struct obj *)0;
 
-    /* 1/6 chance of attack knocking back a monster */
-    if (rn2(6))
+    if (wep && is_art(wep, ART_OGRESMASHER))
+        chance = 2;
+
+    if (rn2(chance))
         return FALSE;
 
     /* decide where the first step will place the target; not accurate

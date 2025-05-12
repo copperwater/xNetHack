@@ -1513,6 +1513,7 @@ Grimtooth is permanently poisoned, protects from poison, and can fling poison
 cursed magic whistle can teleport you to your pet
 Fire and Frost Brand can be invoked for expert level fireball or cone of cold
 wielding Trollsbane grants hungerless regeneration
+hitting with Ogresmasher gives a higher chance of knockback
 
 
 Fixes to 3.7.0-x General Problems Exposed Via git Repository
