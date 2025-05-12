@@ -545,13 +545,14 @@ endif
 endif
 
 ifdef WANT_LIBNH
-$(TARGETPFX)libnh.a: $(HOBJ) $(LIBNHSYSOBJ) ../lib/lua/liblua.a
-	$(AR) rcs $@ $(HOBJ) $(LIBNHSYSOBJ) ../lib/lua/liblua.a
+$(TARGETPFX)libnh.a: $(HOBJ) $(LIBNHSYSOBJ) ../lib/lua/liblua-$(LUA_VERSION).a
+	$(AR) rcs $@ $(HOBJ) $(LIBNHSYSOBJ) ../lib/lua/liblua-$(LUA_VERSION).a
 	@echo "$@ built."
 $(TARGETPFX)libnhmain.o : ../sys/libnh/libnhmain.c $(HACK_H)
 	$(CC) $(CFLAGS) -c -o$@ $<
-$(TARGETPFX)winshim.o : ../win/shim/winshim.c $(HACK_H)
-	$(CC) $(CFLAGS) -c -o$@ $<
+# dependency tool added this to Makefile.src
+#$(TARGETPFX)winshim.o : ../win/shim/winshim.c $(HACK_H)
+#	$(CC) $(CFLAGS) -c -o$@ $<
 endif  # WANT_LIBNH
 
 ifdef MAKEFILE_DOC
