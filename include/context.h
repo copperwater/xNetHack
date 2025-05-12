@@ -148,6 +148,7 @@ struct context_info {
     int warnlevel;          /* threshold (digit) to warn about unseen mons */
     long next_attrib_check; /* next attribute check */
     long seer_turn;         /* when random clairvoyance will next kick in */
+    long snickersnee_turn;  /* Snickersnee last used to distance attack */
     long stethoscope_seq;   /* when a stethoscope was last used; first use
                              * during a move takes no time, second uses move */
     boolean travel;  /* find way automatically to u.tx,u.ty */

@@ -222,10 +222,12 @@ struct obj {
     (otmp->oclass == WEAPON_CLASS                     \
      && objects[otmp->otyp].oc_skill >= P_SHORT_SWORD \
      && objects[otmp->otyp].oc_skill <= P_SABER)
+/* Snickersnee is not a polearm, but can hit from distance */
 #define is_pole(otmp)                                             \
     ((otmp->oclass == WEAPON_CLASS || otmp->oclass == TOOL_CLASS) \
      && (objects[otmp->otyp].oc_skill == P_POLEARMS               \
-         || objects[otmp->otyp].oc_skill == P_LANCE))
+         || objects[otmp->otyp].oc_skill == P_LANCE               \
+         || is_art(otmp, ART_SNICKERSNEE)))
 #define is_spear(otmp) \
     (otmp->oclass == WEAPON_CLASS && objects[otmp->otyp].oc_skill == P_SPEAR)
 #define is_launcher(otmp)                                                  \
