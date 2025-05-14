@@ -3665,8 +3665,8 @@ display_pickinv(
         win = WIN_INVEN;
         menu_behavior = MENU_BEHAVE_PERMINV;
         prepare_perminvent(win);
-        show_gold = ((wri_info.fromcore.invmode & InvShowGold) != 0);
-        inuse_only = ((wri_info.fromcore.invmode & InvInUse) != 0);
+        show_gold = ((wri_info.fromcore.invmode & (enum inv_modes) InvShowGold) != 0);
+        inuse_only = ((wri_info.fromcore.invmode & (enum inv_modes) InvInUse) != 0);
         doing_perm_invent = TRUE;
     }
     /*
