@@ -558,6 +558,11 @@ select_rwep(struct monst *mtmp)
     mweponly = (mwelded(mwep) && mtmp->weapon_check == NO_WEAPON_WANTED);
     if (dist2(mtmp->mx, mtmp->my, mtmp->mux, mtmp->muy) <= 13
         && couldsee(mtmp->mx, mtmp->my)) {
+        if (is_art(mwep, ART_SNICKERSNEE)) {
+            gp.propellor = mwep;
+            return mwep;
+        }
+
         for (i = 0; i < SIZE(pwep); i++) {
             /* Only strong monsters can wield big (esp. long) weapons.
              * Big weapon is basically the same as bimanual.
