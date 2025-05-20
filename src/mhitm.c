@@ -1273,7 +1273,7 @@ mswingsm(
     struct obj *otemp)  /* attacker's weapon */
 {
     if (flags.verbose && !Blind && mon_visible(magr)) {
-        boolean bash = (is_pole(otemp)
+        boolean bash = (is_pole(otemp) && !is_art(otemp, ART_SNICKERSNEE)
                         && (dist2(magr->mx, magr->my, mdef->mx, mdef->my)
                             <= 2));
 

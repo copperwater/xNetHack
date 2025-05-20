@@ -872,6 +872,7 @@ mattacku(struct monst *mtmp)
                     mon_currwep = MON_WEP(mtmp);
                     if (mon_currwep) {
                         boolean bash = (is_pole(mon_currwep)
+                                        && !is_art(mon_currwep, ART_SNICKERSNEE)
                                         && m_next2u(mtmp));
 
                         hittmp = hitval(mon_currwep, &gy.youmonst);
