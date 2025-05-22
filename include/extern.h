@@ -310,6 +310,28 @@ extern boolean friday_13th(void);
 extern int night(void);
 extern int midnight(void);
 
+/* ### cfgfiles.c ### */
+
+#if !defined(CROSSCOMPILE) || defined(CROSSCOMPILE_TARGET)
+extern int l_get_config_errors(lua_State *) NONNULLARG1;
+#endif
+extern int do_write_config_file(void);
+extern boolean parse_config_line(char *) NONNULLARG1;
+#ifdef USER_SOUNDS
+extern boolean can_read_file(const char *) NONNULLARG1;
+#endif
+extern void config_error_init(boolean, const char *, boolean);
+extern void config_erradd(const char *);
+extern int config_error_done(void);
+/* arg1 of read_config_file can be NULL to pass through
+ * to fopen_config_file() to mean 'use the default config file name' */
+extern boolean read_config_file(const char *, int);
+extern boolean parse_conf_str(const char *str, boolean (*proc)(char *));
+extern boolean parse_conf_file(FILE *fp, boolean (*proc)(char *arg));
+extern void set_configfile_name(const char *);
+extern char *get_configfile(void);
+extern const char *get_default_configfile(void);
+
 /* ### coloratt.c ### */
 
 extern char *color_attr_to_str(color_attr *);
@@ -1009,9 +1031,6 @@ extern void makerogueghost(void);
 /* ### files.c ### */
 
 extern const char *nh_basename(const char *, boolean) NONNULLARG1;
-#if !defined(CROSSCOMPILE) || defined(CROSSCOMPILE_TARGET)
-extern int l_get_config_errors(lua_State *) NONNULLARG1;
-#endif
 extern char *fname_encode(const char *, char,
                           char *, char *, int) NONNULLPTRS;
 extern char *fname_decode(char, char *, char *, int) NONNULLPTRS;
@@ -1051,20 +1070,8 @@ extern void nh_compress(const char *);
 extern void nh_uncompress(const char *);
 extern boolean lock_file(const char *, int, int) NONNULLARG1;
 extern void unlock_file(const char *) NONNULLARG1;
-extern int do_write_config_file(void);
-extern boolean parse_config_line(char *) NONNULLARG1;
-#ifdef USER_SOUNDS
-extern boolean can_read_file(const char *) NONNULLARG1;
-#endif
-extern void config_error_init(boolean, const char *, boolean);
-extern void config_erradd(const char *);
-extern int config_error_done(void);
-/* arg1 of read_config_file can be NULL to pass through
- * to fopen_config_file() to mean 'use the default config file name' */
-extern boolean read_config_file(const char *, int);
 extern void check_recordfile(const char *);
 extern void read_wizkit(void);
-extern boolean parse_conf_str(const char *str, boolean (*proc)(char *));
 extern int read_sym_file(int);
 extern void paniclog(const char *, const char *) NONNULLPTRS;
 extern void testinglog(const char *, const char *, const char *);

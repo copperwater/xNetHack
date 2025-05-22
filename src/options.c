@@ -111,7 +111,7 @@ static struct allopt_t allopt[SIZE(allopt_init)];
 
 /* use rest of file */
 
-extern char configfile[]; /* for messages; files.c */
+/* extern char configfile[]; */ /* for messages; files.c */
 extern const struct symparse loadsyms[];
 #if defined(TOS)
 extern boolean colors_changed;  /* in tos.c */
@@ -457,8 +457,8 @@ ask_do_tutorial(void)
         boolean norc;
         int n, pass = 0;
 
-        rc = nh_basename(configfile, TRUE);
-        norc = !strcmp(configfile, "/dev/null");
+        rc = nh_basename(get_configfile(), TRUE);
+        norc = !strcmp(get_configfile(), "/dev/null");
         Snprintf(buf, sizeof buf,
                  "Put \"OPTIONS=!tutorial\" in %s to skip this query.",
                  (rc && *rc && !norc) ? rc : "your configuration file");
@@ -6799,10 +6799,10 @@ staticfn void
 rejectoption(const char *optname)
 {
 #ifdef MICRO
-    pline("\"%s\" settable only from %s.", optname, configfile);
+    pline("\"%s\" settable only from %s.", optname, get_configfile());
 #else
     pline("%s can be set only from NETHACKOPTIONS or %s.", optname,
-          configfile);
+          get_configfile());
 #endif
 }
 
@@ -9474,7 +9474,7 @@ option_help(void)
 
     datawin = create_nhwindow(NHW_TEXT);
     Snprintf(buf, sizeof buf,
-             "Set options as OPTIONS=<options> in %s", configfile);
+             "Set options as OPTIONS=<options> in %s", get_configfile());
     opt_intro[CONFIG_SLOT] = (const char *) buf;
     for (i = 0; opt_intro[i]; i++)
         putstr(datawin, 0, opt_intro[i]);

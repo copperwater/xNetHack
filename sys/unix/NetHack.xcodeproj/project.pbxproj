@@ -165,6 +165,7 @@
 		5493735A277AAE830031FE02 /* alloc.c in Sources */ = {isa = PBXBuildFile; fileRef = 31B8A36521A238040055BD01 /* alloc.c */; };
 		54A3D3EC282C55A900143F8C /* utf8map.c in Sources */ = {isa = PBXBuildFile; fileRef = 54A3D3EB282C55A900143F8C /* utf8map.c */; };
 		54BD340D2D8B70350073C484 /* hacklib.c in Sources */ = {isa = PBXBuildFile; fileRef = 31B8A36421A238040055BD01 /* hacklib.c */; };
+		54EBA6D32DDED3F100CD20EC /* cfgfiles.c in Sources */ = {isa = PBXBuildFile; fileRef = 54EBA6D22DDED3F100CD20EC /* cfgfiles.c */; };
 		54FB2B4B246310A600397C0E /* symbols.c in Sources */ = {isa = PBXBuildFile; fileRef = 54FB2B4A246310A600397C0E /* symbols.c */; };
 		54FCE8292223261F00F393C8 /* isaac64.c in Sources */ = {isa = PBXBuildFile; fileRef = 54FCE8282223261F00F393C8 /* isaac64.c */; };
 		BAB57DB527C1C3E200FCF150 /* libnhlua.a in Frameworks */ = {isa = PBXBuildFile; fileRef = BAE8010A27B97760002B3786 /* libnhlua.a */; };
@@ -545,6 +546,7 @@
 		54BD34102D8B711E0073C484 /* selvar.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = selvar.h; path = ../../include/selvar.h; sourceTree = "<group>"; };
 		54BD34112D8B711E0073C484 /* stairs.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = stairs.h; path = ../../include/stairs.h; sourceTree = "<group>"; };
 		54BD34122D8B711E0073C484 /* weight.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = weight.h; path = ../../include/weight.h; sourceTree = "<group>"; };
+		54EBA6D22DDED3F100CD20EC /* cfgfiles.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; name = cfgfiles.c; path = /Users/mikeallison/Documents/git/NHsource/src/cfgfiles.c; sourceTree = "<absolute>"; };
 		54FB2B4A246310A600397C0E /* symbols.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = symbols.c; path = ../../src/symbols.c; sourceTree = "<group>"; };
 		54FCE8282223261F00F393C8 /* isaac64.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = isaac64.c; path = ../../src/isaac64.c; sourceTree = "<group>"; };
 		BAE8010A27B97760002B3786 /* libnhlua.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = libnhlua.a; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -657,6 +659,7 @@
 		3189578C21A1FF8200FB2ABE /* src */ = {
 			isa = PBXGroup;
 			children = (
+				54EBA6D22DDED3F100CD20EC /* cfgfiles.c */,
 				056E43BB2C810EE800FD1F52 /* calendar.c */,
 				056E43BC2C810EE800FD1F52 /* coloratt.c */,
 				056E43BD2C810EE800FD1F52 /* getpos.c */,
@@ -1790,6 +1793,7 @@
 				31B8A3D121A238060055BD01 /* do.c in Sources */,
 				31B8A39021A238060055BD01 /* objnam.c in Sources */,
 				31B8A3B621A238060055BD01 /* bones.c in Sources */,
+				54EBA6D32DDED3F100CD20EC /* cfgfiles.c in Sources */,
 				31B8A3C521A238060055BD01 /* timeout.c in Sources */,
 				31B8A3AD21A238060055BD01 /* uhitm.c in Sources */,
 				31B8A3B321A238060055BD01 /* track.c in Sources */,

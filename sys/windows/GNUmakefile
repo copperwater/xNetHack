@@ -1000,7 +1000,7 @@ endif   # HAVE_SOUNDLIB
 # nethackw
 #==========================================
 COREOBJS = $(addsuffix .o, allmain alloc apply artifact attrib ball bones botl \
-	   calendar cmd coloratt cppregex \
+	   calendar cfgfiles cmd coloratt cppregex \
 	   dbridge decl detect dig display dlb do do_name do_wear \
 	   dog dogmove dokick dothrow drawing dungeon \
 	   eat end engrave exper explode extralev files fountain \

@@ -582,7 +582,7 @@ HOSTOBJ = $(FIRSTOBJ) alloc.o drawing.o
 HOBJ = $(TARGETPFX)allmain.o $(TARGETPFX)alloc.o \
 	$(TARGETPFX)apply.o $(TARGETPFX)artifact.o $(TARGETPFX)attrib.o \
 	$(TARGETPFX)ball.o $(TARGETPFX)bones.o $(TARGETPFX)botl.o \
-	$(TARGETPFX)calendar.o $(TARGETPFX)cmd.o \
+	$(TARGETPFX)calendar.o $(TARGETPFX)cfgfiles.o $(TARGETPFX)cmd.o \
 	$(TARGETPFX)coloratt.o $(TARGETPFX)dbridge.o $(TARGETPFX)decl.o \
 	$(TARGETPFX)detect.o $(TARGETPFX)dig.o $(TARGETPFX)display.o \
 	$(TARGETPFX)dlb.o $(TARGETPFX)do.o $(TARGETPFX)do_name.o \
@@ -1127,6 +1127,7 @@ $(TARGETPFX)ball.o: ball.c $(HACK_H)
 $(TARGETPFX)bones.o: bones.c $(HACK_H)
 $(TARGETPFX)botl.o: botl.c $(HACK_H)
 $(TARGETPFX)calendar.o: calendar.c $(HACK_H)
+$(TARGETPFX)cfgfiles.o: cfgfiles.c $(HACK_H)
 $(TARGETPFX)cmd.o: cmd.c $(HACK_H) ../include/func_tab.h
 $(TARGETPFX)coloratt.o: coloratt.c $(HACK_H)
 $(TARGETPFX)dbridge.o: dbridge.c $(HACK_H)

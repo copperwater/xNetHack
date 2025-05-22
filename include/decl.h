@@ -258,7 +258,7 @@ struct instance_globals_c {
     /* symbols.c */
     int currentgraphics;
 
-    /* files.c */
+    /* files.c, cfgfiles.c */
     char *cmdline_rcfile;  /* set in unixmain.c, used in options.c */
     char *config_section_chosen;
     char *config_section_current;

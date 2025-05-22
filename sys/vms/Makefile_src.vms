@@ -701,6 +701,7 @@ $(TARGETPFX)ball.obj: ball.c $(HACK_H)
 $(TARGETPFX)bones.obj: bones.c $(HACK_H)
 $(TARGETPFX)botl.obj: botl.c $(HACK_H)
 $(TARGETPFX)calendar.obj: calendar.c $(HACK_H)
+$(TARGETPFX)cfgfiles.obj: cfgfiles.c $(HACK_H)
 $(TARGETPFX)cmd.obj: cmd.c $(HACK_H) $(INCL)func_tab.h
 $(TARGETPFX)coloratt.obj: coloratt.c $(HACK_H)
 $(TARGETPFX)dbridge.obj: dbridge.c $(HACK_H)

@@ -147,8 +147,8 @@ HACK_H	= $(SRC)hack.h-t
 # all .c that are part of the main NetHack program and are not operating- or
 # windowing-system specific
 HACKCSRC = allmain.c alloc.c apply.c artifact.c attrib.c ball.c bones.c \
-	   botl.c calendar.c cmd.c coloratt.c dbridge.c decl.c detect.c dig.c \
-	   display.c dlb.c do.c do_name.c do_wear.c dog.c dogmove.c dokick.c \
+	   botl.c calendar.c cfgfiles.c cmd.c coloratt.c dbridge.c decl.c detect.c \
+	   dig.c display.c dlb.c do.c do_name.c do_wear.c dog.c dogmove.c dokick.c \
 	   dothrow.c drawing.c dungeon.c eat.c end.c engrave.c exper.c \
 	   explode.c extralev.c files.c fountain.c getpos.c glyphs.c hack.c \
 	   hacklib.c insight.c invent.c light.c lock.c \
@@ -191,9 +191,9 @@ FIRSTOBJ = vmsmisc.obj,vmsfiles.obj,monst.obj,objects.obj
 
 # split up long list so that we can write pieces of it into nethack.opt
 HOBJ1 = allmain.obj,alloc.obj,apply.obj,artifact.obj,attrib.obj, \
-	ball.obj,bones.obj,botl.obj,calendar.obj,cmd.obj,coloratt.obj, \
-	dbridge.obj,decl.obj,detect.obj,dig.obj,display.obj,dlb.obj, \
-	do.obj,do_name.obj,do_wear.obj
+	ball.obj,bones.obj,botl.obj,calendar.obj,cfgfiles.obj,cmd.obj, \
+	coloratt.obj,dbridge.obj,decl.obj,detect.obj,dig.obj,display.obj, \
+	dlb.obj,do.obj,do_name.obj,do_wear.obj
 HOBJ2 = dog.obj,dogmove.obj,dokick.obj,dothrow.obj,drawing.obj, \
 	dungeon.obj,eat.obj,end.obj,engrave.obj,exper.obj,explode.obj, \
 	extralev.obj,files.obj,fountain.obj,getpos.obj,glyphs.obj,hack.obj, \
@@ -500,6 +500,7 @@ ball.obj :	ball.c $(HACK_H)
 bones.obj :	bones.c $(HACK_H)
 botl.obj :	botl.c $(HACK_H)
 cmd.obj :	cmd.c $(HACK_H) $(INC)func_tab.h
+cfgfiles.obj :	cfgfiles.c $(HACK_H)
 dbridge.obj :	dbridge.c $(HACK_H)
 decl.obj :	decl.c $(HACK_H)
 detect.obj :	detect.c $(HACK_H) $(INC)artifact.h

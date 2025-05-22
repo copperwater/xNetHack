@@ -90,6 +90,7 @@
     <ClCompile Include="$(SrcDir)bones.c" />
     <ClCompile Include="$(SrcDir)botl.c" />
     <ClCompile Include="$(SrcDir)calendar.c" />
+    <ClCompile Include="$(SrcDir)cfgfiles.c" />
     <ClCompile Include="$(SrcDir)cmd.c" />
     <ClCompile Include="$(SrcDir)coloratt.c" />
     <ClCompile Include="$(SrcDir)date.c" />
