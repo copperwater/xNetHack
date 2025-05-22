@@ -13,6 +13,7 @@
 
 #include "win10.h"
 #include "winos.h"
+#include <ShlObj.h>
 
 #define NEED_VARARGS
 #include "hack.h"
@@ -27,6 +28,7 @@
 
 #ifdef WIN32
 #include <VersionHelpers.h>
+#include <UserEnv.h>
 
 /*
  * The following WIN32 API routines are used in this file.
@@ -39,6 +41,8 @@
  * FindClose
  *
  */
+
+static char portable_device_path[MAX_PATH];
 
 /* runtime cursor display control switch */
 boolean win32_cursorblink;
@@ -68,7 +72,17 @@ unsigned long sys_random_seed(void);
 static int max_filename(void);
 #endif
 
-
+int get_known_folder_path(const KNOWNFOLDERID *folder_id, char *path,
+                          size_t path_size);
+void create_directory(const char *path);
+int build_known_folder_path(const KNOWNFOLDERID *folder_id, char *path,
+                            size_t path_size, boolean versioned);
+void build_environment_path(const char *env_str, const char *folder,
+                            char *path, size_t path_size);
+boolean folder_file_exists(const char *folder, const char *file_name);
+boolean test_portable_config(const char *executable_path,
+                             char *portable_device_path,
+                             size_t portable_device_path_size);
 /* The function pointer nt_kbhit contains a kbhit() equivalent
  * which varies depending on which window port is active.
  * For the tty port it is tty_kbhit() [from consoletty.c]
@@ -491,6 +505,20 @@ get_port_id(char *buf)
 extern void free_winmain_stuff(void);
 #endif
 
+/* return TRUE if s contains a directory, not just a filespec */
+boolean
+contains_directory(const char *s)
+{
+    int i, slen = strlen(s);
+    const char *cp = s;
+
+    for (i = 0; i < slen; ++i) {
+        if (*cp == '\\' || *cp == '/' || *cp == ':')
+            return TRUE;
+    }
+    return FALSE;
+}
+
 void
 nethack_exit(int code)
 {
@@ -697,25 +725,6 @@ windows_early_options(const char *window_opt)
     return 0;
 }
 
-/*
- * Add a backslash to any name not ending in /, \ or : There must
- * be room for the \
- */
-void
-append_slash(char *name)
-{
-    char *ptr;
-
-    if (!*name)
-        return;
-    ptr = name + (strlen(name) - 1);
-    if (*ptr != '\\' && *ptr != '/' && *ptr != ':') {
-        *++ptr = '\\';
-        *++ptr = '\0';
-    }
-    return;
-}
-
 #include <bcrypt.h>     /* Windows Crypto Next Gen (CNG) */
 
 #ifndef STATUS_SUCCESS
@@ -784,6 +793,363 @@ nt_assert_failed(const char *expression, const char *filepath, int line)
     /* get file name from path */
     impossible("nhassert(%s) failed in file '%s' at line %d",
                 expression, filename, line);
+}
+
+boolean
+get_user_home_folder(char *homebuf, size_t sz)
+{
+    static char szHomeDirBuf[MAX_PATH] = { 0 };
+    // We need a process with query permission set
+    HANDLE hToken = 0;
+    DWORD result =
+        OpenProcessToken(GetCurrentProcess(), TOKEN_QUERY, &hToken);
+    DWORD BufSize = MAX_PATH;
+
+    result = GetUserProfileDirectoryA(hToken, szHomeDirBuf, &BufSize);
+    // Close handle opened via OpenProcessToken
+    CloseHandle(hToken);
+
+    return (result != 0);
+}
+static char *get_executable_path(void);
+
+static boolean path_buffer_set = FALSE;
+static char path_buffer[MAX_PATH];
+
+char *
+get_executable_path(void)
+{
+#ifdef UNICODE
+    {
+        TCHAR wbuf[BUFSZ];
+        GetModuleFileName((HANDLE) 0, wbuf, BUFSZ);
+        WideCharToMultiByte(CP_ACP, 0, wbuf, -1, path_buffer,
+                            sizeof(path_buffer), NULL, NULL);
+    }
+#else
+    DWORD length = GetModuleFileName((HANDLE) 0, path_buffer, MAX_PATH);
+    if (length == ERROR_INSUFFICIENT_BUFFER)
+        error("Unable to get module name");
+    path_buffer[length] = '\0';
+#endif
+
+    char *seperator = strrchr(path_buffer, PATH_SEPARATOR);
+    if (seperator)
+        *seperator = '\0';
+
+    path_buffer_set = TRUE;
+    return path_buffer;
+}
+
+char *
+windows_exepath(void)
+{
+    char *p = (char *) 0;
+
+    if (path_buffer_set)
+        p = path_buffer;
+    return p;
+}
+
+char *
+translate_path_variables(const char *str, char *buf)
+{
+    const char *src;
+    char evar[BUFSZ], *dest, *envp, *eptr = (char *) 0;
+    boolean in_evar;
+    size_t ccount, ecount, destcount, slen = str ? strlen(str) : 0;
+
+    if (!slen || !buf) {
+        if (buf)
+            *buf = '\0';
+        return buf;
+    }
+
+    dest = buf;
+    src = str;
+    in_evar = FALSE;
+    destcount = ecount = 0;
+    for (ccount = 0;
+         ccount < slen && destcount < (BUFSZ - 1) && ecount < (BUFSZ - 1);
+         ++ccount, ++src) {
+        if (*src == '%') {
+            if (in_evar) {
+                *eptr = '\0';
+                envp = nh_getenv(evar);
+                if (envp) {
+                    size_t elen = strlen(envp);
+
+                    if ((elen + destcount) < (size_t) (BUFSZ - 1)) {
+                        Strcpy(dest, envp);
+                        dest += elen;
+                        destcount += elen;
+                    }
+                }
+            } else {
+                eptr = evar;
+                ecount = 0;
+            }
+            in_evar = !in_evar;
+            continue;
+        }
+        if (in_evar) {
+            *eptr++ = *src;
+            ecount++;
+        } else {
+            *dest++ = *src;
+            destcount++;
+        }
+    }
+    *dest = '\0';
+    return buf;
+}
+
+DISABLE_WARNING_UNREACHABLE_CODE
+
+int
+get_known_folder_path(const KNOWNFOLDERID *folder_id, char *path,
+                      size_t path_size)
+{
+    PWSTR wide_path;
+    if (FAILED(SHGetKnownFolderPath(folder_id, 0, NULL, &wide_path))) {
+        error("Unable to get known folder path");
+        return FALSE;
+    }
+
+    size_t converted;
+    errno_t err;
+
+    err = wcstombs_s(&converted, path, path_size, wide_path, _TRUNCATE);
+
+    CoTaskMemFree(wide_path);
+
+    if (err == STRUNCATE || err == EILSEQ) {
+        // silently handle this problem
+        return FALSE;
+    } else if (err != 0) {
+        error(
+            "Failed folder (%lu) path string conversion, unexpected err = %d",
+            folder_id->Data1, err);
+        return FALSE;
+    }
+
+    return TRUE;
+}
+
+void
+create_directory(const char *path)
+{
+    BOOL dres = CreateDirectoryA(path, NULL);
+
+    if (!dres) {
+        DWORD dw = GetLastError();
+
+        if (dw != ERROR_ALREADY_EXISTS)
+            error("Unable to create directory '%s'", path);
+    }
+}
+
+RESTORE_WARNING_UNREACHABLE_CODE
+
+int
+build_known_folder_path(const KNOWNFOLDERID *folder_id, char *path,
+                        size_t path_size, boolean versioned)
+{
+    if (!get_known_folder_path(folder_id, path, path_size))
+        return FALSE;
+
+    strcat(path, "\\NetHack\\");
+    create_directory(path);
+    if (versioned) {
+        Sprintf(eos(path), "%d.%d\\", VERSION_MAJOR, VERSION_MINOR);
+        create_directory(path);
+    }
+    return TRUE;
+}
+
+void
+build_environment_path(const char *env_str, const char *folder, char *path,
+                       size_t path_size)
+{
+    path[0] = '\0';
+
+    const char *root_path = nh_getenv(env_str);
+
+    if (root_path == NULL)
+        return;
+
+    strcpy_s(path, path_size, root_path);
+
+    char *colon = strchr(path, ';');
+    if (colon != NULL)
+        path[0] = '\0';
+
+    if (strlen(path) == 0)
+        return;
+
+    append_slash(path);
+
+    if (folder != NULL) {
+        strcat_s(path, path_size, folder);
+        strcat_s(path, path_size, "\\");
+    }
+}
+
+boolean
+folder_file_exists(const char *folder, const char *file_name)
+{
+    char path[MAX_PATH];
+
+    if (folder[0] == '\0')
+        return FALSE;
+
+    strcpy(path, folder);
+    strcat(path, file_name);
+    return file_exists(path);
+}
+
+boolean
+file_exists(const char *path)
+{
+    struct stat sb;
+
+    /* Just see if it's there */
+    if (stat(path, &sb)) {
+        return FALSE;
+    }
+    return TRUE;
+}
+
+void
+set_default_prefix_locations(const char *programPath UNUSED)
+{
+    static char executable_path[MAX_PATH];
+    static char profile_path[MAX_PATH];
+    static char versioned_profile_path[MAX_PATH];
+    static char versioned_user_data_path[MAX_PATH];
+    static char versioned_global_data_path[MAX_PATH];
+    /*    static char versioninfo[20] UNUSED; */
+
+    strcpy(executable_path, get_executable_path());
+    append_slash(executable_path);
+
+    if (test_portable_config(executable_path, portable_device_path,
+                             sizeof portable_device_path)) {
+        gf.fqn_prefix[SYSCONFPREFIX] = executable_path;
+        gf.fqn_prefix[CONFIGPREFIX] = portable_device_path;
+        gf.fqn_prefix[HACKPREFIX] = portable_device_path;
+        gf.fqn_prefix[SAVEPREFIX] = portable_device_path;
+        gf.fqn_prefix[LEVELPREFIX] = portable_device_path;
+        gf.fqn_prefix[BONESPREFIX] = portable_device_path;
+        gf.fqn_prefix[SCOREPREFIX] = portable_device_path;
+        gf.fqn_prefix[LOCKPREFIX] = portable_device_path;
+        gf.fqn_prefix[TROUBLEPREFIX] = portable_device_path;
+        gf.fqn_prefix[DATAPREFIX] = executable_path;
+    } else {
+        if (!build_known_folder_path(&FOLDERID_Profile, profile_path,
+                                     sizeof(profile_path), FALSE))
+            strcpy(profile_path, executable_path);
+
+        if (!build_known_folder_path(&FOLDERID_Profile,
+                                     versioned_profile_path,
+                                     sizeof(profile_path), TRUE))
+            strcpy(versioned_profile_path, executable_path);
+
+        if (!build_known_folder_path(&FOLDERID_LocalAppData,
+                                     versioned_user_data_path,
+                                     sizeof(versioned_user_data_path), TRUE))
+            strcpy(versioned_user_data_path, executable_path);
+
+        if (!build_known_folder_path(
+                &FOLDERID_ProgramData, versioned_global_data_path,
+                sizeof(versioned_global_data_path), TRUE))
+            strcpy(versioned_global_data_path, executable_path);
+
+        gf.fqn_prefix[SYSCONFPREFIX] = versioned_global_data_path;
+        gf.fqn_prefix[CONFIGPREFIX] = profile_path;
+        gf.fqn_prefix[HACKPREFIX] = versioned_profile_path;
+        gf.fqn_prefix[SAVEPREFIX] = versioned_user_data_path;
+        gf.fqn_prefix[LEVELPREFIX] = versioned_user_data_path;
+        gf.fqn_prefix[BONESPREFIX] = versioned_global_data_path;
+        gf.fqn_prefix[SCOREPREFIX] = versioned_global_data_path;
+        gf.fqn_prefix[LOCKPREFIX] = versioned_global_data_path;
+        gf.fqn_prefix[TROUBLEPREFIX] = versioned_profile_path;
+        gf.fqn_prefix[DATAPREFIX] = executable_path;
+    }
+}
+
+/*
+ * Add a backslash to any name not ending in /, \ or : There must
+ * be room for the \
+ */
+void
+append_slash(char *name)
+{
+    char *ptr;
+
+    if (!*name)
+        return;
+    ptr = name + (strlen(name) - 1);
+    if (*ptr != '\\' && *ptr != '/' && *ptr != ':') {
+        *++ptr = '\\';
+        *++ptr = '\0';
+    }
+    return;
+}
+
+void set_default_prefix_locations(const char *programPath);
+boolean
+test_portable_config(const char *executable_path, char *portable_device_path,
+                     size_t portable_device_path_size)
+{
+    int lth = 0;
+    const char *sysconf = "sysconf";
+    char tmppath[MAX_PATH];
+    boolean retval = FALSE,
+            save_initoptions_noterminate = iflags.initoptions_noterminate;
+
+    if (portable_device_path
+        && folder_file_exists(executable_path, "sysconf")) {
+        /*
+           There is a sysconf file (not just sysconf.template) present in
+           the exe path, which is not the way NetHack is initially
+           distributed, so assume it means that the admin/installer wants to
+           override something, perhaps set up for a fully-portable
+           configuration that leaves no traces behind elsewhere on this
+           computer's hard drive - delve into that...
+         */
+
+        *portable_device_path = '\0';
+        lth = sizeof tmppath - strlen(sysconf);
+        (void) strncpy(tmppath, executable_path, lth - 1);
+        tmppath[lth - 1] = '\0';
+        (void) strcat(tmppath, sysconf);
+
+        iflags.initoptions_noterminate = 1;
+        /* assure_syscf_file(); */
+        config_error_init(TRUE, tmppath, FALSE);
+        /* ... and _must_ parse correctly. */
+        if (read_config_file(tmppath, set_in_sysconf)
+            && sysopt.portable_device_paths)
+            retval = TRUE;
+        (void) config_error_done();
+        iflags.initoptions_noterminate = save_initoptions_noterminate;
+        sysopt_release(); /* the real sysconf processing comes later */
+    }
+    if (retval) {
+        lth = strlen(executable_path);
+        if (lth <= (int) portable_device_path_size - 1)
+            Strcpy(portable_device_path, executable_path);
+        else
+            retval = FALSE;
+    }
+    return retval;
+}
+
+const char *
+get_portable_device(void)
+{
+    return (const char *) portable_device_path;
 }
 
 /* Windows helpers for CRASHREPORT etc */

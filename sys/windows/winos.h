@@ -7,6 +7,10 @@
 
 #include "win32api.h"
 
+#ifndef PATH_SEPARATOR
+#define PATH_SEPARATOR '\\'
+#endif
+
 extern const WCHAR cp437[256];
 
 WCHAR *

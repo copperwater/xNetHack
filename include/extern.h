@@ -1976,6 +1976,7 @@ extern int win32_cr_helper(char, struct CRctxt *, void *, int);
 extern int win32_cr_gettrace(int, char *, int);
 extern int *win32_cr_shellexecute(const char *);
 # endif
+extern boolean contains_directory(const char *);
 #endif /* WIN32 */
 
 #endif /* MICRO || WIN32 */
