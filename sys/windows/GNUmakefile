@@ -362,7 +362,7 @@ CONSOLEDEF = $(COMMONDEF) -D_CONSOLE
 # To build util targets
 CFLAGSU = $(CFLAGS) $(CONSOLEDEF) $(DLBFLG)
 
-LIBS = -lcomctl32 -lgdi32 -lole32 -lshell32 -luuid -lwinmm -lbcrypt
+LIBS = -lcomctl32 -lgdi32 -lole32 -lshell32 -luserenv -luuid -lwinmm -lbcrypt
 
 $(GAMEDIR):
 	@mkdir -p $@
