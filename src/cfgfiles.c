@@ -9,10 +9,20 @@
 #include "dlb.h"
 #include <errno.h>
 
+#if (!defined(MAC) && !defined(O_WRONLY) && !defined(AZTEC_C)) \
+    || defined(USE_FCNTL)
+#include <fcntl.h>
+#endif
+
+#define BIGBUFSZ (5 * BUFSZ) /* big enough to format a 4*BUFSZ string (from
+                              * config file parsing) with modest decoration;
+                              * result will then be truncated to BUFSZ-1 */
+
 #ifdef USER_SOUNDS
 extern char *sounddir; /* defined in sounds.c */
 #endif
 
+staticfn void vconfig_error_add(const char *, va_list);
 staticfn FILE *fopen_config_file(const char *, int);
 staticfn int get_uchars(char *, uchar *, boolean, int, const char *);
 #ifdef NOCWD_ASSUMPTIONS
@@ -1819,6 +1829,36 @@ parse_conf_file(FILE *fp, boolean (*proc)(char *arg))
     return parser.rv;
 }
 
+DISABLE_WARNING_FORMAT_NONLITERAL
+
+void
+config_error_add(const char *str, ...)
+{
+    va_list the_args;
+
+    va_start(the_args, str);
+    vconfig_error_add(str, the_args);
+    va_end(the_args);
+}
+
+staticfn void
+vconfig_error_add(const char *str, va_list the_args)
+{ /* start of vconf...() or of nested block in USE_OLDARG's conf...() */
+    int vlen = 0;
+    char buf[BIGBUFSZ]; /* will be chopped down to BUFSZ-1 if longer */
+
+    vlen = vsnprintf(buf, sizeof buf, str, the_args);
+#if (NH_DEVEL_STATUS != NH_STATUS_RELEASED) && defined(DEBUG)
+    if (vlen >= (int) sizeof buf)
+        panic("%s: truncation of buffer at %zu of %d bytes",
+              "config_error_add", sizeof buf, vlen);
+#else
+    nhUse(vlen);
+#endif
+    buf[BUFSZ - 1] = '\0';
+    config_erradd(buf);
+}
+
 #ifdef SYSCF
 staticfn void
 parseformat(int *arr, char *str)
@@ -1852,6 +1892,46 @@ parseformat(int *arr, char *str)
             }
         }
 }
+#ifdef SYSCF_FILE
+void
+assure_syscf_file(void)
+{
+    int fd;
+
+#ifdef WIN32
+    /* We are checking that the sysconf exists ... lock the path */
+    fqn_prefix_locked[SYSCONFPREFIX] = TRUE;
+#endif
+    /*
+     * All we really care about is the end result - can we read the file?
+     * So just check that directly.
+     *
+     * Not tested on most of the old platforms (which don't attempt
+     * to implement SYSCF).
+     * Some ports don't like open()'s optional third argument;
+     * VMS overrides open() usage with a macro which requires it.
+     */
+#ifndef VMS
+#if defined(NOCWD_ASSUMPTIONS) && defined(WIN32)
+    fd = open(fqname(SYSCF_FILE, SYSCONFPREFIX, 0), O_RDONLY);
+#else
+    fd = open(SYSCF_FILE, O_RDONLY);
+#endif
+#else
+    fd = open(SYSCF_FILE, O_RDONLY, 0);
+#endif
+    if (fd >= 0) {
+        /* readable */
+        close(fd);
+        return;
+    }
+    if (gd.deferred_showpaths)
+        do_deferred_showpaths(1); /* does not return */
+    raw_printf("Unable to open SYSCF_FILE.\n");
+    exit(EXIT_FAILURE);
+}
+
+#endif /* SYSCF_FILE */
 #endif /* SYSCF */
 
 /* ----------  END CONFIG FILE HANDLING ----------- */

@@ -2603,49 +2603,6 @@ recover_savefile(void)
 
 /* ----------  OTHER ----------- */
 
-#ifdef SYSCF
-#ifdef SYSCF_FILE
-void
-assure_syscf_file(void)
-{
-    int fd;
-
-#ifdef WIN32
-    /* We are checking that the sysconf exists ... lock the path */
-    fqn_prefix_locked[SYSCONFPREFIX] = TRUE;
-#endif
-    /*
-     * All we really care about is the end result - can we read the file?
-     * So just check that directly.
-     *
-     * Not tested on most of the old platforms (which don't attempt
-     * to implement SYSCF).
-     * Some ports don't like open()'s optional third argument;
-     * VMS overrides open() usage with a macro which requires it.
-     */
-#ifndef VMS
-# if defined(NOCWD_ASSUMPTIONS) && defined(WIN32)
-    fd = open(fqname(SYSCF_FILE, SYSCONFPREFIX, 0), O_RDONLY);
-# else
-    fd = open(SYSCF_FILE, O_RDONLY);
-# endif
-#else
-    fd = open(SYSCF_FILE, O_RDONLY, 0);
-#endif
-    if (fd >= 0) {
-        /* readable */
-        close(fd);
-        return;
-    }
-    if (gd.deferred_showpaths)
-        do_deferred_showpaths(1);  /* does not return */
-    raw_printf("Unable to open SYSCF_FILE.\n");
-    exit(EXIT_FAILURE);
-}
-
-#endif /* SYSCF_FILE */
-#endif /* SYSCF */
-
 ATTRNORETURN void
 do_deferred_showpaths(int code)
 {

@@ -682,43 +682,6 @@ execplinehandler(const char *line)
 #endif
 }
 
-/*
- * varargs handling for files.c
- */
-staticfn void vconfig_error_add(const char *, va_list);
-
-DISABLE_WARNING_FORMAT_NONLITERAL
-
-void
-config_error_add(const char *str, ...)
-{
-    va_list the_args;
-
-    va_start(the_args, str);
-    vconfig_error_add(str, the_args);
-    va_end(the_args);
-}
-
-staticfn void
-vconfig_error_add(const char *str, va_list the_args)
-{       /* start of vconf...() or of nested block in USE_OLDARG's conf...() */
-    int vlen = 0;
-    char buf[BIGBUFSZ]; /* will be chopped down to BUFSZ-1 if longer */
-
-    vlen = vsnprintf(buf, sizeof buf, str, the_args);
-#if (NH_DEVEL_STATUS != NH_STATUS_RELEASED) && defined(DEBUG)
-    if (vlen >= (int) sizeof buf)
-        panic("%s: truncation of buffer at %zu of %d bytes",
-              "config_error_add", sizeof buf, vlen);
-#else
-    nhUse(vlen);
-#endif
-    buf[BUFSZ - 1] = '\0';
-    config_erradd(buf);
-}
-
-RESTORE_WARNING_FORMAT_NONLITERAL
-
 /* nhassert_failed is called when an nhassert's condition is false */
 void
 nhassert_failed(const char *expression, const char *filepath, int line)
