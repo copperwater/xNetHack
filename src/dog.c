@@ -66,6 +66,9 @@ initedog(struct monst *mtmp, boolean everything)
         edogp->revivals = 0;
         edogp->mhpmax_penalty = 0;
         edogp->killed_by_u = 0;
+    } else {
+        if (edogp->apport <= 0)
+            edogp->apport = 1;
     }
     /* always set for newly tamed pet or feral former pet; hungrytime might
        already be higher when taming magic affects already tame monst */
