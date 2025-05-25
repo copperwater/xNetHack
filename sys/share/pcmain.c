@@ -7,7 +7,6 @@
 
 #include "hack.h"
 #include "dlb.h"
-#include "sfproto.h"
 
 #ifndef NO_SIGNAL
 #include <signal.h>
