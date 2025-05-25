@@ -168,6 +168,7 @@ AT_V1 := @
 AT = $(AT_V$(QUIETCC))
 # Verbosity, end
 
+GAME=nethack
 # timestamps for primary header files, matching src/Makefile
 CONFIG_H = ../src/config.h-t
 HACK_H	 = ../src/hack.h-t
@@ -220,6 +221,7 @@ TARGET_CXX = $(CXX)
 TARGET_CXXFLAGS = $(CXXFLAGS)
 TARGET_AR = $(AR)
 
+#
 #	dependencies for makedefs
 #
 makedefs:	$(HACKLIB) $(MAKEOBJS) mdgrep.h

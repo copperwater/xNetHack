@@ -56,6 +56,7 @@
 static boolean date_via_env = FALSE;
 
 extern unsigned long md_ignored_features(void);
+extern const char *datamodel(void);
 char *version_id_string(char *, size_t, const char *) NONNULL NONNULLPTRS;
 char *bannerc_string(char *, size_t, const char *) NONNULL NONNULLPTRS;
 int case_insensitive_comp(const char *, const char *) NONNULLPTRS;
@@ -87,7 +88,6 @@ staticfn void build_options(void);
 staticfn int count_and_validate_winopts(void);
 staticfn void opt_out_words(char *, int *) NONNULLPTRS;
 staticfn void build_savebones_compat_string(void);
-staticfn const char *datamodel(void);
 
 static int idxopttext, done_runtime_opt_init_once = 0;
 #define MAXOPT 60 /* 3.7: currently 40 lines get inserted into opttext[] */
@@ -236,41 +236,6 @@ md_ignored_features(void)
             | (1UL << 19) /* SCORE_ON_BOTL */
             );
 }
-
-#define MAX_D 5
-struct datamodel_information {
-    int sz[MAX_D];
-    const char *datamodel;
-};
-
-static struct datamodel_information dm[] = {
-    { { (int) sizeof(short), (int) sizeof(int), (int) sizeof(long),
-        (int) sizeof(long long), (int) sizeof(genericptr_t) },
-      "" },
-    { { 2, 4, 4, 8, 4 }, "ILP32LL64" }, /* Windows, Unix x86 */
-    { { 2, 4, 4, 8, 8 }, "IL32LLP64" }, /* Windows x64 */
-    { { 2, 4, 8, 8, 8 }, "I32LP64" },   /* Unix 64-bit */
-    { { 2, 8, 8, 8, 8 }, "ILP64" },     /* HAL, SPARC64 */
-};
-
-staticfn const char *
-datamodel(void)
-{
-    int i, j, matchcount;
-    static const char *unknown = "Unknown";
-
-    for (i = 1; i < SIZE(dm); ++i) {
-        matchcount = 0;
-        for (j = 0; j < MAX_D; ++j) {
-            if (dm[0].sz[j] == dm[i].sz[j])
-                ++matchcount;
-        }
-        if (matchcount == MAX_D)
-            return dm[i].datamodel;
-    }
-    return unknown;
-}
-#undef MAX_D
 
 staticfn void
 make_version(void)

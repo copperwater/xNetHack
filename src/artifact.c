@@ -71,6 +71,7 @@ static xint16 artidisco[NROFARTIFACTS];
  * bulk re-init if game restart ever gets implemented.  They are saved
  * and restored but that is done through this file so they can be local.
  */
+
 static const struct arti_info zero_artiexist = {0}; /* all bits zero */
 
 staticfn void hack_artifacts(void);
@@ -113,16 +114,11 @@ save_artifacts(NHFILE *nhfp)
 {
     int i;
 
-    for (i = 0; i < (NROFARTIFACTS + 1); ++i) {
-        if (nhfp->structlevel)
-            bwrite(nhfp->fd, (genericptr_t) &artiexist[i],
-                   sizeof (struct arti_info));
-    }
-    for (i = 0; i < (NROFARTIFACTS); ++i) {
-        if (nhfp->structlevel)
-            bwrite(nhfp->fd, (genericptr_t) &artidisco[i],
-                   sizeof (xint16));
-    }
+    for (i = 0; i < (NROFARTIFACTS + 1); ++i)
+        Sfo_arti_info(nhfp, &artiexist[i], "artiexist");
+
+    for (i = 0; i < NROFARTIFACTS; ++i)
+        Sfo_xint16(nhfp, &artidisco[i], "artidisco");
 }
 
 void
@@ -130,16 +126,10 @@ restore_artifacts(NHFILE *nhfp)
 {
     int i;
 
-    for (i = 0; i < (NROFARTIFACTS + 1); ++i) {
-        if (nhfp->structlevel)
-            mread(nhfp->fd, (genericptr_t) &artiexist[i],
-                  sizeof (struct arti_info));
-    }
-    for (i = 0; i < (NROFARTIFACTS); ++i) {
-        if (nhfp->structlevel)
-            mread(nhfp->fd, (genericptr_t) &artidisco[i],
-                  sizeof (xint16));
-    }
+    for (i = 0; i < (NROFARTIFACTS + 1); ++i)
+        Sfi_arti_info(nhfp, &artiexist[i], "artiexist");
+    for (i = 0; i < NROFARTIFACTS; ++i)
+        Sfi_short(nhfp, &artidisco[i], "artidisco");
     hack_artifacts();   /* redo non-saved special cases */
 }
 
@@ -2799,4 +2789,5 @@ permapoisoned(struct obj *obj)
 {
     return (obj && is_art(obj, ART_GRIMTOOTH));
 }
+
 /*artifact.c*/

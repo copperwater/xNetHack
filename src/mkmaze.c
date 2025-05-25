@@ -1720,21 +1720,17 @@ save_waterlevel(NHFILE *nhfp)
     if (!svb.bbubbles)
         return;
 
-    if (perform_bwrite(nhfp)) {
+    if (update_file(nhfp)) {
         int n = 0;
         for (b = svb.bbubbles; b; b = b->next)
             ++n;
-        if (nhfp->structlevel) {
-            bwrite(nhfp->fd, (genericptr_t) &n, sizeof(int));
-            bwrite(nhfp->fd, (genericptr_t) &svx.xmin, sizeof(int));
-            bwrite(nhfp->fd, (genericptr_t) &svy.ymin, sizeof(int));
-            bwrite(nhfp->fd, (genericptr_t) &svx.xmax, sizeof(int));
-            bwrite(nhfp->fd, (genericptr_t) &svy.ymax, sizeof(int));
-        }
+        Sfo_int(nhfp, &n, "waterlevel-bubble_count");
+        Sfo_int(nhfp, &svx.xmin, "waterlevel-xmin");
+        Sfo_int(nhfp, &svy.ymin, "waterlevel-ymin");
+        Sfo_int(nhfp, &svx.xmax, "waterlevel-xmax");
+        Sfo_int(nhfp, &svy.ymax, "waterlevel-ymax");
         for (b = svb.bbubbles; b; b = b->next) {
-            if (nhfp->structlevel) {
-                bwrite(nhfp->fd, (genericptr_t) b, sizeof(struct bubble));
-            }
+            Sfo_bubble(nhfp, b, "waterlevel-bubble");
         }
     }
     if (release_data(nhfp))
@@ -1748,21 +1744,15 @@ restore_waterlevel(NHFILE *nhfp)
     struct bubble *b = (struct bubble *) 0, *btmp;
     int i, n = 0;
 
-    svb.bbubbles = (struct bubble *) 0;
-    set_wportal();
-    if (nhfp->structlevel) {
-        mread(nhfp->fd,(genericptr_t) &n, sizeof (int));
-        mread(nhfp->fd,(genericptr_t) &svx.xmin, sizeof (int));
-        mread(nhfp->fd,(genericptr_t) &svy.ymin, sizeof (int));
-        mread(nhfp->fd,(genericptr_t) &svx.xmax, sizeof (int));
-        mread(nhfp->fd,(genericptr_t) &svy.ymax, sizeof (int));
-    }
+    Sfi_int(nhfp, &n, "waterlevel-bubble_count");
+    Sfi_int(nhfp, &svx.xmin, "waterlevel-xmin");
+    Sfi_int(nhfp, &svy.ymin, "waterlevel-ymin");
+    Sfi_int(nhfp, &svx.xmax, "waterlevel-xmax");
+    Sfi_int(nhfp, &svy.ymax, "waterlevel-ymax");
     for (i = 0; i < n; i++) {
         btmp = b;
         b = (struct bubble *) alloc((unsigned) sizeof *b);
-        if (nhfp->structlevel) {
-            mread(nhfp->fd, (genericptr_t) b, (unsigned) sizeof *b);
-        }
+        Sfi_bubble(nhfp, b, "waterlevel-bubble");
         if (btmp) {
             btmp->next = b;
             b->prev = btmp;

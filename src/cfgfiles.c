@@ -1133,7 +1133,6 @@ cnf_line_PORTABLE_DEVICE_PATHS(char *bufp)
 #endif
     return TRUE;
 }
-
 #endif  /* SYSCF */
 
 staticfn boolean
@@ -1863,9 +1862,9 @@ vconfig_error_add(const char *str, va_list the_args)
 staticfn void
 parseformat(int *arr, char *str)
 {
-    const char *legal[] = { "historical", "lendian", "ascii" };
+    const char *legal[] = { "historical", "cnv" };
     int i, kwi = 0, words = 0;
-    char *p = str, *keywords[2];
+    char *p = str, *keywords[2] = { NULL };
 
     while (*p) {
         while (*p && isspace((uchar) *p)) {
@@ -1937,3 +1936,4 @@ assure_syscf_file(void)
 /* ----------  END CONFIG FILE HANDLING ----------- */
 
 /*cfgfiles.c*/
+

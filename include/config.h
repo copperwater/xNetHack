@@ -259,7 +259,7 @@
 # ifdef CRASHREPORT
 #  undef CRASHREPORT
 # endif
-# ifdef MSDOS
+# if defined(MSDOS) || defined(NOPANICTRACE)
 #  undef PANICTRACE
 # endif
 #endif

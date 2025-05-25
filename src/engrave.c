@@ -1515,27 +1515,29 @@ void
 save_engravings(NHFILE *nhfp)
 {
     struct engr *ep, *ep2;
-    unsigned no_more_engr = 0;
+    unsigned no_more_engr = 0, engr_alloc;
+    unsigned szeach;
 
     for (ep = head_engr; ep; ep = ep2) {
         ep2 = ep->nxt_engr;
         if (ep->engr_alloc
-            && ep->engr_txt[actual_text][0] && perform_bwrite(nhfp)) {
-            if (nhfp->structlevel) {
-                bwrite(nhfp->fd, (genericptr_t) &(ep->engr_alloc),
-                       sizeof ep->engr_alloc);
-                bwrite(nhfp->fd, (genericptr_t) ep,
-                       sizeof (struct engr) + ep->engr_alloc);
-            }
+            && ep->engr_txt[actual_text][0] && update_file(nhfp)) {
+            engr_alloc = (unsigned) ep->engr_alloc;
+            szeach = ep->engr_szeach;
+            Sfo_unsigned(nhfp, &engr_alloc, "engraving-engr_alloc");
+            Sfo_engr(nhfp, ep, "engraving");
+            ep->engr_txt[actual_text] = (char *)(ep + 1);
+            ep->engr_txt[remembered_text] = ep->engr_txt[actual_text] + szeach;
+            ep->engr_txt[pristine_text] = ep->engr_txt[remembered_text] + szeach;
+            Sfo_char(nhfp, ep->engr_txt[actual_text], "engraving-actual_text", szeach);
+            Sfo_char(nhfp, ep->engr_txt[remembered_text], "engraving-remembered_text", szeach);
+            Sfo_char(nhfp, ep->engr_txt[pristine_text], "engraving-pristine_text", szeach);
         }
         if (release_data(nhfp))
             dealloc_engr(ep);
     }
-    if (perform_bwrite(nhfp)) {
-        if (nhfp->structlevel) {
-            bwrite(nhfp->fd, (genericptr_t) &no_more_engr,
-                   sizeof no_more_engr);
-        }
+    if (update_file(nhfp)) {
+        Sfo_unsigned(nhfp, &no_more_engr, "engraving-engr_alloc");
     }
     if (release_data(nhfp))
         head_engr = 0;
@@ -1546,25 +1548,28 @@ rest_engravings(NHFILE *nhfp)
 {
     struct engr *ep;
     unsigned lth = 0;
+    unsigned szeach;
 
     head_engr = 0;
     while (1) {
-        if (nhfp->structlevel) {
-            mread(nhfp->fd, (genericptr_t) &lth, sizeof(unsigned));
-        }
+        Sfi_unsigned(nhfp, &lth, "engraving-engr_alloc");
         if (lth == 0)
             return;
         ep = newengr(lth);
-        if (nhfp->structlevel) {
-            mread(nhfp->fd, (genericptr_t) ep, sizeof (struct engr) + lth);
-        }
+        Sfi_engr(nhfp, ep, "engraving");
+        szeach = ep->engr_szeach;
         ep->nxt_engr = head_engr;
         head_engr = ep;
         ep->engr_txt[actual_text] = (char *) (ep + 1); /* Andreas Bormann */
-        ep->engr_txt[remembered_text] = ep->engr_txt[actual_text]
-                                      + ep->engr_szeach;
-        ep->engr_txt[pristine_text] = ep->engr_txt[remembered_text]
-                                    + ep->engr_szeach;
+        ep->engr_txt[remembered_text] = ep->engr_txt[actual_text] + szeach;
+        ep->engr_txt[pristine_text] = ep->engr_txt[remembered_text] + szeach;
+        Sfi_char(nhfp, ep->engr_txt[actual_text],
+                 "engraving-actual_text", (int) szeach);
+        Sfi_char(nhfp, ep->engr_txt[remembered_text],
+                 "engraving-remembered_text", (int) szeach);
+        Sfi_char(nhfp, ep->engr_txt[pristine_text],
+                 "engraving-pristine_text", (int) szeach);
+
         while (ep->engr_txt[actual_text][0] == ' ')
             ep->engr_txt[actual_text]++;
         while (ep->engr_txt[remembered_text][0] == ' ')

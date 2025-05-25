@@ -1754,11 +1754,9 @@ save_killers(NHFILE *nhfp)
 {
     struct kinfo *kptr;
 
-    if (perform_bwrite(nhfp)) {
+    if (update_file(nhfp)) {
         for (kptr = &svk.killer; kptr; kptr = kptr->next) {
-            if (nhfp->structlevel) {
-                bwrite(nhfp->fd, (genericptr_t) kptr, sizeof (struct kinfo));
-            }
+	    Sfo_kinfo(nhfp, kptr, "kinfo");
         }
     }
     if (release_data(nhfp)) {
@@ -1776,9 +1774,7 @@ restore_killers(NHFILE *nhfp)
     struct kinfo *kptr;
 
     for (kptr = &svk.killer; kptr != (struct kinfo *) 0; kptr = kptr->next) {
-        if (nhfp->structlevel) {
-            mread(nhfp->fd, (genericptr_t) kptr, sizeof (struct kinfo));
-        }
+        Sfi_kinfo(nhfp, kptr, "kinfo");
         if (kptr->next) {
             kptr->next = (struct kinfo *) alloc(sizeof (struct kinfo));
         }
@@ -1933,12 +1929,12 @@ NH_abort(char *why USED_FOR_CRASHREPORT)
     panictrace_setsignals(FALSE);
 #endif
 #endif /* PANICTRACE */
-#ifdef WIN32
+#if defined(WIN32)
     win32_abort();
 #else
     abort();
 #endif
 }
-#undef USED_FOR_CRASHREPORT
 
+#undef USED_FOR_CRASHREPORT
 /*end.c*/

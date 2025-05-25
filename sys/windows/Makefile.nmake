@@ -665,7 +665,7 @@ HACKCSRC = \
 	$(SRC)potion.c   $(SRC)pray.c    $(SRC)priest.c   $(SRC)quest.c \
 	$(SRC)questpgr.c $(SRC)read.c    $(SRC)rect.c     $(SRC)region.c \
 	$(SRC)restore.c  $(SRC)rip.c     $(SRC)rnd.c      $(SRC)role.c \
-	$(SRC)rumors.c   $(SRC)save.c    $(SRC)selvar.c   $(SRC)sfstruct.c \
+	$(SRC)rumors.c   $(SRC)save.c    $(SRC)selvar.c   $(SRC)sfstruct.c sfbase.c \
 	$(SRC)shk.c      $(SRC)shknam.c  $(SRC)sit.c      $(SRC)sounds.c \
 	$(SRC)sp_lev.c   $(SRC)spell.c   $(SRC)stairs.c   $(SRC)steal.c \
 	$(SRC)steed.c    $(SRC)symbols.c $(SRC)sys.c      $(SRC)teleport.c \
@@ -677,29 +677,30 @@ HACKCSRC = \
 
 # all .h files except date.h
 HACKINCL = \
-	$(INCL)align.h    $(INCL)artifact.h $(INCL)artilist.h \
-	$(INCL)attrib.h   $(INCL)botl.h     $(INCL)color.h \
-	$(INCL)config.h   $(INCL)config1.h  $(INCL)context.h \
-	$(INCL)coord.h    $(INCL)cstd.h     $(INCL)decl.h \
-	$(INCL)display.h  $(INCL)dlb.h      $(INCL)dungeon.h \
-	$(INCL)engrave.h  $(INCL)extern.h   $(INCL)flag.h \
-	$(INCL)fnamesiz.h $(INCL)func_tab.h $(INCL)global.h \
-	$(INCL)warnings.h $(INCL)hack.h     $(INCL)lint.h \
-	$(INCL)mextra.h   $(INCL)mfndpos.h  $(INCL)micro.h \
-	$(INCL)mkroom.h   $(INCL)monattk.h  $(INCL)mondata.h \
-	$(INCL)monflag.h  $(INCL)monst.h    $(INCL)monsters.h \
-	$(INCL)nhmd4.h    $(INCL)obj.h      $(INCL)objects.h \
-	$(INCL)objclass.h $(INCL)optlist.h  $(INCL)patchlevel.h \
-	$(INCL)pcconf.h   $(INCL)permonst.h $(INCL)prop.h \
-	$(INCL)rect.h     $(INCL)region.h   $(INCL)selvar.h \
-	$(INCL)sym.h      $(INCL)defsym.h   $(INCL)rm.h \
-	$(INCL)sp_lev.h   $(INCL)spell.h    $(INCL)sndprocs.h \
-	$(INCL)seffects.h $(INCL)stairs.h   $(INCL)sys.h \
-	$(INCL)tcap.h     $(INCL)timeout.h  $(INCL)tradstdc.h \
-	$(INCL)trap.h     $(INCL)unixconf.h $(INCL)vision.h \
-	$(INCL)vmsconf.h  $(INCL)wintty.h   $(INCL)wincurs.h \
-	$(INCL)winX.h     $(INCL)winprocs.h $(INCL)wintype.h \
-	$(INCL)you.h      $(INCL)youprop.h
+	$(INCL)align.h      $(INCL)artifact.h $(INCL)artilist.h \
+	$(INCL)attrib.h     $(INCL)botl.h     $(INCL)color.h \
+	$(INCL)config.h     $(INCL)config1.h  $(INCL)context.h \
+	$(INCL)coord.h      $(INCL)cstd.h     $(INCL)decl.h \
+	$(INCL)defsym.h     $(INCL)display.h  $(INCL)dlb.h \
+	$(INCL)dungeon.h    $(INCL)engrave.h  $(INCL)extern.h \
+	$(INCL)flag.h       $(INCL)fnamesiz.h $(INCL)func_tab.h \
+	$(INCL)global.h     $(INCL)warnings.h $(INCL)hack.h \
+	$(INCL)lint.h       $(INCL)mextra.h   $(INCL)micro.h \
+	$(INCL)mfndpos.h    $(INCL)mkroom.h   $(INCL)monattk.h \
+	$(INCL)mondata.h    $(INCL)monflag.h  $(INCL)monst.h \
+	$(INCL)monsters.h   $(INCL)nhmd4.h    $(INCL)obj.h \
+	$(INCL)objects.h    $(INCL)objclass.h $(INCL)optlist.h \
+	$(INCL)patchlevel.h $(INCL)pcconf.h   $(INCL)permonst.h \
+	$(INCL)prop.h       $(INCL)rect.h     $(INCL)region.h \
+	$(INCL)savefile.h   $(INCL)selvar.h   $(INCL)sym.h \
+	$(INCL)rm.h         $(INCL)sp_lev.h   $(INCL)spell.h \
+	$(INCL)sndprocs.h   $(INCL)seffects.h $(INCL)stairs.h \
+	$(INCL)sys.h        $(INCL)tcap.h     $(INCL)timeout.h \
+	$(INCL)tradstdc.h   $(INCL)trap.h     $(INCL)unixconf.h \
+	$(INCL)vision.h     $(INCL)vmsconf.h  $(INCL)wintty.h \
+	$(INCL)wincurs.h    $(INCL)winX.h     $(INCL)winprocs.h \
+	$(INCL)wintype.h    $(INCL)you.h      $(INCL)youprop.h \
+	$(INCL)weight.h
 
 LUA_FILES = $(DAT)asmodeus.lua $(DAT)baalz.lua $(DAT)bigrm-1.lua \
 	$(DAT)bigrm-10.lua $(DAT)bigrm-11.lua $(DAT)bigrm-12.lua \
@@ -873,7 +874,7 @@ COREOBJTTY = \
 	$(OTTY)uhitm.o    $(OTTY)utf8map.o  $(OTTY)vault.o    $(OTTY)vision.o \
 	$(OTTY)weapon.o   $(OTTY)were.o     $(OTTY)wield.o    $(OTTY)windows.o \
 	$(OTTY)wizard.o   $(OTTY)wizcmds.o  $(OTTY)worm.o     $(OTTY)worn.o \
-	$(OTTY)write.o    $(OTTY)zap.o
+	$(OTTY)write.o    $(OTTY)zap.o      $(OTTY)sfbase.o
 
 OBJSTTY = $(MDLIBTTY) $(COREOBJTTY) $(REGEXTTY) $(RANDOMTTY)
 
@@ -936,7 +937,7 @@ COREOBJGUI = \
 	$(OGUI)uhitm.o    $(OGUI)utf8map.o  $(OGUI)vault.o    $(OGUI)vision.o \
 	$(OGUI)weapon.o   $(OGUI)were.o     $(OGUI)wield.o    $(OGUI)windows.o \
 	$(OGUI)wizard.o   $(OGUI)wizcmds.o  $(OGUI)worm.o     $(OGUI)worn.o \
-	$(OGUI)write.o    $(OGUI)zap.o
+	$(OGUI)write.o    $(OGUI)zap.o      $(OGUI)sfbase.o
 
 OBJSGUI   = $(MDLIBGUI) $(COREOBJGUI) $(REGEXGUI) $(RANDOMGUI)
 
@@ -1458,6 +1459,8 @@ DLB =
 #==========================================
 
 {$(R_UTIL)}.c{$(R_OBJUTIL)}.o:
+	echo R_UTIL=$(R_UTIL)
+	echo R_OBJUTIL=$(R_OBJUTIL)
 	$(Q)$(CC) $(CFLAGS) -Fo$@ $<
 
 #==========================================
@@ -1863,6 +1866,14 @@ $(OGUI)date.o: $(HACKINCL) $(HACKSRC) $(HACKOBJ) $(ALLOBJGUI)
 	@echo.>>date.nmk
 	@$(MAKE) /NOLOGO /A -f date.nmk
 !ENDIF
+
+$(OGUI)sfbase.o: sfbase.c $(HACK_H)
+	$(Q)$(CC) $(CFLAGS) /EP  $(@B).c > $(OGUI)$(@B).c.preproc
+	$(Q)$(CC) $(CFLAGS) -Fo$@ $(@B).c
+
+$(OTTY)sfbase.o: sfbase.c $(HACK_H)
+	$(Q)$(CC) $(CFLAGS) /EP  $(@B).c > $(OTTY)$(@B).c.preproc
+	$(Q)$(CC) $(CFLAGS) -Fo$@ $(@B).c
 
 #
 #  date.h is not used with NetHack 3.7
@@ -3069,6 +3080,8 @@ $(OTTY)rumors.o: rumors.c $(HACK_H) $(INCL)dlb.h
 $(OTTY)save.o: save.c $(HACK_H)
 $(OTTY)selvar.o: selvar.c $(HACK_H) $(INCL)sp_lev.h
 $(OTTY)sfstruct.o: sfstruct.c $(HACK_H)
+	$(Q)$(CC) $(CFLAGS) /EP  $(@B).c > $(OTTY)$(@B).c.preproc
+	$(Q)$(CC) $(CFLAGS) -Fo$@ $(@B).c
 $(OTTY)shk.o: shk.c $(HACK_H)
 $(OTTY)shknam.o: shknam.c $(HACK_H)
 $(OTTY)sit.o: sit.c $(HACK_H) $(INCL)artifact.h
@@ -3445,6 +3458,8 @@ $(OGUI)rumors.o: rumors.c $(HACK_H) $(INCL)dlb.h
 $(OGUI)save.o: save.c $(HACK_H)
 $(OGUI)selvar.o: selvar.c $(HACK_H) $(INCL)sp_lev.h
 $(OGUI)sfstruct.o: sfstruct.c $(HACK_H)
+	$(Q)$(CC) $(CFLAGS) /EP  $(@B).c > $(OGUI)$(@B).c.preproc
+	$(Q)$(CC) $(CFLAGS) -Fo$@ $(@B).c
 $(OGUI)shk.o: shk.c $(HACK_H)
 $(OGUI)shknam.o: shknam.c $(HACK_H)
 $(OGUI)sit.o: sit.c $(HACK_H) $(INCL)artifact.h

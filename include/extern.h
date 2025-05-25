@@ -1969,6 +1969,7 @@ extern int dosuspend(void);
 extern void nt_regularize(char *);
 extern int(*nt_kbhit)(void);
 extern void Delay(int);
+extern boolean contains_directory(const char *);
 # ifdef CRASHREPORT
 struct CRctxt;
 extern struct CRctxt *ctxp;
@@ -1976,7 +1977,6 @@ extern int win32_cr_helper(char, struct CRctxt *, void *, int);
 extern int win32_cr_gettrace(int, char *, int);
 extern int *win32_cr_shellexecute(const char *);
 # endif
-extern boolean contains_directory(const char *);
 #endif /* WIN32 */
 
 #endif /* MICRO || WIN32 */
@@ -2675,7 +2675,6 @@ extern void get_plname_from_file(NHFILE *, char *, boolean) NONNULLARG12;
 extern int restore_menu(winid);
 #endif
 extern boolean lookup_id_mapping(unsigned, unsigned *) NONNULLARG2;
-extern int validate(NHFILE *, const char *, boolean) NONNULLARG1;
 /* extern void reset_restpref(void); */
 /* extern void set_restpref(const char *); */
 /* extern void set_savepref(const char *); */
@@ -3496,8 +3495,7 @@ extern boolean comp_times(long);
 #endif
 extern boolean check_version(struct version_info *, const char *, boolean,
                              unsigned long) NONNULLARG1;
-extern boolean uptodate(NHFILE *, const char *, unsigned long) NONNULLARG1;
-extern void store_formatindicator(NHFILE *) NONNULLARG1;
+extern int uptodate(NHFILE *, const char *, unsigned long) NONNULLARG1;
 extern void store_version(NHFILE *) NONNULLARG1;
 extern unsigned long get_feature_notice_ver(char *) NO_NNARGS;
 extern unsigned long get_current_feature_ver(void);
@@ -3505,8 +3503,9 @@ extern const char *copyright_banner_line(int) NONNULL;
 extern void early_version_info(boolean);
 extern void dump_version_info(void);
 extern void store_critical_bytes(NHFILE *) NONNULLARG1;
-extern int compare_critical_bytes(NHFILE *);
+extern int compare_critical_bytes(NHFILE *, int *, unsigned long) NONNULLARG1;
 extern int get_critical_size_count(void);
+extern int validate(NHFILE *, const char *, boolean) NONNULLARG1;
 
 /* ### video.c ### */
 

@@ -373,6 +373,10 @@ check_version(
 #endif
         complain = FALSE; /* 'complain' requires 'filename' for pline("%s") */
     }
+    if ((version_data->feature_set & SFCTOOL_BIT) != 0) {
+        gc.converted_savefile_loaded = TRUE;
+        version_data->feature_set &= ~(SFCTOOL_BIT);
+    }
     if (
 #ifdef VERSION_COMPATIBILITY /* patchlevel.h */
         version_data->incarnation < VERSION_COMPATIBILITY
@@ -421,13 +425,11 @@ store_version(NHFILE *nhfp)
         bufoff(nhfp->fd);
 
     store_critical_bytes(nhfp);
-    if (nhfp->structlevel) {
-        bwrite(nhfp->fd, (genericptr_t) &version_data,
-               (unsigned) (sizeof version_data));
-    }
+    Sfo_version_info(nhfp, (struct version_info *) &version_data,
+                        "version_info");
 
     if (nhfp->structlevel)
-         bufon(nhfp->fd);
+        bufon(nhfp->fd);
     return;
 }
 
@@ -661,90 +663,170 @@ store_critical_bytes(NHFILE *nhfp)
 
     if (nhfp->mode & WRITING) {
         indicate = (nhfp->structlevel)      ? 'h'
-                   : (nhfp->fnidx == ascii) ? 'a'
-                                            : 'l';
-        if (nhfp->structlevel) {
-            bwrite(nhfp->fd, (genericptr_t) &indicate,
-               (unsigned) sizeof indicate);
-        }
-        if (nhfp->structlevel) {
-            bwrite(nhfp->fd, (genericptr_t) &csc_count,
-               (unsigned) sizeof csc_count);
-        }
+                   : (nhfp->fnidx == cnvascii) ? 'a'
+                                            : '?';
+        Sfo_char(nhfp, &indicate, "indicate-format", 1);
+        Sfo_char(nhfp, &csc_count, "count-critical_sizes", 1);
         cnt = (int) csc_count;
         for (i = 0; i < cnt; ++i) {
-            if (nhfp->structlevel) {
-                bwrite(nhfp->fd, (genericptr_t) &critical_sizes[i].ucsize,
-                       (unsigned) sizeof (uchar));
-            }
+            Sfo_uchar(nhfp, &critical_sizes[i].ucsize, "critical_sizes");
         }
     }
 }
 
 /* this used to be based on file date and somewhat OS-dependent,
-   but now examines the initial part of the file's contents */
-boolean
+ *  but now examines the initial part of the file's contents.
+ *
+ * returns:
+ *
+ *   SF_UPTODATE                     (0) everything matched and looks good
+ *   SF_OUTDATED                     (1) savefile is outdated
+ *   SF_CRITICAL_BYTE_COUNT_MISMATCH (2) critical size count mismatch
+ *   SF_DM_IL32LLP64_ON_ILP32LL64    (3) Windows x64 savefile on x86
+ *   SF_DM_I32LP64_ON_ILP32LL64      (4) Unix 64 savefile on x86
+ *   SF_DM_ILP32LL64_ON_I32LP64      (5) x86 savefile on Unix 64
+ *   SF_DM_ILP32LL64_ON_IL32LLP64    (6) x86 savefile on Windows x64
+ *   SF_DM_I32LP64_ON_IL32LLP64      (7) Unix 64 savefile on Windows x64
+ *   SF_DM_IL32LLP64_ON_I32LP64      (8) Windows x64 savefile on Unix 64
+ *   SF_DM_MISMATCH                  (9) some other mismatch
+ */
+int
 uptodate(NHFILE *nhfp, const char *name, unsigned long utdflags)
 {
     struct version_info vers_info;
     char indicator;
+    int sfstatus = 0, idx_1st_mismatch = 0;
+    boolean quietly = (utdflags & UTD_QUIETLY) != 0;
     boolean verbose = name ? TRUE : FALSE;
-    int ccbresult = 0;
-    /* int you_size = (int) sizeof (struct you); */
 
-    if (nhfp->structlevel) {
-        mread(nhfp->fd, (genericptr_t) &indicator, sizeof indicator);
-    }
-    if ((ccbresult = compare_critical_bytes(nhfp)) != 0) {
-        if (ccbresult > 0) {
-            raw_printf("compare of critical bytes failed at %d (%s).",
-                       critical_sizes[ccbresult].ucsize,
-                       critical_sizes[ccbresult].nm);
+    Sfi_char(nhfp, &indicator, "indicate-format", 1);
+    if ((sfstatus = compare_critical_bytes(nhfp, &idx_1st_mismatch, utdflags))
+                                                             != SF_UPTODATE) {
+        if (sfstatus > 0 && idx_1st_mismatch) {
+            if (!quietly)
+                raw_printf("comparison of critical bytes mismatched at %d (%s).",
+                           critical_sizes[idx_1st_mismatch].ucsize,
+                           critical_sizes[idx_1st_mismatch].nm);
         }
-        return FALSE;
+        return sfstatus;
     }
 
-    if (nhfp->structlevel) {
-        mread(nhfp->fd, (genericptr_t) &vers_info, sizeof vers_info);
-    }
+    Sfi_version_info(nhfp, &vers_info, "version_info");
     if (!check_version(&vers_info, name, verbose, utdflags)) {
         if (verbose) {
             if ((utdflags & UTD_WITHOUT_WAITSYNCH_PERFILE) == 0)
                 wait_synch();
         }
-        return FALSE;
+        return SF_OUTDATED;
     }
-    return TRUE;
+
+    return SF_UPTODATE;
 }
 
+/*
+ * returns:
+ *
+ *   SF_UPTODATE                     (0) everything matched and looks good
+ *   SF_OUTDATED                     (1) savefile is outdated
+ *   SF_CRITICAL_BYTE_COUNT_MISMATCH (2) critical size count mismatch
+ *   SF_DM_IL32LLP64_ON_ILP32LL64    (3) Windows x64 savefile on x86
+ *   SF_DM_I32LP64_ON_ILP32LL64      (4) Unix 64 savefile on x86
+ *   SF_DM_ILP32LL64_ON_I32LP64      (5) x86 savefile on Unix 64
+ *   SF_DM_ILP32LL64_ON_IL32LLP64    (6) x86 savefile on Windows x64
+ *   SF_DM_I32LP64_ON_IL32LLP64      (7) Unix 64 savefile on Windows x64
+ *   SF_DM_IL32LLP64_ON_I32LP64      (8) Windows x64 savefile on Unix 64
+ *   SF_DM_MISMATCH                  (9) some other mismatch
+ */
 int
-compare_critical_bytes(NHFILE *nhfp)
+compare_critical_bytes(NHFILE *nhfp, int *idx_1st_mismatch, unsigned long utdflags)
 {
     char active_csc_count = (char) SIZE(critical_sizes),
-         file_csc_count = 0;
-    int i, cnt = (int) active_csc_count;
+         file_csc_count;
+    int i, cnt = (int) active_csc_count,
+        dmmismatch = SF_DM_MISMATCH;
+    boolean quietly = (utdflags & UTD_QUIETLY) != 0;
 
-    if (nhfp->structlevel) {
-        mread(nhfp->fd, (genericptr_t) &file_csc_count,
-              sizeof file_csc_count);
-    }
+    Sfi_char(nhfp, &file_csc_count, "count-critical_sizes", 1);
     if (file_csc_count > cnt) {
-        raw_printf("critical byte counts do not match"
-                   ", file:%d, critical_sizes:%d.",
-                   file_csc_count, SIZE(critical_sizes));
-        return -1;
+        if (!quietly)
+            raw_printf("critical byte counts do not match"
+                       ", file:%d, critical_sizes:%d.",
+                       file_csc_count, SIZE(critical_sizes));
+        return SF_CRITICAL_BYTE_COUNT_MISMATCH;
     }
     for (i = 0; i < (int) file_csc_count; ++i) {
-        if (nhfp->structlevel) {
-            mread(nhfp->fd, (genericptr_t) &cscbuf[i],
-                  sizeof (uchar));
-        }
+        Sfi_uchar(nhfp, &cscbuf[i], "critical_sizes");
     }
     for (i = 1; i < cnt; ++i) {
-        if (cscbuf[i] != critical_sizes[i].ucsize)
-            return i;
+        if (cscbuf[i] != critical_sizes[i].ucsize) {
+            const char *dm = datamodel(), *dmfile;
+
+            dmfile = what_datamodel_is_this(cscbuf[1],  /* short */
+                                            cscbuf[2],  /* int */
+                                            cscbuf[3],  /* long */
+                                            cscbuf[4],  /* long long */
+                                            cscbuf[5]); /* ptr */
+
+            if (!strcmp(dmfile, "IL32LLP64") && !strcmp(dm, "ILP32LL64")) {
+                /*  Windows x64 savefile on x86 */
+                dmmismatch = SF_DM_IL32LLP64_ON_ILP32LL64;
+            } else if (!strcmp(dmfile, "I32LP64")
+                       && !strcmp(dm, "ILP32LL64")) {
+                /* Unix 64 savefile on x86*/
+                dmmismatch = SF_DM_I32LP64_ON_ILP32LL64;
+            } else if (!strcmp(dmfile, "ILP32LL64")
+                       && !strcmp(dm, "I32LP64")) {
+                /*  x86 savefile on Unix 64 */
+                dmmismatch = SF_DM_ILP32LL64_ON_I32LP64;
+            } else if (!strcmp(dmfile, "ILP32LL64")
+                       && !strcmp(dm, "IL32LLP64")) {
+                /* x86 savefile on Windows x64 */
+                dmmismatch = SF_DM_ILP32LL64_ON_IL32LLP64;
+            } else if (!strcmp(dmfile, "I32LP64")
+                       && !strcmp(dm, "IL32LLP64")) {
+                /* Unix 64 savefile on Windows x64 */
+                dmmismatch = SF_DM_I32LP64_ON_IL32LLP64;
+            } else if (!strcmp(dmfile, "IL32LLP64")
+                       && !strcmp(dm, "I32LP64")) {
+                /* Windows x64 savefile on Unix 64 */
+                dmmismatch = SF_DM_IL32LLP64_ON_I32LP64;
+            }
+            if (idx_1st_mismatch)
+                *idx_1st_mismatch = i;
+            return dmmismatch;
+        }
     }
-    return 0; /* everything matched */
+    return SF_UPTODATE; /* everything matched */
+}
+
+/*
+ * returns:
+ *
+ *   SF_UPTODATE                     (0) everything matched and looks good
+ *   SF_OUTDATED                     (1) savefile is outdated
+ *   SF_CRITICAL_BYTE_COUNT_MISMATCH (2) critical size count mismatch
+ *   SF_DM_IL32LLP64_ON_ILP32LL64    (3) Windows x64 savefile on x86
+ *   SF_DM_I32LP64_ON_ILP32LL64      (4) Unix 64 savefile on x86
+ *   SF_DM_ILP32LL64_ON_I32LP64      (5) x86 savefile on Unix 64
+ *   SF_DM_ILP32LL64_ON_IL32LLP64    (6) x86 savefile on Windows x64
+ *   SF_DM_I32LP64_ON_IL32LLP64      (7) Unix 64 savefile on Windows x64
+ *   SF_DM_IL32LLP64_ON_I32LP64      (8) Windows x64 savefile on Unix 64
+ *   SF_DM_MISMATCH                  (9) some other mismatch
+ */
+int
+validate(NHFILE *nhfp, const char *name, boolean without_waitsynch_perfile)
+{
+    unsigned long utdflags = 0L;
+    int validsf = 0;
+
+    if (nhfp->structlevel)
+        utdflags |= UTD_CHECKSIZES;
+    if (without_waitsynch_perfile)
+        utdflags |= UTD_WITHOUT_WAITSYNCH_PERFILE;
+    if (nhfp->fieldlevel)
+        utdflags |= UTD_CHECKFIELDCOUNTS | UTD_SKIP_SANITY1 | UTD_QUIETLY;
+    validsf = uptodate(nhfp, name, utdflags);
+    return validsf;
 }
 #endif /* MINIMAL_FOR_RECOVER */
 

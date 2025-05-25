@@ -953,5 +953,54 @@ copy_bytes(int ifd, int ofd)
     } while (nfrom == BUFSIZ);
     return TRUE;
 }
+#define MAX_D 5
+struct datamodel_information {
+    int sz[MAX_D];
+    const char *datamodel;
+};
 
+static struct datamodel_information dm[] = {
+    { { (int) sizeof(short), (int) sizeof(int), (int) sizeof(long),
+        (int) sizeof(long long), (int) sizeof(genericptr_t) },
+      "" },
+    { { 2, 4, 4, 8, 4 }, "ILP32LL64" }, /* Windows, Unix x86 */
+    { { 2, 4, 4, 8, 8 }, "IL32LLP64" }, /* Windows x64 */
+    { { 2, 4, 8, 8, 8 }, "I32LP64" },   /* Unix 64-bit */
+    { { 2, 8, 8, 8, 8 }, "ILP64" },     /* HAL, SPARC64 */
+};
+
+const char *
+datamodel(void)
+{
+    int i, j, matchcount;
+    static const char *unknown = "Unknown";
+
+    for (i = 1; i < SIZE(dm); ++i) {
+        matchcount = 0;
+        for (j = 0; j < MAX_D; ++j) {
+            if (dm[0].sz[j] == dm[i].sz[j])
+                ++matchcount;
+        }
+        if (matchcount == MAX_D)
+            return dm[i].datamodel;
+    }
+    return unknown;
+}
+
+const char *
+what_datamodel_is_this(int szshort, int szint, int szlong, int szll,
+                       int szptr)
+{
+    int i;
+    static const char *unknown = "Unknown";
+
+    for (i = 1; i < SIZE(dm); ++i) {
+        if (szshort == dm[i].sz[0] && szint == dm[i].sz[1]
+            && szlong == dm[i].sz[2] && szll == dm[i].sz[3]
+            && szptr == dm[i].sz[4])
+            return dm[i].datamodel;
+    }
+    return unknown;
+}
+#undef MAX_D
 /*hacklib.c*/

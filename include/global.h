@@ -569,4 +569,5 @@ typedef enum NHL_pcall_action {
     NHLpa_impossible
 } NHL_pcall_action;
 
+#define SFCTOOL_BIT (1UL << 30)  /* needed for upcoming savefile handling */
 #endif /* GLOBAL_H */

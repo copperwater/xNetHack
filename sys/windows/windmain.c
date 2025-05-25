@@ -366,6 +366,9 @@ _CrtSetReportFile(_CRT_ASSERT, _CRTDBG_FILE_STDERR);*/
         nethack_exit(EXIT_SUCCESS);
 
     if (getlock_result < 0) {
+        if (program_state.in_self_recover) {
+            program_state.in_self_recover = FALSE;
+        }
         set_savefile_name(TRUE);
     }
     /* Set up level 0 file to keep the game state.

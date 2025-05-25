@@ -610,13 +610,10 @@ savebones(int how, time_t when, struct obj *corpse)
 
     nhfp->mode = WRITING;
     store_version(nhfp);
-
     /* if a bones pool digit is in use, it precedes the bonesid
-        string and isn't recorded in the file */
-    if (nhfp->structlevel) {
-        bwrite(nhfp->fd, (genericptr_t) &c, sizeof c);
-        bwrite(nhfp->fd, (genericptr_t) bonesid, (unsigned) c); /* DD.nn */
-    }
+       string and isn't recorded in the file */
+    Sfo_char(nhfp, &c, "bones_count", 1);
+    Sfo_char(nhfp, bonesid, "bonesid", (int) c); 	/* DD.nnn */
     savefruitchn(nhfp);
     update_mlstmv(); /* update monsters for eventual restoration */
     savelev(nhfp, ledger_no(&u.uz));
@@ -655,7 +652,7 @@ getbones(void)
         return 0;
     }
 
-    if (validate(nhfp, gb.bones, FALSE) != 0) {
+    if (validate(nhfp, gb.bones, FALSE) != SF_UPTODATE) {
         if (!wizard)
             pline("Discarding unusable bones; no need to panic...");
         ok = FALSE;
@@ -668,26 +665,18 @@ getbones(void)
                 return 0;
             }
         }
-        /* if a bones pool digit is in use, it precedes the bonesid
-           string and wasn't recorded in the file */
-        if (nhfp->structlevel) {
-            mread(nhfp->fd, (genericptr_t) &c,
-                  sizeof c); /* length including terminating '\0' */
-        }
-        if ((unsigned) c <= sizeof oldbonesid) {
-            if (nhfp->structlevel) {
-                mread(nhfp->fd, (genericptr_t) oldbonesid,
-                        (unsigned) c); /* DD.nn or Qrrr.n for role rrr */
+        Sfi_char(nhfp, &c, "bones_count", 1); /* length incl. '\0' */
+            if ((unsigned) c <= sizeof oldbonesid) {
+                Sfi_char(nhfp, oldbonesid, "bonesid", (int) c);
+            } else {
+                if (wizard)
+                    debugpline2("Abandoning bones , %u > %u.",
+                                (unsigned) c, (unsigned) sizeof oldbonesid);
+                close_nhfile(nhfp);
+                compress_bonesfile();
+                /* ToDo: maybe unlink these problematic bones? */
+                return 0;
             }
-        } else {
-            if (wizard)
-                debugpline2("Abandoning bones , %u > %u.", (unsigned) c,
-                            (unsigned) sizeof oldbonesid);
-            close_nhfile(nhfp);
-            compress_bonesfile();
-            /* ToDo: maybe unlink these problematic bones? */
-            return 0;
-        }
         if (strcmp(bonesid, oldbonesid) != 0) {
             char errbuf[BUFSZ];
 

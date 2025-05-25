@@ -220,6 +220,7 @@
     <ClCompile Condition="Exists('$(PDCURSES)')" Include="$(WinCursDir)cursstat.c" />
     <ClCompile Condition="Exists('$(PDCURSES)')" Include="$(WinCursDir)curswins.c" />
     <ClCompile Condition="Exists('$(FMODINCDIR)\fmod.h') And Exists('$(FMODLIBLIB)') And Exists('$(FMODLIBDLL)')" Include="$(FMODSRC)" />
+    <ClCompile Include="$(SrcDir)sfbase.c" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="$(IncDir)align.h" />
@@ -294,6 +295,8 @@
     <ClInclude Include="$(WinCursDir)cursmisc.h" />
     <ClInclude Include="$(WinCursDir)cursstat.h" />
     <ClInclude Include="$(WinCursDir)curswins.h" />
+    <ClInclude Include="$(IncDir)sfprocs.h" />
+    <ClInclude Include="$(IncDir)savefile.h" />
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="$(WinWin32Dir)NetHack.rc" />

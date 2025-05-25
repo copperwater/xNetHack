@@ -56,6 +56,7 @@ Makefile.gcc-orig
 *.lastcodeanalysissucceeded
 # VS 2017 caches data into the hidden directory .vs
 .vs
+win/win32/vs/obj/*
 # Win32-specific ignores end
 .DS_Store
 # ms-dos 

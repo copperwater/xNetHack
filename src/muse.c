@@ -3115,7 +3115,7 @@ muse_unslime(
          * Monsters don't start with oil and don't actively pick up oil
          * so this may never occur in a real game.  (Possible though;
          * nymph can steal potions of oil; shapechanger could take on
-         * nymph form or vacuum up stuff as a g.cube and then eventually
+         * nymph form or vacuum up stuff as a gel.cube and then eventually
          * engage with a green slime.)
          */
 

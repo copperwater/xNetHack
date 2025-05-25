@@ -518,7 +518,7 @@ HACKCSRC = allmain.c alloc.c apply.c artifact.c attrib.c ball.c bones.c \
 	   nhlua.c nhlsel.c nhlobj.c nhmd4.c o_init.c objects.c objnam.c \
 	   options.c pager.c pickup.c pline.c polyself.c potion.c pray.c \
 	   priest.c quest.c questpgr.c read.c rect.c region.c report.c restore.c \
-	   rip.c rnd.c role.c rumors.c save.c selvar.c sfstruct.c \
+	   rip.c rnd.c role.c rumors.c save.c selvar.c sfbase.c sfstruct.c \
 	   shk.c shknam.c sit.c sounds.c sp_lev.c spell.c stairs.c steal.c steed.c \
 	   strutil.c symbols.c sys.c teleport.c \
 	   timeout.c topten.c track.c trap.c u_init.c utf8map.c \
@@ -561,14 +561,15 @@ CSOURCES = $(HACKCSRC) $(HACKLIBSRC) $(SYSCSRC) $(WINCSRC) $(CHAINSRC) $(GENCSRC
 #
 HACKINCL = align.h artifact.h artilist.h attrib.h botl.h \
 	color.h config.h config1.h context.h coord.h cstd.h decl.h \
-	display.h dlb.h dungeon.h engrave.h extern.h flag.h fnamesiz.h \
-	func_tab.h global.h warnings.h hack.h lint.h mextra.h mfndpos.h \
-	micro.h mkroom.h monattk.h mondata.h monflag.h monst.h monsters.h \
-	nhmd4.h obj.h objects.h objclass.h optlist.h patchlevel.h \
-	pcconf.h permonst.h prop.h rect.h region.h selvar.h sym.h defsym.h \
-	rm.h sp_lev.h spell.h sndprocs.h seffects.h stairs.h sys.h tcap.h \
-	timeout.h tradstdc.h trap.h unixconf.h vision.h vmsconf.h wintty.h \
-	wincurs.h winX.h winprocs.h wintype.h you.h youprop.h weight.h
+	defsym.h display.h dlb.h dungeon.h engrave.h extern.h flag.h \
+	fnamesiz.h func_tab.h global.h warnings.h hack.h lint.h mextra.h \
+	micro.h mfndpos.h mkroom.h monattk.h mondata.h monflag.h monst.h \
+	monsters.h nhmd4.h obj.h objects.h objclass.h optlist.h patchlevel.h \
+	pcconf.h permonst.h prop.h rect.h region.h savefile.h selvar.h sym.h \
+	rm.h sp_lev.h spell.h sndprocs.h seffects.h stairs.h sys.h \
+	tcap.h timeout.h tradstdc.h trap.h unixconf.h vision.h vmsconf.h \
+	wintty.h wincurs.h winX.h winprocs.h wintype.h you.h youprop.h \
+	weight.h
 
 HSOURCES = $(HACKINCL) dgn_file.h
 
@@ -610,7 +611,7 @@ HOBJ = $(TARGETPFX)allmain.o $(TARGETPFX)alloc.o \
 	$(TARGETPFX)rect.o $(TARGETPFX)region.o $(TARGETPFX)report.o \
 	$(TARGETPFX)restore.o $(TARGETPFX)rip.o $(TARGETPFX)rnd.o \
 	$(TARGETPFX)role.o $(TARGETPFX)rumors.o $(TARGETPFX)save.o \
-	$(TARGETPFX)selvar.o $(TARGETPFX)sfstruct.o \
+	$(TARGETPFX)selvar.o $(TARGETPFX)sfbase.o $(TARGETPFX)sfstruct.o \
 	$(TARGETPFX)shk.o $(TARGETPFX)shknam.o $(TARGETPFX)sit.o \
 	$(TARGETPFX)sounds.o $(TARGETPFX)sp_lev.o $(TARGETPFX)spell.o \
 	$(TARGETPFX)stairs.o $(TARGETPFX)symbols.o $(TARGETPFX)sys.o \
@@ -760,7 +761,7 @@ hacklib.a: hacklib.o
 ../win/gnome/gn_rip.h: ../win/X11/rip.xpm
 	cp ../win/X11/rip.xpm ../win/gnome/gn_rip.h
 
-$(TARGETPFX)sfstruct.o: sfstruct.c $(HACK_H)
+$(TARGETPFX)sfbase.o: sfbase.c $(HACK_H) ../include/sfprocs.h
 
 #	date.c should be recompiled any time any of the source or include code
 #	is modified.
@@ -1232,7 +1233,7 @@ $(TARGETPFX)role.o: role.c $(HACK_H)
 $(TARGETPFX)rumors.o: rumors.c $(HACK_H) ../include/dlb.h
 $(TARGETPFX)save.o: save.c $(HACK_H)
 $(TARGETPFX)selvar.o: selvar.c $(HACK_H) ../include/sp_lev.h
-$(TARGETPFX)sfstruct.o: sfstruct.c $(HACK_H)
+$(TARGETPFX)sfstruct.o: sfstruct.c $(HACK_H) ../include/sfprocs.h
 $(TARGETPFX)shk.o: shk.c $(HACK_H)
 $(TARGETPFX)shknam.o: shknam.c $(HACK_H)
 $(TARGETPFX)sit.o: sit.c $(HACK_H) ../include/artifact.h

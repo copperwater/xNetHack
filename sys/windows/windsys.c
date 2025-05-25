@@ -505,20 +505,6 @@ get_port_id(char *buf)
 extern void free_winmain_stuff(void);
 #endif
 
-/* return TRUE if s contains a directory, not just a filespec */
-boolean
-contains_directory(const char *s)
-{
-    int i, slen = strlen(s);
-    const char *cp = s;
-
-    for (i = 0; i < slen; ++i) {
-        if (*cp == '\\' || *cp == '/' || *cp == ':')
-            return TRUE;
-    }
-    return FALSE;
-}
-
 void
 nethack_exit(int code)
 {

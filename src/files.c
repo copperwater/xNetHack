@@ -5,6 +5,10 @@
 
 #define NEED_VARARGS
 
+#if defined(WIN32)
+#include "win32api.h"
+#endif
+
 #include "hack.h"
 #include "dlb.h"
 
@@ -77,6 +81,9 @@ static char fqn_filename_buffer[FQN_NUMBUF][FQN_MAX_FILENAME];
 
 #if defined(WIN32)
 #include <share.h>
+#include <io.h>
+#define F_OK 0
+#define access _access
 #endif
 
 #ifdef AMIGA
@@ -96,11 +103,15 @@ extern void amii_set_text_font(char *, int);
 #endif
 #define Close close
 #ifndef WIN_CE
+#ifdef DeleteFile
+#undef DeleteFile
+#endif
 #define DeleteFile unlink
 #endif
 #ifdef WIN32
-/*from windmain.c */
+/*from windsys.c */
 extern char *translate_path_variables(const char *, char *);
+extern boolean get_user_home_folder(char *, size_t);
 #endif
 #endif
 
@@ -116,6 +127,7 @@ extern char *translate_path_variables(const char *, char *);
 
 staticfn NHFILE *new_nhfile(void);
 staticfn void free_nhfile(NHFILE *);
+
 #ifdef SELECTSAVED
 staticfn int QSORTCALLBACK strcmp_wrap(const void *, const void *);
 #endif
@@ -130,10 +142,17 @@ staticfn void docompress_file(const char *, boolean);
 #if defined(ZLIB_COMP)
 staticfn boolean make_compressed_name(const char *, char *);
 #endif
+
+staticfn NHFILE *problematic_savefile(int, const char *);
+staticfn NHFILE *viable_nhfile(NHFILE *);
+#ifdef SELECTSAVED
+staticfn int QSORTCALLBACK strcmp_wrap(const void *, const void *);
+#endif
+staticfn char *set_bonesfile_name(char *, d_level *);
+staticfn char *set_bonestemp_name(void);
 #ifndef USE_FCNTL
 staticfn char *make_lockname(const char *, char *);
 #endif
-
 staticfn FILE *fopen_wizkit_file(void);
 staticfn void wizkit_addinv(struct obj *);
 boolean proc_wizkit_line(char *buf);
@@ -407,7 +426,7 @@ zero_nhfile(NHFILE *nhfp)
 {
     nhfp->fd = -1;
     nhfp->mode = COUNTING;
-    nhfp->structlevel = FALSE;
+    nhfp->structlevel = TRUE;
     nhfp->fieldlevel = FALSE;
     nhfp->addinfo = FALSE;
     nhfp->bendian = IS_BIGENDIAN();
@@ -417,6 +436,9 @@ zero_nhfile(NHFILE *nhfp)
     nhfp->count = 0;
     nhfp->eof = FALSE;
     nhfp->fnidx = 0;
+        nhfp->style.deflt = FALSE;
+        nhfp->style.binary = TRUE;
+        nhfp->nhfpconvert = 0;
 }
 
 staticfn NHFILE *
@@ -442,6 +464,12 @@ close_nhfile(NHFILE *nhfp)
 {
     if (nhfp->structlevel && nhfp->fd != -1)
         (void) nhclose(nhfp->fd), nhfp->fd = -1;
+    if (nhfp->fplog)
+        (void) fprintf(nhfp->fplog, "# closing\n");
+    if (nhfp->fplog)
+        (void) fclose(nhfp->fplog);
+    if (nhfp->fpdebug)
+        (void) fclose(nhfp->fpdebug);
     zero_nhfile(nhfp);
     free_nhfile(nhfp);
 }
@@ -449,13 +477,11 @@ close_nhfile(NHFILE *nhfp)
 void
 rewind_nhfile(NHFILE *nhfp)
 {
-    if (nhfp->structlevel) {
 #ifdef BSD
-        (void) lseek(nhfp->fd, 0L, 0);
+    (void) lseek(nhfp->fd, 0L, 0);
 #else
-        (void) lseek(nhfp->fd, (off_t) 0, 0);
+    (void) lseek(nhfp->fd, (off_t) 0, 0);
 #endif
-    }
 }
 
 staticfn NHFILE *
@@ -465,16 +491,45 @@ viable_nhfile(NHFILE *nhfp)
        the pointer to the nethack file descriptor */
     if (nhfp) {
          /* check for no open file at all,
-          * not a structlevel legacy file
+          * not a structlevel legacy file,
+          * nor a fieldlevel file.
           */
-         if (nhfp->structlevel && nhfp->fd < 0) {
+         if (((nhfp->fd == -1) && !nhfp->fpdef)
+                || (nhfp->structlevel && nhfp->fd < 0)
+                || (nhfp->fieldlevel && !nhfp->fpdef)) {
             /* not viable, start the cleanup */
+            if (nhfp->fieldlevel) {
+                if (nhfp->fpdef) {
+                    (void) fclose(nhfp->fpdef);
+                    nhfp->fpdef = (FILE *) 0;
+                }
+                if (nhfp->fplog) {
+                    (void) fprintf(nhfp->fplog, "# closing, not viable\n");
+                    (void) fclose(nhfp->fplog);
+                }
+                if (nhfp->fpdebug)
+                    (void) fclose(nhfp->fpdebug);
+            }
             zero_nhfile(nhfp);
             free_nhfile(nhfp);
             nhfp = (NHFILE *) 0;
         }
     }
     return nhfp;
+}
+
+int
+nhclose(int fd)
+{
+    int retval = 0;
+
+    if (fd >= 0) {
+        if (close_check(fd))
+            bclose(fd);
+        else
+            retval = close(fd);
+    }
+    return retval;
 }
 
 /* ----------  BEGIN LEVEL FILE HANDLING ----------- */
@@ -520,6 +575,7 @@ create_levelfile(int lev, char errbuf[])
         nhfp->addinfo = FALSE;
         nhfp->style.deflt = FALSE;
         nhfp->style.binary = TRUE;
+        nhfp->fnidx = historical;
         nhfp->fd = -1;
         nhfp->fpdef = (FILE *) 0;
 #if defined(MICRO) || defined(WIN32)
@@ -542,6 +598,9 @@ create_levelfile(int lev, char errbuf[])
             Sprintf(errbuf,
                     "Cannot create file \"%s\" for level %d (errno %d).",
                     gl.lock, lev, errno);
+#if defined(MSDOS)
+        setmode(nhfp->fd, O_BINARY);
+#endif
     }
     nhfp = viable_nhfile(nhfp);
     return nhfp;
@@ -566,6 +625,7 @@ open_levelfile(int lev, char errbuf[])
         nhfp->style.deflt = FALSE;
         nhfp->style.binary = TRUE;
         nhfp->ftype = NHF_LEVELFILE;
+        nhfp->fnidx = historical;
         nhfp->fd = -1;
         nhfp->fpdef = (FILE *) 0;
     }
@@ -583,6 +643,9 @@ open_levelfile(int lev, char errbuf[])
             Sprintf(errbuf,
                     "Cannot open file \"%s\" for level %d (errno %d).",
                     gl.lock, lev, errno);
+#if defined(MSDOS)
+        setmode(nhfp->fd, O_BINARY);
+#endif
     }
     nhfp = viable_nhfile(nhfp);
     return nhfp;
@@ -630,20 +693,6 @@ strcmp_wrap(const void *p, const void *q)
     return strcmp(*(char **) p, *(char **) q);
 }
 #endif
-
-int
-nhclose(int fd)
-{
-    int retval = 0;
-
-    if (fd >= 0) {
-        if (close_check(fd))
-            bclose(fd);
-        else
-            retval = close(fd);
-    }
-    return retval;
-}
 
 /* ----------  END LEVEL FILE HANDLING ----------- */
 
@@ -731,10 +780,23 @@ create_bonesfile(d_level *lev, char **bonesid, char errbuf[])
 
     nhfp = new_nhfile();
     if (nhfp) {
-        nhfp->structlevel = TRUE;
-        nhfp->fieldlevel = FALSE;
         nhfp->ftype = NHF_BONESFILE;
         nhfp->mode = WRITING;
+        nhfp->structlevel = TRUE;
+        nhfp->fieldlevel = FALSE;
+        nhfp->addinfo = TRUE;
+        nhfp->style.deflt = TRUE;
+        nhfp->style.binary = TRUE;
+        nhfp->fnidx = historical;
+        nhfp->fd = -1;
+        nhfp->fpdef = fopen(file, nhfp->style.binary ? WRBMODE : WRTMODE);
+        if (nhfp->fpdef) {
+#ifdef SAVEFILE_DEBUGGING
+            nhfp->fpdebug = fopen("create_bonesfile-debug.log", "a");
+#endif
+        } else {
+            failed = errno;
+        }
         if (nhfp->structlevel) {
 #if defined(MICRO) || defined(WIN32)
             /* Use O_TRUNC to force the file to be shortened if it already
@@ -751,6 +813,9 @@ create_bonesfile(d_level *lev, char **bonesid, char errbuf[])
 #endif
             if (nhfp->fd < 0)
                 failed = errno;
+#if defined(MSDOS)
+            setmode(nhfp->fd, O_BINARY);
+#endif
         }
         if (failed && errbuf)  /* failure explanation */
             Sprintf(errbuf, "Cannot create bones \"%s\", id %s (errno %d).",
@@ -814,11 +879,25 @@ open_bonesfile(d_level *lev, char **bonesid)
         nhfp->fieldlevel = FALSE;
         nhfp->ftype = NHF_BONESFILE;
         nhfp->mode = READING;
+        nhfp->addinfo = TRUE;
+        nhfp->style.deflt = TRUE;
+        nhfp->style.binary = (sysopt.bonesformat[0] != cnvascii);
+        nhfp->fnidx = sysopt.bonesformat[0];
+        nhfp->fd = -1;
+        nhfp->fpdef = fopen(fq_bones, nhfp->style.binary ? RDBMODE : RDTMODE);
+        if (nhfp->fpdef) {
+#ifdef SAVEFILE_DEBUGGING
+            nhfp->fpdebug = fopen("open_bonesfile-debug.log", "a");
+#endif
+        }
         if (nhfp->structlevel) {
 #ifdef MAC
             nhfp->fd = macopen(fq_bones, O_RDONLY | O_BINARY, BONE_TYPE);
 #else
             nhfp->fd = open(fq_bones, O_RDONLY | O_BINARY, 0);
+#endif
+#if defined(MSDOS)
+            setmode(nhfp->fd, O_BINARY);
 #endif
         }
     }
@@ -829,8 +908,11 @@ open_bonesfile(d_level *lev, char **bonesid)
 int
 delete_bonesfile(d_level *lev)
 {
+    int reslt;
+
     (void) set_bonesfile_name(gb.bones, lev);
-    return !(unlink(fqname(gb.bones, BONESPREFIX, 0)) < 0);
+    reslt = unlink(fqname(gb.bones, BONESPREFIX, 0));
+    return !(reslt < 0);
 }
 
 /* assume we're compressing the recently read or created bonesfile, so the
@@ -929,9 +1011,6 @@ set_savefile_name(boolean regularize_it)
     if (strlen(SAVE_EXTENSION) > (0) && !overflow) {
         if (strlen(gs.SAVEF) + strlen(SAVE_EXTENSION) < (SAVESIZE - 1)) {
             Strcat(gs.SAVEF, SAVE_EXTENSION);
-#ifdef MSDOS
-        sfindicator = "";
-#endif
         } else
             overflow = 3;
     }
@@ -960,8 +1039,7 @@ set_savefile_name(boolean regularize_it)
 void
 save_savefile_name(NHFILE *nhfp)
 {
-    if (nhfp->structlevel)
-        (void) write(nhfp->fd, (genericptr_t) gs.SAVEF, sizeof(gs.SAVEF));
+    Sfo_char(nhfp, gs.SAVEF, "savefile_name", sizeof(gs.SAVEF));
 }
 #endif
 
@@ -999,12 +1077,9 @@ create_savefile(void)
     fq_save = fqname(gs.SAVEF, SAVEPREFIX, 0);
     nhfp = new_nhfile();
     if (nhfp) {
-        nhfp->structlevel = TRUE;
-        nhfp->fieldlevel = FALSE;
         nhfp->ftype = NHF_SAVEFILE;
         nhfp->mode = WRITING;
         if (program_state.in_self_recover || do_historical) {
-            do_historical = TRUE;       /* force it */
             nhUse(do_historical);
             nhfp->structlevel = TRUE;
             nhfp->fieldlevel = FALSE;
@@ -1014,19 +1089,24 @@ create_savefile(void)
             nhfp->fnidx = historical;
             nhfp->fd = -1;
             nhfp->fpdef = (FILE *) 0;
-        }
-        if (nhfp->structlevel) {
+#ifdef SAVEFILE_DEBUGGING
+            nhfp->fplog = fopen("create-savefile.log", "w");
+#endif
+	}
 #if defined(MICRO) || defined(WIN32)
             nhfp->fd = open(fq_save, O_WRONLY | O_BINARY | O_CREAT | O_TRUNC,
                             FCMASK);
 #else
 #ifdef MAC
-            nhfp->fd = maccreat(fq_save, SAVE_TYPE);
+        nhfp->fd = maccreat(fq_save, SAVE_TYPE);
 #else
-            nhfp->fd = creat(fq_save, FCMASK);
+        nhfp->fd = creat(fq_save, FCMASK);
 #endif
 #endif /* MICRO || WIN32 */
-        }
+#if defined(MSDOS) || defined(WIN32)
+        if (nhfp->fd >= 0)
+            (void) setmode(nhfp->fd, O_BINARY);
+#endif
     }
 #if defined(VMS) && !defined(SECURE)
     /*
@@ -1054,8 +1134,6 @@ open_savefile(void)
     fq_save = fqname(gs.SAVEF, SAVEPREFIX, 0);
     nhfp = new_nhfile();
     if (nhfp) {
-        nhfp->structlevel = TRUE;
-        nhfp->fieldlevel = FALSE;
         nhfp->ftype = NHF_SAVEFILE;
         nhfp->mode = READING;
         if (program_state.in_self_recover || do_historical) {
@@ -1069,14 +1147,19 @@ open_savefile(void)
             nhfp->fnidx = historical;
             nhfp->fd = -1;
             nhfp->fpdef = (FILE *) 0;
-        }
-        if (nhfp->structlevel) {
-#ifdef MAC
-            nhfp->fd = macopen(fq_save, O_RDONLY | O_BINARY, SAVE_TYPE);
-#else
-            nhfp->fd = open(fq_save, O_RDONLY | O_BINARY, 0);
+#ifdef SAVEFILE_DEBUGGING
+            nhfp->fplog = fopen("open-savefile.log", "w");
 #endif
-        }
+	}
+#ifdef MAC
+        nhfp->fd = macopen(fq_save, O_RDONLY | O_BINARY, SAVE_TYPE);
+#else
+        nhfp->fd = open(fq_save, O_RDONLY | O_BINARY, 0);
+#endif
+#if defined(MSDOS) || defined(WIN32)
+        if (nhfp->fd >= 0)
+            (void) setmode(nhfp->fd, O_BINARY);
+#endif
     }
     nhfp = viable_nhfile(nhfp);
     return nhfp;
@@ -1086,7 +1169,9 @@ open_savefile(void)
 int
 delete_savefile(void)
 {
-    (void) unlink(fqname(gs.SAVEF, SAVEPREFIX, 0));
+    const char *sfname = fqname(gs.SAVEF, SAVEPREFIX, 0);
+
+    (void) unlink(sfname);
     return 0; /* for restore_saved_game() (ex-xxxmain.c) test */
 }
 
@@ -1096,16 +1181,16 @@ restore_saved_game(void)
 {
     const char *fq_save;
     NHFILE *nhfp = (NHFILE *) 0;
+    int sfstatus = 0;
 
     set_savefile_name(TRUE);
     fq_save = fqname(gs.SAVEF, SAVEPREFIX, 0);
 
     nh_uncompress(fq_save);
     if ((nhfp = open_savefile()) != 0) {
-        if (validate(nhfp, fq_save, FALSE) != 0) {
+        if ((sfstatus = validate(nhfp, fq_save, FALSE)) != SF_UPTODATE) {
             close_nhfile(nhfp);
-            nhfp = (NHFILE *) 0;
-            (void) delete_savefile();
+            nhfp = problematic_savefile(sfstatus, fq_save);
         }
     }
     return nhfp;
@@ -1165,6 +1250,7 @@ plname_from_file(
     NHFILE *nhfp;
     unsigned ln;
     char *result = 0;
+    int sfstatus = 0;
 
     Strcpy(gs.SAVEF, filename);
 #ifdef COMPRESS_EXTENSION
@@ -1179,7 +1265,8 @@ plname_from_file(
 #endif
     nh_uncompress(gs.SAVEF);
     if ((nhfp = open_savefile()) != 0) {
-        if (validate(nhfp, filename, without_wait_synch_per_file) == 0) {
+        if ((sfstatus = validate(nhfp, filename,
+                                without_wait_synch_per_file)) == SF_UPTODATE) {
             /* room for "name+role+race+gend+algn X" where the space before
                X is actually NUL and X is playmode: one of '-', 'X', or 'D' */
             ln = (unsigned) PL_NSIZ_PLUS;
@@ -1403,7 +1490,6 @@ docompress_file(const char *filename, boolean uncomp)
 #ifdef TTY_GRAPHICS
     boolean istty = WINDOWPORT(tty);
 #endif
-
 #ifdef COMPRESS_EXTENSION
     xtra = COMPRESS_EXTENSION;
 #else
@@ -1751,6 +1837,60 @@ docompress_file(const char *filename, boolean uncomp)
 #undef UNUSED_if_not_COMPRESS
 
 /* ----------  END FILE COMPRESSION HANDLING ----------- */
+
+
+/* ----------  BEGIN PROBLEMATIC SAVEFILE HANDLING ----------- */
+
+static struct sfstatus_to_msg {
+    int sfstatus;
+    const char *msg;
+} sf2msg[] = {
+    { SF_UPTODATE, "everything matches" },
+    { SF_OUTDATED, "outdated savefile" },
+    { SF_CRITICAL_BYTE_COUNT_MISMATCH,
+        "savefile critical byte-count mismatch" },
+    { SF_DM_IL32LLP64_ON_ILP32LL64, "Windows x64 savefile on x86" },
+    { SF_DM_I32LP64_ON_ILP32LL64, "Unix 64 savefile on x86" },
+    { SF_DM_ILP32LL64_ON_I32LP64, "x86 savefile on Unix 64" },
+    { SF_DM_ILP32LL64_ON_IL32LLP64, "x86 savefile on Windows x64" },
+    { SF_DM_I32LP64_ON_IL32LLP64, "Unix 64 savefile on Windows x64" },
+    { SF_DM_IL32LLP64_ON_I32LP64, "Windows x64 savefile on Unix 64" },
+    { SF_DM_MISMATCH, "generic savefile mismatch" },
+};
+
+staticfn NHFILE *
+problematic_savefile(int sfstatus, const char *savefilenm)
+{
+    int i;
+    NHFILE *nhfp = (NHFILE *) 0;
+
+    switch (sfstatus) {
+    case SF_UPTODATE:
+        break;
+    case SF_DM_IL32LLP64_ON_ILP32LL64:
+    case SF_DM_I32LP64_ON_ILP32LL64:
+    case SF_DM_ILP32LL64_ON_I32LP64:
+    case SF_DM_ILP32LL64_ON_IL32LLP64:
+    case SF_DM_I32LP64_ON_IL32LLP64:
+    case SF_DM_IL32LLP64_ON_I32LP64:
+    case SF_DM_MISMATCH:
+    case SF_OUTDATED:
+    case SF_CRITICAL_BYTE_COUNT_MISMATCH:
+    default:
+        for (i = 0; i < SIZE(sf2msg); ++i) {
+            if (sf2msg[i].sfstatus == sfstatus) {
+                raw_printf("\n%s is %s %s\n",
+                           savefilenm,
+                           (sfstatus == SF_OUTDATED) ? "an" : "a",
+                           sf2msg[i].msg);
+                break;
+            }
+        }
+    }
+    return nhfp;
+}
+
+/* ----------  END PROBLEMATIC SAVEFILE HANDLING ----------- */
 
 /* ----------  BEGIN FILE LOCKING HANDLING ----------- */
 
@@ -2413,18 +2553,22 @@ testinglog(const char *filenm,   /* ad hoc file name */
 #ifdef SELF_RECOVER
 
 /* ----------  BEGIN INTERNAL RECOVER ----------- */
+
+extern uchar critical_sizes[], cscbuf[];  /* version.c */
+
 boolean
 recover_savefile(void)
 {
     NHFILE *gnhfp, *lnhfp, *snhfp;
-    int lev, savelev, hpid, pltmpsiz;
+    int lev, savelev, hpid,
+        pltmpsiz, cscount = get_critical_size_count();
     xint8 levc;
     struct version_info version_data;
     int processed[256];
-    char savename[SAVESIZE], errbuf[BUFSZ], indicator;
+    char savename[SAVESIZE], errbuf[BUFSZ], indicator, file_cscount;
     char tmpplbuf[PL_NSIZ_PLUS];
     const char *savewrite_failure = (const char *) 0;
-    int ccbresult = 0;
+    off_t filesz = 0;
 
     for (lev = 0; lev < 256; lev++)
         processed[lev] = 0;
@@ -2441,6 +2585,30 @@ recover_savefile(void)
     if (!gnhfp) {
         raw_printf("%s\n", errbuf);
         return FALSE;
+    }
+    filesz = lseek(gnhfp->fd, 0L, SEEK_END);
+    (void) lseek(gnhfp->fd, 0L, SEEK_SET);
+    if ((size_t) filesz <  (sizeof hpid
+                   + sizeof lev
+                   + sizeof savename
+                   + sizeof indicator
+                   + sizeof file_cscount
+                   + sizeof version_data + sizeof pltmpsiz)) {
+        const char *fq_save;
+
+        /* this indicates a .0 file that was created as part of
+         * recover that did not complete. There could be an intact
+         * savefile already there. Check for that and return TRUE
+         * if there is. */
+        set_savefile_name(TRUE);
+        fq_save = fqname(gs.SAVEF, SAVEPREFIX, 0);
+        if (access(fq_save, F_OK) == 0) {
+            close_nhfile(gnhfp);
+            delete_levelfile(0);
+            return TRUE;
+        } else {
+            /* savefile doesn't exist, so fall through */
+        }
     }
     if (read(gnhfp->fd, (genericptr_t) &hpid, sizeof hpid) != sizeof hpid) {
         raw_printf("\n%s\n%s\n",
@@ -2463,7 +2631,11 @@ recover_savefile(void)
          != sizeof savename)
         || (read(gnhfp->fd, (genericptr_t) &indicator, sizeof indicator)
             != sizeof indicator)
-        || ((ccbresult = compare_critical_bytes(gnhfp)) != 0)
+        || (read(gnhfp->fd, (genericptr_t) &file_cscount, sizeof file_cscount)
+            != sizeof file_cscount)
+        || (file_cscount <= cscount
+            && read(gnhfp->fd, (genericptr_t) &cscbuf, file_cscount)
+                    != file_cscount)
         || (read(gnhfp->fd, (genericptr_t) &version_data, sizeof version_data)
             != sizeof version_data)
         || (read(gnhfp->fd, (genericptr_t) &pltmpsiz, sizeof pltmpsiz)
@@ -2476,7 +2648,9 @@ recover_savefile(void)
     }
 
     /* save file should contain:
-     *  format indicator and critical_bytes
+     *  format indicator (1 byte)
+     *  n = count of critical size list (1 byte)
+     *  n bytes of critical sizes (n bytes)
      *  version info
      *  plnametmp = player name size (int, 2 bytes)
      *  player name (PL_NSIZ_PLUS)
@@ -2486,6 +2660,7 @@ recover_savefile(void)
      */
 
     /*
+     *
      * Set a flag for the savefile routines to know the
      * circumstances and act accordingly:
      *    program_state.in_self_recover
@@ -2509,21 +2684,19 @@ recover_savefile(void)
     }
 
     store_version(snhfp);
+
     if (savewrite_failure)
         goto cleanup;
 
-    if (snhfp->structlevel) {
-        if (write(snhfp->fd, (genericptr_t) &pltmpsiz, sizeof pltmpsiz)
-            != sizeof pltmpsiz)
-            savewrite_failure = "player name size";
-    }
+    /* TODO: this is not a single byte, so a big-endian byte swap
+     * might be necessary here, if anyone is concerned about big-endian */
+    Sfo_int(snhfp, &pltmpsiz, "plname-size");
+    savewrite_failure = (const char *) 0;
     if (savewrite_failure)
         goto cleanup;
 
-    if (snhfp->structlevel) {
-        if (write(snhfp->fd, (genericptr_t) &tmpplbuf, pltmpsiz) != pltmpsiz)
-            savewrite_failure = "player name";
-    }
+    Sfo_char(snhfp, tmpplbuf, "plname", pltmpsiz);
+    savewrite_failure = (const char *) 0;
     if (savewrite_failure)
         goto cleanup;
 
@@ -3173,7 +3346,6 @@ Death_quote(char *buf, int bufsz)
 }
 
 /* ----------  END TRIBUTE ----------- */
-
 #ifdef LIVELOG
 #define LLOG_SEP "\t" /* livelog field separator, as a string literal */
 #define LLOG_EOL "\n" /* end-of-line, for abstraction consistency */

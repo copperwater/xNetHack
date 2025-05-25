@@ -1264,6 +1264,8 @@ get_nh_lua_variables(void)
 
 RESTORE_WARNING_UNREACHABLE_CODE
 
+/* char *lua_data; */
+
 /* save nh_lua_variables table to file */
 void
 save_luadata(NHFILE *nhfp)
@@ -1274,11 +1276,8 @@ save_luadata(NHFILE *nhfp)
     if (!lua_data)
         lua_data = dupstr(emptystr);
     lua_data_len = Strlen(lua_data) + 1; /* +1: include the terminator */
-    if (nhfp->structlevel) {
-        bwrite(nhfp->fd, (genericptr_t) &lua_data_len,
-               (unsigned) sizeof lua_data_len);
-        bwrite(nhfp->fd, (genericptr_t) lua_data, lua_data_len);
-    }
+    Sfo_unsigned(nhfp, &lua_data_len, "luadata-lua_data_len");
+    Sfo_char(nhfp, lua_data, "lua_data", lua_data_len);
     free(lua_data);
 }
 
@@ -1288,14 +1287,10 @@ restore_luadata(NHFILE *nhfp)
 {
     unsigned lua_data_len = 0;
     char *lua_data;
-    if (nhfp->structlevel) {
-        mread(nhfp->fd, (genericptr_t) &lua_data_len,
-              (unsigned) sizeof lua_data_len);
-    }
+
+    Sfi_unsigned(nhfp, &lua_data_len, "luadata-lua_data_len");
     lua_data = (char *) alloc(lua_data_len);
-    if (nhfp->structlevel) {
-        mread(nhfp->fd, (genericptr_t) lua_data, lua_data_len);
-    }
+    Sfi_char(nhfp, lua_data, "luadata", lua_data_len);
     if (!gl.luacore)
         l_nhcore_init();
     luaL_loadstring(gl.luacore, lua_data);

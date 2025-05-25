@@ -296,6 +296,9 @@ struct instance_globals_c {
     short corpsenm_digested; /* monster type being digested, set by gulpum */
 
     /* zap.c */
+    /* new */
+    boolean converted_savefile_loaded;
+
     boolean havestate;
 };
 
@@ -735,7 +738,6 @@ struct instance_globals_o {
 
     /* rumors.c */
     int oracle_flg; /* -1=>don't use, 0=>need init, 1=>init done */
-    unsigned long *oracle_loc;
 
     /* uhitm.c */
     boolean override_confirmation; /* Used to flag attacks caused by
@@ -1169,6 +1171,8 @@ struct instance_globals_saved_n {
 struct instance_globals_saved_o {
     /* rumors.c */
     unsigned oracle_cnt; /* oracles are handled differently from rumors... */
+    unsigned long *oracle_loc;
+
     /* other */
     long omoves;  /* level timestamp */
 };

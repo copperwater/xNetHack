@@ -1,9 +1,326 @@
 /* NetHack 3.7	sfstruct.c	$NHDT-Date: 1606765215 2020/11/30 19:40:15 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.4 $ */
 /* Copyright (c) Stichting Mathematisch Centrum, Amsterdam, 1985. */
-/*-Copyright (c) Michael Allison, 2009. */
+/*-Copyright (c) Michael Allison, 2025. */
 /* NetHack may be freely redistributed.  See license for details. */
 
 #include "hack.h"
+#include "sfprocs.h"
+
+/* #define SFLOGGING */          /* debugging */
+
+/* historical full struct savings */
+
+#ifdef SAVEFILE_DEBUGGING
+#if defined(__GNUC__)
+#define DEBUGFORMATSTR64 "%s %s %ld %ld %d\n"
+#elif defined(_MSC_VER)
+#define DEBUGFORMATSTR64 "%s %s %lld %ld %d\n"
+#endif
+#endif
+
+#ifdef SFLOGGING
+staticfn void logging_finish(void);
+#endif
+
+#define SFO_BODY(dt) \
+{                                                                                   \
+    bwrite(nhfp->fd, (genericptr_t) d_##dt, sizeof *d_##dt);                        \
+}
+
+#define SFI_BODY(dt) \
+{                                                                                   \
+    mread(nhfp->fd, (genericptr_t) d_##dt, sizeof *d_##dt);                         \
+    if (restoreinfo.mread_flags == -1)                                              \
+        nhfp->eof = TRUE;                                                           \
+}
+
+#define SF_A(dtyp) \
+void historical_sfo_##dtyp(NHFILE *, dtyp *d_##dtyp, const char *);                 \
+void historical_sfi_##dtyp(NHFILE *, dtyp *d_##dtyp, const char *);                 \
+                                                                                    \
+void historical_sfo_##dtyp(NHFILE *nhfp, dtyp *d_##dtyp,                            \
+                           const char *myname UNUSED)                               \
+    SFO_BODY(dtyp)                                                                  \
+                                                                                    \
+void historical_sfi_##dtyp(NHFILE *nhfp, dtyp *d_##dtyp,                            \
+                  const char *myname UNUSED)                                        \
+    SFI_BODY(dtyp)
+
+
+#define SF_C(keyw, dtyp) \
+void historical_sfo_##dtyp(NHFILE *, keyw dtyp *d_##dtyp,                           \
+                           const char *);                                           \
+void historical_sfi_##dtyp(NHFILE *, keyw dtyp *d_##dtyp,                           \
+                           const char *);                                           \
+                                                                                    \
+void historical_sfo_##dtyp(NHFILE *nhfp, keyw dtyp *d_##dtyp,                       \
+                           const char *myname UNUSED)                               \
+    SFO_BODY(dtyp)                                                                  \
+                                                                                    \
+void historical_sfi_##dtyp(NHFILE *nhfp, keyw dtyp *d_##dtyp,                       \
+                           const char *myname UNUSED)                               \
+    SFI_BODY(dtyp)
+
+#define SF_X(xxx, dtyp) \
+void historical_sfo_##dtyp(NHFILE *, xxx *d_##dtyp, const char *, int);             \
+void historical_sfi_##dtyp(NHFILE *, xxx *d_##dtyp, const char *, int);             \
+                                                                                    \
+void historical_sfo_##dtyp(NHFILE *nhfp, xxx *d_##dtyp,                             \
+                           const char *myname UNUSED, int bflen UNUSED)             \
+    SFO_BODY(dtyp)                                                                  \
+                                                                                    \
+void historical_sfi_##dtyp(NHFILE *nhfp, xxx *d_##dtyp,                             \
+                           const char *myname UNUSED, int bflen UNUSED)             \
+    SFI_BODY(dtyp)
+
+SF_C(struct, arti_info)
+SF_C(struct, nhrect)
+SF_C(struct, branch)
+SF_C(struct, bubble)
+SF_C(struct, cemetery)
+SF_C(struct, context_info)
+SF_C(struct, nhcoord)
+SF_C(struct, damage)
+SF_C(struct, dest_area)
+SF_C(struct, dgn_topology)
+SF_C(struct, dungeon)
+SF_C(struct, d_level)
+SF_C(struct, ebones)
+SF_C(struct, edog)
+SF_C(struct, egd)
+SF_C(struct, emin)
+SF_C(struct, engr)
+SF_C(struct, epri)
+SF_C(struct, eshk)
+SF_C(struct, fe)
+SF_C(struct, flag)
+SF_C(struct, fruit)
+SF_C(struct, gamelog_line)
+SF_C(struct, kinfo)
+SF_C(struct, levelflags)
+SF_C(struct, ls_t)
+SF_C(struct, linfo)
+SF_C(struct, mapseen_feat)
+SF_C(struct, mapseen_flags)
+SF_C(struct, mapseen_rooms)
+SF_C(struct, mkroom)
+SF_C(struct, monst)
+SF_C(struct, mvitals)
+SF_C(struct, obj)
+SF_C(struct, objclass)
+SF_C(struct, q_score)
+SF_C(struct, rm)
+SF_C(struct, spell)
+SF_C(struct, stairway)
+SF_C(struct, s_level)
+SF_C(struct, trap)
+SF_C(struct, version_info)
+SF_C(struct, you)
+
+SF_C(union, any)
+SF_A(aligntyp)
+SF_A(boolean)
+SF_A(coordxy)
+SF_A(genericptr_t)
+SF_A(int)
+SF_A(int16)
+SF_A(int32)
+SF_A(int64)
+SF_A(long)
+SF_A(schar)
+SF_A(short)
+SF_A(size_t)
+SF_A(time_t)
+SF_A(uchar)
+SF_A(uint16)
+SF_A(uint32)
+SF_A(uint64)
+SF_A(ulong)
+SF_A(unsigned)
+SF_A(ushort)
+SF_A(xint16)
+SF_A(xint8)
+
+void historical_sfo_char(NHFILE *, char *d_char, const char *, int);
+void historical_sfi_char(NHFILE *, char *d_char, const char *, int);
+
+void
+historical_sfo_char(NHFILE *nhfp, char *d_char,
+                    const char *myname UNUSED, int cnt)
+{
+    bwrite(nhfp->fd, (genericptr_t) d_char, cnt * sizeof (char));
+}
+
+void
+historical_sfi_char(NHFILE *nhfp, char *d_char,
+                    const char *myname UNUSED, int cnt)
+{
+    mread(nhfp->fd, (genericptr_t) d_char, cnt * sizeof (char));
+    if (restoreinfo.mread_flags == -1)
+        nhfp->eof = TRUE;
+}
+
+SF_X(uint8_t, bitfield)
+
+struct sf_structlevel_procs historical_sfo_procs = {
+    "",
+    /* sf */
+    {
+        historical_sfo_arti_info,
+        historical_sfo_nhrect,
+        historical_sfo_branch,
+        historical_sfo_bubble,
+        historical_sfo_cemetery,
+        historical_sfo_context_info,
+        historical_sfo_nhcoord,
+        historical_sfo_damage,
+        historical_sfo_dest_area,
+        historical_sfo_dgn_topology,
+        historical_sfo_dungeon,
+        historical_sfo_d_level,
+        historical_sfo_ebones,
+        historical_sfo_edog,
+        historical_sfo_egd,
+        historical_sfo_emin,
+        historical_sfo_engr,
+        historical_sfo_epri,
+        historical_sfo_eshk,
+        historical_sfo_fe,
+        historical_sfo_flag,
+        historical_sfo_fruit,
+        historical_sfo_gamelog_line,
+        historical_sfo_kinfo,
+        historical_sfo_levelflags,
+        historical_sfo_ls_t,
+        historical_sfo_linfo,
+        historical_sfo_mapseen_feat,
+        historical_sfo_mapseen_flags,
+        historical_sfo_mapseen_rooms,
+        historical_sfo_mkroom,
+        historical_sfo_monst,
+        historical_sfo_mvitals,
+        historical_sfo_obj,
+        historical_sfo_objclass,
+        historical_sfo_q_score,
+        historical_sfo_rm,
+        historical_sfo_spell,
+        historical_sfo_stairway,
+        historical_sfo_s_level,
+        historical_sfo_trap,
+        historical_sfo_version_info,
+        historical_sfo_you,
+        historical_sfo_any,
+
+        historical_sfo_aligntyp,
+        historical_sfo_boolean,
+        historical_sfo_coordxy,
+        historical_sfo_genericptr_t,
+        historical_sfo_int,
+        historical_sfo_int16,
+        historical_sfo_int32,
+        historical_sfo_int64,
+        historical_sfo_long,
+        historical_sfo_schar,
+        historical_sfo_short,
+        historical_sfo_size_t,
+        historical_sfo_time_t,
+        historical_sfo_uchar,
+        historical_sfo_uint16,
+        historical_sfo_uint32,
+        historical_sfo_uint64,
+        historical_sfo_ulong,
+        historical_sfo_unsigned,
+        historical_sfo_ushort,
+        historical_sfo_xint16,
+        historical_sfo_xint8,
+        historical_sfo_char,
+        historical_sfo_bitfield,
+    }
+};
+
+struct sf_structlevel_procs historical_sfi_procs = {
+    "",
+    /* sf */
+    {
+        historical_sfi_arti_info,
+        historical_sfi_nhrect,
+        historical_sfi_branch,
+        historical_sfi_bubble,
+        historical_sfi_cemetery,
+        historical_sfi_context_info,
+        historical_sfi_nhcoord,
+        historical_sfi_damage,
+        historical_sfi_dest_area,
+        historical_sfi_dgn_topology,
+        historical_sfi_dungeon,
+        historical_sfi_d_level,
+        historical_sfi_ebones,
+        historical_sfi_edog,
+        historical_sfi_egd,
+        historical_sfi_emin,
+        historical_sfi_engr,
+        historical_sfi_epri,
+        historical_sfi_eshk,
+        historical_sfi_fe,
+        historical_sfi_flag,
+        historical_sfi_fruit,
+        historical_sfi_gamelog_line,
+        historical_sfi_kinfo,
+        historical_sfi_levelflags,
+        historical_sfi_ls_t,
+        historical_sfi_linfo,
+        historical_sfi_mapseen_feat,
+        historical_sfi_mapseen_flags,
+        historical_sfi_mapseen_rooms,
+        historical_sfi_mkroom,
+        historical_sfi_monst,
+        historical_sfi_mvitals,
+        historical_sfi_obj,
+        historical_sfi_objclass,
+        historical_sfi_q_score,
+        historical_sfi_rm,
+        historical_sfi_spell,
+        historical_sfi_stairway,
+        historical_sfi_s_level,
+        historical_sfi_trap,
+        historical_sfi_version_info,
+        historical_sfi_you,
+        historical_sfi_any,
+
+        historical_sfi_aligntyp,
+        historical_sfi_boolean,
+        historical_sfi_coordxy,
+        historical_sfi_genericptr_t,
+        historical_sfi_int,
+        historical_sfi_int16,
+        historical_sfi_int32,
+        historical_sfi_int64,
+        historical_sfi_long,
+        historical_sfi_schar,
+        historical_sfi_short,
+        historical_sfi_size_t,
+        historical_sfi_time_t,
+        historical_sfi_uchar,
+        historical_sfi_uint16,
+        historical_sfi_uint32,
+        historical_sfi_uint64,
+        historical_sfi_ulong,
+        historical_sfi_unsigned,
+        historical_sfi_ushort,
+        historical_sfi_xint16,
+        historical_sfi_xint8,
+        historical_sfi_char,
+        historical_sfi_bitfield,
+    }
+};
+
+/*
+ * The historical bwrite() and mread() functions follow
+ */
+
+#ifdef SAVEFILE_DEBUGGING
+static long floc = 0L;
+#endif
 
 /*
  * historical structlevel savefile writing and reading routines follow.
@@ -27,6 +344,19 @@ static int bw_buffered[MAXFD] = {0,0,0,0,0};
 #ifdef USE_BUFFERING
 static FILE *bw_FILE[MAXFD] = {0,0,0,0,0};
 #endif
+
+#ifdef SFLOGGING
+static FILE *ofp[20] = { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+                         0, 0, 0, 0, 0, 0, 0, 0, 0, 0 };
+    char ofnamebuf[80];
+    static long ocnt = 0L;
+
+    static FILE *ifp[20] = { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+                             0, 0, 0, 0, 0, 0, 0, 0, 0, 0 };
+    char ifnamebuf[80];
+    static long icnt = 0L;
+#endif
+
 
 /*
  * Presumably, the fdopen() to allow use of stdio fwrite()
@@ -146,6 +476,17 @@ bclose(int fd)
         /* return the idx to the pool */
         bw_sticky[idx] = -1;
     }
+#ifdef SFLOGGING
+    if (fd >= 0 && fd <= SIZE(ofp)) {
+        if (ofp[fd]) {
+            fclose(ofp[fd]);
+            ofp[fd] = 0;
+        } else if (ifp[fd]) {
+            fclose(ifp[fd]);
+            ifp[fd] = 0;
+        }
+    }
+#endif
     return;
 }
 
@@ -170,6 +511,20 @@ bwrite(int fd, const genericptr_t loc, unsigned num)
 {
     boolean failed;
     int idx = getidx(fd, NOFLG);
+
+#ifdef SFLOGGING
+    if (fd >= 0 && fd < SIZE(ofp)) {
+        if (!ofp[fd]) {
+            Snprintf(ofnamebuf, sizeof ofnamebuf, "bwrite_%02d.log", fd);
+            ofp[fd] = fopen(ofnamebuf, "w");
+        }
+        if (ofp[fd]) {
+            fprintf(ofp[fd], "%08ld, %08ld, %d\n", ocnt,
+                    ftell(ofp[fd]), num);
+            ocnt++;
+	}
+    }
+#endif
 
     if (idx >= 0) {
         if (num == 0) {
@@ -209,7 +564,22 @@ bwrite(int fd, const genericptr_t loc, unsigned num)
 void
 mread(int fd, genericptr_t buf, unsigned len)
 {
-#if defined(BSD) || defined(ULTRIX)
+
+#ifdef SFLOGGING
+    if (fd >= 0 && fd < 9) {
+        if (!ifp[fd]) {
+            Snprintf(ifnamebuf, sizeof ifnamebuf, "mread_%02d.log", fd);
+            ifp[fd] = fopen(ifnamebuf, "w");
+        }
+        if (ifp[fd]) {
+            fprintf(ifp[fd], "%08ld, %08ld, %d\n", icnt,
+                    ftell(ifp[fd]), (int) len);
+            icnt++;
+	}
+    }
+#endif
+
+#if defined(BSD) || defined(ULTRIX) || defined(WIN32)
 #define readLenType int
 #else /* e.g. SYSV, __TURBOC__ */
 #define readLenType unsigned
@@ -234,4 +604,28 @@ mread(int fd, genericptr_t buf, unsigned len)
     }
 }
 
+
+#ifdef SFLOGGING
+staticfn void
+logging_finish(void)
+{
+    int i;
+
+    for (i = 0; i < SIZE(ofp); ++i) {
+        if (ofp[i]) {
+            fclose(ofp[i]);
+            ofp[i] = 0;
+        }
+    }
+    ocnt = 0L;
+
+    for (i = 0; i < SIZE(ifp); ++i) {
+        if (ifp[i]) {
+            fclose(ifp[i]);
+            ifp[i] = 0;
+        }
+    }
+    icnt = 0L;
+}
+#endif
 

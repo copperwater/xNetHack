@@ -12,8 +12,15 @@
 #include "win32api.h"
 #endif
 
+#define RECOVER_C
+
 #include "config.h"
 #include "hacklib.h"
+
+#include "artifact.h"
+#include "rect.h"
+#include "dungeon.h"
+#include "hack.h"
 
 #if !defined(O_WRONLY) && !defined(LSC) && !defined(AZTEC_C)
 #include <fcntl.h>
@@ -267,10 +274,12 @@ restore_savefile(char *basename)
     }
 
     /* save file should contain:
-     *  format indicator and cmc
+     *  format indicator (1 byte)
+     *  n = count of critical size list (1 byte)
+     *  n bytes of critical sizes (n bytes)
      *  version info
-     *  savefile info
-     *  player name
+     *  plnametmp = player name size (int, 2 bytes)
+     *  player name (PL_NSIZ_PLUS)
      *  current level (including pets)
      *  (non-level-based) game state
      *  other levels

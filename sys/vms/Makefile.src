@@ -174,15 +174,18 @@ VERSOURCES = $(HACKCSRC) $(SYSSRC) $(WINSRC) $(RANDSRC) $(GENCSRC)
 # all .h files except date.h which would
 # cause dependency loops if run through "make depend"
 #
-HACKINCL = align.h artifact.h artilist.h attrib.h color.h \
-	   config.h config1.h context.h coord.h decl.h defsym.h display.h \
-	   dlb.h dungeon.h engrave.h extern.h flag.h func_tab.h global.h \
-	   hack.h hacklib.h mextra.h mfndpos.h micro.h mkroom.h \
-	   monattk.h mondata.h monflag.h monst.h sym.h obj.h objclass.h \
-	   patchlevel.h pcconf.h permonst.h prop.h rect.h \
-	   region.h sym.h defsym.h rm.h sp_lev.h spell.h sys.h system.h \
-	   tcap.h timeout.h tradstdc.h trap.h unixconf.h vision.h \
-	   vmsconf.h wintty.h winX.h winprocs.h wintype.h you.h youprop.h
+HACKINCL = align.h artifact.h artilist.h attrib.h botl.h \
+	color.h config.h config1.h context.h coord.h cstd.h decl.h \
+	defsym.h display.h dlb.h dungeon.h engrave.h extern.h flag.h \
+	fnamesiz.h func_tab.h global.h warnings.h hack.h lint.h mextra.h \
+	micro.h mkroom.h monattk.h mondata.h monflag.h monst.h monsters.h \
+	mfndpos.h nhmd4.h obj.h objects.h objclass.h optlist.h patchlevel.h \
+	pcconf.h permonst.h prop.h rect.h region.h savefile.h selvar.h sym.h \
+	rm.h sp_lev.h spell.h sndprocs.h seffects.h stairs.h sys.h \
+	tcap.h timeout.h tradstdc.h trap.h unixconf.h vision.h vmsconf.h \
+	wintty.h wincurs.h winX.h winprocs.h wintype.h you.h youprop.h \
+	weight.h
+
 
 #HSOURCES = $(HACKINCL) date.h onames.h pm.h
 
