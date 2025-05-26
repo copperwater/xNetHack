@@ -1515,6 +1515,8 @@ Fire and Frost Brand can be invoked for expert level fireball or cone of cold
 wielding Trollsbane grants hungerless regeneration
 hitting with Ogresmasher gives a higher chance of knockback
 Snickersnee can hit at a distance once per turn for free
+the engraving pristine text field was not being appropriately populated during
+       level creation
 
 
 Fixes to 3.7.0-x General Problems Exposed Via git Repository

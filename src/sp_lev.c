@@ -3912,7 +3912,7 @@ lspo_engraving(lua_State *L)
         ecoord = SP_COORD_PACK(x, y);
 
     get_location_coord(&x, &y, DRY, gc.coder->croom, ecoord);
-    make_engr_at(x, y, txt, 0L, etyp);
+    make_engr_at(x, y, txt, NULL, 0L, etyp);
     Free(txt);
     ep = engr_at(x, y);
     if (ep) {

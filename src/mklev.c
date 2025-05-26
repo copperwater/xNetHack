@@ -763,7 +763,7 @@ makeniche(int trap_type)
                         ttmp->once = 1;
                     if (trap_engravings[trap_type]) {
                         make_engr_at(xx, yy - dy,
-                                     trap_engravings[trap_type], 0L,
+                                     trap_engravings[trap_type], NULL, 0L,
                                      DUST);
                         wipe_engr_at(xx, yy - dy, 5,
                                      FALSE); /* age it a little */
@@ -1136,8 +1136,8 @@ fill_ordinary_room(
 
     /* maybe make some graffiti */
     if (!rn2(27 + 3 * abs(depth(&u.uz)))) {
-        char buf[BUFSZ];
-        const char *mesg = random_engraving(buf);
+        char buf[BUFSZ], pristinebuf[BUFSZ];
+        const char *mesg = random_engraving(buf, pristinebuf);
 
         if (mesg) {
             do {
@@ -1146,7 +1146,7 @@ fill_ordinary_room(
                 y = pos.y;
             } while (levl[x][y].typ != ROOM && !rn2(40));
             if (levl[x][y].typ == ROOM)
-                make_engr_at(x, y, mesg, 0L, MARK);
+                make_engr_at(x, y, mesg, pristinebuf, 0L, MARK);
         }
     }
 

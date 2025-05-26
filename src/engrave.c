@@ -48,15 +48,16 @@ staticfn int engrave(void);
 staticfn const char *blengr(void);
 
 char *
-random_engraving(char *outbuf)
+random_engraving(char *outbuf, char *pristine_copy)
 {
     const char *rumor;
 
     /* a random engraving may come from the "rumors" file,
        or from the "engrave" file (formerly in an array here) */
-    if (!rn2(4) || !(rumor = getrumor(0, outbuf, TRUE)) || !*rumor)
-        (void) get_rnd_text(ENGRAVEFILE, outbuf, rn2, MD_PAD_RUMORS);
+    if (!rn2(4) || !(rumor = getrumor(0, pristine_copy, TRUE)) || !*rumor)
+        (void) get_rnd_text(ENGRAVEFILE, pristine_copy, rn2, MD_PAD_RUMORS);
 
+    Strcpy(outbuf, pristine_copy);
     wipeout_text(outbuf, (int) (strlen(outbuf) / 4), 0);
     return outbuf;
 }
@@ -391,13 +392,21 @@ void
 make_engr_at(
     coordxy x, coordxy y,
     const char *s,
+    const char *pristine_s,
     long e_time,
     int e_type)
 {
     int i;
     struct engr *ep;
     unsigned smem = Strlen(s) + 1;
+    boolean havepristine = FALSE;
 
+    if (pristine_s != NULL) {
+        unsigned prmem = Strlen(pristine_s) + 1;
+        if (prmem > smem)
+            smem = prmem;
+        havepristine = TRUE;
+    }
     if ((ep = engr_at(x, y)) != 0)
         del_engr(ep);
 
@@ -412,6 +421,8 @@ make_engr_at(
     ep->engr_txt[pristine_text] = ep->engr_txt[remembered_text] + smem;
     for(i = 0; i < text_states; ++i)
         Strcpy(ep->engr_txt[i], s);
+    if (havepristine)
+        Strcpy(ep->engr_txt[pristine_text], pristine_s);
     if (!strcmp(s, "Elbereth")) {
         /* engraving "Elbereth":  if done when making a level, it creates
            an old-style Elbereth that deters monsters when any objects are
@@ -591,7 +602,7 @@ doengrave_sfx_item_WAN(struct _doengrave_ctx *de)
         if (de->oep) {
             if (!Blind) {
                 de->type = (xint16) 0; /* random */
-                (void) random_engraving(de->buf);
+                (void) random_engraving(de->buf, de->ebuf);
             } else {
                 /* keep the same type so that feels don't
                    change and only the text is altered,
@@ -1036,7 +1047,7 @@ doengrave(void)
     if (*de->buf) {
         struct engr *tmp_ep;
 
-        make_engr_at(u.ux, u.uy, de->buf, svm.moves, de->type);
+        make_engr_at(u.ux, u.uy, de->buf, de->ebuf, svm.moves, de->type);
         tmp_ep = engr_at(u.ux, u.uy);
         if (!Blind) {
             if (tmp_ep != 0) {
@@ -1422,7 +1433,7 @@ engrave(void)
 
     (void) strncat(buf, svc.context.engraving.nextc,
                    min(space_left, endc - svc.context.engraving.nextc));
-    make_engr_at(u.ux, u.uy, buf, svm.moves - gm.multi,
+    make_engr_at(u.ux, u.uy, buf, NULL, svm.moves - gm.multi,
                  svc.context.engraving.type);
     oep = engr_at(u.ux, u.uy);
     if (oep) {
@@ -1662,7 +1673,7 @@ make_grave(coordxy x, coordxy y, const char *str)
     del_engr_at(x, y);
     if (!str)
         str = get_rnd_text(EPITAPHFILE, buf, rn2, MD_PAD_RUMORS);
-    make_engr_at(x, y, str, 0L, HEADSTONE);
+    make_engr_at(x, y, str, NULL, 0L, HEADSTONE);
     return;
 }
 

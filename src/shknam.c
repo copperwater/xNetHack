@@ -755,7 +755,7 @@ stock_room(int shp_indx, struct mkroom *sroom)
         else if (inside_shop(sx, sy - 1))
             n++;
         Sprintf(buf, "Closed for inventory");
-        make_engr_at(m, n, buf, 0L, DUST);
+        make_engr_at(m, n, buf, NULL, 0L, DUST);
         if (levl[m][n].typ != CORR && levl[m][n].typ != ROOM)
             levl[m][n].typ = (Is_special(&u.uz)
                               || *in_rooms(m, n, 0)) ? ROOM : CORR;

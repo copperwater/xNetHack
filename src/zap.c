@@ -3628,7 +3628,7 @@ zap_map(
     ttmp = t_at(x, y); /* refresh in case trap was altered or is gone */
 
     if (u.dz > 0) { /* zapping down */
-        char ebuf[BUFSZ];
+        char ebuf[BUFSZ], pristinebuf[BUFSZ], *etxt;
         struct engr *e = engr_at(x, y);
 
         /* subset of engraving effects; none sets `disclose' */
@@ -3637,7 +3637,8 @@ zap_map(
             case WAN_POLYMORPH:
             case SPE_POLYMORPH:
                 del_engr(e);
-                make_engr_at(x, y, random_engraving(ebuf), svm.moves, 0);
+                etxt = random_engraving(ebuf, pristinebuf);
+                make_engr_at(x, y, etxt, pristinebuf, svm.moves, 0);
                 break;
             case WAN_CANCELLATION:
             case SPE_CANCELLATION:

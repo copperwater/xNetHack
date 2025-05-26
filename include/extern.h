@@ -975,7 +975,7 @@ extern char *build_english_list(char *) NONNULLARG1;
 
 /* ### engrave.c ### */
 
-extern char *random_engraving(char *) NONNULLARG1;
+extern char *random_engraving(char *, char *) NONNULLARG12;
 extern void wipeout_text(char *, int, unsigned) NONNULLARG1;
 extern boolean can_reach_floor(boolean);
 extern void cant_reach_floor(coordxy, coordxy, boolean, boolean);
@@ -984,7 +984,7 @@ extern struct engr *sengr_at(const char *, coordxy, coordxy, boolean) NONNULLARG
 extern void u_wipe_engr(int);
 extern void wipe_engr_at(coordxy, coordxy, xint16, boolean);
 extern void read_engr_at(coordxy, coordxy);
-extern void make_engr_at(coordxy, coordxy, const char *, long, int) NONNULLARG3;
+extern void make_engr_at(coordxy, coordxy, const char *, const char *, long, int) NONNULLARG3;
 extern void del_engr_at(coordxy, coordxy);
 extern int freehand(void);
 extern int doengrave(void);
