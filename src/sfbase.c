@@ -65,8 +65,6 @@ void sf_log(NHFILE *, const char *, size_t, int, char *);
 #define Sfvalue_ushort(a) sfvalue_ushort(a)
 #define Sfvalue_int(a) sfvalue_int(a)
 #define Sfvalue_unsigned(a) sfvalue_unsigned(a)
-#define Sfvalue_long(a) sfvalue_long(a)
-#define Sfvalue_ulong(a) sfvalue_ulong(a)
 #define Sfvalue_xint8(a) sfvalue_xint8(a)
 #define Sfvalue_xint16(a) sfvalue_xint16(a)
 
@@ -83,8 +81,6 @@ void sf_log(NHFILE *, const char *, size_t, int, char *);
         uint16_t *: sfvalue_uint16,      \
         uint32_t *: sfvalue_uint32,      \
         uint64_t *: sfvalue_uint64,      \
-        long *: sfvalue_long,            \
-        unsigned long *: sfvalue_ulong,  \
         xint8 *: sfvalue_xint8           \
     )(x)
 
@@ -107,13 +103,13 @@ void sf_log(NHFILE *, const char *, size_t, int, char *);
 #define Sfvalue_ushort(a) sfvalue(a)
 #define Sfvalue_int(a) sfvalue(a)
 #define Sfvalue_unsigned(a) sfvalue(a)
-#define Sfvalue_long(a) sfvalue(a)
-#define Sfvalue_ulong(a) sfvalue(a)
 #define Sfvalue_xint8(a) sfvalue(a)
 #define Sfvalue_xint16(a) sfvalue(a)
 #endif
 
 /* not in _Generic */ 
+#define Sfvalue_long(a) sfvalue_long(a)
+#define Sfvalue_ulong(a) sfvalue_ulong(a)
 #define Sfvalue_char(a, d) sfvalue_char(a, d)
 #define Sfvalue_boolean(a) sfvalue_boolean(a)
 #define Sfvalue_schar(a) sfvalue_schar(a)
