@@ -449,7 +449,7 @@ config.props                  console.props
 cpp.hint                      default.props
 default_dll.props             default_lib.props
 dirs.props                    dll.props
-files.props
+files.props                   sfctool.sln
 
 sys/windows/vs/FetchPrereq:
 (files for Visual Studio 2019 or 2022 Community Edition builds)
@@ -530,6 +530,10 @@ sys/windows/vs/dlb:
 (files for Visual Studio 2019 or 2022 Community Edition builds)
 afterdlb.proj  dlb.vcxproj
 
+sys/windows/vs/fetchctags:
+(files for Visual Studio 2019 or 2022 Community Edition builds)
+fetchctags.nmake    fetchctags.vcxproj
+
 sys/windows/vs/hacklib:
 (file for Visual Studio 2019 or 2022 Community Edition builds)
 hacklib.vcxproj
@@ -549,6 +553,14 @@ package.nmake    package.vcxproj
 sys/windows/vs/recover:
 (files for Visual Studio 2019 or 2022 Community Edition builds)
 afterrecover.proj  recover.vcxproj
+
+sys/windows/vs/sfctool:
+(file for Visual Studio 2019 or 2022 Community Edition builds)
+sfctool.vcxproj
+
+sys/windows/vs/sftags:
+(files for Visual Studio 2019 or 2022 Community Edition builds)
+aftersftags.proj  sftags.vcxproj
 
 sys/windows/vs/tile2bmp:
 (files for Visual Studio 2019 or 2022 Community Edition builds)
@@ -574,7 +586,7 @@ test_sel.lua  test_shk.lua  test_src.lua  testmove.lua  testwish.lua
 util:
 (files for all versions)
 dlb_main.c  makedefs.c  mdgrep.h    mdgrep.pl   panic.c     recover.c
-stripbs.c
+sfctool.c   sfexpasc.c  sftags.c    stripbs.c
 
 win/Qt:
 (files for the Qt 4 or 5 widget library - X11, Windows, Mac OS X)
