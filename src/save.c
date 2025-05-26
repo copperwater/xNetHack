@@ -115,7 +115,7 @@ dosave0(void)
             clear_nhwindow(WIN_MESSAGE);
             There("seems to be an old save file.");
             if (y_n("Overwrite the old file?") == 'n') {
-                //nh_sfconvert(fq_save);
+                nh_sfconvert(fq_save);
                 nh_compress(fq_save);
                 goto done;
             }
@@ -131,8 +131,7 @@ dosave0(void)
         goto done;
     }
     if (nhfp && nhfp->fplog) {
-        /* (void) fprintf(nhfp->fplog, "# just opened\n"); */
-        nhfp->count = 0L;
+        nhfp->rcount = nhfp->wcount = 0L;
     }
 
     vision_recalc(2); /* shut down vision to prevent problems
@@ -221,7 +220,7 @@ dosave0(void)
     /* get rid of current level --jgm */
     delete_levelfile(ledger_no(&u.uz));
     delete_levelfile(0);
-    ///nh_sfconvert(fq_save);
+    nh_sfconvert(fq_save);
     nh_compress(fq_save);
     /* this should probably come sooner... */
     program_state.something_worth_saving = 0;
@@ -1144,7 +1143,7 @@ freedynamicdata(void)
 #endif
     discard_gamelog();
     release_runtime_info(); /* build-time options and version stuff */
-    //free_convert_filenames();
+    free_convert_filenames();
 #endif /* FREE_ALL_MEMORY */
 
     if (VIA_WINDOWPORT())

@@ -5,6 +5,7 @@
 
 #include "hack.h"
 
+#ifndef SFCTOOL
 staticfn void stoned_dialogue(void);
 staticfn void vomiting_dialogue(void);
 staticfn void sleep_dialogue(void);
@@ -2682,6 +2683,7 @@ save_timers(NHFILE *nhfp, int range)
         }
     }
 }
+#endif /* !SFCTOOL */
 
 /*
  * Pull in the structures from disk, but don't recalculate the object and
@@ -2705,10 +2707,13 @@ restore_timers(NHFILE *nhfp, int range, long adjust)
         Sfi_fe(nhfp, curr, "timer");
         if (ghostly)
             curr->timeout += adjust;
+#ifndef SFCTOOL
         insert_timer(curr);
+#endif
     }
 }
 
+#ifndef SFCTOOL
 DISABLE_WARNING_FORMAT_NONLITERAL
 
 /* to support '#stats' wizard-mode command */
@@ -2753,5 +2758,6 @@ relink_timers(boolean ghostly)
         }
     }
 }
+#endif /* !SFCTOOL */
 
 /*timeout.c*/

@@ -7,6 +7,8 @@
 #include "artifact.h"
 #include "artilist.h"
 
+#ifndef SFCTOOL
+
 /*
  * Note:  both artilist[] and artiexist[] have a dummy element #0,
  *        so loops over them should normally start at #1.  The primary
@@ -57,6 +59,7 @@ staticfn void dispose_of_orig_obj(struct obj *);
    Note: this will still break if they have more than about half the number
    of hit points that will fit in a 15 bit integer. */
 #define FATAL_DAMAGE_MODIFIER 200
+#endif /* SFCTOOL */
 
 /* arti_info struct definition moved to artifact.h */
 
@@ -72,6 +75,7 @@ static xint16 artidisco[NROFARTIFACTS];
  * and restored but that is done through this file so they can be local.
  */
 
+#ifndef SFCTOOL
 static const struct arti_info zero_artiexist = {0}; /* all bits zero */
 
 staticfn void hack_artifacts(void);
@@ -121,6 +125,8 @@ save_artifacts(NHFILE *nhfp)
         Sfo_xint16(nhfp, &artidisco[i], "artidisco");
 }
 
+#endif /* SFCTOOL */
+
 void
 restore_artifacts(NHFILE *nhfp)
 {
@@ -130,8 +136,14 @@ restore_artifacts(NHFILE *nhfp)
         Sfi_arti_info(nhfp, &artiexist[i], "artiexist");
     for (i = 0; i < NROFARTIFACTS; ++i)
         Sfi_short(nhfp, &artidisco[i], "artidisco");
+#ifndef SFCTOOL
     hack_artifacts();   /* redo non-saved special cases */
+#else
+    nhUse(artilist);
+#endif
 }
+
+#ifndef SFCTOOL
 
 const char *
 artiname(int artinum)
@@ -2789,5 +2801,6 @@ permapoisoned(struct obj *obj)
 {
     return (obj && is_art(obj, ART_GRIMTOOTH));
 }
+#endif /* SFCTOOL */
 
 /*artifact.c*/

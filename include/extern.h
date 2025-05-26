@@ -1068,6 +1068,10 @@ extern char **get_saved_games(void);
 extern void free_saved_games(char **);
 extern void nh_compress(const char *);
 extern void nh_uncompress(const char *);
+extern void nh_sfconvert(const char *);
+extern void nh_sfunconvert(const char *);
+extern int delete_convertedfile(const char *);
+extern void free_convert_filenames(void);
 extern boolean lock_file(const char *, int, int) NONNULLARG1;
 extern void unlock_file(const char *) NONNULLARG1;
 extern void check_recordfile(const char *);
@@ -1093,6 +1097,7 @@ extern boolean read_tribute(const char *, const char *, int, char *, int,
 extern boolean Death_quote(char *, int) NONNULLARG1;
 extern void livelog_add(long ll_type, const char *) NONNULLARG2;
 ATTRNORETURN extern void do_deferred_showpaths(int) NORETURN;
+extern boolean contains_directory(const char *);
 
 /* ### fountain.c ### */
 
@@ -1969,7 +1974,7 @@ extern int dosuspend(void);
 extern void nt_regularize(char *);
 extern int(*nt_kbhit)(void);
 extern void Delay(int);
-extern boolean contains_directory(const char *);
+boolean get_user_home_folder(char *, size_t);
 # ifdef CRASHREPORT
 struct CRctxt;
 extern struct CRctxt *ctxp;
@@ -2678,6 +2683,12 @@ extern boolean lookup_id_mapping(unsigned, unsigned *) NONNULLARG2;
 /* extern void reset_restpref(void); */
 /* extern void set_restpref(const char *); */
 /* extern void set_savepref(const char *); */
+#ifdef SFCTOOL
+void rest_bubbles(NHFILE *);
+void restore_gamelog(NHFILE *);
+boolean restgamestate(NHFILE *);
+void restore_msghistory(NHFILE *);
+#endif
 
 /* ### rip.c ### */
 

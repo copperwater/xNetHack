@@ -288,6 +288,11 @@ package: $(GAME) recover $(VARDAT) spec_levs
 recover: $(GAME)
 	( cd util ; $(MAKE) $(RECOVERBIN) )
 
+# sfctool can be configured by the sysadmin to convert the savefile
+# content format as necessary.
+sfctool: $(GAME)
+	( cd util ; $(MAKE) sfctool )
+
 dofiles:
 	target=`sed -n					\
 		-e '/librarian/{' 			\

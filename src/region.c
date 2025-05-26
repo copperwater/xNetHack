@@ -13,6 +13,7 @@
 #define NO_CALLBACK (-1)
 
 void free_region(NhRegion *);
+#ifndef SFCTOOL
 boolean inside_gas_cloud(genericptr, genericptr);
 boolean expire_gas_cloud(genericptr, genericptr);
 boolean inside_rect(NhRect *, int, int);
@@ -253,6 +254,7 @@ clone_region(NhRegion *reg)
 }
 
 #endif /*0*/
+#endif /* !SFCTOOL */
 
 /*
  * Free mem from region.
@@ -273,6 +275,7 @@ free_region(NhRegion *reg)
     }
 }
 
+#ifndef SFCTOOL
 /*
  * Add a region to the list.
  * This actually activates the region.
@@ -381,6 +384,7 @@ remove_region(NhRegion *reg)
     }
     free_region(reg);
 }
+#endif /* !SFCTOOL */
 
 /*
  * Remove all regions and clear all related data.  This must be done
@@ -400,6 +404,7 @@ clear_regions(void)
     gr.regions = (NhRegion **) 0;
 }
 
+#ifndef SFCTOOL
 /*
  * This function is called every turn.
  * It makes the regions age, if necessary and calls the appropriate
@@ -788,6 +793,7 @@ save_regions(NHFILE *nhfp)
     if (release_data(nhfp))
         clear_regions();
 }
+#endif /* !SFCTOOL */
 
 void
 rest_regions(NHFILE *nhfp)
@@ -872,6 +878,7 @@ rest_regions(NHFILE *nhfp)
         Sfi_int(nhfp, &r->glyph, "region-glyph");
         Sfi_any(nhfp, &r->arg, "region-arg");
     }
+#ifndef SFCTOOL
     /* remove expired regions, do not trigger the expire_f callback (yet!);
        also update monster lists if this data is coming from a bones file */
     for (i = svn.n_regions - 1; i >= 0; i--) {
@@ -881,8 +888,10 @@ rest_regions(NHFILE *nhfp)
         else if (ghostly && r->n_monst > 0)
             reset_region_mids(r);
     }
+#endif /* !SFCTOOL */
 }
 
+#ifndef SFCTOOL
 DISABLE_WARNING_FORMAT_NONLITERAL
 
 /* to support '#stats' wizard-mode command */
@@ -1394,5 +1403,6 @@ region_safety(void)
     if (BlindedTimeout == 1L)
         make_blinded(0L, TRUE);
 }
+#endif /* !SFCTOOL */
 
 /*region.c*/

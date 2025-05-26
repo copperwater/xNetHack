@@ -42,6 +42,7 @@
 #define LSF_NEEDS_FIXUP 0x2     /* need oid fixup */
 #define LSF_IS_PROBLEMATIC 0x4  /* impossible situation encountered */
 
+#ifndef SFCTOOL
 staticfn light_source *new_light_core(coordxy, coordxy,
                                     int, int, anything *) NONNULLPTRS;
 staticfn void delete_ls(light_source *);
@@ -468,6 +469,7 @@ save_light_sources(NHFILE *nhfp, int range)
         }
     }
 }
+#endif /* !SFCTOOL */
 
 /*
  * Pull in the structures from disk, but don't recalculate the object
@@ -490,6 +492,7 @@ restore_light_sources(NHFILE *nhfp)
     }
 }
 
+#ifndef SFCTOOL
 
 DISABLE_WARNING_FORMAT_NONLITERAL
 
@@ -970,7 +973,7 @@ wiz_light_sources(void)
 
     return ECMD_OK;
 }
-
+#endif /* !SFCTOOL */
 /* for 'onefile' processing where end of this file isn't necessarily the
    end of the source code seen by the compiler */
 #undef LSF_SHOW

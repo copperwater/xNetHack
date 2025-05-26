@@ -14,6 +14,7 @@
 #endif
 #include "dlb.h"
 
+#ifndef SFCTOOL
 #ifndef NO_SIGNAL
 staticfn void done_intr(int);
 # if defined(UNIX) || defined(VMS) || defined(__EMX__)
@@ -33,9 +34,11 @@ staticfn void dump_plines(void);
 #endif
 staticfn void dump_everything(int, time_t);
 staticfn void fixup_death(int);
+#endif /* SFCTOOL */
 staticfn int wordcount(char *);
 staticfn void bel_copy1(char **, char *);
 
+#ifndef SFCTOOL
 #define done_stopprint program_state.stopprint
 
 /*
@@ -1767,6 +1770,7 @@ save_killers(NHFILE *nhfp)
         }
     }
 }
+#endif /* !SFCTOOL */
 
 void
 restore_killers(NHFILE *nhfp)

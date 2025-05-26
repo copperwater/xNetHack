@@ -97,11 +97,11 @@ SF_PROTO_X(char, char);
 #undef SF_PROTO_C
 #undef SF_PROTO_X
 
-#define SF_ENTRY(dtyp) \
+#define SF_ENTRY(dtyp)                                 \
     void (*sf_##dtyp)(NHFILE *, dtyp *, const char *)
-#define SF_ENTRY_C(keyw, dtyp) \
+#define SF_ENTRY_C(keyw, dtyp)                              \
     void (*sf_##dtyp)(NHFILE *, keyw dtyp *, const char *)
-#define SF_ENTRY_X(xxx, dtyp) \
+#define SF_ENTRY_X(xxx, dtyp)                                   \
     void (*sf_##dtyp)(NHFILE *, xxx *, const char *, int bfsz)
 
 struct sf_procs {
@@ -189,11 +189,14 @@ struct sf_fieldlevel_procs {
     struct sf_procs fn_x; /* called for fieldlevel */
 };
 extern struct sf_structlevel_procs sfoprocs[NUM_SAVEFORMATS], sfiprocs[NUM_SAVEFORMATS];
+extern void sf_setprocs(int, struct sf_structlevel_procs *, struct sf_structlevel_procs *);
+extern void sf_setflprocs(int, struct sf_fieldlevel_procs *, struct sf_fieldlevel_procs *);
+extern struct sf_structlevel_procs sfoprocs[NUM_SAVEFORMATS], sfiprocs[NUM_SAVEFORMATS];
 extern struct sf_fieldlevel_procs sfoflprocs[NUM_SAVEFORMATS], sfiflprocs[NUM_SAVEFORMATS];
 extern struct sf_structlevel_procs historical_sfo_procs;
 extern struct sf_structlevel_procs historical_sfi_procs;
-extern struct sf_fieldlevel_procs cnv_sfo_procs;
-extern struct sf_fieldlevel_procs cnv_sfi_procs;
+extern struct sf_fieldlevel_procs exportascii_sfo_procs;
+extern struct sf_fieldlevel_procs exportascii_sfi_procs;
 
 #endif /* SFPROCS_H */
 

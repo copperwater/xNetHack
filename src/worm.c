@@ -14,6 +14,7 @@ struct wseg {
     coordxy wx, wy; /* the segment's position */
 };
 
+#ifndef SFCTOOL
 staticfn void toss_wsegs(struct wseg *, boolean) NO_NNARGS;
 staticfn void shrink_worm(int);
 
@@ -21,6 +22,7 @@ staticfn void shrink_worm(int);
 staticfn void random_dir(int, int, int *, int *);
 #endif
 staticfn struct wseg *create_worm_tail(int); /* may return NULL */
+#endif /* !SFCTOOL */
 
 /*  Description of long worm implementation.
  *
@@ -76,6 +78,7 @@ static struct wseg *wheads[MAX_NUM_WORMS] = DUMMY,
                    *wtails[MAX_NUM_WORMS] = DUMMY;
 static long wgrowtime[MAX_NUM_WORMS] = DUMMY;
 
+#ifndef SFCTOOL
 /*
  *  get_wormno()
  *
@@ -563,6 +566,7 @@ save_worm(NHFILE *nhfp)
         }
     }
 }
+#endif /* !SFCTOOL */
 
 /*
  *  rest_worm()
@@ -598,6 +602,7 @@ rest_worm(NHFILE *nhfp)
     }
 }
 
+#ifndef SFCTOOL
 /*
  *  place_wsegs()
  *
@@ -991,5 +996,6 @@ redraw_worm(struct monst *worm)
         curr = curr->nseg;
     }
 }
+#endif /* !SFCTOOL */
 
 /*worm.c*/

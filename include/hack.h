@@ -954,9 +954,9 @@ struct xlock_s {
 #define NHF_BONESFILE       3
 /* modes */
 #define READING      0x0
-#define COUNTING     0x1
-#define WRITING      0x2
-#define FREEING      0x4
+#define COUNTING     0x01
+#define WRITING      0x02
+#define FREEING      0x04
 #define CONVERTING   0x08
 #define UNCONVERTING 0x10
 #if 0
@@ -972,7 +972,7 @@ struct xlock_s {
 enum saveformats {
     invalid = 0,
     historical = 1,     /* entire struct, binary, as-is */
-    cnvascii = 2,       /* each field, ascii text */
+    exportascii = 2,    /* each field written out as ascii text */
     NUM_SAVEFORMATS
 };
 
@@ -984,11 +984,11 @@ struct fieldlevel_content {
 
 struct nh_file {
     int fd;               /* for traditional structlevel binary writes */
-    int mode;             /* holds READING, WRITING, or FREEING modes  */
+    int mode;             /* holds READING, WRITING, FREEING, CONVERTING modes  */
     int ftype;            /* NHF_LEVELFILE, NHF_SAVEFILE, or NHF_BONESFILE */
     int fnidx;            /* index of procs for fieldlevel saves */
-    long count;           /* holds current line count for default style file,
-                             field count for binary style */
+    long rcount,          /* read count since opening */
+         wcount;          /* write count since opening */
     boolean structlevel;  /* traditional structure binary saves */
     boolean fieldlevel;   /* fieldlevel saves each field individually */
     boolean addinfo;      /* if set, some additional context info from core */

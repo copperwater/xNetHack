@@ -29,6 +29,8 @@
     <WinCursDir>$(RootDir)win\curses\</WinCursDir>
     <SubmodulesDir>$(RootDir)submodules\</SubmodulesDir>
     <LuaDir>$(LibDir)lua-$(LUA_VERSION)\src\</LuaDir>
+    <SftagsDir>$(RootDir)\sys\windows\vs\sftags\</SftagsDir>
+    <SfctoolDir>$(RootDir)\sys\windows\vs\sfctool\</SfctoolDir>
   </PropertyGroup>
   <PropertyGroup Condition="'$(PDCURSESMOD)'=='' AND Exists('$(LibDir)pdcursesmod\curses.h')">
     <PDCURSESMOD>$(LibDir)pdcursesmod\</PDCURSESMOD>

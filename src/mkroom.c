@@ -17,6 +17,7 @@
 
 #include "hack.h"
 
+#ifndef SFCTOOL
 staticfn boolean isbig(struct mkroom *);
 staticfn struct mkroom *pick_room(boolean);
 staticfn void mkshop(void), mkzoo(int), mkswamp(void);
@@ -25,10 +26,12 @@ staticfn void mktemple(void);
 staticfn coord *shrine_pos(int);
 staticfn struct permonst *morguemon(void);
 staticfn struct permonst *squadmon(void);
+#endif /* SFCTOOL */
 
 staticfn void save_room(NHFILE *, struct mkroom *);
 staticfn void rest_room(NHFILE *, struct mkroom *);
 
+#ifndef SFCTOOL
 staticfn boolean invalid_shop_shape(struct mkroom *sroom);
 
 #define sq(x) ((x) * (x))
@@ -866,6 +869,7 @@ save_rooms(NHFILE *nhfp)
     for (i = 0; i < svn.nroom; i++)
         save_room(nhfp, &svr.rooms[i]);
 }
+#endif /* !SFCTOOL */
 
 staticfn void
 rest_room(NHFILE *nhfp, struct mkroom *r)
@@ -901,6 +905,7 @@ rest_rooms(NHFILE *nhfp)
     gs.subrooms[gn.nsubroom].hx = -1;
 }
 
+#ifndef SFCTOOL
 /* convert a display symbol for terrain into topology type;
    used for remembered terrain when mimics pose as furniture */
 int
@@ -1089,5 +1094,6 @@ invalid_shop_shape(struct mkroom *sroom)
     }
     return FALSE;
 }
+#endif /* !SFCTOOL */
 
 /*mkroom.c*/

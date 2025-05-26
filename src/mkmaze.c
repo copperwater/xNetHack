@@ -6,6 +6,7 @@
 #include "hack.h"
 #include "sp_lev.h"
 
+#ifndef SFCTOOL
 staticfn int iswall(coordxy, coordxy);
 staticfn int iswall_or_stone(coordxy, coordxy);
 staticfn boolean is_solid(coordxy, coordxy);
@@ -1736,6 +1737,7 @@ save_waterlevel(NHFILE *nhfp)
     if (release_data(nhfp))
         unsetup_waterlevel();
 }
+#endif /* !SFCTOOL */
 
 /* restoring air bubbles on Plane of Water or clouds on Plane of Air */
 void
@@ -1743,6 +1745,11 @@ restore_waterlevel(NHFILE *nhfp)
 {
     struct bubble *b = (struct bubble *) 0, *btmp;
     int i, n = 0;
+
+#ifdef SFCTOOL
+    svb.bbubbles = (struct bubble *) 0;
+    /* set_wportal(); */
+#endif
 
     Sfi_int(nhfp, &n, "waterlevel-bubble_count");
     Sfi_int(nhfp, &svx.xmin, "waterlevel-xmin");
@@ -1760,8 +1767,11 @@ restore_waterlevel(NHFILE *nhfp)
             svb.bbubbles = b;
             b->prev = (struct bubble *) 0;
         }
+#ifndef SFCTOOL
         mv_bubble(b, 0, 0, TRUE);
+#endif
     }
+#ifndef SFCTOOL
     ge.ebubbles = b;
     if (b) {
         b->next = (struct bubble *) 0;
@@ -1778,8 +1788,10 @@ restore_waterlevel(NHFILE *nhfp)
                      : "air bubbles or clouds");
         program_state.something_worth_saving = 1;
     }
+#endif
 }
 
+#ifndef SFCTOOL
 staticfn void
 set_wportal(void)
 {
@@ -2087,5 +2099,6 @@ mv_bubble(struct bubble *b, coordxy dx, coordxy dy, boolean ini)
         }
     }
 }
+#endif /* !SFCTOOL */
 
 /*mkmaze.c*/

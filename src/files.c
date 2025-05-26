@@ -12,6 +12,28 @@
 #include "hack.h"
 #include "dlb.h"
 
+#ifdef SFCTOOL
+#ifdef TTY_GRAPHICS
+#undef TTY_GRAPHICS
+#endif
+#ifdef mark_synch
+#undef mark_synch
+#endif
+#define mark_synch()
+#ifdef raw_print
+#undef raw_print
+#endif
+#define raw_print(a)
+#ifdef WINDOWPORT
+#undef WINDOWPORT
+#endif
+#define WINDOWPORT(x) FALSE
+#ifdef clear_nhwindow
+#undef clear_nhwindow
+#endif
+#define clear_nhwindow(x)
+#endif /* SFCTOOL */
+
 #ifdef TTY_GRAPHICS
 #include "wintty.h" /* more() */
 #endif
@@ -125,8 +147,13 @@ extern boolean get_user_home_folder(char *, size_t);
 #define PRAGMA_UNUSED
 #endif
 
+#ifndef SFCTOOL
 staticfn NHFILE *new_nhfile(void);
 staticfn void free_nhfile(NHFILE *);
+#else
+NHFILE *new_nhfile(void);
+void free_nhfile(NHFILE *);
+#endif /* SFCTOOL */
 
 #ifdef SELECTSAVED
 staticfn int QSORTCALLBACK strcmp_wrap(const void *, const void *);
@@ -144,6 +171,12 @@ staticfn boolean make_compressed_name(const char *, char *);
 #endif
 
 staticfn NHFILE *problematic_savefile(int, const char *);
+#ifndef SFCTOOL
+staticfn int doconvert_file(const char *, int, boolean);
+#endif /* SFCTOOL */
+staticfn boolean make_converted_name(const char *);
+
+#ifndef SFCTOOL
 staticfn NHFILE *viable_nhfile(NHFILE *);
 #ifdef SELECTSAVED
 staticfn int QSORTCALLBACK strcmp_wrap(const void *, const void *);
@@ -159,6 +192,7 @@ boolean proc_wizkit_line(char *buf);
 void read_wizkit(void);  /* in extern.h; why here too? */
 staticfn FILE *fopen_sym_file(void);
 staticfn NHFILE *viable_nhfile(NHFILE *);
+#endif /* !SFCTOOL */
 
 /* return a file's name without its path and optionally trailing 'type' */
 const char *
@@ -354,6 +388,7 @@ fqname(const char *basenam,
 #endif /* !PREFIXES_IN_USE */
 }
 
+#ifndef SFCTOOL
 /* reasonbuf must be at least BUFSZ, supplied by caller */
 int
 validate_prefix_locations(char *reasonbuf)
@@ -414,6 +449,7 @@ fopen_datafile(const char *filename, const char *mode, int prefix)
     fp = fopen(filename, mode);
     return fp;
 }
+#endif /* !SFCTOOL */
 
 /* ----------  EXTERNAL FILE SUPPORT ----------- */
 
@@ -433,7 +469,7 @@ zero_nhfile(NHFILE *nhfp)
     nhfp->fpdef = (FILE *) 0;
     nhfp->fplog = (FILE *) 0;
     nhfp->fpdebug = (FILE *) 0;
-    nhfp->count = 0;
+    nhfp->rcount = nhfp->wcount = 0;
     nhfp->eof = FALSE;
     nhfp->fnidx = 0;
         nhfp->style.deflt = FALSE;
@@ -441,7 +477,10 @@ zero_nhfile(NHFILE *nhfp)
         nhfp->nhfpconvert = 0;
 }
 
-staticfn NHFILE *
+#ifndef SFCTOOL
+staticfn
+#endif
+NHFILE *
 new_nhfile(void)
 {
     NHFILE *nhfp = (NHFILE *) alloc(sizeof(NHFILE));
@@ -450,7 +489,10 @@ new_nhfile(void)
     return nhfp;
 }
 
-staticfn void
+#ifndef SFCTOOL
+staticfn
+#endif
+void
 free_nhfile(NHFILE *nhfp)
 {
     if (nhfp) {
@@ -477,13 +519,18 @@ close_nhfile(NHFILE *nhfp)
 void
 rewind_nhfile(NHFILE *nhfp)
 {
+    if (nhfp->structlevel) {
 #ifdef BSD
-    (void) lseek(nhfp->fd, 0L, 0);
+        (void) lseek(nhfp->fd, 0L, 0);
 #else
-    (void) lseek(nhfp->fd, (off_t) 0, 0);
+        (void) lseek(nhfp->fd, (off_t) 0, 0);
 #endif
+    } else {
+        rewind(nhfp->fpdef);
+    }
 }
 
+#ifndef SFCTOOL
 staticfn NHFILE *
 viable_nhfile(NHFILE *nhfp)
 {
@@ -517,6 +564,7 @@ viable_nhfile(NHFILE *nhfp)
     }
     return nhfp;
 }
+#endif /* !SFCTOOL */
 
 int
 nhclose(int fd)
@@ -534,6 +582,7 @@ nhclose(int fd)
 
 /* ----------  BEGIN LEVEL FILE HANDLING ----------- */
 
+#ifndef SFCTOOL
 /* Construct a file name for a level-type file, which is of the form
  * something.level (with any old level stripped off).
  * This assumes there is space on the end of 'file' to append
@@ -881,7 +930,7 @@ open_bonesfile(d_level *lev, char **bonesid)
         nhfp->mode = READING;
         nhfp->addinfo = TRUE;
         nhfp->style.deflt = TRUE;
-        nhfp->style.binary = (sysopt.bonesformat[0] != cnvascii);
+        nhfp->style.binary = (sysopt.bonesformat[0] != exportascii);
         nhfp->fnidx = sysopt.bonesformat[0];
         nhfp->fd = -1;
         nhfp->fpdef = fopen(fq_bones, nhfp->style.binary ? RDBMODE : RDTMODE);
@@ -912,6 +961,7 @@ delete_bonesfile(d_level *lev)
 
     (void) set_bonesfile_name(gb.bones, lev);
     reslt = unlink(fqname(gb.bones, BONESPREFIX, 0));
+    delete_convertedfile(fqname(gb.bones, BONESPREFIX, 0));
     return !(reslt < 0);
 }
 
@@ -920,8 +970,10 @@ delete_bonesfile(d_level *lev)
 void
 compress_bonesfile(void)
 {
+    nh_sfconvert(fqname(gb.bones, BONESPREFIX, 0));
     nh_compress(fqname(gb.bones, BONESPREFIX, 0));
 }
+#endif /* !SFCTOOL */
 
 /* ----------  END BONES FILE HANDLING ----------- */
 
@@ -1035,6 +1087,7 @@ set_savefile_name(boolean regularize_it)
 #endif
 }
 
+#ifndef SFCTOOL
 #ifdef INSURANCE
 void
 save_savefile_name(NHFILE *nhfp)
@@ -1172,6 +1225,7 @@ delete_savefile(void)
     const char *sfname = fqname(gs.SAVEF, SAVEPREFIX, 0);
 
     (void) unlink(sfname);
+    (void) delete_convertedfile(sfname);
     return 0; /* for restore_saved_game() (ex-xxxmain.c) test */
 }
 
@@ -1439,6 +1493,7 @@ free_saved_games(char **saved)
         free((genericptr_t) saved);
     }
 }
+#endif /* !SFCTOOL */
 
 /* ----------  END SAVE FILE HANDLING ----------- */
 
@@ -1490,13 +1545,20 @@ docompress_file(const char *filename, boolean uncomp)
 #ifdef TTY_GRAPHICS
     boolean istty = WINDOWPORT(tty);
 #endif
+
 #ifdef COMPRESS_EXTENSION
     xtra = COMPRESS_EXTENSION;
 #else
     xtra = "";
 #endif
+#ifdef SFCTOOL
+    ln = strlen(filename) + sizeof COMPRESS_EXTENSION;
+    cfn = (char *) alloc(ln);
+#else /* SFCTOOL */
     ln = (unsigned) (strlen(filename) + strlen(xtra));
     cfn = (char *) alloc(ln + 1);
+#endif /* SFCTOOL */
+
     Strcpy(cfn, filename);
     Strcat(cfn, xtra);
 
@@ -1540,8 +1602,9 @@ docompress_file(const char *filename, boolean uncomp)
      * there is an error message from the compression, the 'y' or 'n' can
      * end up being displayed after the error message.
      */
-    if (istty)
+    if (istty) {
         mark_synch();
+    }
 #endif
     f = fork();
     if (f == 0) { /* child */
@@ -1551,8 +1614,9 @@ docompress_file(const char *filename, boolean uncomp)
          * them will have to clear the first line.  This should be
          * invisible if there are no error messages.
          */
-        if (istty)
+        if (istty) {
             raw_print("");
+        }
 #endif
         /* run compressor without privileges, in case other programs
          * have surprises along the line of gzip once taking filenames
@@ -1715,10 +1779,17 @@ docompress_file(const char *filename, boolean uncomp)
 {
     gzFile compressedfile;
     FILE *uncompressedfile;
+#ifndef SFCTOOL
     char cfn[256];
+#else
+    char *cfn;
+#endif
     char buf[1024];
     unsigned len, len2;
 
+#ifdef SFCTOOL
+    cfn = (char *) alloc(strlen(filename) + strlen(COMPRESS_EXTENSION) + 1);
+#endif
     if (!make_compressed_name(filename, cfn))
         return;
 
@@ -1739,6 +1810,9 @@ docompress_file(const char *filename, boolean uncomp)
             } else {
                 panic("Error in docompress_file %d", errno);
             }
+#ifdef SFCTOOL
+            free(cfn);
+#endif
             fclose(uncompressedfile);
             return;
         }
@@ -1753,6 +1827,9 @@ docompress_file(const char *filename, boolean uncomp)
                 fclose(uncompressedfile);
                 gzclose(compressedfile);
                 (void) unlink(cfn);
+#ifdef SFCTOOL
+                free(cfn);
+#endif
                 return;
             }
             if (len == 0)
@@ -1765,6 +1842,9 @@ docompress_file(const char *filename, boolean uncomp)
                 fclose(uncompressedfile);
                 gzclose(compressedfile);
                 (void) unlink(cfn);
+#ifdef SFCTOOL
+                free(cfn);
+#endif
                 return;
             }
         }
@@ -1790,12 +1870,18 @@ docompress_file(const char *filename, boolean uncomp)
                 panic("Error in zlib docompress_file %s, %d", filename,
                       errno);
             }
+#ifdef SFCTOOL
+            free(cfn);
+#endif
             return;
         }
         uncompressedfile = fopen(filename, WRBMODE);
         if (!uncompressedfile) {
             pline("Error in zlib docompress file uncompress %s", filename);
             gzclose(compressedfile);
+#ifdef SFCTOOL
+            free(cfn);
+#endif
             return;
         }
 
@@ -1809,6 +1895,9 @@ docompress_file(const char *filename, boolean uncomp)
                 fclose(uncompressedfile);
                 gzclose(compressedfile);
                 (void) unlink(filename);
+#ifdef SFCTOOL
+                free(cfn);
+#endif
                 return;
             }
             if (len == 0)
@@ -1821,6 +1910,9 @@ docompress_file(const char *filename, boolean uncomp)
                 fclose(uncompressedfile);
                 gzclose(compressedfile);
                 (void) unlink(filename);
+#ifdef SFCTOOL
+                free(cfn);
+#endif
                 return;
             }
         }
@@ -1831,6 +1923,9 @@ docompress_file(const char *filename, boolean uncomp)
         /* Delete the file left behind */
         (void) unlink(cfn);
     }
+#ifdef SFCTOOL
+    free(cfn);
+#endif
 }
 #endif /* RLC 09 Mar 1999: End ZLIB patch */
 
@@ -1840,7 +1935,7 @@ docompress_file(const char *filename, boolean uncomp)
 
 
 /* ----------  BEGIN PROBLEMATIC SAVEFILE HANDLING ----------- */
-
+#ifndef SFCTOOL
 static struct sfstatus_to_msg {
     int sfstatus;
     const char *msg;
@@ -1873,6 +1968,8 @@ problematic_savefile(int sfstatus, const char *savefilenm)
     case SF_DM_ILP32LL64_ON_IL32LLP64:
     case SF_DM_I32LP64_ON_IL32LLP64:
     case SF_DM_IL32LLP64_ON_I32LP64:
+        FALLTHROUGH;
+        /*FALLTHRU*/
     case SF_DM_MISMATCH:
     case SF_OUTDATED:
     case SF_CRITICAL_BYTE_COUNT_MISMATCH:
@@ -1889,10 +1986,154 @@ problematic_savefile(int sfstatus, const char *savefilenm)
     }
     return nhfp;
 }
+#endif /* !SFCTOOL */
 
 /* ----------  END PROBLEMATIC SAVEFILE HANDLING ----------- */
 
+/* ----------  BEGIN EXTERNAL CONVERSION HANDLING ----------- */
+
+static boolean cvtinit = FALSE;
+
+#ifndef SFCTOOL
+static char *unconverted_filename = 0, *converted_filename = 0;
+
+/*
+ * Returns non-zero if unconvert was successful
+ */
+staticfn int
+doconvert_file(const char *filename, int sfstatus, boolean unconvert)
+{
+    nhUse(sfstatus);
+    nhUse(unconvert);
+    return 1;
+}
+
+/* convert file */
+void nh_sfconvert(const char *filename)
+{
+    (void) doconvert_file(filename, 0, FALSE);
+}
+
+/* unconvert file if it exists */
+void nh_sfunconvert(const char *filename)
+{
+    (void) doconvert_file(filename, 0, TRUE);
+}
+
+#else  /* !SFCTOOL */
+/* in sfctool, these are in sfctool.c, not in here */
+extern char *unconverted_filename, *converted_filename;
+#endif /* !SFCTOOL */
+
+staticfn boolean
+make_converted_name(const char *filename)
+{
+    unsigned ln;
+    const char *xtra, *finaldirchar;
+    const char *dir = NULL;
+    boolean needsep = FALSE;
+#if defined(WIN32)
+    static char folderbuf[MAX_PATH];
+#endif
+
+    if (!filename)
+        return FALSE;
+
+    if (unconverted_filename)
+        free((genericptr_t) unconverted_filename), unconverted_filename = 0;
+    if (converted_filename)
+        free((genericptr_t) converted_filename), converted_filename = 0;
+
+#ifndef SHORT_FILENAMES
+    /* do we need to do some ms-dos processing here? */
+#endif /* SHORT_FILENAMES */
+
+    ln = (unsigned) strlen(filename);
+    if (!contains_directory(filename)) {
+#if defined(UNIX)
+        dir = nh_getenv("NETHACKDIR");
+        if (!dir)
+            dir = nh_getenv("HACKDIR");
+#ifdef HACKDIR
+        if (!dir)
+            dir = HACKDIR;
+#endif
+#elif defined(WIN32)
+        if (get_user_home_folder(folderbuf, sizeof folderbuf)) {
+            size_t sz = strlen(folderbuf);
+
+            Snprintf(eos(folderbuf), sizeof folderbuf - sz,
+                     "\\AppData\\Local\\NetHack\\3.7\\");
+            dir = (const char *) folderbuf;
+        }
+#endif /* UNIX || WIN32 */
+        if (dir) {
+            finaldirchar = c_eos(dir);
+	        finaldirchar--;
+            if (!(*finaldirchar == '/' || *finaldirchar == '\\'
+                  || *finaldirchar == ':')) {
+                needsep = TRUE;
+                ln += 1;
+            }
+            ln += strlen(dir);
+        }
+    }
+    unconverted_filename = (char *) alloc(ln + 1);
+    Snprintf(unconverted_filename, ln + 1, "%s%s%s",
+             dir ? dir : "",
+             (dir && needsep) ? "/" : "",
+             filename);
+    xtra = ".exportascii";
+    ln += (unsigned) strlen(xtra);
+    converted_filename = (char *) alloc(ln + 1);
+    Strcpy(converted_filename, unconverted_filename);
+    Strcat(converted_filename, xtra);
+    return TRUE;
+}
+
+/* delete converted savefile as a normal course of action */
+int
+delete_convertedfile(const char *basefilename)
+{
+    if (!converted_filename)
+        make_converted_name(basefilename);
+    if (converted_filename) {
+        (void) unlink(converted_filename);
+    }
+    return 0;
+}
+
+void free_convert_filenames(void)
+{
+    if (converted_filename)
+        free((genericptr_t) converted_filename), converted_filename = 0;
+    if (unconverted_filename)
+        free((genericptr_t) unconverted_filename), unconverted_filename = 0;
+    cvtinit = FALSE;
+}
+
+/* return TRUE if s contains a directory, not just a filespec */
+boolean
+contains_directory(const char *s)
+{
+    int i, slen = strlen(s);
+    const char *cp = s;
+
+    for (i = 0; i < slen; ++i) {
+        if (*cp == '\\' || *cp == '/' || *cp == ':')
+            return TRUE;
+        cp++;
+    }
+    return FALSE;
+}
+
+/* =========================================================================*/
+
+/* ----------  END EXTERNAL CONVERSION HANDLING ----------- */
+
 /* ----------  BEGIN FILE LOCKING HANDLING ----------- */
+
+#ifndef SFCTOOL
 
 #if defined(NO_FILE_LINKS) || defined(USE_FCNTL) /* implies UNIX */
 static int lockfd = -1; /* for lock_file() to pass to unlock_file() */
@@ -2802,6 +3043,7 @@ do_deferred_showpaths(int code)
 #endif
 #endif
 }
+#endif /* !SFCTOOL */
 
 #ifdef DEBUG
 /* used by debugpline() to decide whether to issue a message
@@ -2856,6 +3098,7 @@ debugcore(const char *filename, boolean wildcards)
 
 #endif /*DEBUG*/
 
+#ifndef SFCTOOL
 #ifdef UNIX
 #ifndef PATH_MAX
 #include <limits.h>
@@ -3346,6 +3589,8 @@ Death_quote(char *buf, int bufsz)
 }
 
 /* ----------  END TRIBUTE ----------- */
+#endif /* !SFCTOOL */
+
 #ifdef LIVELOG
 #define LLOG_SEP "\t" /* livelog field separator, as a string literal */
 #define LLOG_EOL "\n" /* end-of-line, for abstraction consistency */

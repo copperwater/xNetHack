@@ -8,6 +8,8 @@
 
 /* #define SFLOGGING */          /* debugging */
 
+staticfn void sfstruct_read_error(void);
+
 /* historical full struct savings */
 
 #ifdef SAVEFILE_DEBUGGING
@@ -29,6 +31,9 @@ staticfn void logging_finish(void);
 
 #define SFI_BODY(dt) \
 {                                                                                   \
+    if (nhfp->eof) {                                                                \
+       sfstruct_read_error();                                                       \
+    }                                                                               \
     mread(nhfp->fd, (genericptr_t) d_##dt, sizeof *d_##dt);                         \
     if (restoreinfo.mread_flags == -1)                                              \
         nhfp->eof = TRUE;                                                           \
@@ -46,20 +51,37 @@ void historical_sfi_##dtyp(NHFILE *nhfp, dtyp *d_##dtyp,                        
                   const char *myname UNUSED)                                        \
     SFI_BODY(dtyp)
 
+#define SFO_CBODY(dt)                                                               \
+    {                                                                               \
+        normalize_pointers_##dt(d_##dt);                                            \
+        bwrite(nhfp->fd, (genericptr_t) d_##dt, sizeof *d_##dt);                    \
+    }
+
+#define SFI_CBODY(dt)                                                               \
+    {                                                                               \
+        if (nhfp->eof) {                                                            \
+            sfstruct_read_error();                                                  \
+        }                                                                           \
+        mread(nhfp->fd, (genericptr_t) d_##dt, sizeof *d_##dt);                     \
+        normalize_pointers_##dt(d_##dt);                                            \
+        if (restoreinfo.mread_flags == -1)                                          \
+            nhfp->eof = TRUE;                                                       \
+    }
 
 #define SF_C(keyw, dtyp) \
 void historical_sfo_##dtyp(NHFILE *, keyw dtyp *d_##dtyp,                           \
                            const char *);                                           \
 void historical_sfi_##dtyp(NHFILE *, keyw dtyp *d_##dtyp,                           \
                            const char *);                                           \
+extern void normalize_pointers_##dtyp(keyw dtyp *d_##dtyp);                         \
                                                                                     \
 void historical_sfo_##dtyp(NHFILE *nhfp, keyw dtyp *d_##dtyp,                       \
                            const char *myname UNUSED)                               \
-    SFO_BODY(dtyp)                                                                  \
+    SFO_CBODY(dtyp)                                                                 \
                                                                                     \
 void historical_sfi_##dtyp(NHFILE *nhfp, keyw dtyp *d_##dtyp,                       \
                            const char *myname UNUSED)                               \
-    SFI_BODY(dtyp)
+    SFI_CBODY(dtyp)
 
 #define SF_X(xxx, dtyp) \
 void historical_sfo_##dtyp(NHFILE *, xxx *d_##dtyp, const char *, int);             \
@@ -121,7 +143,7 @@ SF_C(union, any)
 SF_A(aligntyp)
 SF_A(boolean)
 SF_A(coordxy)
-SF_A(genericptr_t)
+//SF_A(genericptr_t)
 SF_A(int)
 SF_A(int16)
 SF_A(int32)
@@ -156,6 +178,32 @@ historical_sfi_char(NHFILE *nhfp, char *d_char,
                     const char *myname UNUSED, int cnt)
 {
     mread(nhfp->fd, (genericptr_t) d_char, cnt * sizeof (char));
+    if (restoreinfo.mread_flags == -1)
+        nhfp->eof = TRUE;
+}
+//extern void sfo_genericptr(NHFILE *, void **, const char *);
+//extern void sfi_genericptr(NHFILE *, void **, const char *);
+//extern void sfo_x_genericptr(NHFILE *, void **, const char *);
+//extern void sfi_x_genericptr(NHFILE *, void **, const char *);
+
+void historical_sfo_genericptr_t(NHFILE *, genericptr_t *d_genericptr_t,
+                                 const char *);
+void historical_sfi_genericptr_t(NHFILE *, genericptr_t *d_genericptr_t,
+                                 const char *);
+void
+historical_sfo_genericptr_t(NHFILE *nhfp, genericptr_t *d_genericptr_t,
+                            const char *myname UNUSED)
+{
+    bwrite(nhfp->fd, (genericptr_t) d_genericptr_t, sizeof *d_genericptr_t);
+}
+void
+historical_sfi_genericptr_t(NHFILE *nhfp, genericptr_t *d_genericptr_t,
+                            const char *myname UNUSED)
+{
+    if (nhfp->eof) {
+        sfstruct_read_error();
+    }
+    mread(nhfp->fd, (genericptr_t) d_genericptr_t, sizeof *d_genericptr_t);
     if (restoreinfo.mread_flags == -1)
         nhfp->eof = TRUE;
 }
@@ -592,6 +640,7 @@ mread(int fd, genericptr_t buf, unsigned len)
             restoreinfo.mread_flags = -1;
             return;
         } else {
+#ifndef SFCTOOL
             pline("Read %d instead of %u bytes.", (int) rlen, len);
             display_nhwindow(WIN_MESSAGE, TRUE); /* flush before error() */
             if (program_state.restoring) {
@@ -600,10 +649,18 @@ mread(int fd, genericptr_t buf, unsigned len)
                 error("Error restoring old game.");
             }
             panic("Error reading level file.");
+#else
+            printf("Read %d instead of %u bytes.\n", (int) rlen, len);
+#endif
         }
     }
 }
 
+staticfn void
+sfstruct_read_error(void)
+{
+    /* problem */;
+}
 
 #ifdef SFLOGGING
 staticfn void
@@ -628,4 +685,3 @@ logging_finish(void)
     icnt = 0L;
 }
 #endif
-

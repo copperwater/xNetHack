@@ -23,7 +23,7 @@ extern void sfo_uint32(NHFILE *, uint32 *, const char *);
 extern void sfo_uint64(NHFILE *, uint64 *, const char *);
 extern void sfo_size_t(NHFILE *, size_t *, const char *);
 extern void sfo_time_t(NHFILE *, time_t *, const char *);
-
+//extern void sfo_str(NHFILE *, char *, const char *, int);
 extern void sfo_arti_info(NHFILE *nhfp,
                                   struct arti_info *d_arti_info,
                                   const char *myname);
@@ -199,7 +199,7 @@ extern void sfi_ulong(NHFILE *, ulong *, const char *);
 #define Sfo_uint64(a,b,c) sfo_uint64(a, b, c)
 #define Sfo_size_t(a,b,c) sfo_size_t(a, b, c)
 #define Sfo_time_t(a,b,c) sfo_time_t(a, b, c)
-
+#define Sfo_str(a,b,c) sfo_str(a, b, c)
 #define Sfo_arti_info(a,b,c) sfo_arti_info(a, b, c)
 #define Sfo_dgn_topology(a,b,c) sfo_dgn_topology(a, b, c)
 #define Sfo_dungeon(a,b,c) sfo_dungeon(a, b, c)
@@ -471,7 +471,7 @@ extern void sfi_ulong(NHFILE *, ulong *, const char *);
 #define Sfo_uint64(a,b,c) sfo(a, b, c)
 #define Sfo_size_t(a,b,c) sfo(a, b, c)
 #define Sfo_time_t(a,b,c) sfo(a, b, c)
-
+#define Sfo_str(a,b,c) sfo(a, b, c)
 #define Sfo_arti_info(a,b,c) sfo(a, b, c)
 #define Sfo_dgn_topology(a,b,c) sfo(a, b, c)
 #define Sfo_dungeon(a,b,c) sfo(a, b, c)

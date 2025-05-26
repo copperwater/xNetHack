@@ -49,6 +49,7 @@ dospkg: dodata dosfonts $(GAMEBIN) $(TARGETPFX)recover.exe ../dat/nhtiles.bmp
 	mkdir -p $(TARGETPFX)pkg
 	cp $(GAMEBIN) $(TARGETPFX)pkg/NETHACK.EXE
 	cp $(TARGETPFX)recover.exe $(TARGETPFX)pkg/RECOVER.EXE
+	-cp $(SFCTOOLBIN) $(TARGETPFX)pkg/SFCTOOL.EXE
 	cp ../dat/nhdat $(TARGETPFX)pkg/NHDAT
 	cp ../dat/license $(TARGETPFX)pkg/LICENSE
 	cp ../dat/nhtiles.bmp $(TARGETPFX)pkg/NHTILES.BMP

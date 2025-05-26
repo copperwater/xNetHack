@@ -8,6 +8,7 @@
 #include "dlb.h"
 
 #ifndef MINIMAL_FOR_RECOVER
+#ifndef SFCTOOL
 
 #ifndef OPTIONS_AT_RUNTIME
 #define OPTIONS_AT_RUNTIME
@@ -357,6 +358,14 @@ comp_times(long filetime)
     return ((unsigned long) filetime < (unsigned long) nomakedefs.build_time);
 }
 #endif
+#endif /* !SFCTOOL */
+
+#ifdef SFCTOOL
+#ifdef wait_synch
+#undef wait_synch
+#endif
+#define wait_synch()
+#endif /* SFCTOOL */
 
 boolean
 check_version(
@@ -385,11 +394,13 @@ check_version(
         version_data->incarnation != nomakedefs.version_number
 #endif
         ) {
+#ifndef SFCTOOL
         if (complain) {
             pline("Version mismatch for file \"%s\".", filename);
             if (WIN_MESSAGE != WIN_ERR)
                  display_nhwindow(WIN_MESSAGE, TRUE);
         }
+#endif
         return FALSE;
     } else if (
         (version_data->feature_set & ~nomakedefs.ignored_features)
@@ -397,42 +408,18 @@ check_version(
         || ((utdflags & UTD_SKIP_SANITY1) == 0
              && version_data->entity_count != nomakedefs.version_sanity1)
         ) {
+#ifndef SFCTOOL
         if (complain) {
             pline("Configuration incompatibility for file \"%s\".", filename);
             display_nhwindow(WIN_MESSAGE, TRUE);
         }
+#endif
         return FALSE;
     }
     return TRUE;
 }
 
-void
-store_version(NHFILE *nhfp)
-{
-    struct version_info version_data = {
-        0UL, 0UL, 0UL,
-    };
-
-    /* actual version number */
-    version_data.incarnation = nomakedefs.version_number;
-    /* bitmask of config settings */
-    version_data.feature_set = nomakedefs.version_features;
-    /* # of monsters and objects */
-    version_data.entity_count  = nomakedefs.version_sanity1;
-
-    /* bwrite() before bufon() uses plain write() */
-    if (nhfp->structlevel)
-        bufoff(nhfp->fd);
-
-    store_critical_bytes(nhfp);
-    Sfo_version_info(nhfp, (struct version_info *) &version_data,
-                        "version_info");
-
-    if (nhfp->structlevel)
-        bufon(nhfp->fd);
-    return;
-}
-
+#ifndef SFCTOOL
 #ifdef AMIGA
 const char amiga_version_string[] = AMIGA_VERSION_STRING;
 #endif
@@ -518,6 +505,34 @@ dump_version_info(void)
     release_runtime_info();
     return;
 }
+void
+store_version(NHFILE *nhfp)
+{
+    struct version_info version_data = {
+        0UL,
+        0UL,
+        0UL,
+    };
+    /* actual version number */
+    version_data.incarnation = nomakedefs.version_number;
+    /* bitmask of config settings */
+    version_data.feature_set = nomakedefs.version_features;
+    /* # of monsters and objects */
+    version_data.entity_count = nomakedefs.version_sanity1;
+
+    /* bwrite() before bufon() uses plain write() */
+    if (nhfp->structlevel)
+        bufoff(nhfp->fd);
+
+    store_critical_bytes(nhfp);
+    Sfo_version_info(nhfp, (struct version_info *) &version_data,
+                     "version_info");
+
+    if (nhfp->structlevel)
+        bufon(nhfp->fd);
+    return;
+}
+#endif /* !SFCTOOL */
 #endif /* MINIMAL_FOR_RECOVER */
 
 struct critical_sizes_with_names {
@@ -662,9 +677,10 @@ store_critical_bytes(NHFILE *nhfp)
     /* int cmc = 0; */
 
     if (nhfp->mode & WRITING) {
-        indicate = (nhfp->structlevel)      ? 'h'
-                   : (nhfp->fnidx == cnvascii) ? 'a'
-                                            : '?';
+        indicate = (nhfp->structlevel) ? 'h'
+                                       : (nhfp->fnidx == exportascii)
+                                         ? 'a'
+                                         : '?';
         Sfo_char(nhfp, &indicate, "indicate-format", 1);
         Sfo_char(nhfp, &csc_count, "count-critical_sizes", 1);
         cnt = (int) csc_count;
@@ -693,7 +709,11 @@ store_critical_bytes(NHFILE *nhfp)
 int
 uptodate(NHFILE *nhfp, const char *name, unsigned long utdflags)
 {
+#ifdef SFCTOOL
+    extern struct version_info vers_info;
+#else
     struct version_info vers_info;
+#endif
     char indicator;
     int sfstatus = 0, idx_1st_mismatch = 0;
     boolean quietly = (utdflags & UTD_QUIETLY) != 0;
@@ -708,19 +728,18 @@ uptodate(NHFILE *nhfp, const char *name, unsigned long utdflags)
                            critical_sizes[idx_1st_mismatch].ucsize,
                            critical_sizes[idx_1st_mismatch].nm);
         }
-        return sfstatus;
     }
 
     Sfi_version_info(nhfp, &vers_info, "version_info");
     if (!check_version(&vers_info, name, verbose, utdflags)) {
         if (verbose) {
-            if ((utdflags & UTD_WITHOUT_WAITSYNCH_PERFILE) == 0)
+            if ((utdflags & UTD_WITHOUT_WAITSYNCH_PERFILE) == 0) {
                 wait_synch();
+            }
         }
         return SF_OUTDATED;
     }
-
-    return SF_UPTODATE;
+    return sfstatus;
 }
 
 /*
@@ -819,12 +838,15 @@ validate(NHFILE *nhfp, const char *name, boolean without_waitsynch_perfile)
     unsigned long utdflags = 0L;
     int validsf = 0;
 
+#ifdef SFCTOOL
+    utdflags |= UTD_QUIETLY;
+#endif
     if (nhfp->structlevel)
         utdflags |= UTD_CHECKSIZES;
     if (without_waitsynch_perfile)
         utdflags |= UTD_WITHOUT_WAITSYNCH_PERFILE;
     if (nhfp->fieldlevel)
-        utdflags |= UTD_CHECKFIELDCOUNTS | UTD_SKIP_SANITY1 | UTD_QUIETLY;
+        utdflags |= UTD_CHECKFIELDCOUNTS | UTD_SKIP_SANITY1;
     validsf = uptodate(nhfp, name, utdflags);
     return validsf;
 }

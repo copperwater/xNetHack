@@ -34,6 +34,7 @@ struct lchoice {
 
 static mapseen *load_mapseen(NHFILE *);
 
+#ifndef SFCTOOL
 #if 0
 staticfn void Fread(genericptr_t, int, int, dlb *);
 #endif
@@ -202,6 +203,7 @@ save_dungeon(
         svm.mapseenchn = 0;
     }
 }
+#endif /* !SFCTOOL */
 
 /* Restore the dungeon structures. */
 void
@@ -259,6 +261,7 @@ restore_dungeon(NHFILE *nhfp)
     }
 }
 
+#ifndef SFCTOOL
 #if 0
 staticfn void
 Fread(genericptr_t ptr, int size, int nitems, dlb *stream)
@@ -1428,6 +1431,7 @@ depth(d_level *lev)
 {
     return (schar) (svd.dungeons[lev->dnum].depth_start + lev->dlevel - 1);
 }
+#endif /* !SFCTOOL */
 
 /* are "lev1" and "lev2" actually the same? */
 boolean
@@ -1437,6 +1441,7 @@ on_level(d_level *lev1, d_level *lev2)
                       && lev1->dlevel == lev2->dlevel);
 }
 
+#ifndef SFCTOOL
 /* is this level referenced in the special level chain? */
 s_level *
 Is_special(d_level *lev)
@@ -1602,6 +1607,8 @@ u_on_rndspot(int upflag)
     switch_terrain();
 }
 
+#endif /* !SFCTOOL */
+#ifndef SFCTOOL
 boolean
 Is_botlevel(d_level *lev)
 {
@@ -2536,6 +2543,7 @@ donamelevel(void)
     query_annotation((d_level *) 0);
     return ECMD_OK;
 }
+#endif /* !SFCTOOL */
 
 /* exclusion zones */
 void
@@ -2562,7 +2570,7 @@ save_exclusions(NHFILE *nhfp)
         ;
 
     if (update_file(nhfp)) {
-        Sfo_int(nhfp, &nez, "exclusion-count");
+        Sfo_int(nhfp, &nez, "exclusion_count");
         for (ez = sve.exclusion_zones; ez; ez = ez->next) {
             Sfo_xint16(nhfp, &ez->zonetype, "exclusion-zonetype");
             Sfo_coordxy(nhfp, &ez->lx, "exclusion-lx");
@@ -2592,6 +2600,8 @@ load_exclusions(NHFILE *nhfp)
         sve.exclusion_zones = ez;
     }
 }
+
+#ifndef SFCTOOL
 
 /* find the particular mapseen object in the chain; may return null */
 staticfn mapseen *
@@ -2673,6 +2683,7 @@ save_mapseen(NHFILE *nhfp, mapseen *mptr)
     }
     savecemetery(nhfp, &mptr->final_resting_place);
 }
+#endif /* !SFCTOOL */
 
 staticfn mapseen *
 load_mapseen(NHFILE *nhfp)
@@ -2709,6 +2720,7 @@ load_mapseen(NHFILE *nhfp)
     restcemetery(nhfp, &load->final_resting_place);
     return load;
 }
+#ifndef SFCTOOL
 
 DISABLE_WARNING_FORMAT_NONLITERAL
 
@@ -3682,6 +3694,7 @@ print_mapseen(
         }
     }
 }
+#endif /* !SFCTOOL */
 #undef OF_INTEREST
 #undef ADDNTOBUF
 #undef ADDTOBUF

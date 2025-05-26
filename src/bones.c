@@ -5,6 +5,7 @@
 
 #include "hack.h"
 
+#ifndef SFCTOOL
 staticfn boolean no_bones_level(d_level *);
 staticfn void goodfruit(int);
 staticfn void resetobjs(struct obj *, boolean);
@@ -622,6 +623,8 @@ savebones(int how, time_t when, struct obj *corpse)
     compress_bonesfile();
 }
 
+#endif /* !SFCTOOL */
+
 int
 getbones(void)
 {
@@ -630,6 +633,7 @@ getbones(void)
     char c = 0, *bonesid,
          oldbonesid[40] = { 0 }; /* was [10]; more should be safer */
 
+#ifndef SFCTOOL
     if (discover) /* save bones files for real games */
         return 0;
 
@@ -641,6 +645,7 @@ getbones(void)
         return 0;
     if (no_bones_level(&u.uz))
         return 0;
+#endif /* !SFCTOOL */
 
     nhfp = open_bonesfile(&u.uz, &bonesid);
     if (!nhfp)
@@ -740,6 +745,8 @@ getbones(void)
     return ok;
 }
 
+#ifndef SFCTOOL
+
 /* check whether current level contains bones from a particular player */
 boolean
 bones_include_name(const char *name)
@@ -820,5 +827,7 @@ free_ebones(struct monst *mtmp)
         EBONES(mtmp) = (struct ebones *) 0;
     }
 }
+
+#endif /* SFCTOOL */
 
 /*bones.c*/

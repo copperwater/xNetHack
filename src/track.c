@@ -18,6 +18,7 @@ initrack(void)
     (void) memset((genericptr_t) &utrack, 0, sizeof(utrack));
 }
 
+#ifndef SFCTOOL
 /* add to track */
 void
 settrack(void)
@@ -51,6 +52,7 @@ gettrack(coordxy x, coordxy y)
     }
     return (coord *) 0;
 }
+#endif /* !SFCTOOL */
 
 /* return TRUE if x,y has hero tracks on it */
 boolean

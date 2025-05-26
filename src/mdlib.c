@@ -61,7 +61,10 @@ char *version_id_string(char *, size_t, const char *) NONNULL NONNULLPTRS;
 char *bannerc_string(char *, size_t, const char *) NONNULL NONNULLPTRS;
 int case_insensitive_comp(const char *, const char *) NONNULLPTRS;
 
-staticfn void make_version(void);
+#ifndef SFCTOOL
+staticfn
+#endif /* SFCTOOL */
+void make_version(void);
 
 #ifndef HAS_NO_MKSTEMP
 #ifdef _MSC_VER
@@ -234,10 +237,14 @@ md_ignored_features(void)
 {
     return (0UL
             | (1UL << 19) /* SCORE_ON_BOTL */
+            | SFCTOOL_BIT /* stored by SFCTOOL, not NetHack itself */
             );
 }
 
-staticfn void
+#ifndef SFCTOOL
+staticfn
+#endif
+void
 make_version(void)
 {
     int i;

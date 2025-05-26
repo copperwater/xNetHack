@@ -25,6 +25,7 @@
 
 struct e;
 
+#ifndef SFCTOOL
 /* lua_CFunction prototypes */
 #ifdef DUMPLOG
 staticfn int nhl_dump_fmtstr(lua_State *);
@@ -91,7 +92,9 @@ staticfn void nhl_warn(void *, const char *, int);
 staticfn void nhl_clearfromtable(lua_State *, int, int, struct e *);
 staticfn int nhl_panic(lua_State *);
 staticfn void nhl_hookfn(lua_State *, lua_Debug *);
+#endif /* !SFCTOOL */
 
+#ifndef SFCTOOL
 static const char *const nhcore_call_names[NUM_NHCORE_CALLS] = {
     "start_new_game",
     "restore_old_game",
@@ -102,6 +105,7 @@ static const char *const nhcore_call_names[NUM_NHCORE_CALLS] = {
     "leave_tutorial",
 };
 static boolean nhcore_call_available[NUM_NHCORE_CALLS];
+#endif
 
 /* internal structure that hangs off L->ud (but use lua_getallocf() )
  * Note that we use it for both memory use tracking and instruction counting.
@@ -126,6 +130,7 @@ typedef struct nhl_user_data {
 #endif
 } nhl_user_data;
 
+#ifndef SFCTOOL
 static lua_State *luapat;   /* instance for file pattern matching */
 
 void
@@ -1264,20 +1269,26 @@ get_nh_lua_variables(void)
 
 RESTORE_WARNING_UNREACHABLE_CODE
 
-/* char *lua_data; */
+#endif /* !SFCTOOL */
+
+#ifdef SFCTOOL
+char *lua_data;
+#endif
 
 /* save nh_lua_variables table to file */
 void
 save_luadata(NHFILE *nhfp)
 {
     unsigned lua_data_len;
+#ifndef SFCTOOL
     char *lua_data = get_nh_lua_variables(); /* note: '\0' terminated */
+#endif
 
     if (!lua_data)
         lua_data = dupstr(emptystr);
     lua_data_len = Strlen(lua_data) + 1; /* +1: include the terminator */
     Sfo_unsigned(nhfp, &lua_data_len, "luadata-lua_data_len");
-    Sfo_char(nhfp, lua_data, "lua_data", lua_data_len);
+    Sfo_char(nhfp, lua_data, "luadata", lua_data_len);
     free(lua_data);
 }
 
@@ -1286,17 +1297,24 @@ void
 restore_luadata(NHFILE *nhfp)
 {
     unsigned lua_data_len = 0;
+#ifndef SFCTOOL
     char *lua_data;
+#endif /* !SFCTOOL */
 
     Sfi_unsigned(nhfp, &lua_data_len, "luadata-lua_data_len");
     lua_data = (char *) alloc(lua_data_len);
     Sfi_char(nhfp, lua_data, "luadata", lua_data_len);
+
+#ifndef SFCTOOL
     if (!gl.luacore)
         l_nhcore_init();
     luaL_loadstring(gl.luacore, lua_data);
     free(lua_data);
     nhl_pcall_handle(gl.luacore, 0, 0, "restore_luadata", NHLpa_panic);
+#endif /* !SFCTOOL */
 }
+
+#ifndef SFCTOOL
 
 /* local stairs = stairways(); */
 staticfn int
@@ -2976,6 +2994,8 @@ nhlL_newstate(nhl_sandbox_info *sbi, const char *name)
 
     return L;
 }
+
+#endif /* !SFCTOOL */
 
 /*
 (See end of comment for conclusion.)

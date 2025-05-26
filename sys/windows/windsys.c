@@ -44,6 +44,10 @@
 
 static char portable_device_path[MAX_PATH];
 
+static boolean path_buffer_set = FALSE;
+static char path_buffer[MAX_PATH];
+
+#ifndef SFCTOOL
 /* runtime cursor display control switch */
 boolean win32_cursorblink;
 
@@ -53,6 +57,9 @@ WIN32_FIND_DATA ffd;
 extern int GUILaunched;
 extern boolean getreturn_enabled;
 int redirect_stdout;
+static char *get_executable_path(void);
+
+
 
 #ifdef WIN32CON
 typedef HWND(WINAPI *GETCONSOLEWINDOW)(void);
@@ -780,7 +787,9 @@ nt_assert_failed(const char *expression, const char *filepath, int line)
     impossible("nhassert(%s) failed in file '%s' at line %d",
                 expression, filename, line);
 }
+#endif  /* SFCTOOL */
 
+/* used by util/sfctool.c as well as files.c */
 boolean
 get_user_home_folder(char *homebuf, size_t sz)
 {
@@ -794,13 +803,12 @@ get_user_home_folder(char *homebuf, size_t sz)
     result = GetUserProfileDirectoryA(hToken, szHomeDirBuf, &BufSize);
     // Close handle opened via OpenProcessToken
     CloseHandle(hToken);
+    if (result != 0) {
+        Snprintf(homebuf, sz, "%s", szHomeDirBuf);
+    }
 
     return (result != 0);
 }
-static char *get_executable_path(void);
-
-static boolean path_buffer_set = FALSE;
-static char path_buffer[MAX_PATH];
 
 char *
 get_executable_path(void)
@@ -1019,6 +1027,7 @@ set_default_prefix_locations(const char *programPath UNUSED)
     strcpy(executable_path, get_executable_path());
     append_slash(executable_path);
 
+#ifndef SFCTOOL
     if (test_portable_config(executable_path, portable_device_path,
                              sizeof portable_device_path)) {
         gf.fqn_prefix[SYSCONFPREFIX] = executable_path;
@@ -1032,6 +1041,7 @@ set_default_prefix_locations(const char *programPath UNUSED)
         gf.fqn_prefix[TROUBLEPREFIX] = portable_device_path;
         gf.fqn_prefix[DATAPREFIX] = executable_path;
     } else {
+#endif /* SFCTOOL */
         if (!build_known_folder_path(&FOLDERID_Profile, profile_path,
                                      sizeof(profile_path), FALSE))
             strcpy(profile_path, executable_path);
@@ -1061,7 +1071,9 @@ set_default_prefix_locations(const char *programPath UNUSED)
         gf.fqn_prefix[LOCKPREFIX] = versioned_global_data_path;
         gf.fqn_prefix[TROUBLEPREFIX] = versioned_profile_path;
         gf.fqn_prefix[DATAPREFIX] = executable_path;
+#ifndef SFCTOOL
     }
+#endif /* SFCTOOL */
 }
 
 /*
@@ -1138,6 +1150,7 @@ get_portable_device(void)
     return (const char *) portable_device_path;
 }
 
+#ifndef SFCTOOL
 /* Windows helpers for CRASHREPORT etc */
 #ifdef CRASHREPORT
 struct CRctxt {
@@ -1429,6 +1442,7 @@ win32_cr_shellexecute(const char *url){
     return rv;
 }
 #endif /* CRASHREPORT */
+#endif /* SFCTOOL */
 
 #endif /* WIN32 */
 

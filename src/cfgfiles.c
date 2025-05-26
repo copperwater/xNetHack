@@ -35,6 +35,7 @@ staticfn char *is_config_section(char *);
 staticfn boolean handle_config_section(char *);
 boolean parse_config_line(char *);
 staticfn char *find_optparam(const char *);
+#ifndef SFCTOOL
 staticfn boolean cnf_line_OPTIONS(char *);
 staticfn boolean cnf_line_AUTOPICKUP_EXCEPTION(char *);
 staticfn boolean cnf_line_BINDINGS(char *);
@@ -53,6 +54,7 @@ staticfn boolean cnf_line_NAME(char *);
 staticfn boolean cnf_line_ROLE(char *);
 staticfn boolean cnf_line_dogname(char *);
 staticfn boolean cnf_line_catname(char *);
+#endif /* SFCTOOL */
 #ifdef SYSCF
 staticfn boolean cnf_line_WIZARDS(char *);
 staticfn boolean cnf_line_SHELLERS(char *);
@@ -80,12 +82,12 @@ staticfn boolean cnf_line_PANICTRACE_GDB(char *);
 staticfn boolean cnf_line_GDBPATH(char *);
 staticfn boolean cnf_line_GREPPATH(char *);
 staticfn boolean cnf_line_CRASHREPORTURL(char *);
-staticfn boolean cnf_line_SAVEFORMAT(char *);
-staticfn boolean cnf_line_BONESFORMAT(char *);
 staticfn boolean cnf_line_ACCESSIBILITY(char *);
+
 staticfn boolean cnf_line_PORTABLE_DEVICE_PATHS(char *);
 staticfn void parseformat(int *, char *);
 #endif /* SYSCF */
+#ifndef SFCTOOL
 staticfn boolean cnf_line_BOULDER(char *);
 staticfn boolean cnf_line_MENUCOLOR(char *);
 staticfn boolean cnf_line_HILITE_STATUS(char *);
@@ -101,6 +103,7 @@ staticfn boolean cnf_line_QT_TILEWIDTH(char *);
 staticfn boolean cnf_line_QT_TILEHEIGHT(char *);
 staticfn boolean cnf_line_QT_FONTSIZE(char *);
 staticfn boolean cnf_line_QT_COMPACT(char *);
+#endif /* SFCTOOL */
 struct _cnf_parser_state; /* defined below (far below...) */
 staticfn void cnf_parser_init(struct _cnf_parser_state *parser);
 staticfn void cnf_parser_done(struct _cnf_parser_state *parser);
@@ -108,6 +111,13 @@ staticfn void parse_conf_buf(struct _cnf_parser_state *parser,
                            boolean (*proc)(char *arg));
 /* next one is in extern.h; why here too? */
 boolean parse_conf_str(const char *str, boolean (*proc)(char *arg));
+
+#ifdef SFCTOOL
+#ifdef wait_synch
+#undef wait_synch
+#endif
+#define wait_synch()
+#endif /* SFCTOOL */
 
 /* ----------  BEGIN CONFIG FILE HANDLING ----------- */
 
@@ -150,6 +160,8 @@ get_default_configfile(void)
  */
 const char *backward_compat_configfile = "nethack.cnf";
 #endif
+
+#ifndef SFCTOOL
 
 /* #saveoptions - save config options into file */
 int
@@ -195,6 +207,7 @@ do_write_config_file(void)
     }
     return ECMD_OK;
 }
+#endif /* SFCTOOL */
 
 /* remember the name of the file we're accessing;
    if may be used in option reject messages */
@@ -455,7 +468,11 @@ choose_random_part(char *str, char sep)
             nsep++;
         str++;
     }
+#ifndef SFCTOOL
     csep = rn2(nsep);
+#else
+    csep = 1;
+#endif
     str = begin;
     while ((csep > 0) && *str) {
         str++;
@@ -570,6 +587,8 @@ find_optparam(const char *buf)
 
     return bufp;
 }
+
+#ifndef SFCTOOL
 
 staticfn boolean
 cnf_line_OPTIONS(char *origbuf)
@@ -759,6 +778,7 @@ cnf_line_catname(char *bufp)
     (void) strncpy(gc.catname, bufp, PL_PSIZ - 1);
     return TRUE;
 }
+#endif /* SFCTOOL */
 
 #ifdef SYSCF
 
@@ -1089,20 +1109,6 @@ cnf_line_CRASHREPORTURL(char *bufp)
 }
 
 staticfn boolean
-cnf_line_SAVEFORMAT(char *bufp)
-{
-    parseformat(sysopt.saveformat, bufp);
-    return TRUE;
-}
-
-staticfn boolean
-cnf_line_BONESFORMAT(char *bufp)
-{
-    parseformat(sysopt.bonesformat, bufp);
-    return TRUE;
-}
-
-staticfn boolean
 cnf_line_ACCESSIBILITY(char *bufp)
 {
     int n = atoi(bufp);
@@ -1134,6 +1140,8 @@ cnf_line_PORTABLE_DEVICE_PATHS(char *bufp)
     return TRUE;
 }
 #endif  /* SYSCF */
+
+#ifndef SFCTOOL
 
 staticfn boolean
 cnf_line_BOULDER(char *bufp)
@@ -1271,6 +1279,7 @@ cnf_line_QT_COMPACT(char *bufp)
 #endif
     return TRUE;
 }
+#endif /* SFCTOOL */
 
 typedef boolean (*config_line_stmt_func)(char *);
 
@@ -1288,6 +1297,7 @@ static const struct match_config_line_stmt {
     boolean origbuf;
     config_line_stmt_func fn;
 } config_line_stmt[] = {
+#ifndef SFCTOOL
     /* OPTIONS handled separately */
     { "OPTIONS", 4, FALSE, TRUE, cnf_line_OPTIONS },
     CNFL_N(AUTOPICKUP_EXCEPTION, 5),
@@ -1309,6 +1319,7 @@ static const struct match_config_line_stmt {
     CNFL_NA(CHARACTER, 4, ROLE),
     CNFL_N(dogname, 3),
     CNFL_N(catname, 3),
+#endif /* SFCTOOL */
 #ifdef SYSCF
     CNFL_S(WIZARDS, 7),
     CNFL_S(SHELLERS, 8),
@@ -1336,11 +1347,10 @@ static const struct match_config_line_stmt {
     CNFL_S(CRASHREPORTURL, 13),
     CNFL_S(GDBPATH, 7),
     CNFL_S(GREPPATH, 7),
-    CNFL_S(SAVEFORMAT, 10),
-    CNFL_S(BONESFORMAT, 11),
     CNFL_S(ACCESSIBILITY, 13),
     CNFL_S(PORTABLE_DEVICE_PATHS, 8),
 #endif /*SYSCF*/
+#ifndef SFCTOOL
     CNFL_N(BOULDER, 3),
     CNFL_N(MENUCOLOR, 9),
     CNFL_N(HILITE_STATUS, 6),
@@ -1356,6 +1366,7 @@ static const struct match_config_line_stmt {
     CNFL_N(QT_TILEHEIGHT, 13),
     CNFL_N(QT_FONTSIZE, 11),
     CNFL_N(QT_COMPACT, 10)
+#endif /* SFCTOOL */
 };
 
 #undef CNFL_N
@@ -1485,6 +1496,7 @@ config_error_nextline(const char *line)
     return TRUE;
 }
 
+#ifndef SFCTOOL
 int
 l_get_config_errors(lua_State *L)
 {
@@ -1510,6 +1522,7 @@ l_get_config_errors(lua_State *L)
 
     return 1;
 }
+#endif /* SFCTOOL */
 
 /* varargs 'config_error_add()' moved to pline.c */
 void
@@ -1600,9 +1613,10 @@ read_config_file(const char *filename, int src)
 
     if (!(fp = fopen_config_file(filename, src)))
         return FALSE;
-
+#ifndef SFCTOOL
     /* begin detection of duplicate configfile options */
     reset_duplicate_opt_detection();
+#endif /* SFCTOOL */
     free_config_sections();
     iflags.parse_config_file_src = src;
 
@@ -1610,8 +1624,10 @@ read_config_file(const char *filename, int src)
     (void) fclose(fp);
 
     free_config_sections();
+#ifndef SFCTOOL
     /* turn off detection of duplicate configfile options */
     reset_duplicate_opt_detection();
+#endif /* SFCTOOL */
     return rv;
 }
 
@@ -1859,38 +1875,6 @@ vconfig_error_add(const char *str, va_list the_args)
 }
 
 #ifdef SYSCF
-staticfn void
-parseformat(int *arr, char *str)
-{
-    const char *legal[] = { "historical", "cnv" };
-    int i, kwi = 0, words = 0;
-    char *p = str, *keywords[2] = { NULL };
-
-    while (*p) {
-        while (*p && isspace((uchar) *p)) {
-            *p = '\0';
-            p++;
-        }
-        if (*p) {
-            words++;
-            if (kwi < 2)
-                keywords[kwi++] = p;
-        }
-        while (*p && !isspace((uchar) *p))
-            p++;
-    }
-    if (!words) {
-        impossible("missing format list");
-        return;
-    }
-    while (--kwi >= 0)
-        if (kwi < 2) {
-            for (i = 0; i < SIZE(legal); ++i) {
-               if (!strcmpi(keywords[kwi], legal[i]))
-                   arr[kwi] = i + 1;
-            }
-        }
-}
 #ifdef SYSCF_FILE
 void
 assure_syscf_file(void)
@@ -1924,8 +1908,10 @@ assure_syscf_file(void)
         close(fd);
         return;
     }
+#ifndef SFCTOOL
     if (gd.deferred_showpaths)
         do_deferred_showpaths(1); /* does not return */
+#endif
     raw_printf("Unable to open SYSCF_FILE.\n");
     exit(EXIT_FAILURE);
 }

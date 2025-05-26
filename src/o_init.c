@@ -5,6 +5,7 @@
 
 #include "hack.h"
 
+#ifndef SFCTOOL
 staticfn void setgemprobs(d_level *);
 staticfn void randomize_gem_colors(void);
 staticfn void shuffle(int, int, boolean);
@@ -403,6 +404,7 @@ savenames(NHFILE *nhfp)
             }
         }
 }
+#endif /* !SFCTOOL */
 
 void
 restnames(NHFILE *nhfp)
@@ -426,11 +428,14 @@ restnames(NHFILE *nhfp)
             Sfi_char(nhfp, objects[i].oc_uname, "names-oc_uname", (int) len);
         }
     }
+#ifndef SFCTOOL
 #ifdef TILES_IN_GLYPHMAP
     shuffle_tiles();
 #endif
+#endif
 }
 
+#ifndef SFCTOOL
 void
 discover_object(
     int oindx,
@@ -562,6 +567,7 @@ sortloot_descr(int otyp, char *outbuf)
             sl_cookie.orderclass, sl_cookie.subclass, sl_cookie.disco);
     return outbuf;
 }
+#endif /* !SFCTOOL */
 
 #define DISCO_BYCLASS      0 /* by discovery order within each class */
 #define DISCO_SORTLOOT     1 /* by discovery order within each subclass */
@@ -576,6 +582,8 @@ static const char *const disco_orders_descr[] = {
     "alphabetical across all classes",
     (char *) 0
 };
+
+#ifndef SFCTOOL
 
 int
 choose_disco_sort(
@@ -1110,6 +1118,7 @@ rename_disco(void)
     destroy_nhwindow(tmpwin);
     return;
 }
+#endif /* !SFCTOOL */
 
 void
 get_sortdisco(char *opts, boolean cnf)

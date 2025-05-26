@@ -41,6 +41,7 @@
  * and placed there by 'makedefs'.
  */
 
+#ifndef SFCTOOL
 staticfn void unpadline(char *);
 staticfn void init_rumors(dlb *);
 staticfn char *get_rnd_line(dlb *, char *, unsigned, int (*)(int),
@@ -615,6 +616,7 @@ save_oracles(NHFILE *nhfp)
         }
     }
 }
+#endif /* !SFCTOOL */
 
 void
 restore_oracles(NHFILE *nhfp)
@@ -632,6 +634,7 @@ restore_oracles(NHFILE *nhfp)
     }
 }
 
+#ifndef SFCTOOL
 void
 outoracle(boolean special, boolean delphi)
 {
@@ -947,5 +950,6 @@ free_CapMons(void)
     }
     CapMonSiz = 0;
 }
+#endif /* !SFCTOOL */
 
 /*rumors.c*/

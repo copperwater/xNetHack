@@ -22,6 +22,7 @@ staticfn struct fruit *loadfruitchn(NHFILE *);
 staticfn void freefruitchn(struct fruit *);
 staticfn void rest_levl(NHFILE *);
 staticfn void rest_stairs(NHFILE *);
+#ifndef SFCTOOL
 staticfn void ghostfruit(struct obj *);
 staticfn boolean restgamestate(NHFILE *);
 staticfn void restlevelstate(void);
@@ -29,10 +30,12 @@ staticfn int restlevelfile(xint8);
 staticfn void rest_bubbles(NHFILE *);
 staticfn void restore_gamelog(NHFILE *);
 staticfn void reset_oattached_mids(boolean);
+/* these ones are declared non-static in extern.h if SFCTOOL is defined */
 staticfn boolean restgamestate(NHFILE *);
 staticfn void rest_bubbles(NHFILE *);
 staticfn void restore_gamelog(NHFILE *);
 staticfn void restore_msghistory(NHFILE *);
+#endif
 
 /*
  * Save a mapping of IDs from ghost levels to the current level.  This
@@ -47,8 +50,10 @@ struct bucket {
     } map[N_PER_BUCKET];
 };
 
+#ifndef SFCTOOL
 staticfn void clear_id_mapping(void);
 staticfn void add_id_mapping(unsigned, unsigned);
+#endif /* SFCTOOL */
 
 #ifdef AMII_GRAPHICS
 void amii_setpens(int); /* use colors from save file */
@@ -59,6 +64,7 @@ extern int amii_numcolors;
 
 #define Is_IceBox(o) ((o)->otyp == ICE_BOX ? TRUE : FALSE)
 
+#ifndef SFCTOOL
 /* Recalculate svl.level.objects[x][y], since this info was not saved. */
 
 staticfn void
@@ -118,6 +124,8 @@ inven_inuse(boolean quietly)
     }
 }
 
+#endif /* SFCTOOL */
+
 staticfn void
 restlevchn(NHFILE *nhfp)
 {
@@ -147,7 +155,9 @@ restdamage(NHFILE *nhfp)
     unsigned int dmgcount = 0;
     int counter;
     struct damage *tmp_dam;
+#ifndef SFCTOOL
     boolean ghostly = (nhfp->ftype == NHF_BONESFILE);
+#endif
 
     Sfi_unsigned(nhfp, &dmgcount, "damage-damage_count");
     counter = (int) dmgcount;
@@ -158,11 +168,13 @@ restdamage(NHFILE *nhfp)
         tmp_dam = (struct damage *) alloc(sizeof *tmp_dam);
 
         Sfi_damage(nhfp, tmp_dam, "damage");
+#ifndef SFCTOOL
         if (ghostly)
             tmp_dam->when += (svm.moves - svo.omoves);
 
         tmp_dam->next = svl.level.damagelist;
         svl.level.damagelist = tmp_dam;
+#endif /* !SFCTOOL */
     } while (--counter > 0);
 }
 
@@ -199,7 +211,7 @@ restobj(NHFILE *nhfp, struct obj *otmp)
         }
 
         /* omailcmd - feedback mechanism for scroll of mail */
-        Sfi_int(nhfp, &buflen, "obj-omail_length");
+        Sfi_int(nhfp, &buflen, "obj-omailcmd_length");
         if (buflen > 0) {
             char *omailcmd = (char *) alloc(buflen);
 
@@ -210,7 +222,7 @@ restobj(NHFILE *nhfp, struct obj *otmp)
 
         /* omid - monster id number, connecting corpse to ghost */
         newomid(otmp); /* superfluous; we're already allocated otmp->oextra */
-        Sfi_unsigned(nhfp, &omid, "obj-omid_length");
+        Sfi_unsigned(nhfp, &omid, "obj-omid");
         OMID(otmp) = omid;
     }
 }
@@ -221,10 +233,15 @@ restobjchn(NHFILE *nhfp, boolean frozen)
     struct obj *otmp, *otmp2 = 0;
     struct obj *first = (struct obj *) 0;
     int buflen = 0;
+#ifndef SFCTOOL
     boolean ghostly = (nhfp->ftype == NHF_BONESFILE);
+#endif
+    boolean trouble = FALSE;
 
     while (1) {
         Sfi_int(nhfp, &buflen, "obj-obj_length");
+        if (!(buflen != -1 || buflen != sizeof (struct obj)))
+           trouble = TRUE;
         if (buflen == -1)
             break;
 
@@ -236,6 +253,7 @@ restobjchn(NHFILE *nhfp, boolean frozen)
         else
             otmp2->nobj = otmp;
 
+#ifndef SFCTOOL
         if (ghostly) {
             unsigned nid = next_ident();
 
@@ -250,6 +268,7 @@ restobjchn(NHFILE *nhfp, boolean frozen)
          */
         if (ghostly && !frozen && !age_is_relative(otmp))
             otmp->age = svm.moves - svo.omoves + otmp->age;
+#endif /* !SFCTOOL */
 
         /* get contents of a container or statue */
         if (Has_contents(otmp)) {
@@ -261,6 +280,7 @@ restobjchn(NHFILE *nhfp, boolean frozen)
                 otmp3->ocontainer = otmp;
         }
 
+#ifndef SFCTOOL
         if (otmp->bypass)
             otmp->bypass = 0;
         if (!ghostly) {
@@ -272,12 +292,17 @@ restobjchn(NHFILE *nhfp, boolean frozen)
             if (otmp->o_id == svc.context.spbook.o_id)
                 svc.context.spbook.book = otmp;
         }
+#endif /* !SFADUSTER */
         otmp2 = otmp;
     }
     if (first && otmp2->nobj) {
         impossible("Restobjchn: error reading objchn.");
         otmp2->nobj = 0;
     }
+#ifdef SFCTOOL
+    nhUse(frozen);
+#endif
+    nhUse(trouble);
     return first;
 }
 
@@ -353,8 +378,11 @@ restmonchn(NHFILE *nhfp)
 {
     struct monst *mtmp, *mtmp2 = 0;
     struct monst *first = (struct monst *) 0;
-    int offset, buflen = 0;
+    int buflen = 0;
+#ifndef SFCTOOL
+    int offset;
     boolean ghostly = (nhfp->ftype == NHF_BONESFILE);
+#endif
 
     while (1) {
         Sfi_int(nhfp, &buflen, "monst-monst_length");
@@ -369,6 +397,7 @@ restmonchn(NHFILE *nhfp)
         else
             mtmp2->nmon = mtmp;
 
+#ifndef SFCTOOL
         if (ghostly) {
             unsigned nid = next_ident();
 
@@ -386,13 +415,21 @@ restmonchn(NHFILE *nhfp)
                 mtmp->mhpmax = DEFUNCT_MONSTER;
             }
         }
+#endif /* !SFCTOOL */
+
         if (mtmp->minvent) {
             struct obj *obj;
             mtmp->minvent = restobjchn(nhfp, FALSE);
+#ifndef SFCTOOL
             /* restore monster back pointer */
             for (obj = mtmp->minvent; obj; obj = obj->nobj)
                 obj->ocarry = mtmp;
+#else
+            nhUse(obj);
+#endif
         }
+
+#ifndef SFCTOOL
         if (mtmp->mw) {
             struct obj *obj;
 
@@ -416,12 +453,15 @@ restmonchn(NHFILE *nhfp)
             if (mtmp->m_id == svc.context.polearm.m_id)
                 svc.context.polearm.hitmon = mtmp;
         }
+#endif /* !SFCTOOL */
         mtmp2 = mtmp;
     }
+#ifndef SFCTOOL
     if (first && mtmp2->nmon) {
         impossible("Restmonchn: error reading monchn.");
         mtmp2->nmon = 0;
     }
+#endif
     return first;
 }
 
@@ -456,6 +496,7 @@ freefruitchn(struct fruit *flist)
     }
 }
 
+#ifndef SFCTOOL
 staticfn void
 ghostfruit(struct obj *otmp)
 {
@@ -470,6 +511,7 @@ ghostfruit(struct obj *otmp)
     else
         otmp->spe = fruitadd(oldf->fname, (struct fruit *) 0);
 }
+#endif /* !SFCTOOL */
 
 #ifdef SYSCF
 #define SYSOPT_CHECK_SAVE_UID sysopt.check_save_uid
@@ -477,7 +519,10 @@ ghostfruit(struct obj *otmp)
 #define SYSOPT_CHECK_SAVE_UID TRUE
 #endif
 
-staticfn boolean
+#ifndef SFCTOOL
+staticfn
+#endif
+boolean
 restgamestate(NHFILE *nhfp)
 {
     int i;
@@ -486,15 +531,18 @@ restgamestate(NHFILE *nhfp)
     struct obj *bc_obj;
     char timebuf[15];
     unsigned long uid = 0;
+#ifndef SFCTOOL
     boolean defer_perm_invent, restoring_special;
     struct obj *otmp;
+#endif
 
     Sfi_ulong(nhfp, &uid, "gamestate-uid");
+#ifndef SFCTOOL
     if (SYSOPT_CHECK_SAVE_UID
         && uid != (unsigned long) getuid()) { /* strange ... */
         if (!gc.converted_savefile_loaded)
             /* for wizard mode, issue a reminder; for others, treat it
-            as an attempt to cheat and refuse to restore this file */
+             * as an attempt to cheat and refuse to restore this file */
             pline("Saved game was not yours.");
         if (wizard || gc.converted_savefile_loaded) {
             if (gc.converted_savefile_loaded)
@@ -503,7 +551,7 @@ restgamestate(NHFILE *nhfp)
             return FALSE;
         }
     }
-
+#endif  /* SFCTOOL */
     newgamecontext = svc.context; /* copy statically init'd context */
     Sfi_context_info(nhfp, &svc.context, "gamestate-context");
     svc.context.warntype.species = (ismnum(svc.context.warntype.speciesidx))
@@ -519,6 +567,7 @@ restgamestate(NHFILE *nhfp)
     newgameflags = flags;
     Sfi_flag(nhfp, &flags, "gamestate-flags");
 
+#ifndef SFCTOOL
     /* avoid keeping permanent inventory window up to date during restore
        (setworn() calls update_inventory); attempting to include the cost
        of unpaid items before shopkeeper's bill is available is a no-no;
@@ -545,16 +594,18 @@ restgamestate(NHFILE *nhfp)
 #ifdef AMII_GRAPHICS
     amii_setpens(amii_numcolors); /* use colors from save file */
 #endif
-
+#endif /* !SFCTOOL */
     Sfi_you(nhfp, &u, "gamestate-you");
     gy.youmonst.cham = u.mcham;
 
+#ifndef SFCTOOL
     if (restoring_special && iflags.explore_error_flag) {
         /* savefile has wizard or explore mode, but player is no longer
            authorized to access either; can't downgrade mode any further, so
            fail restoration. */
         u.uhp = 0;
     }
+#endif
 
     Sfi_char(nhfp, timebuf, "gamestate-ubirthday", 14);
     timebuf[14] = '\0';
@@ -562,6 +613,7 @@ restgamestate(NHFILE *nhfp)
     Sfi_long(nhfp, &urealtime.realtime, "gamestate-realtime");
     Sfi_char(nhfp, timebuf, "gamestate-start_timing", 14);
     timebuf[14] = '\0';
+#ifndef SFCTOOL
     urealtime.start_timing = time_from_yyyymmddhhmmss(timebuf);
 
     /* current time is the time to use for next urealtime.realtime update */
@@ -590,6 +642,7 @@ restgamestate(NHFILE *nhfp)
     }
     /* in case hangup save occurred in midst of level change */
     assign_level(&u.uz0, &u.uz);
+#endif /* !SFCTOOL */
 
     /* this stuff comes after potential aborted restore attempts */
     restore_killers(nhfp);
@@ -600,7 +653,7 @@ restgamestate(NHFILE *nhfp)
 
     /* restore dangling (not on floor or in inventory) ball and/or chain */
     bc_obj = restobjchn(nhfp, FALSE);
-
+#ifndef SFCTOOL
     while (bc_obj) {
         struct obj *nobj = bc_obj->nobj;
 
@@ -609,13 +662,15 @@ restgamestate(NHFILE *nhfp)
             setworn(bc_obj, bc_obj->owornmask);
         bc_obj = nobj;
     }
-
+#endif
     gm.migrating_objs = restobjchn(nhfp, FALSE);
     gm.migrating_mons = restmonchn(nhfp);
 
     for (i = 0; i < NUMMONS; ++i) {
         Sfi_mvitals(nhfp, &svm.mvitals[i], "gamestate-mvitals");
     }
+
+#ifndef SFCTOOL
     /*
      * There are some things after this that can have unintended display
      * side-effects too early in the game.
@@ -637,6 +692,7 @@ restgamestate(NHFILE *nhfp)
     setuwep(otmp); /* (don't need any null check here) */
     if (!uwep || uwep->otyp == PICK_AXE || uwep->otyp == GRAPPLING_HOOK)
         gu.unweapon = TRUE;
+#endif /* !SFCTOOL */
 
     restore_dungeon(nhfp);
     restlevchn(nhfp);
@@ -660,15 +716,22 @@ restgamestate(NHFILE *nhfp)
     restore_msghistory(nhfp);
     restore_gamelog(nhfp);
     restore_luadata(nhfp);
+#ifndef SFCTOOL
     /* must come after all mons & objs are restored */
     relink_timers(FALSE);
     relink_light_sources(FALSE);
     adj_erinys(u.ualign.abuse);
     /* inventory display is now viable */
     iflags.perm_invent = defer_perm_invent;
+#else
+    nhUse(bc_obj);
+    nhUse(newgamecontext);
+    nhUse(newgameflags);
+#endif /* !SFCTOOL */
     return TRUE;
 }
 
+#ifndef SFCTOOL
 /* update game state pointers to those valid for the current level (so we
    don't dereference a wild u.ustuck when saving game state, for instance) */
 staticfn void
@@ -886,15 +949,20 @@ dorecover(NHFILE *nhfp)
     check_special_room(FALSE);
     return 1;
 }
+#endif /* !SFCTOOL */
 
 staticfn void
 rest_stairs(NHFILE *nhfp)
 {
     int buflen = 0;
     stairway stway = UNDEFINED_VALUES;
+#ifndef SFCTOOL
     stairway *newst;
+#endif
 
+#ifndef SFCTOOL
     stairway_free_all();
+#endif
     while (1) {
         Sfi_int(nhfp, &buflen, "stairs-staircount");
         if (buflen == -1)
@@ -906,11 +974,13 @@ rest_stairs(NHFILE *nhfp)
             /* stairway dlevel is relative, make it absolute */
             stway.tolev.dlevel += u.uz.dlevel;
         }
+#ifndef SFCTOOL
         stairway_add(stway.sx, stway.sy, stway.up, stway.isladder,
                      &(stway.tolev));
         newst = stairway_at(stway.sx, stway.sy);
         if (newst)
             newst->u_traversed = stway.u_traversed;
+#endif
     }
 }
 
@@ -932,7 +1002,8 @@ restcemetery(NHFILE *nhfp, struct cemetery **cemeteryaddr)
     } else {
         *cemeteryaddr = 0;
     }
-    if ((nhfp->mode & CONVERTING) != 0) {
+    if (((nhfp->mode & CONVERTING) != 0)
+         || ((nhfp->mode & UNCONVERTING) != 0)) {
         struct cemetery *thisbones, *nextbones;
 
         /* free the memory */
@@ -958,6 +1029,8 @@ rest_levl(NHFILE *nhfp)
     }
 }
 
+#ifndef SFCTOOL
+
 void
 trickery(char *reason)
 {
@@ -967,14 +1040,17 @@ trickery(char *reason)
     Strcpy(svk.killer.name, reason ? reason : "");
     done(TRICKED);
 }
+#endif /* !SFCTOOL */
 
 void
 getlev(NHFILE *nhfp, int pid, xint8 lev)
 {
     struct trap *trap;
+#ifndef SFCTOOL
     struct monst *mtmp;
     branch *br;
     int x, y;
+#endif
     long elapsed = 0L;
     int hpid = 0;
     xint8 dlvl = 0;
@@ -986,9 +1062,11 @@ getlev(NHFILE *nhfp, int pid, xint8 lev)
 #endif
 
     program_state.in_getlev = TRUE;
+#ifndef SFCTOOL
 
     if (ghostly)
         clear_id_mapping();
+#endif  /* !SFCTOOL */
 
 #if 0
 #if defined(MSDOS) || defined(OS2)
@@ -1007,6 +1085,7 @@ getlev(NHFILE *nhfp, int pid, xint8 lev)
     Sfi_int(nhfp, &hpid, "gamestate-hackpid");
 /* CHECK:  This may prevent restoration */
     Sfi_xint8(nhfp, &dlvl, "gamestate-dlvl");
+#ifndef SFCTOOL
     if ((pid && pid != hpid) || (lev && dlvl != lev)) {
         char trickbuf[BUFSZ];
 
@@ -1019,6 +1098,7 @@ getlev(NHFILE *nhfp, int pid, xint8 lev)
             pline1(trickbuf);
         trickery(trickbuf);
     }
+#endif
     restcemetery(nhfp, &svl.level.bonesinfo);
     rest_levl(nhfp);
 
@@ -1051,10 +1131,14 @@ getlev(NHFILE *nhfp, int pid, xint8 lev)
     }
     rest_rooms(nhfp); /* No joke :-) */
     if (svn.nroom) {
+#ifndef SFCTOOL
         gd.doorindex = svr.rooms[svn.nroom - 1].fdoor
                                + svr.rooms[svn.nroom - 1].doorct;
     } else {
         gd.doorindex = 0;
+#else
+        gd.doorindex = 0;
+#endif  /* !SFCTOOL */
     }
 
     restore_timers(nhfp, RANGE_LEVEL, elapsed);
@@ -1080,14 +1164,16 @@ getlev(NHFILE *nhfp, int pid, xint8 lev)
     dealloc_trap(trap);
 
     fobj = restobjchn(nhfp, FALSE);
+#ifndef SFCTOOL
     find_lev_obj();
+#endif  /* !SFCTOOL */
     /* restobjchn()'s `frozen' argument probably ought to be a callback
        routine so that we can check for objects being buried under ice */
     svl.level.buriedobjlist = restobjchn(nhfp, FALSE);
     gb.billobjs = restobjchn(nhfp, FALSE);
     rest_engravings(nhfp);
 
-
+#ifndef SFCTOOL
     /* reset level.monsters for new level */
     for (x = 0; x < COLNO; x++)
         for (y = 0; y < ROWNO; y++)
@@ -1133,6 +1219,7 @@ getlev(NHFILE *nhfp, int pid, xint8 lev)
         if (ghostly || (elapsed > 00 && elapsed > (long) rnd(10)))
             hide_monst(mtmp);
     }
+#endif /* !SFCTOOL */
 
     restdamage(nhfp);
     rest_regions(nhfp);
@@ -1140,6 +1227,7 @@ getlev(NHFILE *nhfp, int pid, xint8 lev)
     load_exclusions(nhfp);
     rest_track(nhfp);
 
+#ifndef SFCTOOL
     if (ghostly) {
         stairway *stway = gs.stairs;
         while (stway) {
@@ -1215,6 +1303,11 @@ getlev(NHFILE *nhfp, int pid, xint8 lev)
     if (ghostly)
         clear_id_mapping();
     program_state.in_getlev = FALSE;
+#else
+    nhUse(pid);
+    nhUse(lev);
+#endif /* !SFCTOOL */
+    program_state.in_getlev = FALSE;
 }
 
 /* "name-role-race-gend-algn" occurs very early in a save file; sometimes we
@@ -1247,7 +1340,10 @@ get_plname_from_file(
 }
 
 /* restore Plane of Water's air bubbles and Plane of Air's clouds */
-staticfn void
+#ifndef SFCTOOL
+staticfn
+#endif
+void
 rest_bubbles(NHFILE *nhfp)
 {
     xint8 bbubbly;
@@ -1265,7 +1361,10 @@ rest_bubbles(NHFILE *nhfp)
         restore_waterlevel(nhfp);
 }
 
-staticfn void
+#ifndef SFCTOOL
+staticfn
+#endif
+void
 restore_gamelog(NHFILE *nhfp)
 {
     int slen = 0;
@@ -1281,11 +1380,16 @@ restore_gamelog(NHFILE *nhfp)
         Sfi_char(nhfp, msg, "gamelog-gamelog_text", slen);
         msg[slen] = '\0';
         Sfi_gamelog_line(nhfp, &tmp, "gamelog-gamelog_line");
+#ifndef SFCTOOL
         gamelog_add(tmp.flags, tmp.turn, msg);
+#endif  /* !SFCTOOL */
     }
 }
 
-staticfn void
+#ifndef SFCTOOL
+staticfn
+#endif
+void
 restore_msghistory(NHFILE *nhfp)
 {
     int msgsize = 0;
@@ -1300,13 +1404,19 @@ restore_msghistory(NHFILE *nhfp)
             panic("restore_msghistory: msg too big (%d)", msgsize);
         Sfi_char(nhfp, msg, "msghistory-msg", msgsize);
         msg[msgsize] = '\0';
+#ifndef SFCTOOL
         putmsghistory(msg, TRUE);
+#endif  /* !SFCTOOL */
         ++msgcount;
     }
+#ifndef SFCTOOL
     if (msgcount)
         putmsghistory((char *) 0, TRUE);
     debugpline1("Read %d messages from savefile.", msgcount);
+#endif  /* !SFCTOOL */
 }
+
+#ifndef SFCTOOL
 
 /* Clear all structures for object and monster ID mapping. */
 staticfn void
@@ -1483,5 +1593,6 @@ restore_menu(
     return (ch > 0) ? 1 : ch;
 }
 #endif /* SELECTSAVED */
+#endif /* !SFCTOOL */
 
 /*restore.c*/

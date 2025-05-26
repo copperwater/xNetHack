@@ -37,7 +37,7 @@ struct _doengrave_ctx {
 
     size_t len;          /* # of nonspace chars of new engraving text */
 };
-
+#ifndef SFCTOOL
 staticfn int stylus_ok(struct obj *);
 staticfn boolean u_can_engrave(void);
 staticfn void doengrave_ctx_init(struct _doengrave_ctx *);
@@ -1542,6 +1542,7 @@ save_engravings(NHFILE *nhfp)
     if (release_data(nhfp))
         head_engr = 0;
 }
+#endif /* !SFCTOOL */
 
 void
 rest_engravings(NHFILE *nhfp)
@@ -1581,6 +1582,7 @@ rest_engravings(NHFILE *nhfp)
     }
 }
 
+#ifndef SFCTOOL
 DISABLE_WARNING_FORMAT_NONLITERAL
 
 /* to support '#stats' wizard-mode command */
@@ -1728,5 +1730,5 @@ blengr(void)
 {
     return ROLL_FROM(blind_writing);
 }
-
+#endif /* !SFCTOOL */
 /*engrave.c*/

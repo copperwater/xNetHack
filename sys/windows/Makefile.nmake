@@ -866,15 +866,15 @@ COREOBJTTY = \
 	$(OTTY)quest.o    $(OTTY)questpgr.o $(OTTY)read.o     $(OTTY)rect.o \
 	$(OTTY)region.o   $(OTTY)report.o   $(OTTY)restore.o  $(OTTY)rip.o \
 	$(OTTY)rnd.o      $(OTTY)role.o     $(OTTY)rumors.o   $(OTTY)save.o \
-	$(OTTY)selvar.o   $(OTTY)sfstruct.o $(OTTY)shk.o      $(OTTY)shknam.o \
-	$(OTTY)sit.o      $(OTTY)sounds.o   $(OTTY)sp_lev.o   $(OTTY)spell.o \
-	$(OTTY)stairs.o   $(OTTY)steal.o    $(OTTY)steed.o    $(OTTY)strutil.o \
-	$(OTTY)symbols.o  $(OTTY)sys.o      $(OTTY)teleport.o $(OTTY)timeout.o \
-	$(OTTY)topten.o   $(OTTY)track.o    $(OTTY)trap.o     $(OTTY)u_init.o \
-	$(OTTY)uhitm.o    $(OTTY)utf8map.o  $(OTTY)vault.o    $(OTTY)vision.o \
-	$(OTTY)weapon.o   $(OTTY)were.o     $(OTTY)wield.o    $(OTTY)windows.o \
-	$(OTTY)wizard.o   $(OTTY)wizcmds.o  $(OTTY)worm.o     $(OTTY)worn.o \
-	$(OTTY)write.o    $(OTTY)zap.o      $(OTTY)sfbase.o
+	$(OTTY)selvar.o   $(OTTY)sfbase.o   $(OTTY)sfstruct.o $(OTTY)shk.o \
+	$(OTTY)shknam.o   $(OTTY)sit.o      $(OTTY)sounds.o   $(OTTY)sp_lev.o \
+	$(OTTY)spell.o    $(OTTY)stairs.o   $(OTTY)steal.o    $(OTTY)steed.o \
+	$(OTTY)strutil.o  $(OTTY)symbols.o  $(OTTY)sys.o      $(OTTY)teleport.o \
+	$(OTTY)timeout.o  $(OTTY)topten.o   $(OTTY)track.o    $(OTTY)trap.o \
+	$(OTTY)u_init.o   $(OTTY)uhitm.o    $(OTTY)utf8map.o  $(OTTY)vault.o \
+	$(OTTY)vision.o   $(OTTY)weapon.o   $(OTTY)were.o     $(OTTY)wield.o \
+	$(OTTY)windows.o  $(OTTY)wizard.o   $(OTTY)wizcmds.o  $(OTTY)worm.o \
+	$(OTTY)worn.o     $(OTTY)write.o    $(OTTY)zap.o
 
 OBJSTTY = $(MDLIBTTY) $(COREOBJTTY) $(REGEXTTY) $(RANDOMTTY)
 
@@ -929,15 +929,15 @@ COREOBJGUI = \
 	$(OGUI)quest.o    $(OGUI)questpgr.o $(OGUI)read.o     $(OGUI)rect.o \
 	$(OGUI)region.o   $(OGUI)report.o   $(OGUI)restore.o  $(OGUI)rip.o \
 	$(OGUI)rnd.o      $(OGUI)role.o     $(OGUI)rumors.o   $(OGUI)save.o \
-	$(OGUI)selvar.o   $(OGUI)sfstruct.o $(OGUI)shk.o      $(OGUI)shknam.o \
-	$(OGUI)sit.o      $(OGUI)sounds.o   $(OGUI)sp_lev.o   $(OGUI)spell.o \
-	$(OGUI)stairs.o   $(OGUI)steal.o    $(OGUI)steed.o    $(OGUI)strutil.o \
-	$(OGUI)symbols.o  $(OGUI)sys.o      $(OGUI)teleport.o $(OGUI)timeout.o \
-	$(OGUI)topten.o   $(OGUI)track.o    $(OGUI)trap.o     $(OGUI)u_init.o \
-	$(OGUI)uhitm.o    $(OGUI)utf8map.o  $(OGUI)vault.o    $(OGUI)vision.o \
-	$(OGUI)weapon.o   $(OGUI)were.o     $(OGUI)wield.o    $(OGUI)windows.o \
-	$(OGUI)wizard.o   $(OGUI)wizcmds.o  $(OGUI)worm.o     $(OGUI)worn.o \
-	$(OGUI)write.o    $(OGUI)zap.o      $(OGUI)sfbase.o
+	$(OGUI)selvar.o   $(OGUI)sfbase.o   $(OGUI)sfstruct.o $(OGUI)shk.o \
+	$(OGUI)shknam.o   $(OGUI)sit.o      $(OGUI)sounds.o   $(OGUI)sp_lev.o \
+	$(OGUI)spell.o    $(OGUI)stairs.o   $(OGUI)steal.o    $(OGUI)steed.o \
+	$(OGUI)strutil.o  $(OGUI)symbols.o  $(OGUI)sys.o      $(OGUI)teleport.o \
+	$(OGUI)timeout.o  $(OGUI)topten.o   $(OGUI)track.o    $(OGUI)trap.o \
+	$(OGUI)u_init.o   $(OGUI)uhitm.o    $(OGUI)utf8map.o  $(OGUI)vault.o \
+	$(OGUI)vision.o   $(OGUI)weapon.o   $(OGUI)were.o     $(OGUI)wield.o \
+	$(OGUI)windows.o  $(OGUI)wizard.o   $(OGUI)wizcmds.o  $(OGUI)worm.o \
+	$(OGUI)worn.o     $(OGUI)write.o    $(OGUI)zap.o
 
 OBJSGUI   = $(MDLIBGUI) $(COREOBJGUI) $(REGEXGUI) $(RANDOMGUI)
 
@@ -1155,7 +1155,7 @@ R_CTAGSDIR=$(LIBDIR)ctags
 CTAGSDIR=$(R_CTAGSDIR)$(BACKSLASH)
 #U_CTAGSDIR=$(CTAGSDIR:\=/)
 !ELSE
-R_CTAGSDIR=..\..\..\ctags
+R_CTAGSDIR=..\lib\ctags
 CTAGSDIR=$(R_CTAGSDIR)$(BACKSLASH)
 #U_CTAGSDIR=$(CTAGSDIR:\=/)
 !ENDIF
@@ -1724,6 +1724,7 @@ binary.tag: 	$(DAT)data $(DAT)rumors $(DAT)oracles $(DLB) \
 	if exist $(DAT)symbols copy $(DAT)symbols $(GAMEDIR)symbols
 	if exist $(DOC)guidebook.txt copy $(DOC)guidebook.txt $(GAMEDIR)Guidebook.txt
 	if exist $(DOC)nethack.txt copy $(DOC)nethack.txt $(GAMEDIR)NetHack.txt
+#	if exist $(UTIL)sfctool.pdb copy $(UTIL)sfctool.pdb $(GAMEDIR)sfctool.pdb
 	@if exist $(GAMEDIR)NetHack.PDB echo NOTE: You may want to remove $(U_GAMEDIR)/NetHack.PDB to conserve space
 	@if exist $(GAMEDIR)NetHackW.PDB echo NOTE: You may want to remove $(U_GAMEDIR)/NetHackW.PDB to conserve space
 	-if exist $(MSWSYS)nethackrc.template copy $(MSWSYS)nethackrc.template   $(R_GAMEDIR)
@@ -2471,6 +2472,174 @@ $(DAT)epitaph: $(U)makedefs.exe $(DAT)epitaph.txt
 $(DAT)bogusmon: $(U)makedefs.exe $(DAT)bogusmon.txt
 	$(U)makedefs -3
 
+# This is the universal ctags utility which produces the tags in the
+# format that util/readtags requires. 
+# https://github.com/universal-ctags/ctags.git
+
+#===============================================================================
+# sfutil
+#===============================================================================
+SFCTOOLOBJS = $(OUTL)sfctool.o $(OUTL)sf-alloc.o \
+	    $(OUTL)sf-monst.o $(OUTL)sf-objects.o \
+	    $(OUTL)sfbase.o $(OUTL)sf-struct.o \
+	    $(OUTL)sfexpasc.o \
+	    $(OUTL)sfdata.o $(OUTL)sf-nhlua.o \
+	    $(OUTL)panic.o $(OUTL)sf-date.o $(OUTL)sf-decl.o \
+	    $(OUTL)sf-artifact.o $(OUTL)sf-cfgfiles.o \
+	    $(OUTL)sf-dungeon.o $(OUTL)sf-end.o \
+	    $(OUTL)sf-engrave.o $(OUTL)sf-files.o $(OUTL)sf-light.o \
+	    $(OUTL)sf-mdlib.o $(OUTL)sf-mkmaze.o $(OUTL)sf-mkroom.o \
+	    $(OUTL)sf-o_init.o $(OUTL)sf-region.o \
+	    $(OUTL)sf-restore.o $(OUTL)sf-rumors.o \
+	    $(OUTL)sf-sys.o $(OUTL)sf-timeout.o $(OUTL)sf-track.o \
+	    $(OUTL)sf-version.o $(OUTL)sf-worm.o \
+	    $(OUTL)strutil.o $(OUTL)sf-windsys.o
+
+SFCTOOLBIN = $(BinDir)sfctool.exe
+SFFLAGS = -DSFCTOOL -DNOPANICTRACE -DNOCRASHREPORT -DNO_CHRONICLE
+
+#CTAGSCMD = $(LIB)\ctags\ctags.exe
+
+#
+#       dependencies for optional sfctool
+#
+# 	$(Q)$(CC) $(CFLAGS) -Fo$@ monst.c
+
+#$(UTIL)sfutil.exe: $(SFCTOOLBIN)
+#$(UTIL)sfctool.exe: $(SFCTOOLBIN)
+
+$(SFCTOOLBIN): $(OUTLHACKLIB) $(SFCTOOLOBJS)
+	$(link) $(lflags) -out:$@ /PDB:$(BinDir)$(@B).PDB $(SFCTOOLOBJS) \
+		$(LIBS) ole32.lib Shell32.lib userenv.lib advapi32.lib $(OUTLHACKLIB)
+	@echo '$(SFCTOOLBIN) is up to date.'
+$(OUTL)sfctool.o: $(UTIL)sfctool.c $(HACK_H) $(INCL)sfprocs.h
+	$(Q)$(CC) $(CFLAGS) $(SFFLAGS) -Fo$@ -c $(UTIL)sfctool.c
+$(OUTL)sfdata.o: $(UTIL)sfdata.c $(HACK_H) $(INCL)sfprocs.h $(INCL)sfproto.h
+	$(Q)$(CC) $(CFLAGS) $(SFFLAGS) -Fo$@ -c $(UTIL)sfdata.c
+$(OUTL)sfexpasc.o: $(UTIL)sfexpasc.c $(HACK_H) $(INCL)sfprocs.h $(INCL)sfproto.h
+	$(Q)$(CC) $(CFLAGS) $(SFFLAGS) -Fo$@ -c $(UTIL)sfexpasc.c
+$(OUTL)sf-alloc.o: $(SRC)alloc.c
+	$(Q)$(CC) $(CFLAGS) $(SFFLAGS) -Fo$@ -c $(SRC)alloc.c
+$(OUTL)sf-date.o: $(SRC)date.c
+	$(Q)$(CC) $(CFLAGS) $(SFFLAGS) -Fo$@ -c $(SRC)date.c
+$(OUTL)sf-decl.o: $(SRC)decl.c
+	$(Q)$(CC) $(CFLAGS) $(SFFLAGS) -Fo$@ -c $(SRC)decl.c
+$(OUTL)sf-monst.o: $(SRC)monst.c
+	$(Q)$(CC) $(CFLAGS) $(SFFLAGS) -Fo$@ -c $(SRC)monst.c
+$(OUTL)sf-objects.o: $(SRC)objects.c
+	$(Q)$(CC) $(CFLAGS) $(SFFLAGS) -Fo$@ -c $(SRC)objects.c
+$(OUTL)sfbase.o: $(SRC)sfbase.c
+	$(Q)$(CC) $(CFLAGS) $(SFFLAGS) -Fo$@ -c $(SRC)sfbase.c
+$(OUTL)sf-struct.o: $(SRC)sfstruct.c
+	$(Q)$(CC) $(CFLAGS) $(SFFLAGS) -Fo$@ -c $(SRC)sfstruct.c
+$(OUTL)sf-artifact.o: $(SRC)artifact.c
+	$(Q)$(CC) $(CFLAGS) $(SFFLAGS) -Fo$@ -c $(SRC)artifact.c
+$(OUTL)sf-cfgfiles.o: $(SRC)cfgfiles.c
+	$(Q)$(CC) $(CFLAGS) $(SFFLAGS) -Fo$@ -c $(SRC)cfgfiles.c
+$(OUTL)sf-dungeon.o: $(SRC)dungeon.c
+	$(Q)$(CC) $(CFLAGS) $(SFFLAGS) -Fo$@ -c $(SRC)dungeon.c
+$(OUTL)sf-end.o: $(SRC)end.c
+	$(Q)$(CC) $(CFLAGS) $(SFFLAGS) -Fo$@ -c $(SRC)end.c
+$(OUTL)sf-engrave.o: $(SRC)engrave.c
+	$(Q)$(CC) $(CFLAGS) $(SFFLAGS) -Fo$@ -c $(SRC)engrave.c
+$(OUTL)sf-files.o: $(SRC)files.c
+	$(Q)$(CC) $(CFLAGS) $(SFFLAGS) -Fo$@ -c $(SRC)files.c
+$(OUTL)sf-light.o: $(SRC)light.c
+	$(Q)$(CC) $(CFLAGS) $(SFFLAGS) -Fo$@ -c $(SRC)light.c
+$(OUTL)sf-mdlib.o: $(SRC)mdlib.c
+	$(Q)$(CC) $(CFLAGS) $(SFFLAGS) -Fo$@ -c $(SRC)mdlib.c
+$(OUTL)sf-mkmaze.o: $(SRC)mkmaze.c
+	$(Q)$(CC) $(CFLAGS) $(SFFLAGS) -Fo$@ -c $(SRC)mkmaze.c
+$(OUTL)sf-mkroom.o: $(SRC)mkroom.c
+	$(Q)$(CC) $(CFLAGS) $(SFFLAGS) -Fo$@ -c $(SRC)mkroom.c
+$(OUTL)sf-o_init.o: $(SRC)o_init.c
+	$(Q)$(CC) $(CFLAGS) $(SFFLAGS) -Fo$@ -c $(SRC)o_init.c
+$(OUTL)sf-region.o: $(SRC)region.c
+	$(Q)$(CC) $(CFLAGS) $(SFFLAGS) -Fo$@ -c $(SRC)region.c
+$(OUTL)sf-restore.o: $(SRC)restore.c
+	$(Q)$(CC) $(CFLAGS) $(SFFLAGS) -Fo$@ -c $(SRC)restore.c
+$(OUTL)sf-rumors.o: $(SRC)\rumors.c
+	$(Q)$(CC) $(CFLAGS) $(SFFLAGS) -Fo$@ -c $(SRC)rumors.c
+$(OUTL)sf-timeout.o: $(SRC)timeout.c
+	$(Q)$(CC) $(CFLAGS) $(SFFLAGS) -Fo$@ -c $(SRC)timeout.c
+$(OUTL)sf-version.o: $(SRC)version.c
+	$(Q)$(CC) $(CFLAGS) $(SFFLAGS) -Fo$@ -c $(SRC)version.c
+$(OUTL)sf-worm.o: $(SRC)worm.c
+	$(Q)$(CC) $(CFLAGS) $(SFFLAGS) -Fo$@ -c $(SRC)worm.c
+$(OUTL)sf-nhlua.o: $(SRC)nhlua.c
+	$(Q)$(CC) $(CFLAGS) $(SFFLAGS) -Fo$@ -c $(SRC)nhlua.c
+$(OUTL)sf-track.o: $(SRC)track.c
+	$(Q)$(CC) $(CFLAGS) $(SFFLAGS) -Fo$@ -c $(SRC)track.c
+$(OUTL)sf-sys.o: $(SRC)sys.c
+	$(Q)$(CC) $(CFLAGS) $(SFFLAGS) -Fo$@ -c $(SRC)sys.c
+$(OUTL)sf-windsys.o: $(MSWSYS)windsys.c
+	$(Q)$(CC) $(CFLAGS) $(SFFLAGS) -Fo$@ -c $(MSWSYS)windsys.c
+
+$(UTIL)sftags.exe: $(OUTL)sftags.o
+	$(link) $(LFLAGS) /OUT:$@ $(OUTL)sftags.o
+$(OUTL)sftags.o: $(UTIL)sftags.c $(HACK_H)
+	$(Q)$(CC) $(CFLAGS) -Fo$@ -c $(UTIL)sftags.c
+$(INCL)sfproto.h: $(UTIL)sftags.exe $(UTIL)sf.tags
+	$(UTIL)sftags.exe
+$(UTIL)sfdata.c: $(UTIL)sftags.exe $(UTIL)sf.tags
+	$(UTIL)sftags.exe
+#       dependencies for sftags
+#       #
+CTAGDEP = $(INCL)align.h  $(INCL)artifact.h $(INCL)artilist.h \
+	  $(INCL)attrib.h $(INCL)context.h  $(INCL)coord.h    \
+	  $(INCL)decl.h   $(INCL)dungeon.h  $(INCL)engrave.h  \
+	  $(INCL)flag.h   $(INCL)func_tab.h $(INCL)global.h   \
+	  $(INCL)hack.h   $(INCL)mextra.h   \
+	  $(INCL)mkroom.h $(INCL)monst.h    \
+	  $(INCL)obj.h    $(INCL)objclass.h $(INCL)prop.h     \
+	  $(INCL)quest.h  $(INCL)rect.h     $(INCL)region.h   \
+	  $(INCL)rm.h     $(INCL)skills.h   $(INCL)spell.h    \
+	  $(INCL)stairs.h $(INCL)sys.h    $(INCL)timeout.h  \
+	  $(INCL)trap.h   $(INCL)you.h    $(INCL)onames.h   \
+	  $(INCL)wintype.h
+#	  $(INCL)permonst.h
+CTAGSOPT = --language-force=c --sort=no -D"Bitfield(x,n)=unsigned x : n" --excmd=pattern
+#
+$(UTIL)sf.tags: $(CTAGDEP)
+	$(CTAGSCMD) $(CTAGSOPT) -f $@ $(INCL)align.h
+	$(CTAGSCMD) $(CTAGSOPT) -a -f $@ $(INCL)artifact.h
+	$(CTAGSCMD) $(CTAGSOPT) -a -f $@ $(SRC)artifact.c
+	$(CTAGSCMD) $(CTAGSOPT) -a -f $@ $(INCL)artilist.h
+	$(CTAGSCMD) $(CTAGSOPT) -a -f $@ $(INCL)attrib.h
+	$(CTAGSCMD) $(CTAGSOPT) -a -f $@ $(SRC)bones.c
+	$(CTAGSCMD) $(CTAGSOPT) -a -f $@ $(INCL)context.h
+	$(CTAGSCMD) $(CTAGSOPT) -a -f $@ $(INCL)coord.h
+	$(CTAGSCMD) $(CTAGSOPT) -a -f $@ $(INCL)decl.h
+	$(CTAGSCMD) $(CTAGSOPT) -a -f $@ $(SRC)decl.c
+	$(CTAGSCMD) $(CTAGSOPT) -a -f $@ $(INCL)dungeon.h
+	$(CTAGSCMD) $(CTAGSOPT) -a -f $@ $(INCL)engrave.h
+	$(CTAGSCMD) $(CTAGSOPT) -a -f $@ $(SRC)engrave.c
+	$(CTAGSCMD) $(CTAGSOPT) -a -f $@ $(INCL)flag.h
+	$(CTAGSCMD) $(CTAGSOPT) -a -f $@ $(INCL)func_tab.h
+	$(CTAGSCMD) $(CTAGSOPT) -a -f $@ $(INCL)global.h
+	$(CTAGSCMD) $(CTAGSOPT) -a -f $@ $(INCL)hack.h
+	$(CTAGSCMD) $(CTAGSOPT) -a -f $@ $(INCL)mextra.h
+	$(CTAGSCMD) $(CTAGSOPT) -a -f $@ $(INCL)mkroom.h
+	$(CTAGSCMD) $(CTAGSOPT) -a -f $@ $(INCL)monst.h
+	$(CTAGSCMD) $(CTAGSOPT) -a -f $@ $(INCL)defsym.h
+	$(CTAGSCMD) $(CTAGSOPT) -a -f $@ $(INCL)obj.h
+	$(CTAGSCMD) $(CTAGSOPT) -a -f $@ $(INCL)objclass.h
+#	$(CTAGSCMD) $(CTAGSOPT) -a -f $@ $(INCL)permonst.h
+	$(CTAGSCMD) $(CTAGSOPT) -a -f $@ $(INCL)prop.h
+	$(CTAGSCMD) $(CTAGSOPT) -a -f $@ $(INCL)quest.h
+	$(CTAGSCMD) $(CTAGSOPT) -a -f $@ $(INCL)rect.h
+	$(CTAGSCMD) $(CTAGSOPT) -a -f $@ $(INCL)region.h
+	$(CTAGSCMD) $(CTAGSOPT) -a -f $@ $(INCL)rm.h
+	$(CTAGSCMD) $(CTAGSOPT) -a -f $@ $(INCL)skills.h
+	$(CTAGSCMD) $(CTAGSOPT) -a -f $@ $(INCL)spell.h
+	$(CTAGSCMD) $(CTAGSOPT) -a -f $@ $(INCL)stairs.h
+	$(CTAGSCMD) $(CTAGSOPT) -a -f $@ $(INCL)sys.h
+	$(CTAGSCMD) $(CTAGSOPT) -a -f $@ $(INCL)timeout.h
+	$(CTAGSCMD) $(CTAGSOPT) -a -f $@ $(INCL)trap.h
+	$(CTAGSCMD) $(CTAGSOPT) -a -f $@ $(INCL)you.h
+	$(CTAGSCMD) $(CTAGSOPT) -a -f $@ $(INCL)onames.h
+	$(CTAGSCMD) $(CTAGSOPT) -a -f $@ $(INCL)wintype.h
+
 #===============================================================================
 # Integrated sound files
 #===============================================================================
@@ -2541,13 +2710,15 @@ $(SndWavDir)sa2_xplevelup.wav: $(SndWavDir)sa2_xplevelup.uu $(U)uudecode.exe
 #===============================================================================
 
 PKGFILES = nethackrc.template Guidebook.txt license NetHack.exe NetHack.txt \
-	 NetHackW.exe opthelp nhdat370 record symbols sysconf.template
+	 NetHackW.exe opthelp nhdat370 record symbols sysconf.template \
+	 sfctool.exe
 FILESTOZIP = $(BinDir)nethackrc.template $(BinDir)Guidebook.txt $(BinDir)license \
 	$(BinDir)NetHack.exe $(BinDir)NetHack.txt $(BinDir)NetHackW.exe \
 	$(BinDir)opthelp $(BinDir)nhdat370 $(BinDir)record \
-	$(BinDir)symbols $(BinDir)sysconf.template
-DBGSYMS = NetHack.PDB NetHackW.PDB
-PDBTOZIP = $(BinDir)NetHack.PDB $(BinDir)NetHackW.PDB
+	$(BinDir)symbols $(BinDir)sysconf.template $(BinDir)sfctool.exe
+
+DBGSYMS = NetHack.PDB NetHackW.PDB sfctool.PDB
+PDBTOZIP = $(BinDir)NetHack.PDB $(BinDir)NetHackW.PDB $(BinDir)sfctool.PDB
 MAINZIP = $(PkgDir)nethack-$(NHV)-win-$(TARGET_CPU).zip
 DBGSYMZIP = $(PkgDir)nethack-$(NHV)-win-$(TARGET_CPU)-debugsymbols.zip
 
@@ -2568,7 +2739,7 @@ binary:  envchk.tag libdir.tag ottydir$(TARGET_CPU).tag \
 		$(INCL)nhlua.h $(OUTL)utility.tag \
 		$(DAT)data $(DAT)rumors $(DAT)oracles $(DAT)engrave \
 		$(DAT)epitaph $(DAT)bogusmon $(GAMEDIR)NetHack.exe \
-		$(GAMEDIR)NetHackW.exe $(GAMEDIRDLLS) binary.tag
+		$(GAMEDIR)NetHackW.exe $(GAMEDIR)sfctool.exe $(GAMEDIRDLLS) binary.tag
 	@echo NetHack is up to date.
 
 #===============================================================================
