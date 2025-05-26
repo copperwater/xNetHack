@@ -2003,6 +2003,7 @@ static char *unconverted_filename = 0, *converted_filename = 0;
 staticfn int
 doconvert_file(const char *filename, int sfstatus, boolean unconvert)
 {
+    nhUse(filename);
     nhUse(sfstatus);
     nhUse(unconvert);
     return 1;
