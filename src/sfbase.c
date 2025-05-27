@@ -569,7 +569,7 @@ char * sfvalue_uint64(uint64 *a)
 {
     static char buf[20];
 
-    Snprintf(buf, sizeof buf, PRId64, *a);
+    Snprintf(buf, sizeof buf, PRIu64, *a);
     return buf;
 }
 
