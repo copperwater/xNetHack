@@ -500,9 +500,10 @@ char *
 sfvalue_any(anything *a)
 {
     static char buf[20];
+
     Snprintf(buf, sizeof buf,
-             PRId64,
-             (int64_t) a->a_int64);
+             "%" PRId64,
+             a->a_int64);
     return buf;
 }
 
@@ -528,14 +529,14 @@ char * sfvalue_int32(int32 *a)
 {
     static char buf[20];
 
-    Snprintf(buf, sizeof buf, PRId32, *a);
+    Snprintf(buf, sizeof buf, "%" PRId32, *a);
     return buf;
 }
 
 char * sfvalue_int64(int64 *a)
 {
     static char buf[20];
-    Snprintf(buf, sizeof buf, PRId64, *a);
+    Snprintf(buf, sizeof buf, "%" PRId64, *a);
     return buf;
 }
 
@@ -561,7 +562,7 @@ char * sfvalue_uint32(uint32 *a)
 {
     static char buf[20];
 
-    Snprintf(buf, sizeof buf, PRIu32, *a);
+    Snprintf(buf, sizeof buf, "%" PRIu32, *a);
     return buf;
 }
 
@@ -569,7 +570,7 @@ char * sfvalue_uint64(uint64 *a)
 {
     static char buf[20];
 
-    Snprintf(buf, sizeof buf, PRIu64, *a);
+    Snprintf(buf, sizeof buf, "%" PRIu64, *a);
     return buf;
 }
 
