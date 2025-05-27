@@ -89,8 +89,13 @@ typedef unsigned int uint32_t;
    64-bit integers, you should comment out USE_ISAAC64 in config.h so
    that the previous RNG gets used instead.  Then this file will be
    inhibited and it won't matter what the int64_t and uint64_t lines are. */
+
+#if defined(__cplusplus)
+#include <stdint.h>
+#else
 typedef long long int int64_t;
 typedef unsigned long long int uint64_t;
+#endif
 
 #endif /* !C99 */
 
