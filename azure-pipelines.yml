@@ -214,7 +214,7 @@ steps:
   workingDirectory: $(Agent.BuildDirectory)/$(netHackPath)
 
 - bash: |
-    brew install nroff
+    brew install groff
     cd sys/unix
     sh setup.sh hints/macos.370
     cd ../..
@@ -222,7 +222,7 @@ steps:
     make WANT_MACSOUND=1 all
   condition: eq( variables['Agent.OS'], 'Darwin' )
   workingDirectory: $(Agent.BuildDirectory)/$(netHackPath)
-  displayName: 'Building mac full build'
+  displayName: 'Building mac full build
 
 - bash: |
     sudo apt -qq -y install libfl2
