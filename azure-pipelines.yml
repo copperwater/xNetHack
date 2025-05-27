@@ -214,6 +214,7 @@ steps:
   workingDirectory: $(Agent.BuildDirectory)/$(netHackPath)
 
 - bash: |
+    brew install nroff
     cd sys/unix
     sh setup.sh hints/macos.370
     cd ../..
