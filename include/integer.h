@@ -47,11 +47,11 @@
 #if !defined(HAS_INTTYPES_H)
 /* The compiler claims to conform to C99. Use inttypes.h */
 #define HAS_INTTYPES_H
-#endif  /* claims to be C99 */
+#endif  /* !HAS_INTTYPES_H */
 #if defined(__GNUC__) && defined(__INT64_MAX__) && !defined(HAS_STDINT_H)
 #define HAS_STDINT_H
-#endif
-#endif
+#endif 
+#endif  /* claims to be C99 */
 
 #endif /*?__DECC*/
 
