@@ -85,7 +85,6 @@ staticfn boolean cnf_line_CRASHREPORTURL(char *);
 staticfn boolean cnf_line_ACCESSIBILITY(char *);
 
 staticfn boolean cnf_line_PORTABLE_DEVICE_PATHS(char *);
-staticfn void parseformat(int *, char *);
 #endif /* SYSCF */
 #ifndef SFCTOOL
 staticfn boolean cnf_line_BOULDER(char *);
