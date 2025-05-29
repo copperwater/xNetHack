@@ -1374,7 +1374,7 @@ match_optname(const char *user_string, const char *optn_name, int min_length,
 }
 
 staticfn void
-usage(int argc, char **argv)
+usage(int argc UNUSED, char **argv)
 {
     char *cp = argv[0], *sep = (char *) 0;
 
