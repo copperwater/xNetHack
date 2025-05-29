@@ -448,8 +448,6 @@ join(int a, int b, boolean nxcor)
     if (troom->lx > croom->hx) {
         dx = 1;
         dy = 0;
-        xx = croom->hx + 1;
-        tx = troom->lx - 1;
         if (!finddpos(&cc, DIR_E, croom))
             return;
         if (!finddpos(&tt, DIR_W, troom))
@@ -457,8 +455,6 @@ join(int a, int b, boolean nxcor)
     } else if (troom->hy < croom->ly) {
         dy = -1;
         dx = 0;
-        yy = croom->ly - 1;
-        ty = troom->hy + 1;
         if (!finddpos(&cc, DIR_N, croom))
             return;
         if (!finddpos(&tt, DIR_S, troom))
@@ -466,8 +462,6 @@ join(int a, int b, boolean nxcor)
     } else if (troom->hx < croom->lx) {
         dx = -1;
         dy = 0;
-        xx = croom->lx - 1;
-        tx = troom->hx + 1;
         if (!finddpos(&cc, DIR_W, croom))
             return;
         if (!finddpos(&tt, DIR_E, troom))
@@ -475,8 +469,6 @@ join(int a, int b, boolean nxcor)
     } else {
         dy = 1;
         dx = 0;
-        yy = croom->hy + 1;
-        ty = troom->ly - 1;
         if (!finddpos(&cc, DIR_S, croom))
             return;
         if (!finddpos(&tt, DIR_N, troom))
