@@ -479,6 +479,12 @@ mstrength(struct permonst *ptr)
     if (!strcmp(ptr->pmnames[NEUTRAL], "leprechaun"))
         n -= 2;
 
+    /* Soldier ants and killer bees are underestimated by the formula,
+       so have an artificial +1 difficulty */
+    if (!strcmp(ptr->pmnames[NEUTRAL], "killer bee") ||
+        !strcmp(ptr->pmnames[NEUTRAL], "soldier ant"))
+    tmp += 1;
+
     /* finally, adjust the monster level  0 <= n <= 24 (approx.) */
     if (n == 0)
         tmp -= 1;
