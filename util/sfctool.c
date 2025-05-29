@@ -77,6 +77,8 @@ static NHFILE *create_dstfile(char *, enum saveformats);
 static const char *style_to_text(enum saveformats style);
 static void read_sysconf(void);
 static int length_without_val(const char *user_string, int len);
+static void usage(int argc, char **argv);
+static const char *briefname(const char *fnam);
 
 void zero_nhfile(NHFILE *);
 NHFILE *new_nhfile(void);
@@ -158,18 +160,19 @@ static char srclogfilenm[BUFSZ], dstlogfilenm[BUFSZ];
  *********/
 
 int
-main(int argc UNUSED, char *argv[])
+main(int argc, char *argv[])
 {
     int arg;
     char folderbuf[5000];
     const char *suffix = (convertstyle == exportascii) ? ".exportascii" : "";
-    boolean add_folder = TRUE;
-#ifdef WIN32
-    size_t sz;
-#endif
+    boolean add_folder = TRUE, add_extension = FALSE;
 
-    if (argc < 3)
-        exit(EXIT_FAILURE);
+#ifdef WIN32
+    const char *default_extension = ".NetHack-saved-game";
+    size_t sz;
+#else
+    const char *default_extension = "";
+#endif
 
     runtime_info_init(); /* mdlib.c */
 #ifdef UNIX
@@ -188,13 +191,26 @@ main(int argc UNUSED, char *argv[])
         exit(EXIT_FAILURE);
     sz = strlen(folderbuf);
     (void) snprintf(eos(folderbuf), sizeof folderbuf - sz,
-             "\\AppData\\Local\\NetHack\\3.7\\");
-    //initoptions_init(); // This allows OPTIONS in syscf on Windows.
+                    "\\AppData\\Local\\NetHack\\3.7\\");
+    // initoptions_init(); // This allows OPTIONS in syscf on Windows.
     set_default_prefix_locations(argv[0]);
 #endif
 
     read_sysconf();
+    thisdatamodel = datamodel(0);
+    if (argc < 3 && !(argc == 2 && !strcmp(argv[1], "-d"))) {
+        usage(argc, argv);
+        exit(EXIT_FAILURE);
+    }
     for (arg = 1; arg < argc; ++arg) {
+        if (arg == 1 && !strcmp(argv[arg], "-d")) {
+            fprintf(
+                stdout,
+                "\nThe historical savefile datamodel supported by this utility is %s (%s).\n",
+                thisdatamodel, datamodel(1));
+            exit(EXIT_SUCCESS);
+        }
+
         if (arg == 1 && !strcmp(argv[arg], "-u")) {
             explicit_option = TRUE;
             chosen_unconvert = TRUE;
@@ -209,6 +225,7 @@ main(int argc UNUSED, char *argv[])
             chosen_unconvert = FALSE;
             continue;
         }
+
         if (arg == 2) {
             size_t ln = strlen(argv[arg]);
             boolean addseparator = FALSE;
@@ -223,13 +240,23 @@ main(int argc UNUSED, char *argv[])
             } else {
                 add_folder = FALSE;
             }
+#ifdef WIN32
+            /* On Windows we allow specifying the savefile name without the extention
+             * in the arguments */
+            if (strstr(argv[arg], default_extension) == 0)
+                add_extension = TRUE;
+#endif
             if (explicit_option) {
                 if (add_folder)
                     ln += strlen(folderbuf);
+                if (add_extension)
+                    ln += strlen(default_extension);
                 unconverted_filename = (char *) alloc((int) ln + 1);
-                Snprintf(unconverted_filename, ln + 1, "%s%s%s", 
+                Snprintf(unconverted_filename, ln + 1, "%s%s%s%s",
                          add_folder ? folderbuf : "",
-                         addseparator ? "/" : "", argv[arg]);
+                         addseparator ? "/" : "",
+                         argv[arg],
+                         add_extension ? default_extension : "");
                 ln += strlen(suffix);
                 converted_filename = (char *) alloc((int) ln + 1);
                 Snprintf(converted_filename, ln + 1, "%s%s",
@@ -246,7 +273,7 @@ main(int argc UNUSED, char *argv[])
                 !converted_filename ? "" : "un");
         exit(EXIT_FAILURE); /* need both filenames */
     }
-    thisdatamodel = datamodel();
+
     my_sf_init();
     if (chosen_unconvert) {
         process_savefile(converted_filename, convertstyle,
@@ -274,16 +301,27 @@ process_savefile(const char *srcfnam, enum saveformats srcstyle,
     extern struct version_info vers_info;
     extern uchar cscbuf[];
     /* nh_uncompress(fq_save); */
+    const char *dmfile;
 
     if ((nhfp[srcidx] = open_srcfile(srcfnam, srcstyle)) == 0)
         return 0;
     sfstatus = validate(nhfp[srcidx], srcfnam, FALSE);
+    dmfile = what_datamodel_is_this(0,
+                                    cscbuf[1],  /* short */
+                                    cscbuf[2],  /* int */
+                                    cscbuf[3],  /* long */
+                                    cscbuf[4],  /* long long */
+                                    cscbuf[5]); /* ptr */
     if (sfstatus > SF_UPTODATE
         && ((sfstatus <= SF_CRITICAL_BYTE_COUNT_MISMATCH) || !unconvert)) {
         fprintf(stderr,
-                "This savefile is not compatible with %sutility.\n%s\n",
-                !unconvert ? "the datamodel of this particular " : "this ",
-                srcfnam);
+                "The %s savefile %s%s%s not compatible with this %s%sutility.\n",
+                briefname(srcfnam),
+                dmfile ? "is a " : "",
+                dmfile ? dmfile : "",
+                dmfile ? " savefile, thus" : " is",
+                thisdatamodel ? thisdatamodel : "",
+                thisdatamodel ? " " : "");
         return 0;
     }
     if (sfstatus >= SF_DM_IL32LLP64_ON_ILP32LL64) {
@@ -303,12 +341,16 @@ process_savefile(const char *srcfnam, enum saveformats srcstyle,
         nhfp[srcidx]->nhfpconvert = nhfp[CONVERTED];
     }
     if (unconvert)
-        fprintf(stdout, "\n\nunconverting %s to %s %s\n",
-                style_to_text(srcstyle), style_to_text(cvtstyle),
-                thisdatamodel);
+        fprintf(stdout, "\n\nunconverting %s to %s savefile called %s.\n",
+                briefname((const char *) converted_filename),
+                dmfile,
+                briefname((const char *) unconverted_filename));
     else
-        fprintf(stdout, "\n\nconverting %s %s to %s\n",
-                style_to_text(srcstyle), thisdatamodel, style_to_text(cvtstyle));
+        fprintf(stdout, "\n\nconverting %s %s format %s to %s format\n",
+                style_to_text(srcstyle),
+                thisdatamodel,
+                briefname((const char *) unconverted_filename),
+                style_to_text(cvtstyle));
 
     rewind_nhfile(nhfp[srcidx]);
 #ifdef SAVEFILE_DEBUGGING
@@ -562,6 +604,17 @@ create_dstfile(char *fnam, enum saveformats mystyle)
         }
     }
     return nhfp;
+}
+
+static const char *
+briefname(const char *fnam)
+{
+    const char *bn = fnam, *sep = (const char *) 0;
+
+    if ((sep = strrchr(fnam, '/')) || (sep = strrchr(fnam, '\\'))
+        || (sep = strrchr(fnam, ':')))
+        bn = sep + 1;
+    return bn;
 }
 
 static const char *
@@ -1279,7 +1332,7 @@ free_oname(struct obj *obj)
     }
 }
 
-#ifdef WIN32 
+#ifdef WIN32
 void
 win32_abort(void)
 {
@@ -1320,4 +1373,19 @@ match_optname(const char *user_string, const char *optn_name, int min_length,
                       && !strncmpi(optn_name, user_string, len));
 }
 
+staticfn void
+usage(int argc, char **argv)
+{
+    char *cp = argv[0], *sep = (char *) 0;
+
+    if ((sep = strrchr(cp, '/')) || (sep = strrchr(cp, '\\'))
+        || (sep = strrchr(cp, ':')))
+        cp = sep + 1;
+    fprintf(stderr,
+            "\nTo convert a savefile to export format:\n    %s %s %s\n", cp,
+            "-c", "savefile");
+    fprintf(stderr,
+            "\nTo unconvert an exported savefile back into a savefile:\n    %s %s %s\n", cp,
+            "-u", "savefile");
+}
 /* sfctool.c */

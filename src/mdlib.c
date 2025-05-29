@@ -56,7 +56,7 @@
 static boolean date_via_env = FALSE;
 
 extern unsigned long md_ignored_features(void);
-extern const char *datamodel(void);
+extern const char *datamodel(int);
 char *version_id_string(char *, size_t, const char *) NONNULL NONNULLPTRS;
 char *bannerc_string(char *, size_t, const char *) NONNULL NONNULLPTRS;
 int case_insensitive_comp(const char *, const char *) NONNULLPTRS;
@@ -696,7 +696,7 @@ build_options(void)
     STOREOPTTEXT(optbuf);
     optbuf[0] = '\0';
     length = COLNO + 1; /* force 1st item onto new line */
-    Strcat(strcpy(buf, datamodel()), " data model,");
+    Strcat(strcpy(buf, datamodel(0)), " data model,");
     opt_out_words(buf, &length);
     for (i = 0; i < SIZE(build_opts); i++) {
 #if !defined(MAKEDEFS_C) && defined(FOR_RUNTIME)

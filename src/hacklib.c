@@ -957,20 +957,21 @@ copy_bytes(int ifd, int ofd)
 struct datamodel_information {
     int sz[MAX_D];
     const char *datamodel;
+    const char *dmplatform;
 };
 
 static struct datamodel_information dm[] = {
     { { (int) sizeof(short), (int) sizeof(int), (int) sizeof(long),
         (int) sizeof(long long), (int) sizeof(genericptr_t) },
-      "" },
-    { { 2, 4, 4, 8, 4 }, "ILP32LL64" }, /* Windows, Unix x86 */
-    { { 2, 4, 4, 8, 8 }, "IL32LLP64" }, /* Windows x64 */
-    { { 2, 4, 8, 8, 8 }, "I32LP64" },   /* Unix 64-bit */
-    { { 2, 8, 8, 8, 8 }, "ILP64" },     /* HAL, SPARC64 */
+      "", "" },
+    { { 2, 4, 4, 8, 4 }, "ILP32LL64", "x86 32-bit" }, /* Windows or Unix */
+    { { 2, 4, 4, 8, 8 }, "IL32LLP64", "Windows x64 64-bit" },
+    { { 2, 4, 8, 8, 8 }, "I32LP64", "Unix 64-bit"}, 
+    { { 2, 8, 8, 8, 8 }, "ILP64", "Unix ILP64"},      /* HAL, SPARC64 */
 };
 
 const char *
-datamodel(void)
+datamodel(int retidx)
 {
     int i, j, matchcount;
     static const char *unknown = "Unknown";
@@ -982,13 +983,13 @@ datamodel(void)
                 ++matchcount;
         }
         if (matchcount == MAX_D)
-            return dm[i].datamodel;
+            return (retidx == 0) ? dm[i].datamodel : dm[i].dmplatform;
     }
     return unknown;
 }
 
 const char *
-what_datamodel_is_this(int szshort, int szint, int szlong, int szll,
+what_datamodel_is_this(int retidx, int szshort, int szint, int szlong, int szll,
                        int szptr)
 {
     int i;
@@ -998,7 +999,7 @@ what_datamodel_is_this(int szshort, int szint, int szlong, int szll,
         if (szshort == dm[i].sz[0] && szint == dm[i].sz[1]
             && szlong == dm[i].sz[2] && szll == dm[i].sz[3]
             && szptr == dm[i].sz[4])
-            return dm[i].datamodel;
+            return (retidx == 0) ? dm[i].datamodel : dm[i].dmplatform;
     }
     return unknown;
 }

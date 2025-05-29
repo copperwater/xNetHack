@@ -778,9 +778,10 @@ compare_critical_bytes(NHFILE *nhfp, int *idx_1st_mismatch, unsigned long utdfla
     }
     for (i = 1; i < cnt; ++i) {
         if (cscbuf[i] != critical_sizes[i].ucsize) {
-            const char *dm = datamodel(), *dmfile;
+            const char *dm = datamodel(0), *dmfile;
 
-            dmfile = what_datamodel_is_this(cscbuf[1],  /* short */
+            dmfile = what_datamodel_is_this(0,
+                                            cscbuf[1],  /* short */
                                             cscbuf[2],  /* int */
                                             cscbuf[3],  /* long */
                                             cscbuf[4],  /* long long */
