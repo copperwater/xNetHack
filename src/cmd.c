@@ -981,7 +981,7 @@ enter_explore_mode(void)
 void
 makemap_prepost(boolean pre, boolean wiztower)
 {
-    NHFILE tmpnhfp;
+    NHFILE *tmpnhfp;
     struct monst *mtmp;
 
     if (pre) {
@@ -1029,9 +1029,9 @@ makemap_prepost(boolean pre, boolean wiztower)
         dobjsfree();
 
         /* discard current level; "saving" is used to release dynamic data */
-        zero_nhfile(&tmpnhfp);  /* also sets fd to -1 as desired */
-        tmpnhfp.mode = FREEING;
-        savelev(&tmpnhfp, ledger_no(&u.uz));
+        tmpnhfp = get_freeing_nhfile();
+        savelev(tmpnhfp, ledger_no(&u.uz));
+        close_nhfile(tmpnhfp);
     } else {
         vision_reset();
         gv.vision_full_recalc = 1;

@@ -806,15 +806,11 @@ dorecover(NHFILE *nhfp)
      */
     getlev(nhfp, 0, (xint8) 0);
     if (!restgamestate(nhfp)) {
-        NHFILE tnhfp;
+        NHFILE *tnhfp = get_freeing_nhfile();
 
         display_nhwindow(WIN_MESSAGE, TRUE);
-        zero_nhfile(&tnhfp);
-        tnhfp.mode = FREEING;
-        tnhfp.fd = -1;
-        savelev(&tnhfp, 0); /* discard current level */
-        /* no need for close_nhfile(&tnhfp), which
-           is not really affiliated with an open file */
+        savelev(tnhfp, 0); /* discard current level */
+        close_nhfile(tnhfp);
         close_nhfile(nhfp);
         (void) delete_savefile();
         u.usteed_mid = u.ustuck_mid = 0;

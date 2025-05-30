@@ -1037,13 +1037,12 @@ void
 free_dungeons(void)
 {
 #ifdef FREE_ALL_MEMORY
-    NHFILE tnhfp;
+    NHFILE *tnhfp = get_freeing_nhfile();
 
-    zero_nhfile(&tnhfp);    /* also sets fd to -1 */
-    tnhfp.mode = FREEING;
-    savelevchn(&tnhfp);
-    save_dungeon(&tnhfp, FALSE, TRUE);
+    savelevchn(tnhfp);
+    save_dungeon(tnhfp, FALSE, TRUE);
     free_luathemes(all_themes);
+    close_nhfile(tnhfp);
 #endif
     return;
 }
@@ -1054,13 +1053,11 @@ extern int options_set_window_colors_flag; /* options.c */
 void
 freedynamicdata(void)
 {
-    NHFILE tnhfp;
+    NHFILE *tnhfp = get_freeing_nhfile();
 
 #if defined(UNIX) && defined(MAIL)
     free_maildata();
 #endif
-    zero_nhfile(&tnhfp);    /* also sets fd to -1 */
-    tnhfp.mode = FREEING;
     free_menu_coloring();
     free_invbuf();           /* let_to_name (invent.c) */
     free_youbuf();           /* You_buf,&c (pline.c) */
@@ -1069,18 +1066,18 @@ freedynamicdata(void)
     tmp_at(DISP_FREEMEM, 0); /* temporary display effects */
     purge_all_custom_entries();
 #ifdef FREE_ALL_MEMORY
-#define free_current_level() savelev(&tnhfp, -1)
-#define freeobjchn(X) (saveobjchn(&tnhfp, &X), X = 0)
-#define freemonchn(X) (savemonchn(&tnhfp, X), X = 0)
-#define freefruitchn() savefruitchn(&tnhfp)
-#define freenames() savenames(&tnhfp)
-#define free_killers() save_killers(&tnhfp)
-#define free_oracles() save_oracles(&tnhfp)
-#define free_waterlevel() save_waterlevel(&tnhfp)
-#define free_timers(R) save_timers(&tnhfp, R)
-#define free_light_sources(R) save_light_sources(&tnhfp, R)
+#define free_current_level() savelev(tnhfp, -1)
+#define freeobjchn(X) (saveobjchn(tnhfp, &X), X = 0)
+#define freemonchn(X) (savemonchn(tnhfp, X), X = 0)
+#define freefruitchn() savefruitchn(tnhfp)
+#define freenames() savenames(tnhfp)
+#define free_killers() save_killers(tnhfp)
+#define free_oracles() save_oracles(tnhfp)
+#define free_waterlevel() save_waterlevel(tnhfp)
+#define free_timers(R) save_timers(tnhfp, R)
+#define free_light_sources(R) save_light_sources(tnhfp, R)
 #define free_animals() mon_animal_list(FALSE)
-#define discard_gamelog() save_gamelog(&tnhfp);
+#define discard_gamelog() save_gamelog(tnhfp);
 
     /* move-specific data */
     dmonsfree(); /* release dead monsters */
@@ -1154,6 +1151,11 @@ freedynamicdata(void)
 
     if (glyphid_cache_status())
         free_glyphid_cache();
+
+    if (tnhfp) {
+        close_nhfile(tnhfp);
+        tnhfp = 0;
+    }
 
     /* last, because it frees data that might be used by panic() to provide
        feedback to the user; conceivably other freeing might trigger panic */

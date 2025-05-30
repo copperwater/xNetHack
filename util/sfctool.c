@@ -80,7 +80,7 @@ static int length_without_val(const char *user_string, int len);
 static void usage(int argc, char **argv);
 static const char *briefname(const char *fnam);
 
-void zero_nhfile(NHFILE *);
+void init_nhfile(NHFILE *);
 NHFILE *new_nhfile(void);
 void free_nhfile(NHFILE *);
 void my_close_nhfile(NHFILE *);
@@ -462,7 +462,7 @@ open_srcfile(const char *fnam, enum saveformats mystyle)
     if (nhfp && nhfp->structlevel) {
         fd = open(fq_name, O_RDONLY | O_BINARY, 0);
         if (fd < 0) {
-            zero_nhfile(nhfp);
+            init_nhfile(nhfp);
             free_nhfile(nhfp);
             fprintf(stderr,
                     "\nsfctool error - unable to open historical-style "
@@ -482,7 +482,7 @@ open_srcfile(const char *fnam, enum saveformats mystyle)
 
         nhfp->fpdef = fopen(fnam, RDBMODE);
         if (!nhfp->fpdef) {
-            zero_nhfile(nhfp);
+            init_nhfile(nhfp);
             free_nhfile(nhfp);
             fprintf(stderr,
                     "\nsfctool error - unable to open fieldlevel-style "
@@ -577,7 +577,7 @@ create_dstfile(char *fnam, enum saveformats mystyle)
         fd = creat(dstfnam, FCMASK);
 #endif
         if (fd < 0) {
-            zero_nhfile(nhfp);
+            init_nhfile(nhfp);
             free_nhfile(nhfp);
             fprintf(
                 stderr,
@@ -594,7 +594,7 @@ create_dstfile(char *fnam, enum saveformats mystyle)
         fq_name = fqname(dstfnam, SAVEPREFIX, 0);
         nhfp->fpdef = fopen(fq_name, WRBMODE);
         if (!nhfp->fpdef) {
-            zero_nhfile(nhfp);
+            init_nhfile(nhfp);
             free_nhfile(nhfp);
             fprintf(
                 stderr,

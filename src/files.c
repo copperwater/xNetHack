@@ -458,23 +458,35 @@ static const int bei = 1;
 #define IS_BIGENDIAN() ( (*(char*)&bei) == 0 )
 
 void
-zero_nhfile(NHFILE *nhfp)
+init_nhfile(NHFILE *nhfp)
 {
+    if (nhfp->structlevel) {
+        if (nhfp->fd != -1) {
+            impossible("Warning - Unclosed structlevel file being reinitialized");
+            (void) nhclose(nhfp->fd);
+        }
+    } else if (nhfp->fpdef) {
+        if (nhfp->fpdef) {
+            impossible("Warning - Unclosed fieldlevel file being reinitialized");
+            (void) fclose(nhfp->fpdef);
+        }
+    }
     nhfp->fd = -1;
+    nhfp->fpdef = (FILE *) 0;
+
     nhfp->mode = COUNTING;
     nhfp->structlevel = TRUE;
     nhfp->fieldlevel = FALSE;
     nhfp->addinfo = FALSE;
     nhfp->bendian = IS_BIGENDIAN();
-    nhfp->fpdef = (FILE *) 0;
     nhfp->fplog = (FILE *) 0;
     nhfp->fpdebug = (FILE *) 0;
     nhfp->rcount = nhfp->wcount = 0;
     nhfp->eof = FALSE;
     nhfp->fnidx = 0;
-        nhfp->style.deflt = FALSE;
-        nhfp->style.binary = TRUE;
-        nhfp->nhfpconvert = 0;
+    nhfp->style.deflt = FALSE;
+    nhfp->style.binary = TRUE;
+    nhfp->nhfpconvert = 0;
 }
 
 #ifndef SFCTOOL
@@ -483,9 +495,10 @@ staticfn
 NHFILE *
 new_nhfile(void)
 {
-    NHFILE *nhfp = (NHFILE *) alloc(sizeof(NHFILE));
+    NHFILE *nhfp = (NHFILE *) alloc(sizeof *nhfp);
 
-    zero_nhfile(nhfp);
+    memset((genericptr_t) nhfp, 0, sizeof *nhfp);
+    init_nhfile(nhfp);
     return nhfp;
 }
 
@@ -496,7 +509,7 @@ void
 free_nhfile(NHFILE *nhfp)
 {
     if (nhfp) {
-        zero_nhfile(nhfp);
+        init_nhfile(nhfp);
         free(nhfp);
     }
 }
@@ -514,7 +527,7 @@ close_nhfile(NHFILE *nhfp)
         (void) fclose(nhfp->fplog);
     if (nhfp->fpdebug)
         (void) fclose(nhfp->fpdebug);
-    zero_nhfile(nhfp);
+    init_nhfile(nhfp);
     free_nhfile(nhfp);
 }
 
@@ -559,7 +572,7 @@ viable_nhfile(NHFILE *nhfp)
                 if (nhfp->fpdebug)
                     (void) fclose(nhfp->fpdebug);
             }
-            zero_nhfile(nhfp);
+            init_nhfile(nhfp);
             free_nhfile(nhfp);
             nhfp = (NHFILE *) 0;
         }
@@ -1250,6 +1263,18 @@ restore_saved_game(void)
             close_nhfile(nhfp);
             nhfp = problematic_savefile(sfstatus, fq_save);
         }
+    }
+    return nhfp;
+}
+
+NHFILE *
+get_freeing_nhfile(void)
+{
+    NHFILE *nhfp = (NHFILE *) 0;
+
+    nhfp = new_nhfile(); /* also sets fd to -1 */
+    if (nhfp) {
+        nhfp->mode = FREEING;
     }
     return nhfp;
 }

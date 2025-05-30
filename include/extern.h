@@ -1036,7 +1036,7 @@ extern char *fname_encode(const char *, char,
 extern char *fname_decode(char, char *, char *, int) NONNULLPTRS;
 extern const char *fqname(const char *, int, int);
 extern FILE *fopen_datafile(const char *, const char *, int) NONNULLPTRS;
-extern void zero_nhfile(NHFILE *) NONNULLARG1;
+extern void init_nhfile(NHFILE *) NONNULLARG1;
 extern void close_nhfile(NHFILE *) NONNULLARG1;
 extern void rewind_nhfile(NHFILE *) NONNULLARG1;
 extern void set_levelfile_name(char *, int) NONNULLARG1;
@@ -1059,6 +1059,7 @@ extern void set_error_savefile(void);
 extern NHFILE *create_savefile(void);
 extern NHFILE *open_savefile(void);
 extern int delete_savefile(void);
+extern NHFILE *get_freeing_nhfile(void);
 extern NHFILE *restore_saved_game(void);
 extern int check_panic_save(void);
 #ifdef SELECTSAVED
