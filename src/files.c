@@ -849,14 +849,13 @@ create_bonesfile(d_level *lev, char **bonesid, char errbuf[])
             failed = errno;
         }
         if (nhfp->structlevel) {
-#ifndef UNIX
 #if defined(MICRO) || defined(WIN32)
             /* Use O_TRUNC to force the file to be shortened if it already
              * exists and is currently longer.
              */
             nhfp->fd = open(file,
                             O_WRONLY | O_CREAT | O_TRUNC | O_BINARY, FCMASK);
-#else
+#else /* ?MICRO || WIN32 */
 /* implies UNIX or MAC (MAC is for OS9 or earlier) */
 #ifdef MAC
             nhfp->fd = maccreat(file, BONE_TYPE);
@@ -864,7 +863,6 @@ create_bonesfile(d_level *lev, char **bonesid, char errbuf[])
             nhfp->fd = creat(file, FCMASK);
 #endif  /* ?MAC */
 #endif  /* ?MICRO || WIN32 */
-#endif  /* UNIX */
             if (nhfp->fd < 0)
                 failed = errno;
 #if defined(MSDOS)
@@ -1150,7 +1148,6 @@ create_savefile(void)
 #ifdef SAVEFILE_DEBUGGING
             nhfp->fplog = fopen("create-savefile.log", "w");
 #endif
-#ifndef UNIX
 #if defined(MICRO) || defined(WIN32)
             nhfp->fd = open(fq_save, O_WRONLY | O_BINARY | O_CREAT | O_TRUNC,
                             FCMASK);
@@ -1162,12 +1159,11 @@ create_savefile(void)
             nhfp->fd = creat(fq_save, FCMASK);
 #endif
 #endif /* MICRO || WIN32 */
-        }
 #if defined(MSDOS) || defined(WIN32)
         if (nhfp->fd >= 0)
             (void) setmode(nhfp->fd, O_BINARY);
 #endif
-#endif /* UNIX */
+	}
     }
 #if defined(VMS) && !defined(SECURE)
     /*
