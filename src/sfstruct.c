@@ -684,4 +684,11 @@ logging_finish(void)
     }
     icnt = 0L;
 }
-#endif
+#endif  /* SFLOGGING */
+
+#undef SF_X
+#undef SF_C
+#undef SF_A
+
+/* end of sfstruct.c */
+

@@ -1159,3 +1159,10 @@ normalize_pointers_you(struct you *d_you UNUSED)
 {
 }
 #endif  /* SFCTOOL */
+
+#undef SF_X
+#undef SF_C
+#undef SF_A
+
+/* end of sfbase.c */
+
