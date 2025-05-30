@@ -506,6 +506,8 @@ close_nhfile(NHFILE *nhfp)
 {
     if (nhfp->structlevel && nhfp->fd != -1)
         (void) nhclose(nhfp->fd), nhfp->fd = -1;
+    else if (nhfp->fpdef)
+        (void) fclose(nhfp->fpdef), nhfp->fpdef = (FILE *) 0;
     if (nhfp->fplog)
         (void) fprintf(nhfp->fplog, "# closing\n");
     if (nhfp->fplog)
@@ -847,6 +849,7 @@ create_bonesfile(d_level *lev, char **bonesid, char errbuf[])
             failed = errno;
         }
         if (nhfp->structlevel) {
+#ifndef UNIX
 #if defined(MICRO) || defined(WIN32)
             /* Use O_TRUNC to force the file to be shortened if it already
              * exists and is currently longer.
@@ -854,12 +857,14 @@ create_bonesfile(d_level *lev, char **bonesid, char errbuf[])
             nhfp->fd = open(file,
                             O_WRONLY | O_CREAT | O_TRUNC | O_BINARY, FCMASK);
 #else
+/* implies UNIX or MAC (MAC is for OS9 or earlier) */
 #ifdef MAC
             nhfp->fd = maccreat(file, BONE_TYPE);
 #else
             nhfp->fd = creat(file, FCMASK);
-#endif
-#endif
+#endif  /* ?MAC */
+#endif  /* ?MICRO || WIN32 */
+#endif  /* UNIX */
             if (nhfp->fd < 0)
                 failed = errno;
 #if defined(MSDOS)
@@ -1145,21 +1150,24 @@ create_savefile(void)
 #ifdef SAVEFILE_DEBUGGING
             nhfp->fplog = fopen("create-savefile.log", "w");
 #endif
-	}
+#ifndef UNIX
 #if defined(MICRO) || defined(WIN32)
             nhfp->fd = open(fq_save, O_WRONLY | O_BINARY | O_CREAT | O_TRUNC,
                             FCMASK);
-#else
+#else /* !MICRO && !WIN32 */
+/* UNIX || MAC implied (MAC is OS9 or earlier only) */
 #ifdef MAC
-        nhfp->fd = maccreat(fq_save, SAVE_TYPE);
+            nhfp->fd = maccreat(fq_save, SAVE_TYPE);
 #else
-        nhfp->fd = creat(fq_save, FCMASK);
+            nhfp->fd = creat(fq_save, FCMASK);
 #endif
 #endif /* MICRO || WIN32 */
+        }
 #if defined(MSDOS) || defined(WIN32)
         if (nhfp->fd >= 0)
             (void) setmode(nhfp->fd, O_BINARY);
 #endif
+#endif /* UNIX */
     }
 #if defined(VMS) && !defined(SECURE)
     /*
