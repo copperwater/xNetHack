@@ -102,6 +102,13 @@ local orcus1 = des.map({ halign = "right", valign = "center", map = [[
    des.object()
    des.object()
    des.object()
+   -- An object that's worth most of a wish
+   -- (this is part of the compensation for the reduced wishes at the Castle)
+   if math.random(0, 1) == 1 then
+      des.object("magic marker")
+   else
+      des.object("magic lamp")
+   end
    -- The resident nasty
    des.monster("Orcus",33,15)
    -- And its preferred companions
