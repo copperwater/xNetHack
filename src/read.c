@@ -16,6 +16,7 @@ staticfn int read_ok(struct obj *);
 staticfn void stripspe(struct obj *);
 staticfn void p_glow1(struct obj *);
 staticfn void p_glow2(struct obj *, const char *);
+staticfn void p_glow3(struct obj *, const char *);
 staticfn void forget(int);
 staticfn int maybe_tame(struct monst *, struct obj *);
 staticfn boolean can_center_cloud(coordxy, coordxy);
@@ -674,6 +675,14 @@ p_glow2(struct obj *otmp, const char *color)
           Blind ? "" : " ", Blind ? "" : hcolor(color));
 }
 
+staticfn void
+p_glow3(struct obj *otmp, const char *color)
+{
+    pline("%s feebly%s%s for a moment.",
+          Yobjnam2(otmp, Blind ? "vibrate" : "glow"),
+          Blind ? "" : " ", Blind ? "" : hcolor(color));
+}
+
 /* getobj callback for object to charge */
 int
 charge_ok(struct obj *obj)
@@ -726,7 +735,7 @@ recharge(struct obj *obj, int curse_bless)
 
     if (obj->oclass == WAND_CLASS) {
         int lim = (obj->otyp == WAN_WISHING)
-                      ? 3
+                      ? 1
                       : (objects[obj->otyp].oc_dir != NODIR) ? 8 : 15;
 
         /* undo any prior cancellation, even when is_cursed */
@@ -760,7 +769,7 @@ recharge(struct obj *obj, int curse_bless)
         if (is_cursed) {
             stripspe(obj);
         } else {
-            n = (lim == 3) ? 3 : rn1(5, lim + 1 - 5);
+            n = (lim == 1) ? 1 : rn1(5, lim + 1 - 5);
             if (!is_blessed)
                 n = rnd(n);
 
@@ -769,10 +778,15 @@ recharge(struct obj *obj, int curse_bless)
             else
                 obj->spe++;
             if (obj->otyp == WAN_WISHING && obj->spe > 3) {
+                /* wands can't give more than three wishes; this code is
+                   currently unreachable but left in case the rules for
+                   wands of wishing change in future */
                 wand_explode(obj, 1);
                 return;
             }
-            if (obj->spe >= lim)
+            if (lim == 1)
+                p_glow3(obj, NH_BLUE);
+            else if (obj->spe >= lim)
                 p_glow2(obj, NH_BLUE);
             else
                 p_glow1(obj);

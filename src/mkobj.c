@@ -1111,7 +1111,7 @@ mksobj_init(struct obj **obj, boolean artif)
         break;
     case WAND_CLASS:
         if (otmp->otyp == WAN_WISHING)
-            otmp->spe = rnd(3);
+            otmp->spe = 1;
         else
             otmp->spe = rn1(5,
                             (objects[otmp->otyp].oc_dir == NODIR) ? 11 : 4);
