@@ -428,6 +428,13 @@ moveloop_core(void)
     /****************************************/
 
     clear_splitobjs();
+
+    /* the Amulet of Yendor gives a wish when initially picked up */
+    if (u.uhave.amulet && !u.uevent.amulet_wish) {
+        u.uevent.amulet_wish = 1;
+        makewish();
+    }
+
     find_ac();
     if (!svc.context.mv || Blind) {
         /* redo monsters if hallu or wearing a helm of telepathy */
