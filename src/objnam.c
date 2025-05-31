@@ -4538,8 +4538,8 @@ readobjnam_postparse1(struct _readobjnam_data *d)
         return 4; /*goto any;*/
     }
 
-    /* Search for class names: XXXXX potion, scroll of XXXXX.  Avoid */
-    /* false hits on, e.g., rings for "ring mail". */
+    /* Search for class names: XXXXX potion, scroll of XXXXX.
+       Avoid false hits on, e.g., rings for "ring mail". */
     if (strncmpi(d->bp, "enchant ", 8)
         && strncmpi(d->bp, "destroy ", 8)
         && strncmpi(d->bp, "detect food", 11)
@@ -4579,10 +4579,24 @@ readobjnam_postparse1(struct _readobjnam_data *d)
                     if (d->p > d->bp && d->p[-1] == ' ')
                         d->p[-1] = '\0';
                 } else {
+                    int k, l;
+                    char amubuf[BUFSZ];
+
                     /* amulet without "of"; convoluted wording but better a
                        special case that's handled than one that's missing */
                     if (!strncmpi(d->bp, "versus poison ", 14)) {
                         d->typ = AMULET_VERSUS_POISON;
+                        return 2; /*goto typfnd;*/
+                    }
+                    /* check for "<shape> amulet"; strip off trailing
+                       " amulet" for that w/o changing contents of d->bp */
+                    l = (int) strlen(d->bp) - j;
+                    if (l > 0 && d->bp[l - 1] == ' ')
+                        l -= 1;
+                    copynchars(amubuf, d->bp, min(l, (int) sizeof amubuf - 1));
+                    k = rnd_otyp_by_namedesc(amubuf, AMULET_CLASS, 0);
+                    if (k != STRANGE_OBJECT) {
+                        d->typ = k;
                         return 2; /*goto typfnd;*/
                     }
                 }
