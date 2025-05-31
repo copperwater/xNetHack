@@ -100,7 +100,7 @@ int click_x, click_y, click_button; /* Click position on a map window
 int updated_inventory; /* used to indicate perm_invent updating */
 color_attr X11_menu_promptstyle = { NO_COLOR, ATR_NONE };
 
-static void X11_error_handler(String) NORETURN;
+ATTRNORETURN static void X11_error_handler(String) NORETURN;
 static int X11_io_error_handler(Display *);
 
 static int (*old_error_handler)(Display *, XErrorEvent *);
@@ -175,7 +175,7 @@ static void X11_sig_cb(XtPointer, XtSignalId *);
 #endif
 static void d_timeout(XtPointer, XtIntervalId *);
 static void X11_hangup(Widget, XEvent *, String *, Cardinal *);
-static void X11_bail(const char *) NORETURN;
+ATTRNORETURN static void X11_bail(const char *) NORETURN;
 static void askname_delete(Widget, XEvent *, String *, Cardinal *);
 static void askname_done(Widget, XtPointer, XtPointer);
 static void done_button(Widget, XtPointer, XtPointer);
