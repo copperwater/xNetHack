@@ -319,15 +319,29 @@ process_savefile(const char *srcfnam, enum saveformats srcstyle,
                                     cscbuf[5]); /* ptr */
     if (sfstatus > SF_UPTODATE
         && ((sfstatus <= SF_CRITICAL_BYTE_COUNT_MISMATCH) || !unconvert)) {
-        fprintf(stderr,
-                "The %s savefile %s%s%s not compatible with this %s%sutility.\n",
+	if (sfstatus == SF_OUTDATED) {
+            fprintf(stderr,
+                "The %s savefile is outdated with respect to this %d.%d.%d EDITLEVEL %ld "
+		    "%s%s%s.\n",
+                briefname(srcfnam),
+		VERSION_MAJOR, VERSION_MINOR, PATCHLEVEL,
+		(long) EDITLEVEL,
+                thisdatamodel ? thisdatamodel : "",
+                thisdatamodel ? " " : "",
+		"sfctool");
+            return 0;
+	} else {
+            fprintf(stderr,
+                "The %s savefile %s%s%s not compatible with this %s%s %s utility.\n",
                 briefname(srcfnam),
                 dmfile ? "is a " : "",
                 dmfile ? dmfile : "",
                 dmfile ? " savefile, thus" : " is",
                 thisdatamodel ? thisdatamodel : "",
-                thisdatamodel ? " " : "");
-        return 0;
+                thisdatamodel ? " " : "",
+		"sfctool");
+            return 0;
+	}
     }
     if (sfstatus >= SF_DM_IL32LLP64_ON_ILP32LL64) {
         renidx = sfstatus - SF_DM_IL32LLP64_ON_ILP32LL64;
