@@ -2154,6 +2154,7 @@ save_mtraits(struct obj *obj, struct monst *mtmp)
         mtmp2->nmon = (struct monst *) 0;
         mtmp2->data = (struct permonst *) 0;
         mtmp2->minvent = (struct obj *) 0;
+        MON_NOWEP(mtmp2); /* mtmp2->mw = (struct obj *) 0; */
         if (mtmp->mextra)
             copy_mextra(mtmp2, mtmp);
         /* if mtmp is a long worm with segments, its saved traits will
