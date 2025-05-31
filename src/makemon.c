@@ -1485,8 +1485,10 @@ makemon(
             }
             if (what) {
                 set_msg_xy(mtmp->mx, mtmp->my);
-                Norep("%s%s appears%s%c", what,
+                Norep("%s%s %s%s%c", what,
                       exclaim ? " suddenly" : "",
+                      /* 'what' might be "gold pieces" so need plural verb */
+                      vtense(what, "appear"),
                       next2u(x, y) ? " next to you"
                       : (distu(x, y) <= (BOLT_LIM * BOLT_LIM)) ? " close by"
                         : "",

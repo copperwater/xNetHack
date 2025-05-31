@@ -2116,6 +2116,7 @@ successfully disarming a chest trap was clearing the chest's 'tknown' bit
 	used up the trap
 when game ended with 'force_invmenu' On, final disclosure of inventory would
 	contain spurious menu entry "? - (list likely candidates)"
+avoid reporting "a gold pieces appears next to you" for mimic
 
 
 Fixes to 3.7.0-x Platform and/or Interface Problems Exposed Via git Repository

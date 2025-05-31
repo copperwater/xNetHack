@@ -220,7 +220,7 @@ mhidden_description(
             what = (otmp && otmp->otyp != STRANGE_OBJECT)
                    ? simpleonames(otmp)
                    : obj_descr[STRANGE_OBJECT].oc_name;
-            if (incl_article)
+            if (incl_article && (!otmp || otmp->quan == 1L))
                 what = an(what);
             Strcat(outbuf, what);
 
