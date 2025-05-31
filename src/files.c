@@ -1265,6 +1265,15 @@ restore_saved_game(void)
     return nhfp;
 }
 
+/*
+ * This doesn't open any files. It provides a valid (NHFILE *)
+ * to provide to functions that take one as a parameter, with
+ * only the FREEING bit set.
+ *
+ * close_nhfile() can, and should, be called on the returned
+ * (NHFILE *), and it will handle it correctly.
+ */
+
 NHFILE *
 get_freeing_nhfile(void)
 {
