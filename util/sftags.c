@@ -137,6 +137,12 @@ static FILE *vms_fopen(name, mode) const char *name, *mode;
 #define TAB '\t'
 #define SPACE ' '
 
+#ifdef MACOS
+#define ALIGN32 __attribute__((aligned(32)))
+#else
+#define ALIGN32
+#endif
+
 struct tagstruct *first;
 struct tagstruct zerotag = { 0 };
 
@@ -339,14 +345,20 @@ RESTORE_WARNINGS
 
 static void doline(char *aline)
 {
-    char buf[255];
-    struct tagstruct *tmptag;
+    char buf[255], *cp;
+    struct tagstruct * ALIGN32 tmptag;
+    size_t slen;
 
     if (!aline || (aline && *aline == '!')) {
         return;
     }
-    tmptag = malloc(sizeof(struct tagstruct));
+    cp = deeol(aline);
+    slen = strlen(cp);
+    if (slen > sizeof buf - 1) {
+        slen = sizeof buf - 1;
+    }
 
+    tmptag = malloc(sizeof *tmptag);
     if (!tmptag) {
         out_of_memory();
     }
@@ -354,13 +366,14 @@ static void doline(char *aline)
     *tmptag = zerotag;
     tmptag->marker = 0xDEADBEEF;
 
-    strncpy(buf, deeol(aline), sizeof buf - 1);
+    strncpy(buf, cp, slen);
+    buf[sizeof buf - 1] = '\0';
     taglineparse(buf, tmptag);
     chain(tmptag);
     return;
 }
 
-static struct tagstruct *prevtag = (struct tagstruct *) 0;
+static struct tagstruct  * ALIGN32 prevtag = NULL;
 
 static void chain(struct tagstruct *tag)
 {
@@ -707,11 +720,13 @@ findtype(char *st, char *tag)
 
     if (!st) return (char *)0;
 
+#if 0
     if (st && strstr(st, "mapseen")) {
         int xx = 0;
 
         xx++;
     }
+#endif
     if (st[0] == '/' && st[1] == '^') {
         tmp2 = tmp3 = tmp4 = (char *)0;
         tmp1 = &st[3];
