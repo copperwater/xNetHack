@@ -527,7 +527,6 @@ close_nhfile(NHFILE *nhfp)
         (void) fclose(nhfp->fplog);
     if (nhfp->fpdebug)
         (void) fclose(nhfp->fpdebug);
-    init_nhfile(nhfp);
     free_nhfile(nhfp);
 }
 
@@ -572,7 +571,6 @@ viable_nhfile(NHFILE *nhfp)
                 if (nhfp->fpdebug)
                     (void) fclose(nhfp->fpdebug);
             }
-            init_nhfile(nhfp);
             free_nhfile(nhfp);
             nhfp = (NHFILE *) 0;
         }
