@@ -474,16 +474,16 @@ mstrength(struct permonst *ptr)
         n += ((int) (ptr->mattk[i].damd * ptr->mattk[i].damn) > 23);
     }
 
-    /* Leprechauns are special cases.  They have many hit dice so they
-       can hit and are hard to kill, but they don't really do much damage. */
+    /* Leprechauns are a special case.  They have many hit dice so they can
+       hit and are hard to kill, but they don't really do much damage. */
     if (!strcmp(ptr->pmnames[NEUTRAL], "leprechaun"))
         n -= 2;
 
-    /* Soldier ants and killer bees are underestimated by the formula,
-       so have an artificial +1 difficulty */
+    /* despite group and poison increments, soldier ants and killer bees are
+       underestimated by the formula, so have an artificial +1 difficulty */
     if (!strcmp(ptr->pmnames[NEUTRAL], "killer bee") ||
         !strcmp(ptr->pmnames[NEUTRAL], "soldier ant"))
-    tmp += 1;
+        n += 2; /* +1 after 'tmp += n/2' below */
 
     /* finally, adjust the monster level  0 <= n <= 24 (approx.) */
     if (n == 0)
