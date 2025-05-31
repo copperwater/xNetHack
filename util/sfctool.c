@@ -90,10 +90,10 @@ int util_strncmpi(const char *s1, const char *s2, size_t sz);
 
 #ifdef UNIX
 #define nethack_exit exit
-void nh_terminate(int) NORETURN;   /* bwrite() calls this */
+ATTRNORETURN void nh_terminate(int) NORETURN;   /* bwrite() calls this */
 static void chdirx(const char *);
 #else
-extern void nethack_exit(int) NORETURN;
+ATTRNORETURN extern void nethack_exit(int) NORETURN;
 #ifdef WIN32
 boolean get_user_home_folder(char *homebuf, size_t sz);
 int GUILaunched;
