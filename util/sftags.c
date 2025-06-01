@@ -30,7 +30,7 @@
 #elif defined(_MSC_VER)
 #define strcmpi _stricmp
 #ifndef strncmpi
-#define strncmpi _strnicmp 
+#define strncmpi _strnicmp
 #endif
 #endif
 
@@ -83,7 +83,7 @@ struct needs_array_handling {
 #define SFDATA_NAME "../util/sfdata.c"
 
 static char *fgetline(FILE*);
-static void quit(void);
+ATTRNORETURN static void quit(void) NORETURN;
 static void out_of_memory(void);
 static void doline(char *);
 static void chain(struct tagstruct *);
@@ -154,6 +154,16 @@ static long lineno;
 static char ssdef[BUFSZ];
 static char fieldfixbuf[BUFSZ];
 static boolean suppress_count;
+static char folderprefix[BUFSZ];
+static char filenmbuf[
+#if defined(UNIX) && defined(PATHLEN)
+    PATHLEN
+#elif defined(WIN32) && defined(_MAX_PATH)
+    _MAX_PATH
+#else
+    BUFSZ * 4
+#endif
+        ];
 
 #define NHTYPE_SIMPLE    1
 #define NHTYPE_COMPLEX   2
@@ -268,8 +278,7 @@ struct nhdatatypes_t readtagstypes[] = {
     { NHTYPE_COMPLEX, (char *) "version_info", sizeof(struct version_info) },
     { NHTYPE_COMPLEX, (char *) "vlaunchinfo", sizeof(union vlaunchinfo) },
     { NHTYPE_COMPLEX, (char *) "vptrs", sizeof(union vptrs) },
-    { NHTYPE_COMPLEX, (char *) "you", sizeof(struct you) }
-
+    { NHTYPE_COMPLEX, (char *) "you", sizeof(struct you) },
 };
 
 
@@ -311,13 +320,30 @@ DISABLE_WARNING_UNREACHABLE_CODE
 int main(int argc, char *argv[])
 {
     tagcount = 0;
-    
+#if defined(WIN32)
+    char fbuf[_MAX_PATH];
+#endif
+
+    folderprefix[0] = '\0';
     if (argc > 1) infilenm = argv[1];
     if (!infilenm || !*infilenm) infilenm = DEFAULTTAGNAME;
 
+#if defined(WIN32)
+    if (!file_exists(infilenm)) {
+        /* (void) GetCurrentDirectoryA(sizeof cdir, (LPSTR) cdir); */
+        Strcpy(folderprefix, "../../../");
+        (void) snprintf(fbuf, sizeof fbuf, "%s%s", folderprefix, DEFAULTTAGNAME);
+        if (!file_exists(fbuf)) {
+            fprintf(stdout, "%s doesn't exist\n", fbuf);
+            exit(EXIT_SUCCESS);
+        }
+        infilenm = (const char *) fbuf;
+    }
+#endif
+
     infile = fopen(infilenm,"r");
     if (!infile) {
-        printf("%s not found or unavailable\n",infilenm);
+        printf("%s not found or unavailable\n", infilenm);
         quit();
     } else {
         while (fgets(line, sizeof line, infile)) {
@@ -340,6 +366,20 @@ int main(int argc, char *argv[])
         return 0;
     }
 }
+
+#ifdef WIN32
+boolean
+file_exists(const char *path)
+{
+    struct stat sb;
+
+    /* Just see if it's there */
+    if (stat(path, &sb)) {
+        return FALSE;
+    }
+    return TRUE;
+}
+#endif
 
 RESTORE_WARNINGS
 
@@ -373,23 +413,19 @@ static void doline(char *aline)
     return;
 }
 
-static struct tagstruct  * ALIGN32 prevtag = NULL;
+struct tagstruct * ALIGN32 prevtag = 0;
 
-static void chain(struct tagstruct *tag)
+static void
+chain(struct tagstruct *tag)
 {
-
     if (!first) {
-        tag->next = (struct tagstruct *)0;
+        tag->next = (struct tagstruct *) 0;
         first = tag;
     } else {
-        tag->next = (struct tagstruct *)0;
-        if (prevtag) {
-            if (prevtag->marker == 0xDEADBEEF) {
-                prevtag->next = tag;
-            } else {
-                printf("Possible corruption.");
-                quit();
-            }
+        tag->next = (struct tagstruct *) 0;
+
+        if (prevtag->marker == 0xDEADBEEF) {
+            prevtag->next = tag;
         } else {
             printf("Error - No previous tag at %s\n", tag->tag);
         }
@@ -448,7 +484,7 @@ void set_member_array_size(struct tagstruct *tmptag)
 
     if (!tmptag) return;
     strcpy(buf, tmptag->searchtext);
-    
+
     tmptag->arraysize1[0] = '\0';
     tmptag->arraysize2[0] = '\0';
 
@@ -491,13 +527,17 @@ void set_member_array_size(struct tagstruct *tmptag)
 static void parseExtensionFields (struct tagstruct *tmptag, char *buf)
 {
     char *p = buf;
+#ifdef WIN32
+    int debug_catch = 0;
+#endif
+
     while (p != (char *)0  &&  *p != '\0') {
         while (*p == TAB)
             *p++ = '\0';
         if (*p != '\0') {
             char *colon;
             char *field = p;
-            
+
             p = strchr (p, TAB);
             if (p != (char *)0)
                 *p++ = '\0';
@@ -510,6 +550,10 @@ static void parseExtensionFields (struct tagstruct *tmptag, char *buf)
                 *colon = '\0';
                 if ((strcmp (key, "struct") == 0) ||
                     (strcmp (key, "union") == 0)) {
+#ifdef WIN32
+                    if (!strcmp(key, "union"))
+                        debug_catch = 1;
+#endif
                     colon = strstr(value,"::");
                     if (colon)
                         value = colon +2;
@@ -609,15 +653,6 @@ taglineparse(char *p, struct tagstruct *tmptag)
     }
 }
 
-/* eos() is copied from hacklib.c */
-/* return the end of a string (pointing at '\0') */
-char *
-eos(char *s)
-{
-    while (*s) s++;    /* s += strlen(s); */
-    return s;
-}
-
 static char stripbuf[255];
 
 #if 0
@@ -643,7 +678,7 @@ static char *deblank(char *st)
     *out = '\0';
     if (!st) return st;
     while(*st) {
-        if (*st == SPACE) { 
+        if (*st == SPACE) {
             *out++ = '_';
             st++;
         } else
@@ -659,7 +694,7 @@ static char *deeol(char *st)
     *out = '\0';
     if (!st) return st;
     while(*st) {
-        if ((*st == '\r') || (*st == '\n')) { 
+        if ((*st == '\r') || (*st == '\n')) {
             st++;
         } else
             *out++ = *st++;
@@ -680,7 +715,7 @@ static void showthem(void)
             t->parent[0] ? t->searchtext : "");
 #endif
         buf[0] = '\0';
-        tmp = member_array_dims(t,buf);        
+        tmp = member_array_dims(t,buf);
         if (tmp) printf("%s", tmp);
         printf("%s","\n");
         t = t->next;
@@ -819,7 +854,7 @@ findtype(char *st, char *tag)
                     while (isspace(*tmp3))
                         --tmp3;
                 }
-                while (!isspace(*tmp3) && (*tmp3 != '*')) 
+                while (!isspace(*tmp3) && (*tmp3 != '*'))
                     --tmp3;
                 while (isspace(*tmp3))
                     --tmp3;
@@ -990,28 +1025,45 @@ static void generate_c_files(void)
     boolean did_i;
     boolean normalize_param_used;
 
-    SFDATA = fopen(SFDATA_NAME, "w");
+#ifdef WIN32
+    int debug_catch = 0;
+#endif
+
+    Snprintf(filenmbuf, sizeof filenmbuf, "%s%s", folderprefix,SFDATA_NAME);
+    SFDATA = fopen(filenmbuf, "w");
     if (!SFDATA) return;
 
-    SFPROTO = fopen(SFPROTO_NAME, "w");
+    Snprintf(filenmbuf, sizeof filenmbuf, "%s%s", folderprefix, SFPROTO_NAME);
+    SFPROTO = fopen(filenmbuf, "w");
     if (!SFPROTO) return;
 
-    SFO_DATA = fopen("../util/sfo_data.tmp", "w");
+    Snprintf(filenmbuf, sizeof filenmbuf, "%s%s", folderprefix,
+             "../util/sfo_data.tmp");
+    SFO_DATA = fopen(filenmbuf, "w");
     if (!SFO_DATA) return;
 
-    SFO_PROTO = fopen("../include/sfo_proto.tmp", "w");
+    Snprintf(filenmbuf, sizeof filenmbuf, "%s%s", folderprefix, "../include/sfo_proto.tmp");
+    SFO_PROTO = fopen(filenmbuf, "w");
     if (!SFO_PROTO) return;
 
-    SFI_PROTO = fopen("../include/sfi_proto.tmp", "w");
+    Snprintf(filenmbuf, sizeof filenmbuf, "%s%s", folderprefix,
+             "../include/sfi_proto.tmp");
+    SFI_PROTO = fopen(filenmbuf, "w");
     if (!SFI_PROTO) return;
 
-    SFI_DATA = fopen("../util/sfi_data.tmp", "w");
+    Snprintf(filenmbuf, sizeof filenmbuf, "%s%s", folderprefix,
+             "../util/sfi_data.tmp");
+    SFI_DATA = fopen(filenmbuf, "w");
     if (!SFI_DATA) return;
 
-    SFDATATMP = fopen("../util/sfdata.tmp", "w");
+    Snprintf(filenmbuf, sizeof filenmbuf, "%s%s", folderprefix,
+             "../util/sfdata.tmp");
+    SFDATATMP = fopen(filenmbuf, "w");
     if (!SFDATATMP) return;
 
-    SF_NORMALIZE_POINTERS = fopen("../util/sfnormptrs.tmp", "w");
+    Snprintf(filenmbuf, sizeof filenmbuf, "%s%s", folderprefix,
+             "../util/sfnormptrs.tmp");
+    SF_NORMALIZE_POINTERS = fopen(filenmbuf, "w");
     if (!SF_NORMALIZE_POINTERS) return;
 
     (void) time(&clocktim);
@@ -1023,7 +1075,7 @@ static void generate_c_files(void)
     *c = '\0';    /* strip off the '\n' */
 
     /* begin sfproto.h */
-    Fprintf(SFPROTO,"/* NetHack %d.%d sfproto.h */\n", 
+    Fprintf(SFPROTO,"/* NetHack %d.%d sfproto.h */\n",
                VERSION_MAJOR, VERSION_MINOR);
     for (j = 0; j < 3; ++j)
         Fprintf(SFPROTO, "%s", get_preamble(j));
@@ -1035,7 +1087,7 @@ static void generate_c_files(void)
     Fprintf(SFPROTO,"%s\n", "extern void sfi_bitfield(NHFILE *, uint8_t *, const char *, int);");
     Fprintf(SFO_PROTO, "/* generated output functions */\n");
     Fprintf(SFI_PROTO, "/* generated input functions */\n");
-    
+
     /* begin sfdata.c */
     Fprintf(SFDATA,"/* NetHack %d.%d sfdata.c */\n",
             VERSION_MAJOR, VERSION_MINOR);
@@ -1062,7 +1114,7 @@ static void generate_c_files(void)
 
     output_types(SFDATATMP);
     Fprintf(SFDATATMP, "const char *critical_members[] = {\n");
-    
+
     k = 0;
     did_i = FALSE;
     while(k < SIZE(readtagstypes)) {
@@ -1070,7 +1122,8 @@ static void generate_c_files(void)
       suppress_count = TRUE;
 
       if (readtagstypes[k].dtclass == NHTYPE_COMPLEX) {
-        
+
+
           if (!strncmpi(readtagstypes[k].dtype,"Bitfield",8)) {
               Fprintf(SFO_DATA,
                     "\nvoid\nsfo_bitfield(nhfp,\n"
@@ -1094,17 +1147,22 @@ static void generate_c_files(void)
         if (!strncmpi(readtagstypes[k].dtype,"version_info",8))
             insert_const = TRUE;
 #endif
+#ifdef WIN32
+        if (!strncmpi(readtagstypes[k].dtype, "vlaunchinfo", 11)
+            || !strncmpi(readtagstypes[k].dtype, "vptrs", 5)
+            || k == SIZE(readtagstypes) - 2)
+            debug_catch = TRUE;
+#endif
 
         pt = (const char *) 0;
         t = first;
         while(t) {
-            if (t->tagtype == 'u' && !strcmp(t->tag, readtagstypes[k].dtype)) {
-                pt = "union";
+            if (!strcmp(t->tag, readtagstypes[k].dtype)) {
+                pt = (t->tagtype == 'u') ? "union" : "struct";
                 break;
             }
             t = t->next;
         }
-
         if (!pt) {
             pt = "struct";
         }
@@ -1127,7 +1185,7 @@ static void generate_c_files(void)
                 insert_const ? "const " : "",
                 pt, readtagstypes[k].dtype,
                 deblank(readtagstypes[k].dtype));
-                        
+
 #if 0
         Fprintf(SFO_DATA,
                 "    const char *parent = \"%s\";\n",
@@ -1152,7 +1210,7 @@ static void generate_c_files(void)
 /*                deblank(readtagstypes[k].dtype), */
                 insert_const ? "const " : "",
                 pt, readtagstypes[k].dtype,
-                deblank(readtagstypes[k].dtype));                    
+                deblank(readtagstypes[k].dtype));
 
 #if 0
         Fprintf(SFI_DATA,
@@ -1162,7 +1220,7 @@ static void generate_c_files(void)
 
         Sprintf(sfparent, "%s %s", pt, readtagstypes[k].dtype);
 
-        
+
         Fprintf(SF_NORMALIZE_POINTERS,
                 "\nvoid normalize_pointers_%s(%s "
                 "*d_%s);\n",
@@ -1200,14 +1258,15 @@ static void generate_c_files(void)
         t = first;
         normalize_param_used = FALSE;
 
-        while(t) { 
+        while(t) {
             x = 0;
             okeydokey = 0;
-/*           
-            if (!strcmp(t->tag, "nextc") 
+/*
+            if (!strcmp(t->tag, "nextc")
                 && !strcmp(readtagstypes[k].dtype, "engrave_info"))
                 __debugbreak();
 */
+
             if (t->tagtype == 's')  {
                 char *ss = strstr(t->searchtext,"{$/");
 
@@ -1262,7 +1321,7 @@ static void generate_c_files(void)
                     char lbuf[BUFSZ];
                     int j2, z;
 
-                    Sprintf(lbuf, 
+                    Sprintf(lbuf,
                             "    "
                             "bitfield = d_%s->%s;",
                             readtagstypes[k].dtype, t->tag);
@@ -1274,7 +1333,7 @@ static void generate_c_files(void)
                     Fprintf(SFO_DATA,
                             "    "
                             "sfo_bitfield(nhfp, &bitfield, \"%s\", %s);\n",
-                            t->tag, bfsize(ft));       
+                            t->tag, bfsize(ft));
 #if 0
                     Fprintf(SFI_DATA,
                             "    "
@@ -1450,7 +1509,7 @@ static void generate_c_files(void)
                             (insert_loop && array_of_ptrs) ? "[" : "",
                             (insert_loop && array_of_ptrs) ? "i" : "",
                             (insert_loop && array_of_ptrs) ? "]" : "",
-                            t->parent, t->tag, 
+                            t->parent, t->tag,
                             (insert_loop && array_of_ptrs) ? "[" : "",
                             (insert_loop && array_of_ptrs) ? "i" : "",
                             (insert_loop && array_of_ptrs) ? "]" : "",
@@ -1553,52 +1612,64 @@ static void generate_c_files(void)
 
     /* Consolidate SFO_* and SFI_* etc into single files */
 
-    SFO_DATA = fopen("../util/sfo_data.tmp", "r");
+    Snprintf(filenmbuf, sizeof filenmbuf, "%s%s", folderprefix,
+             "../util/sfo_data.tmp");
+    SFO_DATA = fopen(filenmbuf, "r");
     if (!SFO_DATA) return;
     while ((gline = fgetline(SFO_DATA)) != 0) {
         (void) fputs(gline, SFDATA);
         free(gline);
     }
     (void) fclose(SFO_DATA);
-    (void) remove("../util/sfo_data.tmp");   
+    (void) remove(filenmbuf);
 
-    SFI_DATA = fopen("../util/sfi_data.tmp", "r");
+    Snprintf(filenmbuf, sizeof filenmbuf, "%s%s", folderprefix,
+             "../util/sfi_data.tmp");
+    SFI_DATA = fopen(filenmbuf, "r");
     if (!SFI_DATA) return;
     while ((gline = fgetline(SFI_DATA)) != 0) {
         (void) fputs(gline, SFDATA);
         free(gline);
     }
     (void) fclose(SFI_DATA);
-    (void) remove("../util/sfi_data.tmp");   
+    (void) remove(filenmbuf);
 
-    SFO_PROTO = fopen("../include/sfo_proto.tmp", "r");
+    Snprintf(filenmbuf, sizeof filenmbuf, "%s%s", folderprefix,
+             "../include/sfo_proto.tmp");
+    SFO_PROTO = fopen(filenmbuf, "r");
     if (!SFO_PROTO) return;
     while ((gline = fgetline(SFO_PROTO)) != 0) {
         (void) fputs(gline, SFPROTO);
         free(gline);
     }
     (void) fclose(SFO_PROTO);
-    (void) remove("../include/sfo_proto.tmp");   
+    (void) remove(filenmbuf);
 
-    SFI_PROTO = fopen("../include/sfi_proto.tmp", "r");
+    Snprintf(filenmbuf, sizeof filenmbuf, "%s%s", folderprefix,
+             "../include/sfi_proto.tmp");
+    SFI_PROTO = fopen(filenmbuf, "r");
     if (!SFI_PROTO) return;
     while ((gline = fgetline(SFI_PROTO)) != 0) {
         (void) fputs(gline, SFPROTO);
         free(gline);
     }
     (void) fclose(SFI_PROTO);
-    (void) remove("../include/sfi_proto.tmp");   
+    (void) remove(filenmbuf);
 
-    SFDATATMP = fopen("../util/sfdata.tmp", "r");
+    Snprintf(filenmbuf, sizeof filenmbuf, "%s%s", folderprefix,
+             "../util/sfdata.tmp");
+    SFDATATMP = fopen(filenmbuf, "r");
     if (!SFDATATMP) return;
     while ((gline = fgetline(SFDATATMP)) != 0) {
         (void) fputs(gline, SFDATA);
         free(gline);
     }
     (void) fclose(SFDATATMP);
-    (void) remove("../util/sfdata.tmp");   
-    
-    SF_NORMALIZE_POINTERS = fopen("../util/sfnormptrs.tmp", "r");
+    (void) remove(filenmbuf);
+
+    Snprintf(filenmbuf, sizeof filenmbuf, "%s%s", folderprefix,
+             "../util/sfnormptrs.tmp");
+    SF_NORMALIZE_POINTERS = fopen(filenmbuf, "r");
     if (!SF_NORMALIZE_POINTERS)
         return;
     while ((gline = fgetline(SF_NORMALIZE_POINTERS)) != 0) {
@@ -1606,7 +1677,7 @@ static void generate_c_files(void)
         free(gline);
     }
     (void) fclose(SF_NORMALIZE_POINTERS);
-    (void) remove("../util/sfnormptrs.tmp");
+    (void) remove(filenmbuf);
 
     Fprintf(SFDATA, "/*sfdata.c*/\n");
     Fprintf(SFPROTO,"#endif /* SFPROTO_H */\n");
@@ -1687,6 +1758,7 @@ dtfn(const char *str,
     if (!str)
         return (char *)0;
     (void)strncpy(buf, str, 127);
+    buf[sizeof buf - 1] = '\0';
 
     c = buf;
     while (*c) c++;    /* eos */
@@ -1782,7 +1854,7 @@ bfsize(const char *str)
         *subst++ = ' ';
         *subst++ = '1';
     }
-    
+
     c2 = buf;
     c1 = str;
     while (*c1) {
@@ -1812,10 +1884,18 @@ fgetline(FILE *fd)
 {
     static const int inc = 256;
     int len = inc;
-    char *c = malloc(len), *ret;
+    char *c = malloc(len), *ret, *loc, *avoidleak;
 
+    if (!c) {
+        fprintf(stderr, "Memory issue\n");
+        quit();
+    }
     for (;;) {
-        ret = fgets(c + len - inc, inc, fd);
+        loc = c + len - inc;
+        if (!loc) {
+            quit();
+        }
+        ret = fgets(loc, inc, fd);
         if (!ret) {
             free(c);
             c = NULL;
@@ -1825,13 +1905,19 @@ fgetline(FILE *fd)
             break;
         }
         len += inc;
+        avoidleak = c;
         c = realloc(c, len);
+        if (!c) {
+            free(avoidleak);
+            quit();
+        }
     }
     return c;
 }
 
+#ifndef _MSC_VER
 int
-strncmpi(register const char *s1, register const char *s2, size_t n)
+strncmpi(const char *s1, const char *s2, size_t n)
 {
     register char t1, t2;
 
@@ -1847,59 +1933,8 @@ strncmpi(register const char *s1, register const char *s2, size_t n)
     }
     return 0; /* s1 == s2 */
 }
-
-/* force 'c' into uppercase */
-char
-highc(char c)
-{
-    return (char) (('a' <= c && c <= 'z') ? (c & ~040) : c);
-}
-
-/* force 'c' into lowercase */
-char
-lowc(char c)
-{
-    return (char) (('A' <= c && c <= 'Z') ? (c | 040) : c);
-}
-
-DISABLE_WARNING_FORMAT_NONLITERAL
-
-/*
- * Wrap snprintf for use in the main code.
- *
- * Wrap reasons:
- *   1. If there are any platform issues, we have one spot to fix them -
- *      snprintf is a routine with a troubling history of bad implementations.
- *   2. Add combersome error checking in one spot.  Problems with text wrangling
- *      do not have to be fatal.
- *   3. Gcc 9+ will issue a warning unless the return value is used.
- *      Annoyingly, explicitly casting to void does not remove the error.
- *      So, use the result - see reason #2.
- */
-void
-nh_snprintf(const char *func, int myline, char *str, size_t size,
-            const char *fmt, ...)
-{
-    va_list ap;
-    int n;
-
-    va_start(ap, fmt);
-#ifdef NO_VSNPRINTF
-    n = vsprintf(str, fmt, ap);
-#else
-    n = vsnprintf(str, size, fmt, ap);
 #endif
-    va_end(ap);
-    if (n < 0 || (size_t)n >= size) { /* is there a problem? */
-        fprintf(stderr, "snprintf %s: func %s, file line %d",
-                   n < 0 ? "format error"
-                         : "overflow",
-                   func, myline);
-        str[size-1] = 0; /* make sure it is nul terminated */
-    }
-}
 
-RESTORE_WARNING_FORMAT_NONLITERAL
 
 struct already_in_sfbase {
     int typ;

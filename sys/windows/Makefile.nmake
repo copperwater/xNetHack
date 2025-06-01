@@ -2479,21 +2479,18 @@ $(DAT)bogusmon: $(U)makedefs.exe $(DAT)bogusmon.txt
 #===============================================================================
 # sfutil
 #===============================================================================
-SFCTOOLOBJS = $(OUTL)sfctool.o $(OUTL)sf-alloc.o \
-	    $(OUTL)sf-monst.o $(OUTL)sf-objects.o \
-	    $(OUTL)sfbase.o $(OUTL)sf-struct.o \
-	    $(OUTL)sfexpasc.o \
-	    $(OUTL)sfdata.o $(OUTL)sf-nhlua.o \
-	    $(OUTL)panic.o $(OUTL)sf-date.o $(OUTL)sf-decl.o \
-	    $(OUTL)sf-artifact.o $(OUTL)sf-cfgfiles.o \
-	    $(OUTL)sf-dungeon.o $(OUTL)sf-end.o \
+SFCTOOLOBJS = $(OUTL)sfctool.o \
+	    $(OUTL)sf-alloc.o $(OUTL)sf-artifact.o $(OUTL)sfdata.o \
+	    $(OUTL)sf-date.o $(OUTL)sf-decl.o $(OUTL)sf-calendar.o \
+	    $(OUTL)sf-cfgfiles.o $(OUTL)sf-dungeon.o $(OUTL)sf-end.o \
 	    $(OUTL)sf-engrave.o $(OUTL)sf-files.o $(OUTL)sf-light.o \
 	    $(OUTL)sf-mdlib.o $(OUTL)sf-mkmaze.o $(OUTL)sf-mkroom.o \
-	    $(OUTL)sf-o_init.o $(OUTL)sf-region.o \
-	    $(OUTL)sf-restore.o $(OUTL)sf-rumors.o \
+	    $(OUTL)sf-monst.o $(OUTL)sf-nhlua.o $(OUTL)sf-objects.o \
+	    $(OUTL)sf-o_init.o $(OUTL)panic.o $(OUTL)sf-region.o \
+	    $(OUTL)sf-restore.o $(OUTL)sf-rumors.o $(OUTL)sfbase.o \
+	    $(OUTL)sfexpasc.o $(OUTL)sf-struct.o $(OUTL)strutil.o \
 	    $(OUTL)sf-sys.o $(OUTL)sf-timeout.o $(OUTL)sf-track.o \
-	    $(OUTL)sf-version.o $(OUTL)sf-worm.o \
-	    $(OUTL)strutil.o $(OUTL)sf-windsys.o
+	    $(OUTL)sf-version.o $(OUTL)sf-worm.o $(OUTL)sf-windsys.o
 
 SFCTOOLBIN = $(BinDir)sfctool.exe
 SFFLAGS = -DSFCTOOL -DNOPANICTRACE -DNOCRASHREPORT -DNO_CHRONICLE
@@ -2534,6 +2531,8 @@ $(OUTL)sf-struct.o: $(SRC)sfstruct.c
 	$(Q)$(CC) $(CFLAGS) $(SFFLAGS) -Fo$@ -c $(SRC)sfstruct.c
 $(OUTL)sf-artifact.o: $(SRC)artifact.c
 	$(Q)$(CC) $(CFLAGS) $(SFFLAGS) -Fo$@ -c $(SRC)artifact.c
+$(OUTL)sf-calendar.o: $(SRC)calendar.c
+	$(Q)$(CC) $(CFLAGS) $(SFFLAGS) -Fo$@ -c $(SRC)calendar.c
 $(OUTL)sf-cfgfiles.o: $(SRC)cfgfiles.c
 	$(Q)$(CC) $(CFLAGS) $(SFFLAGS) -Fo$@ -c $(SRC)cfgfiles.c
 $(OUTL)sf-dungeon.o: $(SRC)dungeon.c
@@ -2575,8 +2574,8 @@ $(OUTL)sf-sys.o: $(SRC)sys.c
 $(OUTL)sf-windsys.o: $(MSWSYS)windsys.c
 	$(Q)$(CC) $(CFLAGS) $(SFFLAGS) -Fo$@ -c $(MSWSYS)windsys.c
 
-$(UTIL)sftags.exe: $(OUTL)sftags.o
-	$(link) $(LFLAGS) /OUT:$@ $(OUTL)sftags.o
+$(UTIL)sftags.exe: $(OUTL)sftags.o $(OUTLHACKLIB)
+	$(link) $(LFLAGS) /OUT:$@ $(OUTL)sftags.o $(OUTLHACKLIB)
 $(OUTL)sftags.o: $(UTIL)sftags.c $(HACK_H)
 	$(Q)$(CC) $(CFLAGS) -Fo$@ -c $(UTIL)sftags.c
 $(INCL)sfproto.h: $(UTIL)sftags.exe $(UTIL)sf.tags

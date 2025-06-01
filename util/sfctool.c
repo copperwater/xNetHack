@@ -153,7 +153,6 @@ const char *const rensuffixes[] = {
 extern boolean get_user_home_folder(char *homebuf, size_t sz); /* files.c */
 extern void set_default_prefix_locations(const char *programPath);
 #endif
-
 enum saveformats convertstyle = exportascii;
 
 boolean chosen_unconvert = FALSE, explicit_option = FALSE;
@@ -693,17 +692,27 @@ read_sysconf(void)
 #endif /* SYSCF */
 }
 
+/* provided for linkage only */
 
 DISABLE_WARNING_FORMAT_NONLITERAL
 
-/* provided for linkage only */
+void
+raw_printf(const char *line, ...)
+{
+    va_list the_args;
+
+    va_start(the_args, line);
+    vfprintf(stdout, line, the_args);
+    va_end(the_args);
+}
+
 void
 error(const char *s, ...)
 {
     va_list the_args;
 
     va_start(the_args, s);
-    printf(s, the_args);
+    vprintf(s, the_args);
     va_end(the_args);
     exit(EXIT_FAILURE);
 }
@@ -714,7 +723,7 @@ pline(const char *s, ...)
     va_list the_args;
 
     va_start(the_args, s);
-    printf(s, the_args);
+    vprintf(s, the_args);
     va_end(the_args);
 }
 
@@ -724,144 +733,9 @@ impossible(const char *s, ...)
     va_list the_args;
 
     va_start(the_args, s);
-    printf(s, the_args);
+    vprintf(s, the_args);
     va_end(the_args);
     exit(EXIT_FAILURE);
-}
-
-RESTORE_WARNING_FORMAT_NONLITERAL
-
-/* TIME_type: type of the argument to time(); we actually use &(time_t) */
-#if defined(BSD) && !defined(POSIX_TYPES)
-#define TIME_type long *
-#else
-#define TIME_type time_t *
-#endif
-/* LOCALTIME_type: type of the argument to localtime() */
-#if (defined(ULTRIX) && !(defined(ULTRIX_PROTO) || defined(NHSTDC))) \
-    || (defined(BSD) && !defined(POSIX_TYPES))
-#define LOCALTIME_type long *
-#else
-#define LOCALTIME_type time_t *
-#endif
-
-#if defined(AMIGA) && !defined(AZTEC_C) && !defined(__SASC_60) \
-    && !defined(_DCC) && !defined(__GNUC__)
-extern struct tm *localtime(time_t *);
-#endif
-static struct tm *getlt(void);
-
-time_t
-getnow(void)
-{
-    time_t datetime = 0;
-
-    (void) time((TIME_type) &datetime);
-    return datetime;
-}
-
-static struct tm *
-getlt(void)
-{
-    time_t date = getnow();
-
-    return localtime((LOCALTIME_type) &date);
-}
-
-int
-getyear(void)
-{
-    return (1900 + getlt()->tm_year);
-}
-
-time_t
-time_from_yyyymmddhhmmss(char *buf)
-{
-    int k;
-    time_t timeresult = (time_t) 0;
-    struct tm t, *lt;
-    char *d, *p, y[5], mo[3], md[3], h[3], mi[3], s[3];
-
-    if (buf && strlen(buf) == 14) {
-        d = buf;
-        p = y; /* year */
-        for (k = 0; k < 4; ++k)
-            *p++ = *d++;
-        *p = '\0';
-        p = mo; /* month */
-        for (k = 0; k < 2; ++k)
-            *p++ = *d++;
-        *p = '\0';
-        p = md; /* day */
-        for (k = 0; k < 2; ++k)
-            *p++ = *d++;
-        *p = '\0';
-        p = h; /* hour */
-        for (k = 0; k < 2; ++k)
-            *p++ = *d++;
-        *p = '\0';
-        p = mi; /* minutes */
-        for (k = 0; k < 2; ++k)
-            *p++ = *d++;
-        *p = '\0';
-        p = s; /* seconds */
-        for (k = 0; k < 2; ++k)
-            *p++ = *d++;
-        *p = '\0';
-        lt = getlt();
-        if (lt) {
-            t = *lt;
-            t.tm_year = atoi(y) - 1900;
-            t.tm_mon = atoi(mo) - 1;
-            t.tm_mday = atoi(md);
-            t.tm_hour = atoi(h);
-            t.tm_min = atoi(mi);
-            t.tm_sec = atoi(s);
-            timeresult = mktime(&t);
-        }
-        return timeresult;
-    }
-    return (time_t) 0;
-}
-
-char *
-yyyymmddhhmmss(time_t date)
-{
-    long datenum;
-    static char datestr[15];
-    struct tm *lt;
-
-    if (date == 0)
-        lt = getlt();
-    else
-#if (defined(ULTRIX) && !(defined(ULTRIX_PROTO) || defined(NHSTDC))) \
-    || defined(BSD)
-        lt = localtime((long *) (&date));
-#else
-        lt = localtime(&date);
-#endif
-    /* just in case somebody's localtime supplies (year % 100)
-       rather than the expected (year - 1900) */
-    if (lt->tm_year < 70)
-        datenum = (long) lt->tm_year + 2000L;
-    else
-        datenum = (long) lt->tm_year + 1900L;
-    Snprintf(datestr, sizeof datestr, "%04ld%02d%02d%02d%02d%02d",
-                datenum, lt->tm_mon + 1,
-                lt->tm_mday, lt->tm_hour, lt->tm_min, lt->tm_sec);
-    return datestr;
-}
-
-DISABLE_WARNING_FORMAT_NONLITERAL
-
-void
-raw_printf(const char *line, ...)
-{
-    va_list the_args;
-
-    va_start(the_args, line);
-    fprintf(stdout, line, the_args);
-    va_end(the_args);
 }
 
 RESTORE_WARNING_FORMAT_NONLITERAL
@@ -898,7 +772,7 @@ regularize(char *s)
 #endif
 #endif
 }
-#endif
+#endif /* UNIX */
 
 int
 util_strncmpi(const char *s1, const char *s2, size_t sz)

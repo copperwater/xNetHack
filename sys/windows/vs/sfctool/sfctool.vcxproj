@@ -62,6 +62,7 @@
     <ClCompile Include="$(UtilDir)sfexpasc.c" />
     <ClCompile Include="$(UtilDir)sfdata.c" />
     <ClCompile Include="$(SysWindDir)windsys.c" />
+    <ClCompile Include="$(SrcDir)calendar.c" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="$(IncDir)extern.h" />
