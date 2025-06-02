@@ -301,9 +301,11 @@ USE_DLB = Y
 
 ifdef CI_COMPILER
 cc = gcc -c
+cxx = g++ -c
 ld = gcc
 else
 cc = gcc -c
+cxx = g++ -c
 ld = gcc
 endif
 ifeq "$(MSYSTEM)" "MINGW32"
@@ -552,6 +554,10 @@ CLEAN_FILE += $(RTARGETS) $(ROBJS)
 # PDCurses
 #==========================================
 ifeq "$(ADD_CURSES)" "Y"
+
+#https://github.com/Bill-Gray/PDCursesMod/issues/333
+PDCMOD_WORKAROUND = -std=gnu17
+
 PDCCOMMONSRC = addch addchstr addstr attr beep bkgd border clear \
 	color debug delch deleteln getch getstr getyx inch \
 	inchstr initscr inopts insch insstr kernel keyname \
@@ -574,10 +580,10 @@ $(PDCLIB): $(PDCOBJS)
 	ar rcs $@ $^
 
 $(OP)/%.o: $(PDCSRC)/%.c | $(OP)
-	$(cc) $(CFLAGS) $(PDCURSESFLAGS) $(PDCINCL) -D_LIB $< -o$@
+	$(cc) $(CFLAGS) $(PDCMOD_WORKAROUND) $(PDCURSESFLAGS) $(PDCINCL) -D_LIB $< -o$@
 
 $(OP)/%.o: $(PDCWINCON)/%.c | $(OP)
-	$(cc) $(CFLAGS) $(PDCURSESFLAGS) $(PDCINCL) -I$(PDCWINCON) -D_LIB $< -o$@
+	$(cc) $(CFLAGS) $(PDCMOD_WORKAROUND) $(PDCURSESFLAGS) $(PDCINCL) -I$(PDCWINCON) -D_LIB $< -o$@
 
 $(OP):
 	@mkdir -p $@
@@ -599,10 +605,10 @@ $(PDCWLIB): $(PDCWOBJS)
 	ar rcs $@ $^
 
 $(OPW)/%.o: $(PDCSRC)/%.c | $(OPW)
-	$(cc) $(CFLAGS) $(PDCURSESFLAGS) $(PDCINCL) -D_LIB $< -o$@
+	$(cc) $(CFLAGS) $(PDCMOD_WORKAROUND) $(PDCURSESFLAGS) $(PDCINCL) -D_LIB $< -o$@
 
 $(OPW)/%.o: $(PDCWINGUI)/%.c | $(OPW)
-	$(cc) $(CFLAGS) $(PDCURSESFLAGS) $(PDCINCL) -I$(PDCWINGUI) -D_LIB $< -o$@
+	$(cc) $(CFLAGS) $(PDCMOD_WORKAROUND) $(PDCURSESFLAGS) $(PDCINCL) -I$(PDCWINGUI) -D_LIB $< -o$@
 
 $(OPW):
 	@mkdir -p $@
@@ -844,7 +850,7 @@ else  # GIT_AVAILABLE no
 CURLLUASRC=http://www.lua.org/ftp/lua-5.4.6.tar.gz
 CURLLUADST=lua-5.4.6.tar.gz
 
-CURLPDCSRC=https://github.com/Bill-Gray/PDCursesMod/archive/refs/tags/v4.4.0.zip
+CURLPDCSRC=https://github.com/Bill-Gray/PDCursesMod/archive/refs/tags/v4.5.1.zip
 CURLPDCDST=$(PDCURSES).zip
 
 fetchlua:

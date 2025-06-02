@@ -31,3 +31,4 @@ bundle/*
 GNUmakefile
 GNUmakefile.depend
 .*.c
+.depend
