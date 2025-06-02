@@ -301,7 +301,7 @@ mk_artifact(
             otmp = 0;
         } /* otherwise, otmp has not changed; just fallthrough to return it */
     }
-    if (permapoisoned(otmp))
+    if (otmp && permapoisoned(otmp))
         otmp->opoisoned = 1;
     return otmp;
 }
