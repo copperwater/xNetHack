@@ -325,9 +325,11 @@ CFLAGS = -mms-bitfields -I../include -I../sys/windows
 LDFLAGS =
 ifeq "$(DEBUGINFO)" "Y"
 CFLAGS += -g -D_DEBUG
+LIBUCRT = -lucrtbased
 else
 CFLAGS += -DNDEBUG
 LDFLAGS += -s
+LIBUCRT=
 endif
 
 ifeq "$(USE_DLB)" "Y"
@@ -362,7 +364,8 @@ CONSOLEDEF = $(COMMONDEF) -D_CONSOLE
 # To build util targets
 CFLAGSU = $(CFLAGS) $(CONSOLEDEF) $(DLBFLG)
 
-LIBS = -lcomctl32 -lgdi32 -lole32 -lshell32 -luserenv -luuid -lwinmm -lbcrypt
+LIBS = -lcomctl32 -lgdi32 -lole32 -lshell32 -luserenv -luuid -lwinmm \
+       -lrpcrt4 -lbcrypt $(LIBUCRT)
 
 $(GAMEDIR):
 	@mkdir -p $@
@@ -536,6 +539,7 @@ $(GAMEDIR)/recover.exe: $(ROBJS) $(HLHACKLIB) | $(GAMEDIR)
 
 $(OR)/recover.o: $(U)recover.c | $(OR)
 	$(cc) $(CFLAGSU) $< -o$@
+
 $(OR)/rversion.o: $(SRC)/version.c | $(OR)
 	$(cc) $(CFLAGSU) -DMINIMAL_FOR_RECOVER $< -o$@
 
