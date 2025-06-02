@@ -29,7 +29,7 @@ strategy:
       toolchainName: vs
       buildTargetName: all
     windows-mingw:
-      imageName: 'windows-2019'
+      imageName: 'windows-2025'
       toolchainName: mingw
       buildTargetName: all
     linux_noble_cross_msdos:
@@ -132,14 +132,13 @@ steps:
     export LUA_VERSION=5.4.6
     #
     # 64-bit
-    #export CURLSRC=https://github.com/brechtsanders/winlibs_mingw/releases/download/11.2.0-9.0.0-ucrt-r5/winlibs-x86_64-posix-seh-gcc-11.2.0-mingw-w64ucrt-9.0.0-r5.zip
     #export CURLSRC=https://github.com/brechtsanders/winlibs_mingw/releases/download/14.2.0posix-19.1.1-12.0.0-ucrt-r2/winlibs-x86_64-posix-seh-gcc-14.2.0-llvm-19.1.1-mingw-w64ucrt-12.0.0-r2.zip
+    #export CURLSRC=https://github.com/brechtsanders/winlibs_mingw/releases/download/15.1.0posix-12.0.0-ucrt-r1/winlibs-x86_64-posix-seh-gcc-15.1.0-mingw-w64ucrt-12.0.0-r1.zip
     #export CURLDST=mingw-x64.zip
     #export MINGWBIN=mingw64
     #export MSYSTEM=MINGW64
     #
     # 32-bit
-    #export CURLSRC=https://github.com/brechtsanders/winlibs_mingw/releases/download/11.2.0-9.0.0-ucrt-r5/winlibs-i686-posix-dwarf-gcc-11.2.0-mingw-w64ucrt-9.0.0-r5.zip
     #export CURLSRC=https://github.com/brechtsanders/winlibs_mingw/releases/download/14.2.0posix-19.1.1-12.0.0-ucrt-r2/winlibs-i686-posix-dwarf-gcc-14.2.0-llvm-19.1.1-mingw-w64ucrt-12.0.0-r2.zip
     export CURLSRC=https://github.com/brechtsanders/winlibs_mingw/releases/download/15.1.0posix-12.0.0-ucrt-r1/winlibs-i686-posix-dwarf-gcc-15.1.0-mingw-w64ucrt-12.0.0-r1.zip
     export CURLDST=mingw-x86.zip
