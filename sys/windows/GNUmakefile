@@ -54,7 +54,7 @@ SOUND_LIBRARIES = windsound
 # Do you want debug information in the executable?
 #
 
-DEBUGINFO = N
+DEBUGINFO = Y
 
 #
 #---------------------------------------------------------------
@@ -303,6 +303,7 @@ ifdef CI_COMPILER
 cc = gcc -c
 cxx = g++ -c
 ld = gcc
+DEBUGINFO = N
 else
 cc = gcc -c
 cxx = g++ -c
