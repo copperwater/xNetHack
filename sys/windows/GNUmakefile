@@ -54,7 +54,7 @@ SOUND_LIBRARIES = windsound
 # Do you want debug information in the executable?
 #
 
-DEBUGINFO = Y
+DEBUGINFO = N
 
 #
 #---------------------------------------------------------------
