@@ -378,9 +378,9 @@ ADD_CURSES=Y
 INCLCURSES_H=-I$(R_PDCURSES_TOP)
 !  ELSE
 #  Cannot do it, sorry
-   PDCINCL=
-   INCLCURSES_H=
-   ADD_CURSES = N
+PDCINCL=
+INCLCURSES_H=
+ADD_CURSES = N
 !  ENDIF  # If we found a copy of curses.h
 ! ENDIF  # ADD_CURSES == Y
 !ENDIF  # WANT_CURSES
@@ -1340,7 +1340,7 @@ guilflags = $(lflags) -subsystem:windows
 
 # basic subsystem specific libraries, less the C Run-Time
 baselibs    = kernel32.lib $(optlibs) $(winsocklibs) advapi32.lib gdi32.lib \
-		ole32.lib Shell32.lib UserEnv.lib dbghelp.lib
+		ole32.lib Shell32.lib UserEnv.lib dbghelp.lib Rpcrt4.lib
 winlibs     = $(baselibs) user32.lib comdlg32.lib winspool.lib
 
 # for Windows applications that use the C Run-Time libraries
@@ -2043,7 +2043,7 @@ fetch-pdcurses:
 	@if not exist $(LIBDIR)*.* mkdir $(R_LIBDIR)
 	cd $(LIBDIR)
 #	curl -L -R https://codeload.github.com/wmcbrine/PDCurses/zip/master -o pdcurses.zip
-	curl -L -R https://github.com/Bill-Gray/PDCursesMod/archive/refs/tags/v4.3.5.zip -o $(PDCDIST).zip
+	curl -L -R https://github.com/Bill-Gray/PDCursesMod/archive/refs/tags/v4.5.1.zip -o $(PDCDIST).zip
 	powershell -command "Expand-Archive -Path .\$(PDCDIST).zip -DestinationPath ./$(PDCDIST)-temp"
 	if exist .\$(PDCDIST)\* rd .\$(PDCDIST) /s /Q
 	move .\$(PDCDIST)-temp\PDCurses-master .
