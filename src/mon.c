@@ -233,19 +233,6 @@ sanity_check_single_mon(
                        mtmp->m_id, distu(mtmp->mx, mtmp->my));
 #endif
     }
-    if (MON_WEP(mtmp)) { /* mtmp->mw */
-        struct obj *o;
-
-        for (o = mtmp->minvent; o; o = o->nobj)
-            if (o == MON_WEP(mtmp))
-                break;
-        if (!o) {
-            o = MON_WEP(mtmp);
-            impossible("monst (%s: %u) wielding %s (%u) not in inventory",
-                       pmname(mtmp->data, Mgender(mtmp)), mtmp->m_id,
-                       safe_typename(o->otyp), o->o_id);
-        }
-    }
 }
 
 void
