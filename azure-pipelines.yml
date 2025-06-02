@@ -114,6 +114,14 @@ steps:
   condition: eq( variables.toolchain, 'vs' )
   displayName: 'Copying store key'
 
+- task: MSBuild@1
+  inputs:
+    solution: $(Agent.BuildDirectory)/$(netHackPath)/sys/windows/vs/NetHack.sln
+    platform: Win32
+    configuration: Debug
+  condition: eq( variables.toolchain, 'vs' )
+  displayName: 'Visual Studio Build'
+
 - bash: |
     export ADD_LUA=Y
     export WANT_LUAC=N
