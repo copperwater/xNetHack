@@ -2515,63 +2515,63 @@ $(OUTL)sfdata.o: $(UTIL)sfdata.c $(HACK_H) $(INCL)sfprocs.h $(INCL)sfproto.h
 	$(Q)$(CC) $(CFLAGS) $(SFFLAGS) -Fo$@ -c $(UTIL)sfdata.c
 $(OUTL)sfexpasc.o: $(UTIL)sfexpasc.c $(HACK_H) $(INCL)sfprocs.h $(INCL)sfproto.h
 	$(Q)$(CC) $(CFLAGS) $(SFFLAGS) -Fo$@ -c $(UTIL)sfexpasc.c
-$(OUTL)sf-alloc.o: $(SRC)alloc.c
+$(OUTL)sf-alloc.o: $(SRC)alloc.c $(HACK_H)
 	$(Q)$(CC) $(CFLAGS) $(SFFLAGS) -Fo$@ -c $(SRC)alloc.c
-$(OUTL)sf-date.o: $(SRC)date.c
+$(OUTL)sf-date.o: $(SRC)date.c $(HACK_H)
 	$(Q)$(CC) $(CFLAGS) $(SFFLAGS) -Fo$@ -c $(SRC)date.c
-$(OUTL)sf-decl.o: $(SRC)decl.c
+$(OUTL)sf-decl.o: $(SRC)decl.c $(HACK_H)
 	$(Q)$(CC) $(CFLAGS) $(SFFLAGS) -Fo$@ -c $(SRC)decl.c
-$(OUTL)sf-monst.o: $(SRC)monst.c
+$(OUTL)sf-monst.o: $(SRC)monst.c $(HACK_H)
 	$(Q)$(CC) $(CFLAGS) $(SFFLAGS) -Fo$@ -c $(SRC)monst.c
-$(OUTL)sf-objects.o: $(SRC)objects.c
+$(OUTL)sf-objects.o: $(SRC)objects.c $(HACK_H)
 	$(Q)$(CC) $(CFLAGS) $(SFFLAGS) -Fo$@ -c $(SRC)objects.c
-$(OUTL)sfbase.o: $(SRC)sfbase.c
+$(OUTL)sfbase.o: $(SRC)sfbase.c $(HACK_H)
 	$(Q)$(CC) $(CFLAGS) $(SFFLAGS) -Fo$@ -c $(SRC)sfbase.c
-$(OUTL)sf-struct.o: $(SRC)sfstruct.c
+$(OUTL)sf-struct.o: $(SRC)sfstruct.c $(HACK_H)
 	$(Q)$(CC) $(CFLAGS) $(SFFLAGS) -Fo$@ -c $(SRC)sfstruct.c
-$(OUTL)sf-artifact.o: $(SRC)artifact.c
+$(OUTL)sf-artifact.o: $(SRC)artifact.c $(HACK_H)
 	$(Q)$(CC) $(CFLAGS) $(SFFLAGS) -Fo$@ -c $(SRC)artifact.c
-$(OUTL)sf-calendar.o: $(SRC)calendar.c
+$(OUTL)sf-calendar.o: $(SRC)calendar.c $(HACK_H)
 	$(Q)$(CC) $(CFLAGS) $(SFFLAGS) -Fo$@ -c $(SRC)calendar.c
-$(OUTL)sf-cfgfiles.o: $(SRC)cfgfiles.c
+$(OUTL)sf-cfgfiles.o: $(SRC)cfgfiles.c $(HACK_H)
 	$(Q)$(CC) $(CFLAGS) $(SFFLAGS) -Fo$@ -c $(SRC)cfgfiles.c
-$(OUTL)sf-dungeon.o: $(SRC)dungeon.c
+$(OUTL)sf-dungeon.o: $(SRC)dungeon.c $(HACK_H)
 	$(Q)$(CC) $(CFLAGS) $(SFFLAGS) -Fo$@ -c $(SRC)dungeon.c
-$(OUTL)sf-end.o: $(SRC)end.c
+$(OUTL)sf-end.o: $(SRC)end.c $(HACK_H)
 	$(Q)$(CC) $(CFLAGS) $(SFFLAGS) -Fo$@ -c $(SRC)end.c
-$(OUTL)sf-engrave.o: $(SRC)engrave.c
+$(OUTL)sf-engrave.o: $(SRC)engrave.c $(HACK_H)
 	$(Q)$(CC) $(CFLAGS) $(SFFLAGS) -Fo$@ -c $(SRC)engrave.c
-$(OUTL)sf-files.o: $(SRC)files.c
+$(OUTL)sf-files.o: $(SRC)files.c $(HACK_H)
 	$(Q)$(CC) $(CFLAGS) $(SFFLAGS) -Fo$@ -c $(SRC)files.c
-$(OUTL)sf-light.o: $(SRC)light.c
+$(OUTL)sf-light.o: $(SRC)light.c $(HACK_H)
 	$(Q)$(CC) $(CFLAGS) $(SFFLAGS) -Fo$@ -c $(SRC)light.c
-$(OUTL)sf-mdlib.o: $(SRC)mdlib.c
+$(OUTL)sf-mdlib.o: $(SRC)mdlib.c $(HACK_H)
 	$(Q)$(CC) $(CFLAGS) $(SFFLAGS) -Fo$@ -c $(SRC)mdlib.c
-$(OUTL)sf-mkmaze.o: $(SRC)mkmaze.c
+$(OUTL)sf-mkmaze.o: $(SRC)mkmaze.c $(HACK_H)
 	$(Q)$(CC) $(CFLAGS) $(SFFLAGS) -Fo$@ -c $(SRC)mkmaze.c
-$(OUTL)sf-mkroom.o: $(SRC)mkroom.c
+$(OUTL)sf-mkroom.o: $(SRC)mkroom.c $(HACK_H)
 	$(Q)$(CC) $(CFLAGS) $(SFFLAGS) -Fo$@ -c $(SRC)mkroom.c
-$(OUTL)sf-o_init.o: $(SRC)o_init.c
+$(OUTL)sf-o_init.o: $(SRC)o_init.c $(HACK_H)
 	$(Q)$(CC) $(CFLAGS) $(SFFLAGS) -Fo$@ -c $(SRC)o_init.c
-$(OUTL)sf-region.o: $(SRC)region.c
+$(OUTL)sf-region.o: $(SRC)region.c $(HACK_H)
 	$(Q)$(CC) $(CFLAGS) $(SFFLAGS) -Fo$@ -c $(SRC)region.c
-$(OUTL)sf-restore.o: $(SRC)restore.c
+$(OUTL)sf-restore.o: $(SRC)restore.c $(HACK_H)
 	$(Q)$(CC) $(CFLAGS) $(SFFLAGS) -Fo$@ -c $(SRC)restore.c
-$(OUTL)sf-rumors.o: $(SRC)\rumors.c
+$(OUTL)sf-rumors.o: $(SRC)\rumors.c $(HACK_H)
 	$(Q)$(CC) $(CFLAGS) $(SFFLAGS) -Fo$@ -c $(SRC)rumors.c
-$(OUTL)sf-timeout.o: $(SRC)timeout.c
+$(OUTL)sf-timeout.o: $(SRC)timeout.c $(HACK_H)
 	$(Q)$(CC) $(CFLAGS) $(SFFLAGS) -Fo$@ -c $(SRC)timeout.c
-$(OUTL)sf-version.o: $(SRC)version.c
+$(OUTL)sf-version.o: $(SRC)version.c $(HACK_H)
 	$(Q)$(CC) $(CFLAGS) $(SFFLAGS) -Fo$@ -c $(SRC)version.c
-$(OUTL)sf-worm.o: $(SRC)worm.c
+$(OUTL)sf-worm.o: $(SRC)worm.c $(HACK_H)
 	$(Q)$(CC) $(CFLAGS) $(SFFLAGS) -Fo$@ -c $(SRC)worm.c
-$(OUTL)sf-nhlua.o: $(SRC)nhlua.c
+$(OUTL)sf-nhlua.o: $(SRC)nhlua.c $(HACK_H)
 	$(Q)$(CC) $(CFLAGS) $(SFFLAGS) -Fo$@ -c $(SRC)nhlua.c
-$(OUTL)sf-track.o: $(SRC)track.c
+$(OUTL)sf-track.o: $(SRC)track.c $(HACK_H)
 	$(Q)$(CC) $(CFLAGS) $(SFFLAGS) -Fo$@ -c $(SRC)track.c
-$(OUTL)sf-sys.o: $(SRC)sys.c
+$(OUTL)sf-sys.o: $(SRC)sys.c $(HACK_H)
 	$(Q)$(CC) $(CFLAGS) $(SFFLAGS) -Fo$@ -c $(SRC)sys.c
-$(OUTL)sf-windsys.o: $(MSWSYS)windsys.c
+$(OUTL)sf-windsys.o: $(MSWSYS)windsys.c $(HACK_H)
 	$(Q)$(CC) $(CFLAGS) $(SFFLAGS) -Fo$@ -c $(MSWSYS)windsys.c
 
 $(UTIL)sftags.exe: $(OUTL)sftags.o $(OUTLHACKLIB)
