@@ -753,6 +753,178 @@ $(MSWIN)/NetHack.ico: $(U)uudecode.exe $(MSWSYS)/nhico.uu
 CLEAN_FILE += $(UTARGETS) $(UOBJS)
 
 #==========================================
+# sfctool
+#==========================================
+#
+# Requires universal-ctags.
+#     pacman -S ctags
+#
+
+.PHONEY: sfctool
+
+OSFC = $(O)sfctool
+SFCTARGETS = $(U)sftags.exe $(GAMEDIR)/sfctool.exe
+SFCCOREOBJS =
+SFCCOREOBJS = sfctool sf-alloc sf-artifact sf-calendar sf-cfgfiles sfdata \
+	      sf-date sf-decl sf-dungeon sf-end sf-engrave \
+	      sf-files sf-light sf-mdlib sf-mkmaze sf-mkroom sf-monst \
+	      sf-nhlua sf-objects sf-o_init panic sf-region sf-restore \
+	      sf-rumors sfbase sfexpasc sf-struct strutil sf-sys \
+	      sf-timeout sf-track sf-version sf-worm sf-windsys
+SFCTOOLOBJS = $(addprefix $(OSFC)/, $(addsuffix .o, $(SFCCOREOBJS)))
+SFCTOOLBIN = $(GAMEDIR)/sfctool.exe
+SFFLAGS = -DSFCTOOL -DNOPANICTRACE -DNOCRASHREPORT -DNO_CHRONICLE
+
+sfctool: $(SFCTARGETS)
+
+#$(info SFCTOOLOBJS=$(SFCTOOLOBJS))
+
+$(SFCTOOLBIN): $(HLHACKLIB) $(SFCTOOLOBJS)
+	$(ld) $(LDFLAGS) $^ $(HLHACKLIB) $(LIBS) -o$@
+
+$(OSFC)/sfctool.o: $(U)sfctool.c $(HACK_H) $(INCL)/sfprocs.h | $(OSFC)
+	$(cc) $(CFLAGSU) $(SFFLAGS) -c $(U)sfctool.c -o$@
+$(OSFC)/sf-alloc.o: $(SRC)/alloc.c $(HACK_H) | $(OSFC)
+	$(cc) $(CFLAGSU) $(SFFLAGS) -c $(SRC)/alloc.c -o$@
+$(OSFC)/sf-artifact.o: $(SRC)/artifact.c $(HACK_H) | $(OSFC)
+	$(cc) $(CFLAGSU) $(SFFLAGS) -c $(SRC)/artifact.c -o$@
+$(OSFC)/sf-calendar.o: $(SRC)/calendar.c $(HACK_H) | $(OSFC)
+	$(cc) $(CFLAGSU) $(SFFLAGS) -c $(SRC)/calendar.c -o$@
+$(OSFC)/sf-cfgfiles.o: $(SRC)/cfgfiles.c $(HACK_H) | $(OSFC)
+	$(cc) $(CFLAGSU) $(SFFLAGS) -c $(SRC)/cfgfiles.c -o$@
+$(OSFC)/sfdata.o: $(U)sfdata.c $(HACK_H) $(INCL)/sfprocs.h $(INCL)/sfproto.h | $(OSFC)
+	$(cc) $(CFLAGSU) $(SFFLAGS) -c $(U)sfdata.c -o$@
+$(OSFC)/sf-date.o: $(SRC)/date.c $(HACK_H) | $(OSFC)
+	$(cc) $(CFLAGSU) $(SFFLAGS) -c $(SRC)/date.c -o$@
+$(OSFC)/sf-decl.o: $(SRC)/decl.c $(HACK_H) | $(OSFC)
+	$(cc) $(CFLAGSU) $(SFFLAGS) -c $(SRC)/decl.c -o$@
+$(OSFC)/sf-dungeon.o: $(SRC)/dungeon.c $(HACK_H) | $(OSFC)
+	$(cc) $(CFLAGSU) $(SFFLAGS) -c $(SRC)/dungeon.c -o$@
+$(OSFC)/sf-end.o: $(SRC)/end.c $(HACK_H) | $(OSFC)
+	$(cc) $(CFLAGSU) $(SFFLAGS) -c $(SRC)/end.c -o$@
+$(OSFC)/sf-engrave.o: $(SRC)/engrave.c $(HACK_H) | $(OSFC)
+	$(cc) $(CFLAGSU) $(SFFLAGS) -c $(SRC)/engrave.c -o$@
+$(OSFC)/sf-files.o: $(SRC)/files.c $(HACK_H) | $(OSFC)
+	$(cc) $(CFLAGSU) $(SFFLAGS) -c $(SRC)/files.c -o$@
+$(OSFC)/sf-light.o: $(SRC)/light.c $(HACK_H) | $(OSFC)
+	$(cc) $(CFLAGSU) $(SFFLAGS) -c $(SRC)/light.c -o$@
+$(OSFC)/sf-mdlib.o: $(SRC)/mdlib.c $(HACK_H) | $(OSFC)
+	$(cc) $(CFLAGSU) $(SFFLAGS) -c $(SRC)/mdlib.c -o$@
+$(OSFC)/sf-mkmaze.o: $(SRC)/mkmaze.c $(HACK_H) | $(OSFC)
+	$(cc) $(CFLAGSU) $(SFFLAGS) -c $(SRC)/mkmaze.c -o$@
+$(OSFC)/sf-mkroom.o: $(SRC)/mkroom.c $(HACK_H) | $(OSFC)
+	$(cc) $(CFLAGSU) $(SFFLAGS) -c $(SRC)/mkroom.c -o$@
+$(OSFC)/sf-monst.o: $(SRC)/monst.c $(HACK_H) | $(OSFC)
+	$(cc) $(CFLAGSU) $(SFFLAGS) -c $(SRC)/monst.c -o$@
+$(OSFC)/sf-nhlua.o: $(SRC)/nhlua.c $(HACK_H) | $(OSFC)
+	$(cc) $(CFLAGSU) $(SFFLAGS) -c $(SRC)/nhlua.c -o$@
+$(OSFC)/sf-objects.o: $(SRC)/objects.c $(HACK_H) | $(OSFC)
+	$(cc) $(CFLAGSU) $(SFFLAGS) -c $(SRC)/objects.c -o$@
+$(OSFC)/sf-o_init.o: $(SRC)/o_init.c $(HACK_H) | $(OSFC)
+	$(cc) $(CFLAGSU) $(SFFLAGS) -c $(SRC)/o_init.c -o$@
+$(OSFC)/panic.o: $(U)panic.c $(HACK_H) | $(OSFC)
+	$(cc) $(CFLAGSU) $(SFFLAGS) -c $(U)panic.c -o$@
+$(OSFC)/sf-region.o: $(SRC)/region.c $(HACK_H) | $(OSFC)
+	$(cc) $(CFLAGSU) $(SFFLAGS) -c $(SRC)/region.c -o$@
+$(OSFC)/sf-restore.o: $(SRC)/restore.c $(HACK_H) | $(OSFC)
+	$(cc) $(CFLAGSU) $(SFFLAGS) -c $(SRC)/restore.c -o$@
+$(OSFC)/sf-rumors.o: $(SRC)/\rumors.c $(HACK_H) | $(OSFC)
+	$(cc) $(CFLAGSU) $(SFFLAGS) -c $(SRC)/rumors.c -o$@
+$(OSFC)/sfbase.o: $(SRC)/sfbase.c $(HACK_H) | $(OSFC)
+	$(cc) $(CFLAGSU) $(SFFLAGS) -c $(SRC)/sfbase.c -o$@
+$(OSFC)/sfexpasc.o: $(U)sfexpasc.c $(HACK_H) $(INCL)/sfprocs.h $(INCL)/sfproto.h | $(OSFC)
+	$(cc) $(CFLAGSU) $(SFFLAGS) -c $(U)sfexpasc.c -o$@
+$(OSFC)/sf-struct.o: $(SRC)/sfstruct.c $(HACK_H) | $(OSFC)
+	$(cc) $(CFLAGSU) $(SFFLAGS) -c $(SRC)/sfstruct.c -o$@
+$(OSFC)/strutil.o: $(SRC)/strutil.c $(HACK_H) | $(OSFC)
+	$(cc) $(CFLAGSU) $(SFFLAGS) -c $(SRC)/strutil.c -o$@
+$(OSFC)/sf-sys.o: $(SRC)/sys.c $(HACK_H) | $(OSFC)
+	$(cc) $(CFLAGSU) $(SFFLAGS) -c $(SRC)/sys.c -o$@
+$(OSFC)/sf-timeout.o: $(SRC)/timeout.c $(HACK_H) | $(OSFC)
+	$(cc) $(CFLAGSU) $(SFFLAGS) -c $(SRC)/timeout.c -o$@
+$(OSFC)/sf-track.o: $(SRC)/track.c $(HACK_H) | $(OSFC)
+	$(cc) $(CFLAGSU) $(SFFLAGS) -c $(SRC)/track.c -o$@
+$(OSFC)/sf-version.o: $(SRC)/version.c $(HACK_H) | $(OSFC)
+	$(cc) $(CFLAGSU) $(SFFLAGS) -c $(SRC)/version.c -o$@
+$(OSFC)/sf-worm.o: $(SRC)/worm.c $(HACK_H) | $(OSFC)
+	$(cc) $(CFLAGSU) $(SFFLAGS) -c $(SRC)/worm.c -o$@
+$(OSFC)/sf-windsys.o: $(MSWSYS)/windsys.c $(HACK_H) | $(OSFC)
+	$(cc) $(CFLAGSU) $(SFFLAGS) -c $(MSWSYS)/windsys.c -o$@
+
+CTAGSCMD = ctags
+CTAGSOPT = --language-force=c --sort=no -D"Bitfield(x,n)=unsigned x : n" --excmd=pattern
+
+$(U)sftags.exe: $(HLHACKLIB) $(OSFC)/sftags.o
+	$(ld) $(LDFLAGS) -mwindows $(OSFC)/sftags.o $(HLHACKLIB) $(LIBS) -o$@
+$(OSFC)/sftags.o: $(U)sftags.c $(HACK_H) | $(OSFC)
+	$(cc) $(CFLAGSU) -c $(U)sftags.c -o$@
+$(INCL)/sfproto.h: $(U)sf.tags $(U)sftags.exe
+	$(U)sftags
+$(U)sfdata.c: $(U)sf.tags $(U)sftags.exe
+	$(U)sftags
+
+#       dependencies for sftags
+#
+CTAGDEP = $(INCL)/align.h    $(INCL)/artifact.h $(SRC)/artifact.c  \
+	  $(INCL)/artilist.h $(INCL)/attrib.h   $(SRC)/bones.c     \
+	  $(INCL)/context.h  $(INCL)/coord.h    $(INCL)/decl.h     \
+	  $(SRC)/decl.c      $(INCL)/dungeon.h  $(INCL)/engrave.h  \
+	  $(SRC)/engrave.c   $(INCL)/flag.h     $(INCL)/func_tab.h \
+	  $(INCL)/global.h   $(INCL)/hack.h     $(INCL)/mextra.h   \
+	  $(INCL)/mkroom.h   $(INCL)/monst.h    $(INCL)/defsym.h   \
+	  $(INCL)/obj.h      $(INCL)/objclass.h $(INCL)/prop.h     \
+	  $(INCL)/quest.h    $(INCL)/rect.h     $(INCL)/region.h   \
+	  $(INCL)/rm.h       $(INCL)/skills.h   $(INCL)/spell.h    \
+	  $(INCL)/stairs.h   $(INCL)/sys.h      $(INCL)/timeout.h  \
+	  $(INCL)/trap.h     $(INCL)/you.h      $(INCL)/wintype.h
+
+$(U)sf.tags: $(CTAGDEP)
+	$(CTAGSCMD) $(CTAGSOPT) -f $@ $(INCL)/align.h
+	$(CTAGSCMD) $(CTAGSOPT) -a -f $@ $(INCL)/artifact.h
+	$(CTAGSCMD) $(CTAGSOPT) -a -f $@ $(SRC)/artifact.c
+	$(CTAGSCMD) $(CTAGSOPT) -a -f $@ $(INCL)/artilist.h
+	$(CTAGSCMD) $(CTAGSOPT) -a -f $@ $(INCL)/attrib.h
+	$(CTAGSCMD) $(CTAGSOPT) -a -f $@ $(SRC)/bones.c
+	$(CTAGSCMD) $(CTAGSOPT) -a -f $@ $(INCL)/context.h
+	$(CTAGSCMD) $(CTAGSOPT) -a -f $@ $(INCL)/coord.h
+	$(CTAGSCMD) $(CTAGSOPT) -a -f $@ $(INCL)/decl.h
+	$(CTAGSCMD) $(CTAGSOPT) -a -f $@ $(SRC)/decl.c
+	$(CTAGSCMD) $(CTAGSOPT) -a -f $@ $(INCL)/dungeon.h
+	$(CTAGSCMD) $(CTAGSOPT) -a -f $@ $(INCL)/engrave.h
+	$(CTAGSCMD) $(CTAGSOPT) -a -f $@ $(SRC)/engrave.c
+	$(CTAGSCMD) $(CTAGSOPT) -a -f $@ $(INCL)/flag.h
+	$(CTAGSCMD) $(CTAGSOPT) -a -f $@ $(INCL)/func_tab.h
+	$(CTAGSCMD) $(CTAGSOPT) -a -f $@ $(INCL)/global.h
+	$(CTAGSCMD) $(CTAGSOPT) -a -f $@ $(INCL)/hack.h
+	$(CTAGSCMD) $(CTAGSOPT) -a -f $@ $(INCL)/mextra.h
+	$(CTAGSCMD) $(CTAGSOPT) -a -f $@ $(INCL)/mkroom.h
+	$(CTAGSCMD) $(CTAGSOPT) -a -f $@ $(INCL)/monst.h
+	$(CTAGSCMD) $(CTAGSOPT) -a -f $@ $(INCL)/defsym.h
+	$(CTAGSCMD) $(CTAGSOPT) -a -f $@ $(INCL)/obj.h
+	$(CTAGSCMD) $(CTAGSOPT) -a -f $@ $(INCL)/objclass.h
+#	$(CTAGSCMD) $(CTAGSOPT) -a -f $@ $(INCL)/permonst.h
+	$(CTAGSCMD) $(CTAGSOPT) -a -f $@ $(INCL)/prop.h
+	$(CTAGSCMD) $(CTAGSOPT) -a -f $@ $(INCL)/quest.h
+	$(CTAGSCMD) $(CTAGSOPT) -a -f $@ $(INCL)/rect.h
+	$(CTAGSCMD) $(CTAGSOPT) -a -f $@ $(INCL)/region.h
+	$(CTAGSCMD) $(CTAGSOPT) -a -f $@ $(INCL)/rm.h
+	$(CTAGSCMD) $(CTAGSOPT) -a -f $@ $(INCL)/skills.h
+	$(CTAGSCMD) $(CTAGSOPT) -a -f $@ $(INCL)/spell.h
+	$(CTAGSCMD) $(CTAGSOPT) -a -f $@ $(INCL)/stairs.h
+	$(CTAGSCMD) $(CTAGSOPT) -a -f $@ $(INCL)/sys.h
+	$(CTAGSCMD) $(CTAGSOPT) -a -f $@ $(INCL)/timeout.h
+	$(CTAGSCMD) $(CTAGSOPT) -a -f $@ $(INCL)/trap.h
+	$(CTAGSCMD) $(CTAGSOPT) -a -f $@ $(INCL)/you.h
+	$(CTAGSCMD) $(CTAGSOPT) -a -f $@ $(INCL)/wintype.h
+
+$(OSFC):
+	@mkdir -p $@
+
+CLEAN_DIR += $(OSFC)
+CLEAN_FILE += $(SFCTARGETS) $(SFCTOOLOBJS) $(U)sf.tags $(U)sfdata.c $(INCL)/sfproto.h
+
+
+#==========================================
 # Data librarian
 #==========================================
 ODLB = $(O)dlb

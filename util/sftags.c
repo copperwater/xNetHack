@@ -25,7 +25,9 @@
 
 #ifdef __GNUC__
 #include <strings.h>
+#ifndef WIN32
 #define strncmpi strncasecmp
+#endif
 #define strcmpi strcasecmp
 #elif defined(_MSC_VER)
 #define strcmpi _stricmp
