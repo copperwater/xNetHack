@@ -760,7 +760,7 @@ CLEAN_FILE += $(UTARGETS) $(UOBJS)
 #     pacman -S ctags
 #
 
-.PHONEY: sfctool
+.PHONY: sfctool
 
 OSFC = $(O)sfctool
 SFCTARGETS = $(U)sftags.exe $(GAMEDIR)/sfctool.exe
