@@ -613,6 +613,7 @@ save_oracles(NHFILE *nhfp)
         }
         if (svo.oracle_loc) {
             free((genericptr_t) svo.oracle_loc);
+            svo.oracle_loc = 0;
         }
     }
 }
