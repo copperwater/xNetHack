@@ -760,7 +760,32 @@ CLEAN_FILE += $(UTARGETS) $(UOBJS)
 #     pacman -S ctags
 #
 
-.PHONY: sfctool
+.PHONEY: sfctool
+
+CONFIG_H = ../include/color.h ../include/config.h ../include/config1.h \
+	../include/coord.h ../include/cstd.h ../include/fnamesiz.h \
+	../include/global.h ../include/integer.h ../include/micro.h \
+	../include/patchlevel.h ../include/pcconf.h \
+	../include/tradstdc.h ../include/unixconf.h \
+	../include/vmsconf.h ../include/warnings.h \
+	../include/windconf.h
+HACK_H = $(CONFIG_H) ../include/align.h ../include/artilist.h \
+	../include/attrib.h ../include/botl.h ../include/context.h \
+	../include/decl.h ../include/defsym.h ../include/display.h \
+	../include/dungeon.h ../include/engrave.h ../include/flag.h \
+	../include/hack.h ../include/lint.h ../include/mextra.h \
+	../include/mkroom.h ../include/monattk.h ../include/mondata.h \
+	../include/monflag.h ../include/monst.h ../include/monsters.h \
+	../include/nhlua.h ../include/obj.h ../include/objclass.h \
+	../include/objects.h ../include/permonst.h ../include/prop.h \
+	../include/quest.h ../include/rect.h ../include/region.h \
+	../include/rm.h ../include/savefile.h ../include/sfprocs.h \
+	../include/seffects.h ../include/selvar.h \
+	../include/skills.h ../include/sndprocs.h ../include/spell.h \
+	../include/stairs.h ../include/sym.h ../include/sys.h \
+	../include/timeout.h ../include/trap.h ../include/vision.h \
+	../include/weight.h ../include/winprocs.h \
+	../include/wintype.h ../include/you.h ../include/youprop.h
 
 OSFC = $(O)sfctool
 SFCTARGETS = $(U)sftags.exe $(GAMEDIR)/sfctool.exe
