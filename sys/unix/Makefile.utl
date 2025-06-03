@@ -325,69 +325,69 @@ $(SFCTOOLBIN): $(SFCTOOLOBJS) $(HACKLIB)
 	$(TARGET_CLINK) $(TARGET_LFLAGS) -o $@ $(SFCTOOLOBJS) $(HACKLIB) $(TARGET_LIBS)
 $(TARGETPFX)sfctool.o: sfctool.c $(HACK_H) ../include/sfprocs.h
 	$(TARGET_CC) $(TARGET_CFLAGS) $(SFFLAGS) -o $@ -c sfctool.c
-$(TARGETPFX)sf-alloc.o: ../src/alloc.c
+$(TARGETPFX)sf-alloc.o: ../src/alloc.c $(HACK_H)
 	$(TARGET_CC) $(TARGET_CFLAGS) $(SFFLAGS) -o $@ -c ../src/alloc.c
-$(TARGETPFX)sf-calendar.o: ../src/calendar.c
+$(TARGETPFX)sf-calendar.o: ../src/calendar.c $(HACK_H)
 	$(TARGET_CC) $(TARGET_CFLAGS) $(SFFLAGS) -o $@ -c ../src/calendar.c
-$(TARGETPFX)sf-cfgfiles.o: ../src/cfgfiles.c
+$(TARGETPFX)sf-cfgfiles.o: ../src/cfgfiles.c $(HACK_H)
 	$(TARGET_CC) $(TARGET_CFLAGS) $(SFFLAGS) -o $@ -c ../src/cfgfiles.c
-$(TARGETPFX)sf-date.o: ../src/date.c
+$(TARGETPFX)sf-date.o: ../src/date.c $(HACK_H)
 	$(TARGET_CC) $(TARGET_CFLAGS) $(SFFLAGS) -o $@ -c ../src/date.c
-$(TARGETPFX)sf-decl.o: ../src/decl.c
+$(TARGETPFX)sf-decl.o: ../src/decl.c $(HACK_H)
 	$(TARGET_CC) $(TARGET_CFLAGS) $(SFFLAGS) -o $@ -c ../src/decl.c
-$(TARGETPFX)sf-monst.o: ../src/monst.c
+$(TARGETPFX)sf-monst.o: ../src/monst.c $(HACK_H)
 	$(TARGET_CC) $(TARGET_CFLAGS) $(SFFLAGS) -o $@ -c ../src/monst.c
-$(TARGETPFX)sf-objects.o: ../src/objects.c
+$(TARGETPFX)sf-objects.o: ../src/objects.c $(HACK_H)
 	$(TARGET_CC) $(TARGET_CFLAGS) $(SFFLAGS) -o $@ -c ../src/objects.c
 $(TARGETPFX)sf-panic.o: panic.c $(CONFIG_H)
 	$(TARGET_CC) $(TARGET_CFLAGS) $(SFFLAGS) -o $@ -c panic.c
-$(TARGETPFX)sf-artifact.o: ../src/artifact.c
+$(TARGETPFX)sf-artifact.o: ../src/artifact.c $(HACK_H)
 	$(TARGET_CC) $(TARGET_CFLAGS) $(SFFLAGS) -o $@ -c ../src/artifact.c
-$(TARGETPFX)sf-dungeon.o: ../src/dungeon.c
+$(TARGETPFX)sf-dungeon.o: ../src/dungeon.c $(HACK_H)
 	$(TARGET_CC) $(TARGET_CFLAGS)  $(SFFLAGS) -o $@ -c ../src/dungeon.c
-$(TARGETPFX)sf-end.o: ../src/end.c
+$(TARGETPFX)sf-end.o: ../src/end.c $(HACK_H)
 	$(TARGET_CC) $(TARGET_CFLAGS) $(SFFLAGS) -o $@ -c ../src/end.c
-$(TARGETPFX)sf-engrave.o: ../src/engrave.c
+$(TARGETPFX)sf-engrave.o: ../src/engrave.c $(HACK_H)
 	$(TARGET_CC) $(TARGET_CFLAGS) $(SFFLAGS) -o $@ -c ../src/engrave.c
-$(TARGETPFX)sf-files.o: ../src/files.c
+$(TARGETPFX)sf-files.o: ../src/files.c $(HACK_H)
 	$(TARGET_CC) $(TARGET_CFLAGS) $(SFFLAGS) -o $@ -c ../src/files.c
-$(TARGETPFX)sf-light.o: ../src/light.c
+$(TARGETPFX)sf-light.o: ../src/light.c $(HACK_H)
 	$(TARGET_CC) $(TARGET_CFLAGS) $(SFFLAGS) -o $@ -c ../src/light.c
-$(TARGETPFX)sf-mdlib.o: ../src/mdlib.c
+$(TARGETPFX)sf-mdlib.o: ../src/mdlib.c $(HACK_H)
 	$(TARGET_CC) $(TARGET_CFLAGS) $(SFFLAGS) -o $@ -c ../src/mdlib.c
-$(TARGETPFX)sf-mkmaze.o: ../src/mkmaze.c
+$(TARGETPFX)sf-mkmaze.o: ../src/mkmaze.c $(HACK_H)
 	$(TARGET_CC) $(TARGET_CFLAGS) $(SFFLAGS) -o $@ -c ../src/mkmaze.c
-$(TARGETPFX)sf-mkroom.o: ../src/mkroom.c
+$(TARGETPFX)sf-mkroom.o: ../src/mkroom.c $(HACK_H)
 	$(TARGET_CC) $(TARGET_CFLAGS) $(SFFLAGS) -o $@ -c ../src/mkroom.c
-$(TARGETPFX)sf-nhlua.o: ../src/nhlua.c
+$(TARGETPFX)sf-nhlua.o: ../src/nhlua.c $(HACK_H)
 	$(TARGET_CC) $(TARGET_CFLAGS) $(SFFLAGS) -o $@ -c ../src/nhlua.c
-$(TARGETPFX)sf-o_init.o: ../src/o_init.c
+$(TARGETPFX)sf-o_init.o: ../src/o_init.c $(HACK_H)
 	$(TARGET_CC) $(TARGET_CFLAGS) $(SFFLAGS) -o $@ -c ../src/o_init.c
-$(TARGETPFX)sf-region.o: ../src/region.c
+$(TARGETPFX)sf-region.o: ../src/region.c $(HACK_H)
 	$(TARGET_CC) $(TARGET_CFLAGS) $(SFFLAGS) -o $@ -c ../src/region.c
-$(TARGETPFX)sf-restore.o: ../src/restore.c
+$(TARGETPFX)sf-restore.o: ../src/restore.c $(HACK_H)
 	$(TARGET_CC) $(TARGET_CFLAGS) $(SFFLAGS) -o $@ -c ../src/restore.c
-$(TARGETPFX)sf-rumors.o: ../src/rumors.c
+$(TARGETPFX)sf-rumors.o: ../src/rumors.c $(HACK_H)
 	$(TARGET_CC) $(TARGET_CFLAGS) $(SFFLAGS) -o $@ -c ../src/rumors.c
-$(TARGETPFX)sfbase.o: ../src/sfbase.c
+$(TARGETPFX)sfbase.o: ../src/sfbase.c $(HACK_H)
 	$(TARGET_CC) $(TARGET_CFLAGS) $(SFFLAGS) -o $@ -c ../src/sfbase.c
 $(TARGETPFX)sfdata.o: sfdata.c $(HACK_H) ../include/sfprocs.h ../include/sfproto.h
 	$(TARGET_CC) $(TARGET_CFLAGS) $(SFFLAGS) -o $@ -c sfdata.c
 $(TARGETPFX)sfexpasc.o: sfexpasc.c $(HACK_H) ../include/sfprocs.h ../include/sfproto.h
 	$(TARGET_CC) $(TARGET_CFLAGS) $(SFFLAGS) -o $@ -c sfexpasc.c
-$(TARGETPFX)sf-struct.o: ../src/sfstruct.c
+$(TARGETPFX)sf-struct.o: ../src/sfstruct.c $(HACK_H)
 	$(TARGET_CC) $(TARGET_CFLAGS) $(SFFLAGS) -o $@ -c ../src/sfstruct.c
-$(TARGETPFX)strutil.o: ../src/strutil.c
+$(TARGETPFX)strutil.o: ../src/strutil.c $(HACK_H)
 	$(TARGET_CC) $(TARGET_CFLAGS) $(SFFLAGS) -o $@ -c ../src/strutil.c
-$(TARGETPFX)sf-sys.o: ../src/sys.c
+$(TARGETPFX)sf-sys.o: ../src/sys.c $(HACK_H)
 	$(TARGET_CC) $(TARGET_CFLAGS) $(SFFLAGS) -o $@ -c ../src/sys.c
-$(TARGETPFX)sf-timeout.o: ../src/timeout.c
+$(TARGETPFX)sf-timeout.o: ../src/timeout.c $(HACK_H)
 	$(TARGET_CC) $(TARGET_CFLAGS) $(SFFLAGS) -o $@ -c ../src/timeout.c
-$(TARGETPFX)sf-track.o: ../src/track.c
+$(TARGETPFX)sf-track.o: ../src/track.c $(HACK_H)
 	$(TARGET_CC) $(TARGET_CFLAGS) $(SFFLAGS) -o $@ -c ../src/track.c
-$(TARGETPFX)sf-version.o: ../src/version.c
+$(TARGETPFX)sf-version.o: ../src/version.c $(HACK_H)
 	$(TARGET_CC) $(TARGET_CFLAGS) $(SFFLAGS) -o $@ -c ../src/version.c
-$(TARGETPFX)sf-worm.o: ../src/worm.c
+$(TARGETPFX)sf-worm.o: ../src/worm.c $(HACK_H)
 	$(TARGET_CC) $(TARGET_CFLAGS) $(SFFLAGS) -o $@ -c ../src/worm.c
 
 sftags: sftags.o $(HACKLIB)
