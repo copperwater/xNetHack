@@ -2159,15 +2159,22 @@ seffect_gold_detection(struct obj **sobjp)
 {
     struct obj *sobj = *sobjp;
     boolean scursed = sobj->cursed;
+    boolean sblessed = sobj->blessed;
     boolean confused = (Confusion != 0);
     boolean failure;
 
     if (confused || scursed) {
         failure = trap_detect(sobj) != 0;
     } else {
+        /* the object_detect() for gems passes a null because
+         * 1) *sobjp might be null from gold_detect -> strange_feeling -> useup
+         * 2) the only logic in object_detect that uses the object is for cursed
+         *    objects or blessed potion/spell of object detection, none of which
+         *    apply here
+         */
         failure = gold_detect(sobj, FALSE) != 0;
-        if(sobj->blessed && (object_detect(sobj, GEM_CLASS) == 0))
-            failure = FALSE;
+        if (sblessed && (object_detect((struct obj *) 0, GEM_CLASS) != 0))
+            strange_feeling((struct obj *) 0, "You feel a lack of gems.");
     }
     if (failure)
         *sobjp = 0; /* failure: strange_feeling() -> useup() */
