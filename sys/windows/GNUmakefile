@@ -760,7 +760,7 @@ CLEAN_FILE += $(UTARGETS) $(UOBJS)
 #     pacman -S ctags
 #
 
-.PHONEY: sfctool
+.PHONY: sfctool
 
 CONFIG_H = ../include/color.h ../include/config.h ../include/config1.h \
 	../include/coord.h ../include/cstd.h ../include/fnamesiz.h \
