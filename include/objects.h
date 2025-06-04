@@ -1,4 +1,4 @@
-/* NetHack 3.7	objects.h	$NHDT-Date: 1725653011 2024/09/06 20:03:31 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.26 $ */
+/* NetHack 3.7	objects.h	$NHDT-Date: 1749097644 2025/06/04 20:27:24 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.30 $ */
 /* Copyright (c) Mike Threepoint, 1989.                           */
 /* NetHack may be freely redistributed.  See license for details. */
 
@@ -935,7 +935,7 @@ EYEWEAR("lenses",           NoDes, 1,       0,  5,  3, 80, GLASS, HI_GLASS,
                                                                 LENSES),
 EYEWEAR("blindfold",        NoDes, 1, BLINDED, 50,  2, 20, CLOTH, CLR_BLACK,
                                                                 BLINDFOLD),
-EYEWEAR("towel",            NoDes, 1, BLINDED, 50,  2, 50, CLOTH, CLR_MAGENTA,
+EYEWEAR("towel",            NoDes, 1, BLINDED, 50,  5, 50, CLOTH, CLR_MAGENTA,
                                                                 TOWEL),
 #undef EYEWEAR
 
