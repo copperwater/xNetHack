@@ -5203,12 +5203,26 @@ mhitm_knockback(
     boolean u_def = (mdef == &gy.youmonst);
     boolean was_u = FALSE, dismount = FALSE;
     struct obj *wep = weapon_used ? (u_agr ? uwep : MON_WEP(magr))
-                                  : (struct obj *)0;
+                                  : (struct obj *) 0;
 
     if (wep && is_art(wep, ART_OGRESMASHER))
         chance = 2;
 
     if (rn2(chance))
+        return FALSE;
+
+    /* only certain attacks qualify for knockback */
+    if (!((mattk->adtyp == AD_PHYS)
+          && (mattk->aatyp == AT_CLAW
+              || mattk->aatyp == AT_KICK
+              || mattk->aatyp == AT_BUTT
+              || mattk->aatyp == AT_WEAP)))
+        return FALSE;
+
+    /* don't knockback if attacker also wants to grab or engulf */
+    if (attacktype(magr->data, AT_ENGL)
+        || attacktype(magr->data, AT_HUGS)
+        || sticks(magr->data))
         return FALSE;
 
     /* decide where the first step will place the target; not accurate
@@ -5255,14 +5269,6 @@ mhitm_knockback(
 
     /* no knockback with a flimsy or non-blunt weapon */
     if (wep && (is_flimsy(wep) || !is_blunt_weapon(wep)))
-        return FALSE;
-
-    /* only certain attacks qualify for knockback */
-    if (!((mattk->adtyp == AD_PHYS)
-          && (mattk->aatyp == AT_CLAW
-              || mattk->aatyp == AT_KICK
-              || mattk->aatyp == AT_BUTT
-              || mattk->aatyp == AT_WEAP)))
         return FALSE;
 
     /* needs a solid physical hit */
@@ -5388,6 +5394,14 @@ hmonas(struct monst *mon)
 
     for (i = 0; i < NATTK; i++) {
         /* sum[i] = M_ATTK_MISS; -- now done above */
+
+        /* target might have been knocked back so no longer in range, or an
+           engulfing vampshifted fog cloud killed and reverted to vampire
+           that's placed at another spot (hero occupies mon's first spot) */
+        if (i > 0 && (m_at(gb.bhitpos.x, gb.bhitpos.y) != mon
+                      || DEADMONSTER(mon)))
+            continue;
+
         mattk = getmattk(&gy.youmonst, mon, i, sum, &alt_attk);
         if (gs.skipdrin && mattk->aatyp == AT_TENT && mattk->adtyp == AD_DRIN)
             continue;

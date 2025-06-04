@@ -754,6 +754,8 @@ mattacku(struct monst *mtmp)
             /* if hero was found but isn't anymore, avoid wildmiss now */
             if (firstfoundyou && !foundyou)
                 continue; /* set sum[i] to 'miss' but skip other actions */
+            if (!u_at(gb.bhitpos.x, gb.bhitpos.y))
+                continue;
         }
         mon_currwep = (struct obj *) 0;
         mattk = getmattk(mtmp, &gy.youmonst, i, sum, &alt_attk);
