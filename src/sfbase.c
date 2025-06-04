@@ -71,18 +71,18 @@ void sf_log(NHFILE *, const char *, size_t, int, char *);
 
 #else
 
-#define sfvalue(x)                       \
-    _Generic( (x),                       \
-        anything *: sfvalue_any,         \
+#define sfvalue(x)                          \
+    _Generic( (x),                          \
+        anything *: sfvalue_any,            \
         genericptr_t *: sfvalue_genericptr, \
-        int16_t *: sfvalue_int16,        \
-        int32_t *: sfvalue_int32,        \
-        int64_t *: sfvalue_int64,        \
-        uchar *: sfvalue_uchar,          \
-        uint16_t *: sfvalue_uint16,      \
-        uint32_t *: sfvalue_uint32,      \
-        uint64_t *: sfvalue_uint64,      \
-        xint8 *: sfvalue_xint8           \
+        int16_t *: sfvalue_int16,           \
+        int32_t *: sfvalue_int32,           \
+        int64_t *: sfvalue_int64,           \
+        uchar *: sfvalue_uchar,             \
+        uint16_t *: sfvalue_uint16,         \
+        uint32_t *: sfvalue_uint32,         \
+        uint64_t *: sfvalue_uint64,         \
+        xint8 *: sfvalue_xint8              \
     )(x)
 
 #define Sfvalue_any(a) sfvalue(a)
@@ -160,14 +160,14 @@ void sfo_##dtyp(NHFILE *nhfp, keyw dtyp *d_##dtyp, const char *myname)          
 {                                                                               \
     if (nhfp->fplog)                                                            \
         sf_log(nhfp, myname, sizeof *d_##dtyp, 1,                               \
-               complex_dump((uchar *) d_##dtyp));                                \
+               complex_dump((uchar *) d_##dtyp));                               \
     if (nhfp->structlevel) {                                                    \
         (*sfoprocs[nhfp->fnidx].fn.sf_##dtyp)(nhfp, d_##dtyp, myname);          \
     } else {                                                                    \
         FILE *save_fplog = nhfp->fplog;                                         \
                                                                                 \
         nhfp->fplog = 0;                                                        \
-        (*sfoflprocs[nhfp->fnidx].fn_x.sf_##dtyp)(nhfp, d_##dtyp, myname);        \
+        (*sfoflprocs[nhfp->fnidx].fn_x.sf_##dtyp)(nhfp, d_##dtyp, myname);      \
         nhfp->fplog = save_fplog;                                               \
     }                                                                           \
 }                                                                               \
@@ -181,7 +181,7 @@ void sfi_##dtyp(NHFILE *nhfp, keyw dtyp *d_##dtyp, const char *myname)          
                                                                                 \
         nhfp->mode &= ~(CONVERTING | UNCONVERTING);                             \
         nhfp->mode |= TURN_OFF_LOGGING;                                         \
-        (*sfiflprocs[nhfp->fnidx].fn_x.sf_##dtyp)(nhfp, d_##dtyp, myname);        \
+        (*sfiflprocs[nhfp->fnidx].fn_x.sf_##dtyp)(nhfp, d_##dtyp, myname);      \
         nhfp->mode = save_mode;                                                 \
     }                                                                           \
     if (!nhfp->eof) {                                                           \
@@ -192,7 +192,7 @@ void sfi_##dtyp(NHFILE *nhfp, keyw dtyp *d_##dtyp, const char *myname)          
         }                                                                       \
         if (nhfp->fplog)                                                        \
             sf_log(nhfp, myname, sizeof *d_##dtyp, 1,                           \
-                       complex_dump((uchar *) d_##dtyp));                        \
+                       complex_dump((uchar *) d_##dtyp));                       \
     }                                                                           \
 }
   
@@ -208,7 +208,8 @@ void sfo_##dtyp(NHFILE *nhfp, xxx *d_##dtyp, const char *myname, int bfsz)      
         FILE *save_fplog = nhfp->fplog;                                         \
                                                                                 \
         nhfp->fplog = 0;                                                        \
-        (*sfoflprocs[nhfp->fnidx].fn_x.sf_##dtyp)(nhfp, d_##dtyp, myname, bfsz);  \
+        (*sfoflprocs[nhfp->fnidx].fn_x.sf_##dtyp)(nhfp, d_##dtyp,               \
+                                                  myname, bfsz);                \
         nhfp->fplog = save_fplog;                                               \
     }                                                                           \
     if (nhfp->fplog && !nhfp->eof)                                              \
@@ -224,7 +225,8 @@ void sfi_##dtyp(NHFILE *nhfp, xxx *d_##dtyp, const char *myname, int bfsz)      
                                                                                 \
         nhfp->mode &= ~(CONVERTING | UNCONVERTING);                             \
         nhfp->mode |= TURN_OFF_LOGGING;                                         \
-        (*sfiflprocs[nhfp->fnidx].fn_x.sf_##dtyp)(nhfp, d_##dtyp, myname, bfsz);  \
+        (*sfiflprocs[nhfp->fnidx].fn_x.sf_##dtyp)(nhfp, d_##dtyp,               \
+                                                  myname, bfsz);                \
         nhfp->mode = save_mode;                                                 \
     }                                                                           \
     if (!nhfp->eof) {                                                           \
