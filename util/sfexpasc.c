@@ -85,55 +85,55 @@ void exportascii_sfi_cnt(NHFILE *nhfp, char *d_str, const char *myname UNUSED, i
 }
 
 #define SF_A(dtyp) \
-void exportascii_sfo_##dtyp(NHFILE *, dtyp *d_##dtyp,                                \
+void exportascii_sfo_##dtyp(NHFILE *, dtyp *d_##dtyp,                          \
                            const char *);                                      \
-void exportascii_sfi_##dtyp(NHFILE *, dtyp *d_##dtyp,                                \
+void exportascii_sfi_##dtyp(NHFILE *, dtyp *d_##dtyp,                          \
                            const char *);
                                                                                
 /*
-void exportascii_sfo_##dtyp(NHFILE *nhfp, dtyp *d_##dtyp,                            \
+void exportascii_sfo_##dtyp(NHFILE *nhfp, dtyp *d_##dtyp,                      \
                            const char *myname UNUSED)                          \
     SFO_BODY(dtyp)                                                             \
                                                                                \
-void exportascii_sfi_##dtyp(NHFILE *nhfp, dtyp *d_##dtyp,                            \
+void exportascii_sfi_##dtyp(NHFILE *nhfp, dtyp *d_##dtyp,                      \
                   const char *myname UNUSED)                                   \
     SFI_BODY(dtyp)
 */
 
 #define SF_C(keyw, dtyp) \
-void exportascii_sfo_##dtyp(NHFILE * UNUSED, keyw dtyp *d_##dtyp UNUSED,             \
+void exportascii_sfo_##dtyp(NHFILE * UNUSED, keyw dtyp *d_##dtyp UNUSED,       \
                            const char *);                                      \
-void exportascii_sfi_##dtyp(NHFILE *UNUSED, keyw dtyp *d_##dtyp,                     \
+void exportascii_sfi_##dtyp(NHFILE *UNUSED, keyw dtyp *d_##dtyp,               \
                            const char *);                                      \
                                                                                \
-void exportascii_sfo_##dtyp(NHFILE *nhfp UNUSED, keyw dtyp *d_##dtyp UNUSED,         \
+void exportascii_sfo_##dtyp(NHFILE *nhfp UNUSED, keyw dtyp *d_##dtyp UNUSED,   \
                            const char *myname UNUSED)                          \
     SFO_BODY(dtyp)                                                             \
                                                                                \
-void exportascii_sfi_##dtyp(NHFILE *nhfp UNUSED, keyw dtyp *d_##dtyp UNUSED,         \
+void exportascii_sfi_##dtyp(NHFILE *nhfp UNUSED, keyw dtyp *d_##dtyp UNUSED,   \
                            const char *myname UNUSED)                          \
     SFI_BODY(dtyp)
 
 
 #define SF_X(xxx, dtyp) \
-void exportascii_sfo_##dtyp(NHFILE * UNUSED, xxx *d_##dtyp UNUSED,                   \
+void exportascii_sfo_##dtyp(NHFILE * UNUSED, xxx *d_##dtyp UNUSED,             \
                            const char * UNUSED);                               \
-void exportascii_sfi_##dtyp(NHFILE *, xxx *d_##dtyp,                                 \
+void exportascii_sfi_##dtyp(NHFILE *, xxx *d_##dtyp,                           \
                            const char *);                                      \
                                                                                \
-void exportascii_sfo_##dtyp(NHFILE *nhfp UNUSED, xxx *d_##dtyp UNUSED,               \
+void exportascii_sfo_##dtyp(NHFILE *nhfp UNUSED, xxx *d_##dtyp UNUSED,         \
                            const char *myname UNUSED)                          \
     SFO_BODY(dtyp)                                                             \
                                                                                \
-void exportascii_sfi_##dtyp(NHFILE *nhfp, xxx *d_##dtyp,                             \
+void exportascii_sfi_##dtyp(NHFILE *nhfp, xxx *d_##dtyp,                       \
                            const char *myname UNUSED)                          \
     SFI_BODY(dtyp)
 
 
 #define SF_BF(xxx, dtyp) \
-void exportascii_sfo_##dtyp(NHFILE *, xxx *d_##dtyp,                                 \
+void exportascii_sfo_##dtyp(NHFILE *, xxx *d_##dtyp,                           \
                            const char *, int);                                 \
-void exportascii_sfi_##dtyp(NHFILE *, xxx *d_##dtyp,                                 \
+void exportascii_sfi_##dtyp(NHFILE *, xxx *d_##dtyp,                           \
                            const char *, int);
                                                                           
 SF_C(struct, arti_info)
