@@ -555,7 +555,7 @@ process_options(int argc, char *argv[])
         if (mx_ok)
             gl.locknum = mxplyrs;
         else
-            config_error_add("Invalid MAXPLATERS \"%s\"", argv[1]);
+            config_error_add("Invalid MAXPLAYERS \"%s\"", argv[1]);
 #endif
     }
 #ifdef MAX_NR_OF_PLAYERS
