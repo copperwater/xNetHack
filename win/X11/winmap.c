@@ -1567,8 +1567,8 @@ X11_make_gc(
         }
         ggc = (iflags.use_color
                ? (cur_inv
-                  ? text_map->inv_color_gcs[color]
-                  : text_map->color_gcs[color])
+                  ? text_map->inv_color_gcs[COLORVAL(color)]
+                  : text_map->color_gcs[COLORVAL(color)])
                : (cur_inv
                   ? text_map->inv_copy_gc
                   : text_map->copy_gc));
