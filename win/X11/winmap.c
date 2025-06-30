@@ -1444,7 +1444,7 @@ map_update(struct xwindow *wp, int start_row, int stop_row, int start_col, int s
                                    BlackPixelOfScreen(screen));
                 }
                 {
-                    uint32_t fc = tile_map->glyphs[row][cur_col].framecolor;
+                    uint32_t fc = COLORVAL(tile_map->glyphs[row][cur_col].framecolor);
 
                     if (fc != NO_COLOR)
                         XDrawRectangle(dpy, XtWindow(wp->w),
