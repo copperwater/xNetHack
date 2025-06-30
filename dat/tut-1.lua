@@ -10,7 +10,7 @@ function tut_key(command)
       return "Ctrl-" .. m;
    end
 
-   m = s:match("^M-([A-Z])$"); -- M-X is Alt-X
+   m = s:match("^M%-([A-Z])$"); -- M-X is Alt-X
    if (m ~= nil) then
       tut_alt_key = m;
       return "Alt-" .. m;
