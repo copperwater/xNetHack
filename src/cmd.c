@@ -2140,7 +2140,7 @@ handler_rebind_keys_add(boolean keyfirst)
         pline("Bind which key? ");
         key = pgetchar();
 
-        if (!key || key == '\027')
+        if (!key || key == '\033')
             return;
     }
 
@@ -2205,7 +2205,7 @@ handler_rebind_keys_add(boolean keyfirst)
             pline("Bind which key? ");
             key = pgetchar();
 
-            if (!key || key == '\027')
+            if (!key || key == '\033')
                 return;
         }
 
