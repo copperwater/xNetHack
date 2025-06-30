@@ -56,6 +56,9 @@ extern int total_tiles_used, Tile_corr;
 
 #define COL0_OFFSET 1 /* change to 0 to revert to displaying unused column 0 */
 
+#define NH_INVERSE_COLOR  0x40000000
+#define NH_ENHANCED_COLOR 0x80000000
+
 static X11_map_symbol glyph_char(const glyph_info *glyphinfo);
 static GC X11_make_gc(struct xwindow *wp, struct text_map_info_t *text_map,
                       X11_color color, boolean inverted);
@@ -170,9 +173,9 @@ X11_print_glyph(
                       ? CLR_MAX : 0;
         color += colordif;
         if (nhcolor != 0)
-            color = nhcolor | 0x80000000;
+            color = nhcolor | NH_ENHANCED_COLOR;
         if (colordif != 0)
-            color |= 0x40000000;
+            color |= NH_INVERSE_COLOR;
         
         if (*co_ptr != color) {
             *co_ptr = color;
@@ -1528,9 +1531,9 @@ X11_make_gc(
     GC ggc;
 
 #ifdef ENHANCED_SYMBOLS
-    if ((color & 0x80000000) != 0) {
+    if ((color & NH_ENHANCED_COLOR) != 0) {
         /* We need a new GC */
-        if ((color & 0x40000000) != 0) {
+        if ((color & NH_INVERSE_COLOR) != 0) {
             cur_inv = !cur_inv;
         }
         if (iflags.use_color) {
@@ -1540,7 +1543,7 @@ X11_make_gc(
 
             /* FIXME: Does this still work when the display does not support
                true color? */
-            fgpixel = color & 0xFFFFFF;
+            fgpixel = COLORVAL(color);
             XtSetArg(arg[0], XtNbackground, &bgpixel);
             XtGetValues(wp->w, arg, 1);
             if (cur_inv) {
@@ -1580,7 +1583,7 @@ X11_make_gc(
 static void
 X11_free_gc(struct xwindow *wp, GC ggc, X11_color color)
 {
-    if ((color & 0x80000000) != 0 && iflags.use_color) {
+    if ((color & NH_ENHANCED_COLOR) != 0 && iflags.use_color) {
         /* X11_make_gc allocated a new GC */
         XtReleaseGC(wp->w, ggc);
     }

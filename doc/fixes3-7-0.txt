@@ -2228,6 +2228,9 @@ X11: when trying to lookup scrollbars in order to handle scrolling via keys,
 X11: enable horizontal scrollbar for persistent inventory window
 X11: if a group accelerator matched a menu command ('^' in menu for '/')
 	it wouldn't work to select, just to manipulate the menu
+X11: ascii_map could try to use a color value, with some added flag bits set,
+	as an index into the color_gcs[] and inv_color_gcs[] arrays leading
+	to a segfault; clear the flag bits before using the color as an index
 X11+macOS: after the "bad Atom" fix (below), the persistent inventory window
 	crept downward every time it got updated
 
