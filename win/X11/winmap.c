@@ -1564,14 +1564,16 @@ X11_make_gc(
     } else
 #endif
     {
-        if (color >= CLR_MAX) {
-            color -= CLR_MAX;
+        uint32 nhcolor = COLORVAL(color); /* strip flag bits */
+
+        if (nhcolor >= CLR_MAX) {
+            nhcolor -= CLR_MAX;
             cur_inv = !cur_inv;
         }
         ggc = (iflags.use_color
                ? (cur_inv
-                  ? text_map->inv_color_gcs[COLORVAL(color)]
-                  : text_map->color_gcs[COLORVAL(color)])
+                  ? text_map->inv_color_gcs[nhcolor]
+                  : text_map->color_gcs[nhcolor])
                : (cur_inv
                   ? text_map->inv_copy_gc
                   : text_map->copy_gc));
