@@ -109,6 +109,8 @@ des.engraving({ coord = { 5,12 }, type = "engrave", text = "Look around the map 
 
 des.engraving({ coord = { 10,13 }, type = "engrave", text = "Use '" .. tut_key("search") .. "' to search for secret doors", degrade = false });
 
+des.engraving({ coord = { 10,15 }, type = "engrave", text = "Wrong secret", degrade = false });
+
 --
 
 des.engraving({ coord = { 10,10 }, type = "engrave", text = "Behind this door is a dark corridor", degrade = false });
