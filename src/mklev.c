@@ -26,6 +26,7 @@ staticfn void themerooms_post_level_generate(void);
 staticfn boolean chk_okdoor(coordxy, coordxy);
 staticfn void mklev_sanity_check(void);
 staticfn void makelevel(void);
+staticfn boolean water_has_kelp(coordxy, coordxy, int, int);
 staticfn boolean bydoor(coordxy, coordxy);
 staticfn void mktrap_victim(struct trap *);
 staticfn int traptype_rnd(unsigned);
@@ -1423,6 +1424,18 @@ makelevel(void)
     }
 }
 
+/* return TRUE if water location at (x,y) should have kelp. */
+staticfn boolean
+water_has_kelp(coordxy x, coordxy y, int kelp_pool, int kelp_moat)
+{
+    if ((kelp_pool && (levl[x][y].typ == POOL
+                       || (levl[x][y].typ == WATER && !Is_waterlevel(&u.uz)))
+         && !rn2(kelp_pool))
+        || (kelp_moat && levl[x][y].typ == MOAT && !rn2(kelp_moat)))
+        return TRUE;
+    return FALSE;
+}
+
 /*
  *      Place deposits of minerals (gold and misc gems) in the stone
  *      surrounding the rooms on the map.
@@ -1448,8 +1461,7 @@ mineralize(int kelp_pool, int kelp_moat, int goldprob, int gemprob,
         return;
     for (x = 2; x < (COLNO - 2); x++)
         for (y = 1; y < (ROWNO - 1); y++)
-            if ((kelp_pool && levl[x][y].typ == POOL && !rn2(kelp_pool))
-                || (kelp_moat && levl[x][y].typ == MOAT && !rn2(kelp_moat)))
+            if (water_has_kelp(x, y, kelp_pool, kelp_moat))
                 (void) mksobj_at(KELP_FROND, x, y, TRUE, FALSE);
 
     /* determine if it is even allowed;
