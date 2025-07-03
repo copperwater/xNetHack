@@ -42,6 +42,7 @@ staticfn int dip_hands_ok(struct obj *);
 staticfn void hold_potion(struct obj *, const char *, const char *,
                         const char *);
 staticfn void poof(struct obj *);
+staticfn boolean dip_potion_explosion(struct obj *, int);
 staticfn int potion_dip(struct obj *obj, struct obj *potion);
 
 /* used to indicate whether quaff or dip has skipped an opportunity to
@@ -2393,6 +2394,31 @@ poof(struct obj *potion)
     useup(potion);
 }
 
+/* do dipped potion(s) explode? */
+staticfn boolean
+dip_potion_explosion(struct obj *obj, int dmg)
+{
+    if (obj->cursed || obj->otyp == POT_ACID
+        || (obj->otyp == POT_OIL && obj->lamplit)
+        || !rn2((uarmc && uarmc->otyp == ALCHEMY_SMOCK) ? 30 : 10)) {
+        /* it would be better to use up the whole stack in advance
+           of the message, but we can't because we need to keep it
+           around for potionbreathe() [and we can't set obj->in_use
+           to 'amt' because that's not implemented] */
+        obj->in_use = 1;
+        pline("%sThey explode!", !Deaf ? "BOOM!  " : "");
+        wake_nearto(u.ux, u.uy, (BOLT_LIM + 1) * (BOLT_LIM + 1));
+        exercise(A_STR, FALSE);
+        if (!breathless(gy.youmonst.data) || haseyes(gy.youmonst.data))
+            potionbreathe(obj);
+        useupall(obj);
+        losehp(dmg, /* not physical damage */
+               "alchemic blast", KILLED_BY_AN);
+        return TRUE;
+    }
+    return FALSE;
+}
+
 /* called by dodip() or dip_into() after obj and potion have been chosen */
 staticfn int
 potion_dip(struct obj *obj, struct obj *potion)
@@ -2494,23 +2520,8 @@ potion_dip(struct obj *obj, struct obj *potion)
         useup(potion); /* now gone */
         /* Mixing potions is dangerous...
            KMH, balance patch -- acid is particularly unstable */
-        if (obj->cursed || obj->otyp == POT_ACID
-            || (obj->otyp == POT_OIL && obj->lamplit) || !rn2(10)) {
-            /* it would be better to use up the whole stack in advance
-               of the message, but we can't because we need to keep it
-               around for potionbreathe() [and we can't set obj->in_use
-               to 'amt' because that's not implemented] */
-            obj->in_use = 1;
-            pline("%sThey explode!", !Deaf ? "BOOM!  " : "");
-            wake_nearto(u.ux, u.uy, (BOLT_LIM + 1) * (BOLT_LIM + 1));
-            exercise(A_STR, FALSE);
-            if (!breathless(gy.youmonst.data) || haseyes(gy.youmonst.data))
-                potionbreathe(obj);
-            useupall(obj);
-            losehp(amt + rnd(9), /* not physical damage */
-                   "alchemic blast", KILLED_BY_AN);
+        if (dip_potion_explosion(obj, amt + rnd(9)))
             return ECMD_TIME;
-        }
 
         obj->blessed = obj->cursed = obj->bknown = 0;
         if (Blind || Hallucination)
