@@ -453,6 +453,22 @@ calc_mattacku_vars(
     gn.notonhead = FALSE;
 }
 
+/* return TRUE iff monster or hero is trapped in a (spiked) pit */
+boolean
+mtrapped_in_pit(struct monst *mtmp)
+{
+    struct trap *ttmp = 0;
+
+    if (mtmp == &gy.youmonst)
+        ttmp = (u.utrap && u.utraptype == TT_PIT) ? t_at(u.ux, u.uy) : 0;
+    else
+        ttmp = mtmp->mtrapped ? t_at(mtmp->mx, mtmp->my) : 0;
+
+    if (ttmp && is_pit(ttmp->ttyp))
+        return TRUE;
+    return FALSE;
+}
+
 /*
  * mattacku: monster attacks you
  *      returns 1 if monster dies (e.g. "yellow light"), 0 otherwise
@@ -773,6 +789,8 @@ mattacku(struct monst *mtmp)
         case AT_TUCH:
         case AT_BUTT:
         case AT_TENT:
+            if (mattk->aatyp == AT_KICK && mtrapped_in_pit(mtmp))
+                continue;
             if (!range2 && (!MON_WEP(mtmp) || mtmp->mconf || Conflict
                             || !touch_petrifies(gy.youmonst.data))) {
                 if (foundyou) {
