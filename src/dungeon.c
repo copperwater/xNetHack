@@ -60,6 +60,7 @@ staticfn void init_dungeon_set_depth(struct proto_dungeon *, int);
 staticfn void init_castle_tune(void);
 staticfn void fixup_level_locations(void);
 staticfn void free_proto_dungeon(struct proto_dungeon *);
+staticfn void earth_sense(void);
 staticfn boolean init_dungeon_dungeons(lua_State *, struct proto_dungeon *,
                                       int);
 staticfn boolean unplaced_floater(struct dungeon *);
@@ -1541,6 +1542,28 @@ prev_level(boolean at_stairs)
     }
 }
 
+/* Dwarves have "earth sense",
+   able to sense if something is buried under their feet */
+staticfn void
+earth_sense(void)
+{
+    struct obj *otmp;
+
+    if (!Race_if(PM_DWARF))
+        return;
+    if (u.usteed || Flying || Levitation || Upolyd)
+        return;
+    if (levl[u.ux][u.uy].typ != CORR
+        && levl[u.ux][u.uy].typ != ROOM)
+        return;
+
+    for (otmp = svl.level.buriedobjlist; otmp; otmp = otmp->nobj)
+        if (u_at(otmp->ox, otmp->oy)) {
+            You("sense something below your %s.", makeplural(body_part(FOOT)));
+            return;
+        }
+}
+
 void
 u_on_newpos(coordxy x, coordxy y)
 {
@@ -1568,6 +1591,7 @@ u_on_newpos(coordxy x, coordxy y)
         /* still on same level; might have come close enough to
            generic object(s) to redisplay them as specific objects */
         see_nearby_objects();
+    earth_sense();
 }
 
 /* place you on a random location when arriving on a level */
