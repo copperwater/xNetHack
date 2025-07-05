@@ -1055,7 +1055,8 @@ hmon_hitmon_weapon(
         /* or strike with a missile in your hand... */
         || (!hmd->thrown && (is_missile(obj) || is_ammo(obj)))
         /* or use a pole at short range and not mounted... */
-        || (!hmd->thrown && !u.usteed && is_pole(obj))
+        || (!hmd->thrown && !u.usteed && is_pole(obj)
+            && !is_art(obj,ART_SNICKERSNEE))
         /* or throw a missile without the proper bow... */
         || (is_ammo(obj) && (hmd->thrown != HMON_THROWN
                              || !ammo_and_launcher(obj, uwep)))) {
