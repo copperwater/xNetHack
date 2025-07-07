@@ -106,6 +106,8 @@ NHSROOT=..
 #CFLAGS = -O -I../include
 #LFLAGS =
 
+CFLAGS ?= -I../include
+
 # -lm required by lua
 LFLAGS += -lm
 

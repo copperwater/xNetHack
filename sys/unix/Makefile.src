@@ -188,6 +188,8 @@ SYSOBJ = $(TARGETPFX)ioctl.o $(TARGETPFX)unixmain.o $(TARGETPFX)unixtty.o \
 #CFLAGS = -O -I../include
 #LFLAGS =
 
+CFLAGS ?= -I../include
+
 AR = ar
 ARFLAGS = rcs
 
