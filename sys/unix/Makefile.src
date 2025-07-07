@@ -188,7 +188,9 @@ SYSOBJ = $(TARGETPFX)ioctl.o $(TARGETPFX)unixmain.o $(TARGETPFX)unixtty.o \
 #CFLAGS = -O -I../include
 #LFLAGS =
 
+#fallback values, only if these are not already set
 CFLAGS ?= -I../include
+LINK ?= $(CC)
 
 AR = ar
 ARFLAGS = rcs
@@ -407,6 +409,10 @@ WINCURSESLIB = -lncurses
 # LIBS = -lz
 #
 # LIBS =
+
+#fallback values, only if these are not already set
+WINOBJ ?= $(WINTTYOBJ)
+WINLIB ?= $(WINTTYLIB) -lncurses
 
 # make NetHack
 GAME     = nethack

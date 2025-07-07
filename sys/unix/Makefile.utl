@@ -106,6 +106,7 @@ NHSROOT=..
 #CFLAGS = -O -I../include
 #LFLAGS =
 
+#fallback defaults if not set
 CFLAGS ?= -I../include
 
 # -lm required by lua
