@@ -5,7 +5,7 @@ if [%1] == [lua] (
    set LUA_VERSION=5.4.6
    set LUASRC=../lib/lua
    set CURLLUASRC=http://www.lua.org/ftp/lua-%LUA_VERSION%.tar.gz
-   set CURLLUADST=lua-%LUA_VERSION.tar.gz
+   set CURLLUADST=lua-%LUA_VERSION%.tar.gz
    if NOT exist lib/lua.h (
        cd lib
        curl -L %CURLLUASRC% -o %CURLLUADST%
