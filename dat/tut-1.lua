@@ -32,10 +32,10 @@ des.level_flags("mazelevel", "noflip",
 
 des.map([[
 ---------------------------------------------------------------------------
-|-.--|.......|......|..S....|.F.......|.............|.....................|
+|-.--|.......|......|..S....|.F.......|.............|.......|.............|
 |.-..........|......|--|....|.F.....|.|S-------.....|.....................|
-||.--|.......|..T......|....|.F.....|.|.......|.....|.....................|
-||.|.|.......|......|-.|....|.F.....|.|.......|.....|.....................|
+||.--|.......|..T......|....|.F.....|.|.......|.....|.......|.............|
+||.|.|.......|......|-.|....|.F.....|.|.......|.....|--------.............|
 ||.|.|.......|......||.|-.-----------.-.......|-S----.....................|
 |-+-S---------..---.||........................|...|.......................|
 |......|          |.-------------------.......|...|....--S----............|
@@ -301,6 +301,21 @@ des.object({ id = "boulder", coord = {71,16} });
 des.object({ id = "boulder", coord = {72,16} });
 des.object({ id = "boulder", coord = {73,16} });
 des.trap({ type = "trap door", coord = { 73,15 } });
+
+--
+
+des.engraving({ coord = { 60,2 }, type = "engrave", text = "Spellcasting", degrade = false });
+if (u.uenmax < 5) then
+   -- TODO: make sure hero has enough Pw to cast the spell (5 pw) instead?
+   -- TODO: ensure the first cast of this spell succeeds?
+   des.engraving({ coord = { 59,2 }, type = "engrave", text = "Unfortunately you don't have enough energy to cast spells.", degrade = false });
+end
+des.engraving({ coord = { 57,2 }, type = "engrave", text = "Pick up the spellbook with '" .. tut_key("pickup") .. "'", degrade = false });
+des.object({ coord = { 57,2 }, id = "spellbook of light", buc = "blessed" });
+des.engraving({ coord = { 55,2 }, type = "engrave", text = "Read the spellbook with '" .. tut_key("read") .. "'", degrade = false });
+des.engraving({ coord = { 53,2 }, type = "engrave", text = "Use '" .. tut_key("cast") .. "' to cast a spell", degrade = false });
+des.region(selection.area(53,01, 59, 3), "unlit");
+
 
 ----------------
 

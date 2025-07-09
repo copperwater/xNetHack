@@ -423,6 +423,7 @@ struct instance_globals_g {
     long gmst_moves;
     struct obj *gmst_invent;
     genericptr_t *gmst_ubak, *gmst_disco, *gmst_mvitals;
+    struct spell gmst_spl_book[MAXSPELL + 1];
 
     /* pline.c */
     struct gamelog_line *gamelog;
