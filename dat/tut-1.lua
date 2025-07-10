@@ -321,6 +321,11 @@ des.engraving({ coord = { 55,2 }, type = "engrave", text = "Read the spellbook w
 des.engraving({ coord = { 53,2 }, type = "engrave", text = "Use '" .. tut_key("cast") .. "' to cast a spell", degrade = false });
 des.region(selection.area(53,01, 59, 3), "unlit");
 
+--
+
+des.engraving({ coord = { 72,2 }, type = "engrave", text = "You \"quaff\" potions with '" .. tut_key("quaff") .. "'", degrade = false });
+des.object({ coord = { 72,2 }, id = "potion of object detection", buc = "blessed" });
+
 
 ----------------
 
