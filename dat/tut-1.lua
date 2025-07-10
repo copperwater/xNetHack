@@ -133,6 +133,9 @@ for i = 1, 4 do
               coord = locs[i], victim = false });
 end
 
+des.engraving({ coord = { 15,15 }, type = "engrave", text = "Some traps can be disabled with '" .. tut_key("untrap") .. "'", degrade = false });
+des.trap({ coord = { 15,16 }, type = "web", spider_on_web = false });
+
 --
 
 des.door({ coord = { 18,13 }, state = "closed" });
