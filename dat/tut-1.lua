@@ -222,10 +222,11 @@ des.door({ coord = { 38,6 }, state = "closed" });
 
 des.engraving({ coord = { 39,6 }, type = "engrave", text = "You loot containers with '" .. tut_key("loot") .. "'", degrade = false });
 
-des.object({ coord = { 42,6 }, id = "large box", broken = true, trapped = false,
+des.object({ coord = { 41,6 }, id = "large box", broken = true, trapped = false,
              contents = function(obj)
                 des.object({ id = "secret door detection", class = "/", spe = 30 }); end
 });
+des.engraving({ coord = { 42,6 }, type = "engrave", text = "Containers can also be emptied with '" .. tut_key("tip") .. "'", degrade = false });
 
 des.engraving({ coord = { 45,6 }, type = "engrave", text = "Magic wands are used with '" .. tut_key("zap") .. "'", degrade = false });
 
