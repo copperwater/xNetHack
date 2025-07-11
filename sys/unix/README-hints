@@ -26,7 +26,7 @@ cases to include support for multiple features. Some of the options
 require prerequisite packages to be available on your build machine.
 
 make WANT_WIN_TTY=1           Include support for the TTY interface (default).
-make NANT_WIN_CURSES=1        Include support for the curses interface.
+make WANT_WIN_CURSES=1        Include support for the curses interface.
 make WANT_WIN_X11=1           Include support for the X11 interface.
 make WANT_WIN_Qt=1            Include support for Qt interface, defaults to Qt5.
 make WANT_WIN_QT5=1           Include support for Qt5 interface.
