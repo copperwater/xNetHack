@@ -104,6 +104,7 @@ CURSESLIB = -lncurses -ltinfo
 ifdef MAKEFILE_SRC
 comma:=,
 NCURSES_LFLAGS = $(shell pkg-config ncursesw --libs)
+NCURSES_CFLAGS = $(shell pkg-config ncursesw --cflags)
 ifeq (,$(findstring ncursesw, $(NCURSES_LFLAGS)))
 ifeq (,$(findstring ncurses, $(NCURSES_LFLAGS)))
 #this indicates that pkg-config itself was unavailable
@@ -125,8 +126,33 @@ CURSESLIB = $(subst -Wl$(comma)-Bsymbolic-functions,,$(NCURSES_LFLAGS))
 else
 CURSESLIB = $(NCURSES_LFLAGS)
 endif
-#$(info $(CURSESLIB))
 endif      #HAVE_NCURSESW
+#$(info $(CURSESLIB))
+ifeq (,$(findstring ncursesw, $(NCURSES_LFLAGS)))
+ifeq (,$(findstring ncurses, $(NCURSES_LFLAGS)))
+#this indicates that pkg-config itself was unavailable
+NOPKGCONFIG = 1
+endif      #ncurses not in NCURSES_LFLAGS?
+endif      #ncursesw not in NCURSES_LFLAGS?
+#
+ifeq "$(NOPKGCONFIG)" "1"
+NCURSES_CFLAGS = -D_DEFAULT_SOURCE -D_XOPEN_SOURCE=600
+ifeq "$(HAVE_NCURSESW)" "1"
+ifeq (,$(wildcard /usr/include/ncursesw/curses.h))
+NCURSES_CFLAGS += -I/usr/include
+else
+NCURSES_CFLAGS += -I/usr/include/ncursesw
+endif
+NCURSES_LFLAGS = -lncursesw -ltinfo
+else       #HAVE_NCURSESW
+ifeq (,$(wildcard /usr/include/ncurses/curses.h))
+NCURSES_CFLAGS += -I/usr/include
+else
+NCURSES_CFLAGS += -I/usr/include/ncurses
+endif
+NCURSES_LFLAGS = -lncurses -ltinfo
+endif      #HAVE_NCURSESW
+endif      #NOPKGCONFIG
 endif      #MAKEFILE_SRC
 endif      #USE_CURSESLIB
 
@@ -152,6 +178,7 @@ NHCFLAGS+=-DCOMPRESS=\"/bin/gzip\" -DCOMPRESS_EXTENSION=\".gz\"
 #NHCFLAGS+=-DCHANGE_COLOR
 NHCFLAGS+=-DSELF_RECOVER
 ifdef WANT_WIN_CURSES
+NHCFLAGS+=$(NCURSES_CFLAGS)
 ifeq "$(HAVE_NCURSESW)" "1"
 NHCFLAGS+=-DCURSES_UNICODE
 else
