@@ -1695,6 +1695,7 @@ nhl_gamestate(lua_State *L)
         init_uhunger();
         free_tutorial(); /* release gg.gmst_XYZ */
         gg.gmst_stored = FALSE;
+        (void) memcpy(svs.spl_book, gg.gmst_spl_book, sizeof svs.spl_book);
     } else if (!reststate && !gg.gmst_stored) {
         /* store game state */
         gg.gmst_moves = svm.moves;
@@ -1715,6 +1716,8 @@ nhl_gamestate(lua_State *L)
         gg.gmst_mvitals = (genericptr_t) alloc(sizeof svm.mvitals);
         (void) memcpy(gg.gmst_mvitals, (genericptr_t) &svm.mvitals,
                       sizeof svm.mvitals);
+        (void) memcpy(gg.gmst_spl_book, svs.spl_book, sizeof svs.spl_book);
+        (void) memset(svs.spl_book, 0, sizeof(svs.spl_book));
         gg.gmst_stored = TRUE;
     } else {
         impossible("nhl_gamestate: inconsistent state (%s vs %s)",
