@@ -1520,6 +1520,7 @@ the engraving pristine text field was not being appropriately populated during
 worn alchemy smock reduces chances of dipped potions exploding
 dwarves can sense buried items under their feet
 monsters trapped in pits cannot kick
+create familiar spell can create harder creatures
 
 
 Fixes to 3.7.0-x General Problems Exposed Via git Repository

@@ -124,7 +124,10 @@ pick_familiar_pm(struct obj *otmp, boolean quietly)
     } else if (!rn2(3)) {
         pm = &mons[pet_type()];
     } else {
-        pm = rndmonst();
+        int skill = spell_skilltype(SPE_CREATE_FAMILIAR);
+        int max = 3 * P_SKILL(skill);
+
+        pm = rndmonst_adj(0, max);
         if (!pm && !quietly)
             There("seems to be nothing available for a familiar.");
     }
