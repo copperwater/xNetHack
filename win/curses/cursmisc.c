@@ -1026,6 +1026,7 @@ parse_escape_sequence(int key, boolean *keypadnum)
             ret = getch();
 
         if (ret == ERR) {
+            iflags.term_gone = 1;
             /* there was no additional char; treat as M-O or M-^O below */
             ret = (key == '\033') ? 'O' : C('O');
         } else if (ret >= 112 && ret <= 121) { /* 'p'..'y' */

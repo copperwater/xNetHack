@@ -308,6 +308,7 @@ curses_character_input_dialog(
         answer = curses_read_char();
 #endif
         if (answer == ERR) {
+            iflags.term_gone = 1;
             answer = def;
             break;
         }
@@ -451,6 +452,8 @@ curses_ext_cmd(void)
         curs_set(0);
         prompt_width = (int) strlen(cur_choice);
 
+        if (letter == ERR)
+            iflags.term_gone = 1;
         if (letter == '\033' || letter == ERR) {
             ret = -1;
             break;
@@ -1518,6 +1521,7 @@ menu_get_selections(WINDOW *win, nhmenu *menu, int how)
         curletter = curses_getch();
 
         if (curletter == ERR) {
+            iflags.term_gone = 1;
             num_selected = -1;
             dismiss = TRUE;
         }

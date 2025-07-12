@@ -187,6 +187,9 @@ moveloop_core(void)
     if (iflags.sanity_check || iflags.debug_fuzzer)
         sanity_check();
 
+    if (svc.context.resume_wish)
+        makewish(); /* clears resume_wish */
+
     if (svc.context.move) {
         /* actual time passed */
         u.umovement -= NORMAL_SPEED;

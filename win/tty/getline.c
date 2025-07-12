@@ -83,6 +83,8 @@ hooked_tty_getlin(
         c = pgetchar();
         term_curs_set(0);
         if (c == '\033' || c == EOF) {
+            if (c == EOF)
+                iflags.term_gone = 1;
             if (c == '\033' && obufp[0] != '\0') {
                 obufp[0] = '\0';
                 bufp = obufp;

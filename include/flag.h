@@ -246,6 +246,7 @@ struct instance_flags {
     boolean invis_goldsym; /* gold symbol is ' '? */
     boolean in_lua;        /* executing a lua script */
     boolean lua_testing;   /* doing lua tests */
+    boolean term_gone;     /* terminal is gone, abort abort abort */
     boolean nofollowers;   /* level change ignores pets (for tutorial) */
     boolean partly_eaten_hack; /* extra flag for xname() used when it's called
                                 * indirectly so we can't use xname_flags() */

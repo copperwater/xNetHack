@@ -348,6 +348,8 @@ curses_block(
             ret = '\n';
         else
             ret = curses_read_char();
+        if (ret == ERR)
+            iflags.term_gone = 1;
         if (ret == ERR || ret == '\0')
             ret = '\n';
         /* msgtype=stop should require space/enter rather than any key,
@@ -775,6 +777,7 @@ curses_message_win_getline(const char *prompt, char *answer, int buffer)
 
         switch (ch) {
         case ERR: /* should not happen */
+            iflags.term_gone = 1;
             *answer = '\0';
             goto alldone;
         case '\033': /* DOESCAPE */

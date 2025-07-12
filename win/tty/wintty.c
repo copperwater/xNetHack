@@ -4090,8 +4090,10 @@ tty_nhgetch(void)
     term_curs_set(0);
     if (!i)
         i = '\033'; /* map NUL to ESC since nethack doesn't expect NUL */
-    else if (i == EOF)
+    else if (i == EOF) {
+        iflags.term_gone = 1;
         i = '\033'; /* same for EOF */
+    }
     /* topline has been seen - we can clear the need for --More-- */
     if (ttyDisplay && ttyDisplay->toplin == TOPLINE_NEED_MORE)
         ttyDisplay->toplin = TOPLINE_NON_EMPTY;

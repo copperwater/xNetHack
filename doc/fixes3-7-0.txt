@@ -2453,6 +2453,8 @@ tty: hide cursor unless waiting for user input; now extended to include tty
 	platforms that define NO_TERMS, rather than just on those using
 	termcap/terminfo, namely Windows console and msdos (text-mode
 	implemented; vga and vesa just have stubs currently)
+tty+curses: if terminal goes away while in the wishing prompt, return to the
+	wish prompt when game is restored
 Unix: when user name is used as default character name, keep hyphenated value
 	intact instead stripping off dash and whatever follows as if that
 	specified role/race/&c (worked once upon a time; broken since 3.3.0)
