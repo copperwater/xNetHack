@@ -360,7 +360,7 @@ use_stethoscope(struct obj *obj)
             Soundeffect(se_faint_splashing, 35);
             You_hear("faint splashing.");
         } else if (u.dz < 0 || !can_reach_floor(TRUE)) {
-            cant_reach_floor(u.ux, u.uy, (u.dz < 0), TRUE);
+            cant_reach_floor(u.ux, u.uy, (u.dz < 0), TRUE, FALSE);
         } else if (its_dead(u.ux, u.uy, &res)) {
             ; /* message already given */
         } else if (Is_stronghold(&u.uz)) {

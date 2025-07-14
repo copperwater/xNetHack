@@ -2051,7 +2051,7 @@ able_to_loot(
         if (u.usteed && P_SKILL(P_RIDING) < P_BASIC)
             rider_cant_reach(); /* not skilled enough to reach */
         else
-            cant_reach_floor(x, y, FALSE, TRUE);
+            cant_reach_floor(x, y, FALSE, TRUE, FALSE);
         return FALSE;
     } else if ((is_pool(x, y) && (looting || !Underwater)) || is_lava(x, y)) {
         /* at present, can't loot in water even when Underwater;

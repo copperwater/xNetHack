@@ -215,13 +215,16 @@ can_reach_floor(boolean check_pit)
 
 /* give a message after caller has determined that hero can't reach */
 void
-cant_reach_floor(coordxy x, coordxy y, boolean up, boolean check_pit)
+cant_reach_floor(coordxy x, coordxy y, boolean up,
+                 boolean check_pit, boolean wand_engraving)
 {
-    You("can't reach the %s.",
-        up ? ceiling(x, y)
-           : (check_pit && can_reach_floor(FALSE))
-               ? "bottom of the pit"
-               : surface(x, y));
+    pline("%s can't reach the %s.",
+          wand_engraving
+              ? "The wand does nothing more, and the tip of the wand"
+              : "You",
+          up  ? ceiling(x, y)
+              : (check_pit && can_reach_floor(FALSE)) ? "bottom of the pit"
+                                                      : surface(x, y));
 }
 
 struct engr *
@@ -493,7 +496,7 @@ u_can_engrave(void)
             pline("What would you write?  \"Jonah was here\"?");
             return FALSE;
         } else if (is_whirly(u.ustuck->data)) {
-            cant_reach_floor(u.ux, u.uy, FALSE, FALSE);
+            cant_reach_floor(u.ux, u.uy, FALSE, FALSE, FALSE);
             return FALSE;
         }
         /* Note: for amorphous engulfers, writing attempt is allowed here
@@ -941,6 +944,7 @@ doengrave(void)
     char *sp;         /* Place holder for space count of engr text */
     struct _doengrave_ctx *de;
     int retval;
+    boolean initial_msg_given = FALSE;
 
     /* Can the adventurer engrave at all? */
     if (!u_can_engrave())
@@ -982,12 +986,19 @@ doengrave(void)
         Your("message dissolves...");
         goto doengr_exit;
     }
-    if (de->otmp->oclass != WAND_CLASS && !can_reach_floor(TRUE)) {
-        cant_reach_floor(u.ux, u.uy, FALSE, TRUE);
-        goto doengr_exit;
+    if (!can_reach_floor(TRUE)) {
+        if (de->otmp->oclass != WAND_CLASS) {
+            cant_reach_floor(u.ux, u.uy, FALSE, TRUE, FALSE);
+            goto doengr_exit;
+        } else {
+            You("gesture, with your wand, towards the %s below you.",
+                surface(u.ux, u.uy));
+            initial_msg_given = TRUE;
+        }
     }
     if (IS_ALTAR(levl[u.ux][u.uy].typ)) {
-        You("make a motion towards the altar with %s.", de->writer);
+        if (!initial_msg_given)
+            You("make a motion towards the altar with %s.", de->writer);
         altar_wrath(u.ux, u.uy);
         goto doengr_exit;
     }
@@ -1074,7 +1085,7 @@ doengrave(void)
     if (!de->ptext) {
         if (de->otmp && de->otmp->oclass == WAND_CLASS
             && !can_reach_floor(TRUE))
-            cant_reach_floor(u.ux, u.uy, FALSE, TRUE);
+            cant_reach_floor(u.ux, u.uy, FALSE, TRUE, TRUE);
         de->ret = ECMD_TIME;
         goto doengr_exit;
     }

@@ -1314,7 +1314,7 @@ use_pick_axe2(struct obj *obj)
         /* it must be air -- water checked above */
         You("swing %s through thin air.", yobjnam(obj, (char *) 0));
     } else if (!can_reach_floor(FALSE)) {
-        cant_reach_floor(u.ux, u.uy, FALSE, FALSE);
+        cant_reach_floor(u.ux, u.uy, FALSE, FALSE, FALSE);
     } else if (is_pool_or_lava(u.ux, u.uy)) {
         /* Monsters which swim also happen not to be able to dig */
         You("cannot stay under%s long enough.",
@@ -1324,7 +1324,7 @@ use_pick_axe2(struct obj *obj)
         dotrap(trap, FORCEBUNGLE);
         /* might escape trap and still be teetering at brink */
         if (!u.utrap)
-            cant_reach_floor(u.ux, u.uy, FALSE, TRUE);
+            cant_reach_floor(u.ux, u.uy, FALSE, TRUE, FALSE);
     } else if (!ispick
                /* can only dig down with an axe when doing so will
                   trigger or disarm a trap here */

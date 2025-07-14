@@ -700,7 +700,7 @@ doforce(void)
         return ECMD_OK;
     }
     if (!can_reach_floor(TRUE)) {
-        cant_reach_floor(u.ux, u.uy, FALSE, TRUE);
+        cant_reach_floor(u.ux, u.uy, FALSE, TRUE, FALSE);
         return ECMD_OK;
     }
 

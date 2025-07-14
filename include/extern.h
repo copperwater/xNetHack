@@ -978,7 +978,7 @@ extern char *build_english_list(char *) NONNULLARG1;
 extern char *random_engraving(char *, char *) NONNULLARG12;
 extern void wipeout_text(char *, int, unsigned) NONNULLARG1;
 extern boolean can_reach_floor(boolean);
-extern void cant_reach_floor(coordxy, coordxy, boolean, boolean);
+extern void cant_reach_floor(coordxy, coordxy, boolean, boolean, boolean);
 extern struct engr *engr_at(coordxy, coordxy);
 extern struct engr *sengr_at(const char *, coordxy, coordxy, boolean) NONNULLARG1;
 extern void u_wipe_engr(int);
