@@ -267,6 +267,8 @@ curses_init_nhwindows(
 # endif/* DEF_GAME_NAME */
     PDC_set_title(window_title);
     PDC_set_blink(TRUE);        /* Only if the user asks for it! */
+    /* disable the default paste function so control-V works as expected */
+    PDC_set_function_key(FUNCTION_KEY_PASTE, 0);
     timeout(1);
     (void) getch();
     timeout(-1);
