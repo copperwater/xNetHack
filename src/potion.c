@@ -3080,6 +3080,16 @@ potion_dip(struct obj *obj, struct obj *potion)
             learn_it = TRUE;
             did_something = TRUE;
         }
+        /* resetting a cancelled thiefstone */
+        else if (obj->otyp == THIEFSTONE
+                && !thiefstone_ledger_valid(obj)
+                && !In_endgame(&u.uz)) {
+            obj->keyed_ledger = ledger_no(&u.uz);
+            set_keyed_loc(obj, u.ux, u.uy);
+            pline("%s for an instant.", Tobjnam(obj, "quiver"));
+            learn_it = TRUE;
+            did_something = TRUE;
+        }
         if (learn_it && potion->dknown)
             makeknown(POT_RESTORE_ABILITY);
         if (did_something)
@@ -3087,21 +3097,6 @@ potion_dip(struct obj *obj, struct obj *potion)
         return ECMD_TIME;
     }
 
-    /* resetting a cancelled thiefstone */
-    if (potion->otyp == POT_RESTORE_ABILITY
-        && obj->otyp == THIEFSTONE && !thiefstone_ledger_valid(obj)
-        && !In_endgame(&u.uz)) { /* thiefstones can't key to endgame levels */
-        if (potion->cursed) {
-            pline("%s.", Tobjnam(obj, "twitch"));
-        }
-        else {
-            obj->keyed_ledger = ledger_no(&u.uz);
-            set_keyed_loc(obj, u.ux, u.uy);
-            pline("%s for an instant.", Tobjnam(obj, "quiver"));
-        }
-        poof(potion);
-        return ECMD_TIME;
-    }
  more_dips:
 
     /* Allow filling of MAGIC_LAMPs to prevent identification by player */
