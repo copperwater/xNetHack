@@ -1,4 +1,4 @@
-/* NetHack 3.7	uhitm.c	$NHDT-Date: 1736575153 2025/01/10 21:59:13 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.461 $ */
+/* NetHack 3.7	uhitm.c	$NHDT-Date: 1752823766 2025/07/17 23:29:26 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.477 $ */
 /* Copyright (c) Stichting Mathematisch Centrum, Amsterdam, 1985. */
 /*-Copyright (c) Robert Patrick Rankin, 2012. */
 /* NetHack may be freely redistributed.  See license for details. */
@@ -5501,6 +5501,7 @@ hmonas(struct monst *mon)
         case AT_KICK:
             if (mattk->aatyp == AT_KICK && mtrapped_in_pit(&gy.youmonst))
                 continue;
+            FALLTHROUGH;
             /*FALLTHRU*/
         case AT_BITE:
         case AT_STNG:
