@@ -3117,8 +3117,10 @@ set_cost(struct obj *obj, struct monst *shkp)
     tmp = get_pricing_units(obj) * unit_price;
 
     /* adjust for different material */
-    multiplier *= matprices[obj->material];
-    divisor *= matprices[objects[obj->otyp].oc_material];
+    if (obj->oclass != GEM_CLASS) {
+        multiplier *= matprices[obj->material];
+        divisor *= matprices[objects[obj->otyp].oc_material];
+    }
 
     if (uarmh && uarmh->otyp == DUNCE_CAP)
         divisor *= 3L;
