@@ -5896,13 +5896,18 @@ adj_erinys(unsigned abuse)
     pm->difficulty = min(10 + (u.ualign.abuse / 3), 25);
 }
 
-/* mark monster type as seen from close-up,
+/* mark individual monster type as seen from close-up,
    if we haven't seen it nearby before */
 void
-see_monster_closeup(struct monst *mtmp)
+see_monster_closeup(struct monst *mtmp, boolean photo)
 {
     if (!svm.mvitals[monsndx(mtmp->data)].seen_close) {
         svm.mvitals[monsndx(mtmp->data)].seen_close = TRUE;
+        svc.context.lifelist.total_seen_upclose++;
+    }
+    if (photo && !svm.mvitals[monsndx(mtmp->data)].photographed) {
+        svm.mvitals[monsndx(mtmp->data)].photographed = 1;
+        svc.context.lifelist.total_photographed++;
         if (Role_if(PM_TOURIST)) {
             more_experienced(experience(mtmp, 0), 0);
             newexplevel();
@@ -5921,8 +5926,11 @@ see_nearby_monsters(void)
             if (isok(x, y) && MON_AT(x, y)) {
                 struct monst *mtmp = m_at(x, y);
 
-                if (canspotmon(mtmp) && !mtmp->mundetected && !M_AP_TYPE(mtmp))
-                    svm.mvitals[monsndx(mtmp->data)].seen_close = TRUE;
+                if (canspotmon(mtmp) && !mtmp->mundetected && !M_AP_TYPE(mtmp)
+                    && !svm.mvitals[monsndx(mtmp->data)].seen_close) {
+                    svm.mvitals[monsndx(mtmp->data)].seen_close = 1;
+                    svc.context.lifelist.total_seen_upclose++;
+                }
             }
 }
 

@@ -68,7 +68,7 @@ do_blinding_ray(struct obj *obj)
     if (mtmp) {
         (void) flash_hits_mon(mtmp, obj);
         if (obj->otyp == EXPENSIVE_CAMERA)
-            see_monster_closeup(mtmp);
+            see_monster_closeup(mtmp, TRUE); /* TRUE for photo */
     }
     /* normally bhit() would do this but for FLASHED_LIGHT we want it
        to be deferred until after flash_hits_mon() */

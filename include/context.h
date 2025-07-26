@@ -135,6 +135,11 @@ struct achievement_tracking {
     boolean minetn_reached;     /* avoid redundant checking for town entry */
 };
 
+struct lifelists {
+    long total_seen_upclose;    /* count of critters seen up close */
+    long total_photographed;    /* count of critters photographed (tourists) */
+};
+
 struct context_info {
     unsigned ident;         /* social security number for each monster */
     unsigned no_of_wizards; /* 0, 1 or 2 (wizard and his shadow) */
@@ -175,6 +180,7 @@ struct context_info {
     struct tribute_info tribute;
     struct novel_tracking novel;
     struct achievement_tracking achieveo;
+    struct lifelists lifelist;
     char jingle[5 + 1];
 };
 

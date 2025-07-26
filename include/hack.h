@@ -670,6 +670,7 @@ struct mvitals {
     uchar died;
     uchar mvflags;
     Bitfield(seen_close, 1);
+    Bitfield(photographed, 1);
 };
 
 
