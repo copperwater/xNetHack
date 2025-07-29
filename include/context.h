@@ -1,4 +1,4 @@
-/* NetHack 3.7	context.h	$NHDT-Date: 1646428003 2022/03/04 21:06:43 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.45 $ */
+/* NetHack 3.7	context.h	$NHDT-Date: 1753856387 2025/07/29 22:19:47 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.58 $ */
 /* Copyright (c) Stichting Mathematisch Centrum, Amsterdam, 1985. */
 /*-Copyright (c) Michael Allison, 2006. */
 /* NetHack may be freely redistributed.  See license for details. */
@@ -150,6 +150,7 @@ struct context_info {
     int current_fruit;      /* fruit->fid corresponding to svp.pl_fruit[] */
     int mysteryforce;       /* adjusts how often "mysterious force" kicks in */
     int rndencode;          /* randomized escape sequence introducer */
+    int startingpet_typ;    /* monster type for initial pet */
     int warnlevel;          /* threshold (digit) to warn about unseen mons */
     long next_attrib_check; /* next attribute check */
     long seer_turn;         /* when random clairvoyance will next kick in */

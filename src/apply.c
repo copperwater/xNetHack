@@ -1,4 +1,4 @@
-/* NetHack 3.7	apply.c	$NHDT-Date: 1737275719 2025/01/19 00:35:19 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.464 $ */
+/* NetHack 3.7	apply.c	$NHDT-Date: 1753856387 2025/07/29 22:19:47 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.472 $ */
 /* Copyright (c) Stichting Mathematisch Centrum, Amsterdam, 1985. */
 /*-Copyright (c) Robert Patrick Rankin, 2012. */
 /* NetHack may be freely redistributed.  See license for details. */
@@ -61,8 +61,8 @@ void
 do_blinding_ray(struct obj *obj)
 {
     struct monst *mtmp = bhit(u.dx, u.dy, COLNO, FLASHED_LIGHT,
-                    (int (*) (MONST_P, OBJ_P)) 0,
-                    (int (*) (OBJ_P, OBJ_P)) 0, &obj);
+                              (int (*) (MONST_P, OBJ_P)) 0,
+                              (int (*) (OBJ_P, OBJ_P)) 0, &obj);
 
     obj->ox = u.ux, obj->oy = u.uy; /* flash_hits_mon() wants this */
     if (mtmp) {
@@ -100,6 +100,7 @@ use_camera(struct obj *obj)
         You("take a picture of the %s.",
             (u.dz > 0) ? surface(u.ux, u.uy) : ceiling(u.ux, u.uy));
     } else if (!u.dx && !u.dy) {
+        /* TODO:  we ought to have a "selfie" joke here... */
         (void) zapyourself(obj, TRUE);
     } else {
         do_blinding_ray(obj);

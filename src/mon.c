@@ -1,4 +1,4 @@
-/* NetHack 3.7	mon.c	$NHDT-Date: 1722365546 2024/07/30 18:52:26 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.584 $ */
+/* NetHack 3.7	mon.c	$NHDT-Date: 1753856387 2025/07/29 22:19:47 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.611 $ */
 /* Copyright (c) Stichting Mathematisch Centrum, Amsterdam, 1985. */
 /*-Copyright (c) Derek S. Ray, 2015. */
 /* NetHack may be freely redistributed.  See license for details. */
@@ -5901,16 +5901,52 @@ adj_erinys(unsigned abuse)
 void
 see_monster_closeup(struct monst *mtmp, boolean photo)
 {
-    if (!svm.mvitals[monsndx(mtmp->data)].seen_close) {
-        svm.mvitals[monsndx(mtmp->data)].seen_close = TRUE;
+    int mndx;
+
+    if (Hallucination || (Blind && !Blind_telepat))
+        return;
+
+    mndx = monsndx(mtmp->data);
+    if (M_AP_TYPE(mtmp) == M_AP_MONSTER && !sensemon(mtmp))
+        mndx = mtmp->mappearance;
+    if (mndx == PM_LONG_WORM && gn.notonhead)
+        mndx = PM_LONG_WORM_TAIL;
+
+    if (!svm.mvitals[mndx].seen_close) {
+        svm.mvitals[mndx].seen_close = 1;
         svc.context.lifelist.total_seen_upclose++;
     }
-    if (photo && !svm.mvitals[monsndx(mtmp->data)].photographed) {
-        svm.mvitals[monsndx(mtmp->data)].photographed = 1;
-        svc.context.lifelist.total_photographed++;
-        if (Role_if(PM_TOURIST)) {
-            more_experienced(experience(mtmp, 0), 0);
-            newexplevel();
+
+    /* hallucinatory monsters don't reach here--they're not recorded;
+       being able to see invisible doesn't make invisible monsters show up
+       on photos; likewise, telepathy allows hero to see hidden monsters
+       but doesn't cause them to appear on photos */
+    if (photo && !mtmp->minvis && !mtmp->mundetected
+        && (M_AP_TYPE(mtmp) == M_AP_NOTHING
+            || M_AP_TYPE(mtmp) == M_AP_MONSTER)) {
+        if (M_AP_TYPE(mtmp) == M_AP_MONSTER) /* cloned Wizard of Yendor */
+            mndx = mtmp->mappearance;
+
+        if (!svm.mvitals[mndx].photographed) {
+            svm.mvitals[mndx].photographed = 1;
+            svc.context.lifelist.total_photographed++;
+
+            /* tourist earns points (toward EXP but not final score) for
+               the first instance of each type of monster photographed;
+               worm tail can be photographed but yields no EXP bonus */
+            if (Role_if(PM_TOURIST)
+                /* suppress extra points for photographing the pet that hero
+                   started with (unless it has changed shape due to growing
+                   up or being polymorphed) */
+                && (mtmp->m_id != svc.context.startingpet_mid
+                    || mndx != svc.context.startingpet_typ)
+                /* monsndx() check covers worm tail and also disguised
+                   Wizard of Yendor; experienced() won't yield a reasonable
+                   value for those */
+                && mndx == monsndx(mtmp->data)) {
+                more_experienced(experience(mtmp, 0), 0);
+                newexplevel();
+            }
         }
     }
 }
@@ -5919,19 +5955,32 @@ see_monster_closeup(struct monst *mtmp, boolean photo)
 void
 see_nearby_monsters(void)
 {
+    struct monst *mtmp;
+    int mndx;
     coordxy x, y;
 
-    for (x = u.ux - 1; x <= u.ux + 1; x++)
-        for (y = u.uy - 1; y <= u.uy + 1; y++)
-            if (isok(x, y) && MON_AT(x, y)) {
-                struct monst *mtmp = m_at(x, y);
+    if (Hallucination || (Blind && !Blind_telepat))
+        return;
 
-                if (canspotmon(mtmp) && !mtmp->mundetected && !M_AP_TYPE(mtmp)
-                    && !svm.mvitals[monsndx(mtmp->data)].seen_close) {
-                    svm.mvitals[monsndx(mtmp->data)].seen_close = 1;
-                    svc.context.lifelist.total_seen_upclose++;
-                }
+    for (x = u.ux - 1; x <= u.ux + 1; x++)
+        for (y = u.uy - 1; y <= u.uy + 1; y++) {
+            if (!isok(x, y))
+                continue;
+            if (!(mtmp = m_at(x, y)))
+                continue;
+            mndx = monsndx(mtmp->data);
+            if (M_AP_TYPE(mtmp) == M_AP_MONSTER)
+                mndx = mtmp->mappearance;
+            /* skip closeup handling if this mon type has already been done */
+            if (svm.mvitals[mndx].seen_close)
+                continue;
+            /* disguised mimics pass canseemon(); undetected hiders don't */
+            if (canseemon(mtmp) || (mtmp->mundetected && sensemon(mtmp))) {
+                gb.bhitpos.x = x, gb.bhitpos.y = y;
+                gn.notonhead = (x != mtmp->mx || y != mtmp->my);
+                see_monster_closeup(mtmp, FALSE);
             }
+        }
 }
 
 /* monster resists something.
