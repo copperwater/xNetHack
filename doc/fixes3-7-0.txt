@@ -1521,6 +1521,8 @@ worn alchemy smock reduces chances of dipped potions exploding
 dwarves can sense buried items under their feet
 monsters trapped in pits cannot kick
 create familiar spell can create harder creatures
+a vampire lord could choose to take on wolf form while flying over water or
+	lava, then revert to vampire lord form and teleport unnecessarily
 
 
 Fixes to 3.7.0-x General Problems Exposed Via git Repository
