@@ -604,6 +604,9 @@ struct instance_globals_m {
     /* dokick.c */
     struct rm *maploc;
 
+    /* mhitm.c */
+    struct monst *mswallower; /* for gas spore explosion when it's swallowed*/
+
     /* mhitu.c */
     int mhitu_dieroll;
 

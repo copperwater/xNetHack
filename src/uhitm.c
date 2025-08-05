@@ -5005,6 +5005,7 @@ gulpum(struct monst *mdef, struct attack *mattk)
                    "you totally digest <mdef>" will be coming soon (after
                    several turns) but the level-gain message seems out of
                    order if the kill message is left implicit */
+                gm.mswallower = &gy.youmonst;
                 xkilled(mdef, XKILL_GIVEMSG | XKILL_NOCORPSE);
                 if (!DEADMONSTER(mdef)) { /* monster lifesaved */
                     You("hurriedly regurgitate the sizzling in your %s.",
@@ -5045,6 +5046,7 @@ gulpum(struct monst *mdef, struct attack *mattk)
                     } else
                         exercise(A_CON, TRUE);
                 }
+                gm.mswallower = (struct monst *) 0;
                 end_engulf();
                 return M_ATTK_DEF_DIED;
             case AD_PHYS:

@@ -2204,8 +2204,7 @@ mfndpos(
             if (IS_DOOR(ntyp)
                 /* an amorphous creature can only move under/through a
                    closed door if it doesn't currently have hero engulfed */
-                && !((amorphous(mdat) || can_fog(mon))
-                     && (mon != u.ustuck || !u.uswallow))
+                && !((amorphous(mdat) || can_fog(mon)) && !engulfing_u(mon))
                 && (((levl[nx][ny].doormask & D_CLOSED) && !(flag & OPENDOOR))
                     || ((levl[nx][ny].doormask & D_LOCKED)
                         && !(flag & UNLOCKDOOR))) && !thrudoor)
@@ -2670,11 +2669,25 @@ mon_leaving_level(struct monst *mon)
             remove_monster(mx, my);
 
 #if 0   /* mustn't do this; too many places assume that the stale
-           monst->mx,my values are still valid */
+         * monst->mx,my values are still valid */
         mon->mx = mon->my = 0; /* off normal map */
 #endif
     }
     if (onmap) {
+        /* gulpmm() tries to deal with this, but without this extra
+           place_monster() the messages for exploding engulfed gas spore
+           are delivered without the engulfer being shown on the map */
+        if (gm.mswallower && gm.mswallower != mon) {
+            if (gm.mswallower != &gy.youmonst) {
+                place_monster(gm.mswallower,
+                              gm.mswallower->mx, gm.mswallower->my);
+            } else {
+                u_on_newpos(u.ux, u.uy);
+                if (canspotself())
+                    display_self();
+            }
+        }
+
         mon->mundetected = 0; /* for migration; doesn't matter for death */
         /* unhide mimic in case its shape has been blocking line of sight
            or it is accompanying the hero to another level */
@@ -3146,6 +3159,9 @@ corpse_chance(
     struct permonst *mdat = mon->data;
     int i, tmp;
 
+    if (!magr && gm.mswallower && attacktype(gm.mswallower->data, AT_ENGL))
+        magr = gm.mswallower, was_swallowed = TRUE; /* for gas spore boom */
+
     if (mdat == &mons[PM_VLAD_THE_IMPALER] || mdat->mlet == S_LICH) {
         if (cansee(mon->mx, mon->my) && !was_swallowed)
             pline_mon(mon, "%s body crumbles into dust.",
@@ -3162,7 +3178,10 @@ corpse_chance(
                 tmp = d((int) mdat->mlevel + 1, (int) mdat->mattk[i].damd);
             else
                 tmp = 0;
+
             if (was_swallowed && magr) {
+                /* mdef is a gas spore (AT_BOOM) that is exploding inside an
+                   engulfer; suppress usual explosion since it's contained */
                 if (magr == &gy.youmonst) {
                     There("is an explosion in your %s!", body_part(STOMACH));
                     Sprintf(svk.killer.name, "%s explosion",
@@ -3176,14 +3195,11 @@ corpse_chance(
                         mondied(magr);
                     if (DEADMONSTER(magr)) { /* maybe lifesaved */
                         if (canspotmon(magr))
-                            pline_mon(magr, "%s rips open!",
-                                      Monnam(magr));
+                            pline_mon(magr, "%s rips open!", Monnam(magr));
                     } else if (canseemon(magr))
-                        pline_mon(magr,
-                                  "%s seems to have indigestion.",
+                        pline_mon(magr, "%s seems to have indigestion.",
                                   Monnam(magr));
                 }
-
                 return FALSE;
             }
 

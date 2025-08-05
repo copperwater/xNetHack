@@ -1523,6 +1523,8 @@ monsters trapped in pits cannot kick
 create familiar spell can create harder creatures
 a vampire lord could choose to take on wolf form while flying over water or
 	lava, then revert to vampire lord form and teleport unnecessarily
+a gas spore that was killed when an engulfer swallowed it produced an explosion
+	on the map rather than inside the engulfer
 
 
 Fixes to 3.7.0-x General Problems Exposed Via git Repository

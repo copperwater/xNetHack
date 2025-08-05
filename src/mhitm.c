@@ -906,7 +906,9 @@ gulpmm(
     newsym(ax, ay); /* erase old position */
     newsym(dx, dy); /* update new position */
 
+    gm.mswallower = magr; /* corpse_chance() wants this */
     status = mdamagem(magr, mdef, mattk, (struct obj *) 0, 0);
+    gm.mswallower = (struct monst *) 0; /* reset */
 
     if ((status & (M_ATTK_AGR_DIED | M_ATTK_DEF_DIED))
         == (M_ATTK_AGR_DIED | M_ATTK_DEF_DIED)) {

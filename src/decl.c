@@ -508,6 +508,8 @@ static const struct instance_globals_m g_init_m = {
     UNDEFINED_PTR, /* migrating_mons */
     /* dokick.c */
     UNDEFINED_PTR, /* maploc */
+    /* mhitm.c */
+    UNDEFINED_PTR, /* mswallower */
     /* mhitu.c */
     UNDEFINED_VALUE, /* mhitu_dieroll */
     /* mklev.c */
