@@ -626,6 +626,10 @@
 		F515A73B2DED0B47006E1F63 /* hacklib.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; name = hacklib.c; path = ../../src/hacklib.c; sourceTree = "<group>"; };
 		F5457B1C2DED143E00039D83 /* libhacklib.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = libhacklib.a; sourceTree = BUILT_PRODUCTS_DIR; };
 		F5457B202DED146B00039D83 /* hacklib.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; name = hacklib.c; path = ../../src/hacklib.c; sourceTree = "<group>"; };
+		F54C1AE12E43D22A006CAA8E /* nhmd4.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = nhmd4.h; path = /Volumes/T7/git/NHsource/include/nhmd4.h; sourceTree = "<absolute>"; };
+		F54C1AE22E43D22A006CAA8E /* savefile.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = savefile.h; path = /Volumes/T7/git/NHsource/include/savefile.h; sourceTree = "<absolute>"; };
+		F54C1AE32E43D22A006CAA8E /* sfmacros.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = sfmacros.h; path = /Volumes/T7/git/NHsource/include/sfmacros.h; sourceTree = "<absolute>"; };
+		F54C1AE42E43D22A006CAA8E /* sfprocs.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = sfprocs.h; path = /Volumes/T7/git/NHsource/include/sfprocs.h; sourceTree = "<absolute>"; };
 		F5857AA32DED032C00A8CB4F /* cfgfiles.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; name = cfgfiles.c; path = ../../src/cfgfiles.c; sourceTree = "<group>"; };
 		F5857AA52DED03BB00A8CB4F /* sfbase.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; name = sfbase.c; path = ../../src/sfbase.c; sourceTree = "<group>"; };
 /* End PBXFileReference section */
@@ -896,6 +900,10 @@
 		3189579621A2046700FB2ABE /* include */ = {
 			isa = PBXGroup;
 			children = (
+				F54C1AE12E43D22A006CAA8E /* nhmd4.h */,
+				F54C1AE22E43D22A006CAA8E /* savefile.h */,
+				F54C1AE32E43D22A006CAA8E /* sfmacros.h */,
+				F54C1AE42E43D22A006CAA8E /* sfprocs.h */,
 				3186A3B721A4B0FD0052BF02 /* align.h */,
 				3186A38821A4B0FB0052BF02 /* artifact.h */,
 				3186A3AB21A4B0FD0052BF02 /* artilist.h */,
