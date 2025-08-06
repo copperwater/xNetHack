@@ -211,6 +211,7 @@ struct nhdatatypes_t readtagstypes[] = {
     { NHTYPE_COMPLEX, (char *) "dig_info",
       sizeof(struct dig_info) }, /* context */
     { NHTYPE_COMPLEX, (char *) "engrave_info", sizeof(struct engrave_info) },
+    { NHTYPE_COMPLEX, (char *) "lifelists", sizeof(struct lifelists) },
     { NHTYPE_COMPLEX, (char *) "obj_split", sizeof(struct obj_split) },
     { NHTYPE_COMPLEX, (char *) "polearm_info", sizeof(struct polearm_info) },
     { NHTYPE_COMPLEX, (char *) "takeoff_info", sizeof(struct takeoff_info) },
