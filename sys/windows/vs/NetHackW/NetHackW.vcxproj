@@ -356,6 +356,7 @@
     <ClInclude Include="$(IncDir)youprop.h" />
     <ClInclude Include="$(IncDir)sfprocs.h" />
     <ClInclude Include="$(IncDir)savefile.h" />
+    <ClInclude Include="$(IncDir)sfmacros.h" />
     <ClInclude Include="..\resource.h" />
   </ItemGroup>
   <ItemGroup>

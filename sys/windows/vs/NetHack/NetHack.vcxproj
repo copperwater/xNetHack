@@ -297,6 +297,7 @@
     <ClInclude Include="$(WinCursDir)curswins.h" />
     <ClInclude Include="$(IncDir)sfprocs.h" />
     <ClInclude Include="$(IncDir)savefile.h" />
+    <ClInclude Include="$(IncDir)sfmacros.h" />
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="$(WinWin32Dir)NetHack.rc" />
