@@ -372,13 +372,14 @@ $(TARGETPFX)sf-restore.o: ../src/restore.c $(HACK_H)
 	$(TARGET_CC) $(TARGET_CFLAGS) $(SFFLAGS) -o $@ -c ../src/restore.c
 $(TARGETPFX)sf-rumors.o: ../src/rumors.c $(HACK_H)
 	$(TARGET_CC) $(TARGET_CFLAGS) $(SFFLAGS) -o $@ -c ../src/rumors.c
-$(TARGETPFX)sfbase.o: ../src/sfbase.c $(HACK_H)
+$(TARGETPFX)sfbase.o: ../src/sfbase.c $(HACK_H) ../include/sfmacros.h
 	$(TARGET_CC) $(TARGET_CFLAGS) $(SFFLAGS) -o $@ -c ../src/sfbase.c
 $(TARGETPFX)sfdata.o: sfdata.c $(HACK_H) ../include/sfprocs.h ../include/sfproto.h
 	$(TARGET_CC) $(TARGET_CFLAGS) $(SFFLAGS) -o $@ -c sfdata.c
-$(TARGETPFX)sfexpasc.o: sfexpasc.c $(HACK_H) ../include/sfprocs.h ../include/sfproto.h
+$(TARGETPFX)sfexpasc.o: sfexpasc.c $(HACK_H) ../include/sfprocs.h \
+	../include/sfproto.h ../include/sfmacros.h
 	$(TARGET_CC) $(TARGET_CFLAGS) $(SFFLAGS) -o $@ -c sfexpasc.c
-$(TARGETPFX)sf-struct.o: ../src/sfstruct.c $(HACK_H)
+$(TARGETPFX)sf-struct.o: ../src/sfstruct.c $(HACK_H) ../include/sfmacros.h
 	$(TARGET_CC) $(TARGET_CFLAGS) $(SFFLAGS) -o $@ -c ../src/sfstruct.c
 $(TARGETPFX)strutil.o: ../src/strutil.c $(HACK_H)
 	$(TARGET_CC) $(TARGET_CFLAGS) $(SFFLAGS) -o $@ -c ../src/strutil.c

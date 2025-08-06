@@ -769,7 +769,7 @@ hacklib.a: hacklib.o
 ../win/gnome/gn_rip.h: ../win/X11/rip.xpm
 	cp ../win/X11/rip.xpm ../win/gnome/gn_rip.h
 
-$(TARGETPFX)sfbase.o: sfbase.c $(HACK_H) ../include/sfprocs.h
+$(TARGETPFX)sfbase.o: sfbase.c $(HACK_H) ../include/sfprocs.h ../include/sfmacros.h
 
 #	date.c should be recompiled any time any of the source or include code
 #	is modified.
@@ -1242,7 +1242,7 @@ $(TARGETPFX)role.o: role.c $(HACK_H)
 $(TARGETPFX)rumors.o: rumors.c $(HACK_H) ../include/dlb.h
 $(TARGETPFX)save.o: save.c $(HACK_H)
 $(TARGETPFX)selvar.o: selvar.c $(HACK_H) ../include/sp_lev.h
-$(TARGETPFX)sfstruct.o: sfstruct.c $(HACK_H) ../include/sfprocs.h
+$(TARGETPFX)sfstruct.o: sfstruct.c $(HACK_H) ../include/sfprocs.h ../include/sfmacros.h
 $(TARGETPFX)shk.o: shk.c $(HACK_H)
 $(TARGETPFX)shknam.o: shknam.c $(HACK_H)
 $(TARGETPFX)sit.o: sit.c $(HACK_H) ../include/artifact.h

@@ -665,7 +665,8 @@ HACKCSRC = \
 	$(SRC)potion.c   $(SRC)pray.c    $(SRC)priest.c   $(SRC)quest.c \
 	$(SRC)questpgr.c $(SRC)read.c    $(SRC)rect.c     $(SRC)region.c \
 	$(SRC)restore.c  $(SRC)rip.c     $(SRC)rnd.c      $(SRC)role.c \
-	$(SRC)rumors.c   $(SRC)save.c    $(SRC)selvar.c   $(SRC)sfstruct.c sfbase.c \
+	$(SRC)rumors.c   $(SRC)save.c    $(SRC)selvar.c\
+	$(SRC)sfbase.c   $(SRC)sfstruct.c \
 	$(SRC)shk.c      $(SRC)shknam.c  $(SRC)sit.c      $(SRC)sounds.c \
 	$(SRC)sp_lev.c   $(SRC)spell.c   $(SRC)stairs.c   $(SRC)steal.c \
 	$(SRC)steed.c    $(SRC)symbols.c $(SRC)sys.c      $(SRC)teleport.c \
@@ -1868,11 +1869,11 @@ $(OGUI)date.o: $(HACKINCL) $(HACKSRC) $(HACKOBJ) $(ALLOBJGUI)
 	@$(MAKE) /NOLOGO /A -f date.nmk
 !ENDIF
 
-$(OGUI)sfbase.o: sfbase.c $(HACK_H)
+$(OGUI)sfbase.o: sfbase.c $(HACK_H) $(INCL)sfmacros.h
 	$(Q)$(CC) $(CFLAGS) /EP  $(@B).c > $(OGUI)$(@B).c.preproc
 	$(Q)$(CC) $(CFLAGS) -Fo$@ $(@B).c
 
-$(OTTY)sfbase.o: sfbase.c $(HACK_H)
+$(OTTY)sfbase.o: sfbase.c $(HACK_H) $(INCL)sfmacros.h
 	$(Q)$(CC) $(CFLAGS) /EP  $(@B).c > $(OTTY)$(@B).c.preproc
 	$(Q)$(CC) $(CFLAGS) -Fo$@ $(@B).c
 
@@ -2513,7 +2514,7 @@ $(OUTL)sfctool.o: $(UTIL)sfctool.c $(HACK_H) $(INCL)sfprocs.h
 	$(Q)$(CC) $(CFLAGS) $(SFFLAGS) -Fo$@ -c $(UTIL)sfctool.c
 $(OUTL)sfdata.o: $(UTIL)sfdata.c $(HACK_H) $(INCL)sfprocs.h $(INCL)sfproto.h
 	$(Q)$(CC) $(CFLAGS) $(SFFLAGS) -Fo$@ -c $(UTIL)sfdata.c
-$(OUTL)sfexpasc.o: $(UTIL)sfexpasc.c $(HACK_H) $(INCL)sfprocs.h $(INCL)sfproto.h
+$(OUTL)sfexpasc.o: $(UTIL)sfexpasc.c $(HACK_H) $(INCL)sfprocs.h $(INCL)sfproto.h $(INCL)sfmacros.h
 	$(Q)$(CC) $(CFLAGS) $(SFFLAGS) -Fo$@ -c $(UTIL)sfexpasc.c
 $(OUTL)sf-alloc.o: $(SRC)alloc.c $(HACK_H)
 	$(Q)$(CC) $(CFLAGS) $(SFFLAGS) -Fo$@ -c $(SRC)alloc.c
@@ -2525,9 +2526,9 @@ $(OUTL)sf-monst.o: $(SRC)monst.c $(HACK_H)
 	$(Q)$(CC) $(CFLAGS) $(SFFLAGS) -Fo$@ -c $(SRC)monst.c
 $(OUTL)sf-objects.o: $(SRC)objects.c $(HACK_H)
 	$(Q)$(CC) $(CFLAGS) $(SFFLAGS) -Fo$@ -c $(SRC)objects.c
-$(OUTL)sfbase.o: $(SRC)sfbase.c $(HACK_H)
+$(OUTL)sfbase.o: $(SRC)sfbase.c $(HACK_H) $(INCL)sfmacros.h
 	$(Q)$(CC) $(CFLAGS) $(SFFLAGS) -Fo$@ -c $(SRC)sfbase.c
-$(OUTL)sf-struct.o: $(SRC)sfstruct.c $(HACK_H)
+$(OUTL)sf-struct.o: $(SRC)sfstruct.c $(HACK_H) $(INCL)sfmacros.h
 	$(Q)$(CC) $(CFLAGS) $(SFFLAGS) -Fo$@ -c $(SRC)sfstruct.c
 $(OUTL)sf-artifact.o: $(SRC)artifact.c $(HACK_H)
 	$(Q)$(CC) $(CFLAGS) $(SFFLAGS) -Fo$@ -c $(SRC)artifact.c
@@ -3249,7 +3250,7 @@ $(OTTY)role.o: role.c $(HACK_H)
 $(OTTY)rumors.o: rumors.c $(HACK_H) $(INCL)dlb.h
 $(OTTY)save.o: save.c $(HACK_H)
 $(OTTY)selvar.o: selvar.c $(HACK_H) $(INCL)sp_lev.h
-$(OTTY)sfstruct.o: sfstruct.c $(HACK_H)
+$(OTTY)sfstruct.o: sfstruct.c $(HACK_H) $(INCL)sfmacros.h
 	$(Q)$(CC) $(CFLAGS) /EP  $(@B).c > $(OTTY)$(@B).c.preproc
 	$(Q)$(CC) $(CFLAGS) -Fo$@ $(@B).c
 $(OTTY)shk.o: shk.c $(HACK_H)
@@ -3627,7 +3628,7 @@ $(OGUI)role.o: role.c $(HACK_H)
 $(OGUI)rumors.o: rumors.c $(HACK_H) $(INCL)dlb.h
 $(OGUI)save.o: save.c $(HACK_H)
 $(OGUI)selvar.o: selvar.c $(HACK_H) $(INCL)sp_lev.h
-$(OGUI)sfstruct.o: sfstruct.c $(HACK_H)
+$(OGUI)sfstruct.o: sfstruct.c $(HACK_H) $(INCL)sfmacros.h
 	$(Q)$(CC) $(CFLAGS) /EP  $(@B).c > $(OGUI)$(@B).c.preproc
 	$(Q)$(CC) $(CFLAGS) -Fo$@ $(@B).c
 $(OGUI)shk.o: shk.c $(HACK_H)

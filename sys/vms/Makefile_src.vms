@@ -125,7 +125,7 @@ HACKFILES := allmain alloc apply artifact attrib ball bones \
 	   nhlua nhlsel nhlobj objnam o_init objects \
 	   options pager pickup pline polyself potion pray \
 	   priest quest questpgr read rect region report restore \
-	   rip rnd role rumors save selvar sfstruct \
+	   rip rnd role rumors save selvar sfbase sfstruct \
 	   shk shknam sit sounds \
 	   sp_lev spell stairs steal steed strutil symbols sys teleport \
 	   timeout topten track trap u_init utf8map \
@@ -805,7 +805,8 @@ $(TARGETPFX)role.obj: role.c $(HACK_H)
 $(TARGETPFX)rumors.obj: rumors.c $(HACK_H) $(INCL)dlb.h
 $(TARGETPFX)save.obj: save.c $(HACK_H)
 $(TARGETPFX)selvar.obj: selvar.c $(HACK_H)
-$(TARGETPFX)sfstruct.obj: sfstruct.c $(HACK_H)
+$(TARGETPFX)sfbase.obj: sfbase.c $(HACK_H) $(INCL)sfprocs.h $(INCL)sfmacros.h
+$(TARGETPFX)sfstruct.obj: sfstruct.c $(HACK_H) $(INCL)sfprocs.h $(INCL)sfmacros.h
 $(TARGETPFX)shk.obj: shk.c $(HACK_H)
 $(TARGETPFX)shknam.obj: shknam.c $(HACK_H)
 $(TARGETPFX)sit.obj: sit.c $(HACK_H) $(INCL)artifact.h
