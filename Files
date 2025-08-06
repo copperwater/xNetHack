@@ -98,11 +98,12 @@ monflag.h     monst.h       monsters.h    nhmd4.h       nhregex.h
 obj.h         objclass.h    objects.h     optlist.h     patchlevel.h
 pcconf.h      permonst.h    prop.h        quest.h       rect.h
 region.h      rm.h          savefile.h    seffects.h    selvar.h
-sfprocs.h     skills.h      sndprocs.h    sp_lev.h      spell.h
-stairs.h      sym.h         sys.h         tcap.h        tileset.h
-timeout.h     tradstdc.h    trap.h        unixconf.h    vision.h
-vmsconf.h     warnings.h    weight.h      winami.h      wincurs.h
-windconf.h    winprocs.h    wintype.h     you.h         youprop.h
+sfmacros.h    sfprocs.h     skills.h      sndprocs.h    sp_lev.h
+spell.h       stairs.h      sym.h         sys.h         tcap.h
+tileset.h     timeout.h     tradstdc.h    trap.h        unixconf.h
+vision.h      vmsconf.h     warnings.h    weight.h      winami.h
+wincurs.h     windconf.h    winprocs.h    wintype.h     you.h
+youprop.h
 
 (file for tty versions)
 wintty.h
