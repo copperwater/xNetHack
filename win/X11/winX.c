@@ -100,7 +100,18 @@ int click_x, click_y, click_button; /* Click position on a map window
 int updated_inventory; /* used to indicate perm_invent updating */
 color_attr X11_menu_promptstyle = { NO_COLOR, ATR_NONE };
 
-ATTRNORETURN static void X11_error_handler(String) NORETURN;
+/* X11/Intrinsic.h prototype has an issue if [[NORETURN]] is used
+ * rather than the old __attribute((noreturn)) under c23 */
+#if defined(__GNUC__) || defined(__clang__)
+#define USE_GNUC_PROTO
+#endif
+
+#ifdef USE_GNUC_PROTO
+static void X11_error_handler(String) __attribute__((noreturn));
+#else
+ATTRNORETURN static XtErrorHandler X11_error_handler(String);
+#endif
+
 static int X11_io_error_handler(Display *);
 
 static int (*old_error_handler)(Display *, XErrorEvent *);
