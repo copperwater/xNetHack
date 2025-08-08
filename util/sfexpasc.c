@@ -101,9 +101,9 @@ void exportascii_sfi_##dtyp(NHFILE *nhfp, dtyp *d_##dtyp,                      \
 */
 
 #define SF_C(keyw, dtyp) \
-void exportascii_sfo_##dtyp(NHFILE * UNUSED, keyw dtyp *d_##dtyp UNUSED,       \
+void exportascii_sfo_##dtyp(NHFILE *, keyw dtyp *d_##dtyp UNUSED,              \
                            const char *);                                      \
-void exportascii_sfi_##dtyp(NHFILE *UNUSED, keyw dtyp *d_##dtyp,               \
+void exportascii_sfi_##dtyp(NHFILE *, keyw dtyp *d_##dtyp,                     \
                            const char *);                                      \
                                                                                \
 void exportascii_sfo_##dtyp(NHFILE *nhfp UNUSED, keyw dtyp *d_##dtyp UNUSED,   \
@@ -116,8 +116,8 @@ void exportascii_sfi_##dtyp(NHFILE *nhfp UNUSED, keyw dtyp *d_##dtyp UNUSED,   \
 
 
 #define SF_X(xxx, dtyp) \
-void exportascii_sfo_##dtyp(NHFILE * UNUSED, xxx *d_##dtyp UNUSED,             \
-                           const char * UNUSED);                               \
+void exportascii_sfo_##dtyp(NHFILE *, xxx *d_##dtyp,                           \
+                           const char *);                                      \
 void exportascii_sfi_##dtyp(NHFILE *, xxx *d_##dtyp,                           \
                            const char *);                                      \
                                                                                \
