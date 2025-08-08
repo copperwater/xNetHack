@@ -389,6 +389,14 @@ typedef genericptr genericptr_t; /* (void *) or (char *) */
 #define FALLTHROUGH [[fallthrough]]
 /* #warning [[fallthrough]] from C23 */
 #endif  /* __has_c_attribute(fallthrough) */
+/*
+ * maybe_unused
+ */
+#if __has_c_attribute(maybe_unused)
+#ifndef ATTRUNUSED
+#define ATTRUNUSED [[maybe_unused]]
+#endif
+#endif  /* __has_c_attribute(maybe_unused) */
 #endif  /* NH_C >= 202300L */
 
 /*
@@ -416,7 +424,9 @@ typedef genericptr genericptr_t; /* (void *) or (char *) */
 #define PRINTF_F_PTR(f, v) PRINTF_F(f, v)
 #endif
 #if __GNUC__ >= 3
+#ifndef ATTRUNUSED
 #define UNUSED __attribute__((unused))
+#endif
 #ifndef ATTRNORETURN
 #ifndef NORETURN
 #define NORETURN __attribute__((noreturn))
@@ -496,6 +506,9 @@ typedef genericptr genericptr_t; /* (void *) or (char *) */
 #define NH_PRAGMA_MESSAGE 1
 #endif  /* _MSC_VER */
 
+#if !defined(UNUSED) && defined(ATTRUNUSED)
+#define UNUSED ATTRUNUSED
+#endif
 
 /* Fallback implementations */
 #ifndef PRINTF_F
@@ -506,6 +519,9 @@ typedef genericptr genericptr_t; /* (void *) or (char *) */
 #endif
 #ifndef UNUSED
 #define UNUSED
+#endif
+#ifndef ATTRUNUSED
+#define ATTRUNUSED
 #endif
 #ifndef FALLTHROUGH
 #define FALLTHROUGH

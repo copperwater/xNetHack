@@ -110,7 +110,7 @@ static char bid[40];
 
 /* ARGSUSED */
 void
-crashreport_init(int argc UNUSED, char *argv[] UNUSED)
+crashreport_init(int argc, char *argv[])
 {
     static int once = 0;
     if (once++) /* NetHackW.exe calls us twice */
@@ -169,6 +169,8 @@ crashreport_init(int argc UNUSED, char *argv[] UNUSED)
     Strcpy(bid, "unknown");
     HASH_CLEANUP(ctxp);
     HASH_PRAGMA_END
+    nhUse(argc);
+    nhUse(argv);
 }
 
 #undef HASH_CONTEXTPTR
