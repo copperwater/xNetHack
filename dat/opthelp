@@ -189,7 +189,7 @@ menustyle     user interface for selection of multiple objects:      [Full]
               only the first letter ('T','C','F','P') matters
               (With Traditional, many actions allow pseudo-class 'm' to
               request a menu for choosing items: one-shot Combination.)
-menu_objsyms  whether to include object class symbols in menus:         [5]
+menu_objsyms  whether to include object class symbols in menus:         [4]
               0 - none    -- don't add object symbols to menus;
               1 - headers -- append object class symbol to menu header lines;
               2 - entries -- show object glyphs (same as class symbol
