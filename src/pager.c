@@ -312,7 +312,20 @@ object_from_map(
 
     if (!otmp || otmp->otyp != glyphotyp) {
         /* this used to exclude STRANGE_OBJECT; now caller deals with it */
-        otmp = mksobj(glyphotyp, FALSE, FALSE);
+        if (OBJ_NAME(objects[glyphotyp])) {
+            /* map shows a regular object, but one that's not actually here */
+            otmp = mksobj(glyphotyp, FALSE, FALSE);
+        } else {
+            /* map shows a non-item that holds an extra object type (shown
+               on map due to hallucination) for a name which might have been
+               shuffled into play but wasn't (or was shuffled out of play);
+               pick another item that is a regular one in same object class */
+            otmp = mkobj(objects[glyphotyp].oc_class, FALSE);
+            /* mkobj() doesn't provide any no-init option; however, there
+               aren't any extra tool items (or statues) so we won't get here
+               for tools and don't need to check for and delete container
+               contents or extinguish lights on the temporary object */
+        }
         /* even though we pass False for mksobj()'s 'init' arg, corpse-rot,
            egg-hatch, and figurine-transform timers get initialized */
         if (otmp->timed)

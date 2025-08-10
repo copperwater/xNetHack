@@ -1525,6 +1525,9 @@ a vampire lord could choose to take on wolf form while flying over water or
 	lava, then revert to vampire lord form and teleport unnecessarily
 a gas spore that was killed when an engulfer swallowed it produced an explosion
 	on the map rather than inside the engulfer
+hallucination can display objects on the map that have a description (for
+	shuffling into play at game start) but no name; examining those might
+	trigger a crash
 
 
 Fixes to 3.7.0-x General Problems Exposed Via git Repository
