@@ -3854,6 +3854,7 @@ bhit(
 
     while (range-- > 0) {
         coordxy x, y;
+        int xyglyph;
 
         gb.bhitpos.x += ddx;
         gb.bhitpos.y += ddy;
@@ -3962,10 +3963,15 @@ bhit(
            because the hero is likely aiming to throw over what seems to
            be an object rather than at it, and for balance because
            otherwise mimics are too easy to identify by throwing gold at
-           them) */
+           them); exception: if the hero knows there is a monster there,
+           they will be aiming at the monster */
+        xyglyph = glyph_at(x, y);
         if (mtmp && (((weapon == THROWN_WEAPON || weapon == KICKED_WEAPON)
                       && (shade_miss(&gy.youmonst, mtmp, obj, TRUE, TRUE)
-                          || M_AP_TYPE(mtmp) == M_AP_OBJECT))
+                          || (M_AP_TYPE(mtmp) == M_AP_OBJECT
+                              && !glyph_is_monster(xyglyph)
+                              && !glyph_is_warning(xyglyph)
+                              && !glyph_is_invisible(xyglyph))))
                      || (weapon == FLASHED_LIGHT
                          && M_AP_TYPE(mtmp) == M_AP_OBJECT)))
             mtmp = (struct monst *) 0;
