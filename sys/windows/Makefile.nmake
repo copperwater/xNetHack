@@ -9,7 +9,7 @@
 #
 #       Visual Studio Compilers Tested:
 #            - Microsoft Visual Studio 2019 Community Edition v 16.11.42
-#            - Microsoft Visual Studio 2022 Community Edition v 17.14.11
+#            - Microsoft Visual Studio 2022 Community Edition v 17.14.12
 #
 #==============================================================================
 #   This is used for building two distinct executables of NetHack:
@@ -1293,25 +1293,34 @@ scall  =
 !IF ($(VSVER) >= 2012)
 #
 # 4100 unreferenced formal parameter
+# 4101 'identifier': unreferenced local variable
+# 4102 'label': unreferenced label
 # 4131 old-style declarator
+# 4201 'nonstandard extension used : nameless struct/union'
 # 4244 conversion possible loss of data
 # 4245 conversion from 'char' to 'uchar', signed/unsigned mismatch
 # 4310 a constant value is cast to a smaller type
+# 4324 'structname': structure was padded due to alignment specifier
+# 4431 missing type specifier - int assumed. Note: C no longer supports default-int
 # 4706 assignment within conditional
 # 4774 format string is not a string literal (default is off at W4)
 # 4777 format string requires an argument of type 'type',
 #      but variadic argument 'position' has type 'type'
 # 4820 padding in struct
 # 5262 enable fallthrough warnings that lack [[fallthrough]]
+# 5264 'variable-name': 'const' variable is not used
+# 5266 'const' qualifier on return type has no effect
+# 6001 'Using uninitialized memory'
 #
-ctmpflags = $(ctmpflags:-W3=-W4) -wd4100 -wd4244 -wd4245 -wd4310 -wd4706 -w44777 -wd4820
+#ctmpflags = $(ctmpflags:-W3=-W4) -wd4100 -wd4244 -wd4245 -wd4310 -wd4706
+ctmpflags = $(ctmpflags:-W3=-W4) -wd4244 -wd4245 -wd4310 -wd4706 -w44101 -w44102
 !IF ($(VSVER) >= 2019)
 ctmpflags = $(ctmpflags) -w44774
 !ENDIF
 !IF ($(VSVER) >= 2022)
 !IF ($(MAKEVERSION) >= 1440338120)
 # warning 5262 became available starting in Visual Studio 2022 version 17.4.
-ctmpflags = $(ctmpflags) -w45262 /std:clatest
+ctmpflags = $(ctmpflags) -w45262 -w45264 -w45266 -w44431 -w44777 -wd4820 /std:clatest
 !ENDIF
 !ENDIF
 !ENDIF
@@ -2475,7 +2484,7 @@ $(DAT)bogusmon: $(U)makedefs.exe $(DAT)bogusmon.txt
 	$(U)makedefs -3
 
 # This is the universal ctags utility which produces the tags in the
-# format that util/readtags requires. 
+# format that util/readtags requires.
 # https://github.com/universal-ctags/ctags.git
 
 #===============================================================================

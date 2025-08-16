@@ -48,7 +48,8 @@
   </PropertyGroup>
   <ItemDefinitionGroup>
     <ClCompile>
-      <AdditionalOptions>/Gs /Oi- /w44774 %(AdditionalOptions)</AdditionalOptions>
+      <AdditionalOptions>/Gs /Oi- /w44774 /w45262 %(AdditionalOptions)</AdditionalOptions>
+      <DisableSpecificWarnings>4100;4244;4245;4310;4706;4820;4324</DisableSpecificWarnings>
       <Optimization>Disabled</Optimization>
       <OmitFramePointers>true</OmitFramePointers>
       <AdditionalIncludeDirectories>$(WinWin32Dir);$(IncDir);$(SysWindDir);$(SysShareDir);$(WinShareDir);$(LuaDir);%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
@@ -57,12 +58,6 @@
       <LanguageStandard_C Condition="'$(DefaultPlatformToolset)'!='v142' And '$(Configuration)|$(Platform)'=='Release|Win32'">stdclatest</LanguageStandard_C>
       <LanguageStandard_C Condition="'$(DefaultPlatformToolset)'!='v142' And '$(Configuration)|$(Platform)'=='Debug|x64'">stdclatest</LanguageStandard_C>
       <LanguageStandard_C Condition="'$(DefaultPlatformToolset)'!='v142' And '$(Configuration)|$(Platform)'=='Release|x64'">stdclatest</LanguageStandard_C>
-      <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">/Gs /Oi- /w44774 /w45262 %(AdditionalOptions)</AdditionalOptions>
-      <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">/Gs /Oi- /w44774 /w45262 %(AdditionalOptions)</AdditionalOptions>
-      <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">/Gs /Oi- /w44774 /w45262 %(AdditionalOptions)</AdditionalOptions>
-      <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Release|x64'">/Gs /Oi- /w44774 /w45262 %(AdditionalOptions)</AdditionalOptions>
-      <DisableSpecificWarnings Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">4820;4706;4244;4245;4100;4310;6001</DisableSpecificWarnings>
-      <DisableSpecificWarnings Condition="'$(Configuration)|$(Platform)'=='Release|x64'">4820;4706;4244;4245;4100;4310</DisableSpecificWarnings>
     </ClCompile>
     <ResourceCompile>
       <PreprocessorDefinitions>NDEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
@@ -148,17 +143,15 @@
     <ClCompile Include="$(SrcDir)nhlobj.c" />
     <ClCompile Include="$(SrcDir)nhlsel.c" />
     <ClCompile Include="$(SrcDir)nhlua.c">
-      <DisableSpecificWarnings Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">4820;4706;4244;4245;4100;4310;4324</DisableSpecificWarnings>
-      <DisableSpecificWarnings Condition="'$(Configuration)|$(Platform)'=='Release|x64'">4820;4706;4244;4245;4100;4310;4324</DisableSpecificWarnings>
+      <DisableSpecificWarnings Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">4100;4244;4245;4310;4706;4820;4324</DisableSpecificWarnings>
+      <DisableSpecificWarnings Condition="'$(Configuration)|$(Platform)'=='Release|x64'">4100;4244;4245;4310;4706;4820;4324</DisableSpecificWarnings>
     </ClCompile>
     <ClCompile Include="$(SrcDir)objects.c" />
     <ClCompile Include="$(SrcDir)objnam.c" />
     <ClCompile Include="$(SrcDir)options.c" />
     <ClCompile Include="$(SrcDir)o_init.c" />
     <ClCompile Include="$(SrcDir)pager.c" />
-    <ClCompile Include="$(SrcDir)pickup.c">
-      <DisableSpecificWarnings Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">4820;4706;4244;4245;4100;4310;6001</DisableSpecificWarnings>
-    </ClCompile>
+    <ClCompile Include="$(SrcDir)pickup.c" />
     <ClCompile Include="$(SrcDir)pline.c" />
     <ClCompile Include="$(SrcDir)polyself.c" />
     <ClCompile Include="$(SrcDir)potion.c" />
@@ -192,9 +185,7 @@
     <ClCompile Include="$(SrcDir)sys.c" />
     <ClCompile Include="$(SrcDir)teleport.c" />
     <ClCompile Include="$(SrcDir)tile.c" />
-    <ClCompile Include="$(SrcDir)timeout.c">
-      <DisableSpecificWarnings Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">4820;4706;4244;4245;4100;4310;6001</DisableSpecificWarnings>
-    </ClCompile>
+    <ClCompile Include="$(SrcDir)timeout.c" />
     <ClCompile Include="$(SrcDir)topten.c" />
     <ClCompile Include="$(SrcDir)track.c" />
     <ClCompile Include="$(SrcDir)trap.c" />
@@ -218,17 +209,15 @@
     <ClCompile Condition="Exists('$(PDCURSES)')" Include="$(WinCursDir)cursinit.c" />
     <ClCompile Condition="Exists('$(PDCURSES)')" Include="$(WinCursDir)cursinvt.c" />
     <ClCompile Condition="Exists('$(PDCURSES)')" Include="$(WinCursDir)cursmain.c" />
-    <ClCompile Condition="Exists('$(PDCURSES)')" Include="$(WinCursDir)cursmesg.c">
-      <DisableSpecificWarnings Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">4820;4706;4244;4245;4100;4310;6001</DisableSpecificWarnings>
-    </ClCompile>
+    <ClCompile Condition="Exists('$(PDCURSES)')" Include="$(WinCursDir)cursmesg.c" />
     <ClCompile Condition="Exists('$(PDCURSES)')" Include="$(WinCursDir)cursmisc.c" />
     <ClCompile Condition="Exists('$(PDCURSES)')" Include="$(WinCursDir)cursstat.c" />
     <ClCompile Condition="Exists('$(PDCURSES)')" Include="$(WinCursDir)curswins.c" />
     <ClCompile Condition="Exists('$(FMODINCDIR)\fmod.h') And Exists('$(FMODLIBLIB)') And Exists('$(FMODLIBDLL)')" Include="$(FMODSRC)">
-      <DisableSpecificWarnings Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">4820;4706;4244;4245;4100;4310;4201</DisableSpecificWarnings>
-      <DisableSpecificWarnings Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">4820;4706;4244;4245;4100;4310;4201</DisableSpecificWarnings>
-      <DisableSpecificWarnings Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">4820;4706;4244;4245;4100;4310;4201</DisableSpecificWarnings>
-      <DisableSpecificWarnings Condition="'$(Configuration)|$(Platform)'=='Release|x64'">4820;4706;4244;4245;4100;4310;4201</DisableSpecificWarnings>
+      <DisableSpecificWarnings Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">4100;4201;4244;4245;4310;4706;4820;4324</DisableSpecificWarnings>
+      <DisableSpecificWarnings Condition="'$(Configuration)|$(Platform)'=='Release|x64'">4100;4201;4244;4245;4310;4706;4820;4324</DisableSpecificWarnings>
+      <DisableSpecificWarnings Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">4100;4201;4244;4245;4310;4706;4820;4324</DisableSpecificWarnings>
+      <DisableSpecificWarnings Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">4100;4201;4244;4245;4310;4706;4820</DisableSpecificWarnings>
     </ClCompile>
     <ClCompile Include="$(SysShareDir)cppregex.cpp" />
     <ClCompile Include="$(SysShareDir)random.c" />
