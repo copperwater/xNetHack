@@ -3062,8 +3062,6 @@ potion_dip(struct obj *obj, struct obj *potion)
                   obj->spe < 0 ? "a little " : "");
             if (obj->known)
                 learn_it = TRUE;
-            else
-                trycall(potion);
             did_something = TRUE;
         }
         /* refreshing a faded spellbook */
@@ -3080,26 +3078,18 @@ potion_dip(struct obj *obj, struct obj *potion)
             learn_it = TRUE;
             did_something = TRUE;
         }
-        if (learn_it && potion->dknown)
-            makeknown(POT_RESTORE_ABILITY);
-        if (did_something)
-            useup(potion);
-        return ECMD_TIME;
-    }
-
-    /* resetting a cancelled thiefstone */
-    if (potion->otyp == POT_RESTORE_ABILITY
-        && obj->otyp == THIEFSTONE && !thiefstone_ledger_valid(obj)
-        && !In_endgame(&u.uz)) { /* thiefstones can't key to endgame levels */
-        if (potion->cursed) {
-            pline("%s.", Tobjnam(obj, "twitch"));
-        }
-        else {
+        /* resetting a cancelled thiefstone */
+        if (obj->otyp == THIEFSTONE && !thiefstone_ledger_valid(obj)
+            && !In_endgame(&u.uz)) { /* thiefstones can't key to endgame levels */
             obj->keyed_ledger = ledger_no(&u.uz);
             set_keyed_loc(obj, u.ux, u.uy);
             pline("%s for an instant.", Tobjnam(obj, "quiver"));
+            did_something = TRUE;
         }
-        poof(potion);
+        if (learn_it && potion->dknown)
+            makeknown(POT_RESTORE_ABILITY);
+        if (did_something)
+            poof(potion); /* includes trycall if dknown */
         return ECMD_TIME;
     }
  more_dips:
