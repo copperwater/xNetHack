@@ -54,6 +54,7 @@ dosave(void)
         program_state.done_hup = 0;
 #endif
         if (dosave0()) {
+	    program_state.savefile_completed++;
             u.uhp = -1; /* universal game's over indicator */
             if (soundprocs.sound_exit_nhsound)
                 (*soundprocs.sound_exit_nhsound)("dosave");

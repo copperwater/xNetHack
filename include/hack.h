@@ -801,6 +801,7 @@ struct sinfo {
     int in_sanity_check;        /* for impossible() during sanity checking */
     int config_error_ready;     /* config_error_add is ready, available */
     int beyond_savefile_load;   /* set when past savefile loading */
+    int savefile_completed;     /* savefile has completed writing */
 #ifdef PANICLOG
     int in_paniclog;            /* writing a panicloc entry */
 #endif

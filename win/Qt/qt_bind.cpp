@@ -724,6 +724,10 @@ char NetHackQtBind::qt_more()
         int complain = 0;
         do {
             ch = NetHackQtBind::qt_nhgetch();
+	    if (::program_state.savefile_completed) {
+		retry = false;
+		break;
+	    }
             switch (ch) {
             case '\0': // hypothetical
                 ch = '\033';
