@@ -764,7 +764,7 @@ onMSNHCommand(HWND hWnd, WPARAM wParam, LPARAM lParam)
             msg_data->buffer[index++] = '\r';
             msg_data->buffer[index++] = '\n';
         }
-	nhUse(mgch);
+        nhUse(mgch);
     } break;
 
 #ifdef ENHANCED_SYMBOLS

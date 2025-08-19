@@ -506,7 +506,7 @@ bwrite(int fd, const genericptr_t loc, unsigned num)
             fprintf(ofp[fd], "%08ld, %08ld, %d\n", ocnt,
                     ftell(ofp[fd]), num);
             ocnt++;
-	}
+        }
     }
 #endif
 
@@ -559,7 +559,7 @@ mread(int fd, genericptr_t buf, unsigned len)
             fprintf(ifp[fd], "%08ld, %08ld, %d\n", icnt,
                     ftell(ifp[fd]), (int) len);
             icnt++;
-	}
+        }
     }
 #endif
 

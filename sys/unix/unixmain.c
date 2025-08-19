@@ -707,10 +707,10 @@ early_options(int *argc_p, char ***argv_p, char **hackdir_p)
             break;
         case 's':
             if (argcheck(argc, argv, ARG_SHOWPATHS) == 2) {
-		gd.deferred_showpaths = TRUE;
-		gd.deferred_showpaths_dir = *hackdir_p;
+                gd.deferred_showpaths = TRUE;
+                gd.deferred_showpaths_dir = *hackdir_p;
                 config_error_done();
-		return;
+                return;
             }
             /* check for "-s" request to show scores */
             if (lopt(arg, ((ArgValDisallowed | ArgErrComplain)

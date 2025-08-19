@@ -860,7 +860,7 @@ dorecover(NHFILE *nhfp)
     restoreinfo.mread_flags = 1; /* return despite error */
     while (1) {
         Sfi_xint8(nhfp, &ltmp, "gamestate-level_number");
-	if (nhfp->eof)
+        if (nhfp->eof)
             break;
         getlev(nhfp, 0, ltmp);
 #ifdef MICRO

@@ -1,9 +1,9 @@
 /* NetHack 3.6	sftags.c	$Date$ $Revision$	          */
-/* Copyright (c) Michael Allison, 2025			          */
+/* Copyright (c) Michael Allison, 2025                            */
 /* NetHack may be freely redistributed.  See license for details. */
 
 /*
- *  	Read the given ctags file and generate:
+ *      Read the given ctags file and generate:
  *      Intermediate temp files:
  *              include/sfo_proto.tmp
  *              include/sfi_proto.tmp
@@ -45,12 +45,12 @@
 #endif
 #endif
 
-#define NHTYPE_SIMPLE	1
-#define NHTYPE_COMPLEX	2
+#define NHTYPE_SIMPLE   1
+#define NHTYPE_COMPLEX  2
 struct nhdatatypes_t {
-	uint dtclass;
-	char *dtype;
-	size_t dtsize;
+        uint dtclass;
+        char *dtype;
+        size_t dtsize;
 };
 
 struct tagstruct {
@@ -867,7 +867,7 @@ findtype(char *st, char *tag)
             /* comma or semicolon immediately following tag */
             else {
                 volatile int y = 0;
-		nhUse(y);
+                nhUse(y);
                 y = 1;
             }
             if (strncmpi(ftbuf, "struct ", 7) == 0)

@@ -1,5 +1,5 @@
 /* NetHack 3.7	sfctool.c */
-/* Copyright (c) Michael Allison, 2025.	                  */
+/* Copyright (c) Michael Allison, 2025.                           */
 /* NetHack may be freely redistributed.  See license for details. */
 
 /*
@@ -318,18 +318,18 @@ process_savefile(const char *srcfnam, enum saveformats srcstyle,
                                     cscbuf[5]); /* ptr */
     if (sfstatus > SF_UPTODATE
         && ((sfstatus <= SF_CRITICAL_BYTE_COUNT_MISMATCH) || !unconvert)) {
-	if (sfstatus == SF_OUTDATED) {
+        if (sfstatus == SF_OUTDATED) {
             fprintf(stderr,
                 "The %s savefile is outdated with respect to this %d.%d.%d EDITLEVEL %ld "
-		    "%s%s%s.\n",
+                "%s%s%s.\n",
                 briefname(srcfnam),
-		VERSION_MAJOR, VERSION_MINOR, PATCHLEVEL,
-		(long) EDITLEVEL,
+                VERSION_MAJOR, VERSION_MINOR, PATCHLEVEL,
+                (long) EDITLEVEL,
                 thisdatamodel ? thisdatamodel : "",
                 thisdatamodel ? " " : "",
-		"sfctool");
+                "sfctool");
             return 0;
-	} else {
+        } else {
             fprintf(stderr,
                 "The %s savefile %s%s%s not compatible with this %s%s %s utility.\n",
                 briefname(srcfnam),
@@ -338,9 +338,9 @@ process_savefile(const char *srcfnam, enum saveformats srcstyle,
                 dmfile ? " savefile, thus" : " is",
                 thisdatamodel ? thisdatamodel : "",
                 thisdatamodel ? " " : "",
-		"sfctool");
+                "sfctool");
             return 0;
-	}
+        }
     }
     if (sfstatus >= SF_DM_IL32LLP64_ON_ILP32LL64) {
         renidx = sfstatus - SF_DM_IL32LLP64_ON_ILP32LL64;

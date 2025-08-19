@@ -379,8 +379,8 @@ prompt_for_player_selection(void)
              * bottom of the window.
              */
             /* tty_clear_nhwindow(BASE_WINDOW) */
-		;
-	}
+                ;
+        }
         if (pick4u != 'y' && pick4u != 'n') {
         give_up: /* Quit */
             if (selected)

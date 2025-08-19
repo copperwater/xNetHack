@@ -28,16 +28,16 @@ int main(int argc UNUSED, char *argv[] UNUSED)
     while (!stop) {
         if ((fread(buf, 1, 1, stdin)) > 0) {
             if (*cp == 8) {
-		*prev = 0;
-	    } else {
-		if (*prev)
+                *prev = 0;
+            } else {
+                if (*prev)
                     fputc(*prev, stdout);
-		*prev = *cp;
-	    }
+                *prev = *cp;
+            }
         } else {
-	    if (errno != EOF)
+            if (errno != EOF)
                 trouble = 1;
-	    if (*prev)
+            if (*prev)
                 fputc(*prev, stdout);
             stop = 1;
         }

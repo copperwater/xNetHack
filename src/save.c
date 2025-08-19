@@ -54,7 +54,7 @@ dosave(void)
         program_state.done_hup = 0;
 #endif
         if (dosave0()) {
-	    program_state.savefile_completed++;
+            program_state.savefile_completed++;
             u.uhp = -1; /* universal game's over indicator */
             if (soundprocs.sound_exit_nhsound)
                 (*soundprocs.sound_exit_nhsound)("dosave");
@@ -564,7 +564,7 @@ savelevl(NHFILE *nhfp)
     for (x = 0; x < COLNO; x++) {
         for (y = 0; y < ROWNO; y++) {
             Sfo_rm(nhfp, &levl[x][y], "location-rm");
-	}
+        }
     }
     return;
 }

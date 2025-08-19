@@ -614,7 +614,7 @@ savebones(int how, time_t when, struct obj *corpse)
     /* if a bones pool digit is in use, it precedes the bonesid
        string and isn't recorded in the file */
     Sfo_char(nhfp, &c, "bones_count", 1);
-    Sfo_char(nhfp, bonesid, "bonesid", (int) c); 	/* DD.nnn */
+    Sfo_char(nhfp, bonesid, "bonesid", (int) c);       /* DD.nnn */
     savefruitchn(nhfp);
     update_mlstmv(); /* update monsters for eventual restoration */
     savelev(nhfp, ledger_no(&u.uz));

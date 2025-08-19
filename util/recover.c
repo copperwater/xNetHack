@@ -1,5 +1,5 @@
 /* NetHack 3.7	recover.c	$NHDT-Date: 1687547437 2023/06/23 19:10:37 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.33 $ */
-/*	Copyright (c) Janet Walz, 1992.				  */
+/* Copyright (c) Janet Walz, 1992.                                */
 /* NetHack may be freely redistributed.  See license for details. */
 
 /*

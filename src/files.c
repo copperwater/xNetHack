@@ -2106,7 +2106,7 @@ make_converted_name(const char *filename)
 #endif /* UNIX || WIN32 */
         if (dir) {
             finaldirchar = c_eos(dir);
-	        finaldirchar--;
+                finaldirchar--;
             if (!(*finaldirchar == '/' || *finaldirchar == '\\'
                   || *finaldirchar == ':')) {
                 needsep = TRUE;
