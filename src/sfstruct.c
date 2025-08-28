@@ -53,7 +53,7 @@ void historical_sfi_##dtyp(NHFILE *nhfp, dtyp *d_##dtyp,                        
 
 #define SFO_CBODY(dt)                                                               \
     {                                                                               \
-        normalize_pointers_##dt(d_##dt);                                            \
+        norm_ptrs_##dt(d_##dt);                                            \
         bwrite(nhfp->fd, (genericptr_t) d_##dt, sizeof *d_##dt);                    \
     }
 
@@ -63,7 +63,7 @@ void historical_sfi_##dtyp(NHFILE *nhfp, dtyp *d_##dtyp,                        
             sfstruct_read_error();                                                  \
         }                                                                           \
         mread(nhfp->fd, (genericptr_t) d_##dt, sizeof *d_##dt);                     \
-        normalize_pointers_##dt(d_##dt);                                            \
+        norm_ptrs_##dt(d_##dt);                                            \
         if (restoreinfo.mread_flags == -1)                                          \
             nhfp->eof = TRUE;                                                       \
     }
@@ -73,7 +73,7 @@ void historical_sfo_##dtyp(NHFILE *, keyw dtyp *d_##dtyp,                       
                            const char *);                                           \
 void historical_sfi_##dtyp(NHFILE *, keyw dtyp *d_##dtyp,                           \
                            const char *);                                           \
-extern void normalize_pointers_##dtyp(keyw dtyp *d_##dtyp);                         \
+extern void norm_ptrs_##dtyp(keyw dtyp *d_##dtyp);                         \
                                                                                     \
 void historical_sfo_##dtyp(NHFILE *nhfp, keyw dtyp *d_##dtyp,                       \
                            const char *myname UNUSED)                               \

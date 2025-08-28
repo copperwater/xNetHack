@@ -81,7 +81,7 @@ main(int argc, char *argv[])
 
         if (argcheck(argc, argv, ARG_SHOWPATHS) == 2) {
             gd.deferred_showpaths = TRUE;
-            return;
+            return 0;
         }
         if (argcheck(argc, argv, ARG_DEBUG) == 1) {
             argc--;

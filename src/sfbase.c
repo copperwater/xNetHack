@@ -658,442 +658,442 @@ sf_setflprocs(int idx, struct sf_fieldlevel_procs *flsfi,
 }
 
 #ifndef SFCTOOL
-void normalize_pointers_any(union any *d_any);
-void normalize_pointers_align(struct align *d_align);
-void normalize_pointers_arti_info(struct arti_info *d_arti_info);
-void normalize_pointers_attribs(struct attribs *d_attribs);
-void normalize_pointers_bill_x(struct bill_x *d_bill_x);
-void normalize_pointers_branch(struct branch *d_branch);
-void normalize_pointers_bubble(struct bubble *d_bubble);
-void normalize_pointers_cemetery(struct cemetery *d_cemetery);
-void normalize_pointers_context_info(struct context_info *d_context_info);
-void normalize_pointers_achievement_tracking(
+void norm_ptrs_any(union any *d_any);
+void norm_ptrs_align(struct align *d_align);
+void norm_ptrs_arti_info(struct arti_info *d_arti_info);
+void norm_ptrs_attribs(struct attribs *d_attribs);
+void norm_ptrs_bill_x(struct bill_x *d_bill_x);
+void norm_ptrs_branch(struct branch *d_branch);
+void norm_ptrs_bubble(struct bubble *d_bubble);
+void norm_ptrs_cemetery(struct cemetery *d_cemetery);
+void norm_ptrs_context_info(struct context_info *d_context_info);
+void norm_ptrs_achievement_tracking(
     struct achievement_tracking *d_achievement_tracking);
-void normalize_pointers_book_info(struct book_info *d_book_info);
-void normalize_pointers_dig_info(struct dig_info *d_dig_info);
-void normalize_pointers_engrave_info(struct engrave_info *d_engrave_info);
-void normalize_pointers_obj_split(struct obj_split *d_obj_split);
-void normalize_pointers_polearm_info(struct polearm_info *d_polearm_info);
-void normalize_pointers_takeoff_info(struct takeoff_info *d_takeoff_info);
-void normalize_pointers_tin_info(struct tin_info *d_tin_info);
-void normalize_pointers_tribute_info(struct tribute_info *d_tribute_info);
-void normalize_pointers_victual_info(struct victual_info *d_victual_info);
-void normalize_pointers_warntype_info(struct warntype_info *d_warntype_info);
-void normalize_pointers_d_flags(struct d_flags *d_d_flags);
-void normalize_pointers_d_level(struct d_level *d_d_level);
-void normalize_pointers_damage(struct damage *d_damage);
-void normalize_pointers_dest_area(struct dest_area *d_dest_area);
-void normalize_pointers_dgn_topology(struct dgn_topology *d_dgn_topology);
-void normalize_pointers_dungeon(struct dungeon *d_dungeon);
-void normalize_pointers_ebones(struct ebones *d_ebones);
-void normalize_pointers_edog(struct edog *d_edog);
-void normalize_pointers_egd(struct egd *d_egd);
-void normalize_pointers_emin(struct emin *d_emin);
-void normalize_pointers_engr(struct engr *d_engr);
-void normalize_pointers_epri(struct epri *d_epri);
-void normalize_pointers_eshk(struct eshk *d_eshk);
-void normalize_pointers_fakecorridor(struct fakecorridor *d_fakecorridor);
-void normalize_pointers_fe(struct fe *d_fe);
-void normalize_pointers_flag(struct flag *d_flag);
-void normalize_pointers_fruit(struct fruit *d_fruit);
-void normalize_pointers_gamelog_line(struct gamelog_line *d_gamelog_line);
-void normalize_pointers_kinfo(struct kinfo *d_kinfo);
-void normalize_pointers_levelflags(struct levelflags *d_levelflags);
-void normalize_pointers_linfo(struct linfo *d_linfo);
-void normalize_pointers_ls_t(struct ls_t *d_ls_t);
-void normalize_pointers_mapseen_feat(struct mapseen_feat *d_mapseen_feat);
-void normalize_pointers_mapseen_flags(struct mapseen_flags *d_mapseen_flags);
-void normalize_pointers_mapseen_rooms(struct mapseen_rooms *d_mapseen_rooms);
-void normalize_pointers_mapseen(struct mapseen *d_mapseen);
-void normalize_pointers_mextra(struct mextra *d_mextra);
-void normalize_pointers_mkroom(struct mkroom *d_mkroom);
-void normalize_pointers_monst(struct monst *d_monst);
-void normalize_pointers_mvitals(struct mvitals *d_mvitals);
-void normalize_pointers_nhcoord(struct nhcoord *d_nhcoord);
-void normalize_pointers_nhrect(struct nhrect *d_nhrect);
-void normalize_pointers_novel_tracking(struct novel_tracking *d_novel_tracking);
-void normalize_pointers_obj(struct obj *d_obj);
-void normalize_pointers_objclass(struct objclass *d_objclass);
-void normalize_pointers_oextra(struct oextra *d_oextra);
-void normalize_pointers_prop(struct prop *d_prop);
-void normalize_pointers_q_score(struct q_score *d_q_score);
-void normalize_pointers_rm(struct rm *d_rm);
-void normalize_pointers_s_level(struct s_level *d_s_level);
-void normalize_pointers_skills(struct skills *d_skills);
-void normalize_pointers_spell(struct spell *d_spell);
-void normalize_pointers_stairway(struct stairway *d_stairway);
-void normalize_pointers_trap(struct trap *d_trap);
-void normalize_pointers_u_conduct(struct u_conduct *d_u_conduct);
-void normalize_pointers_u_event(struct u_event *d_u_event);
-void normalize_pointers_u_have(struct u_have *d_u_have);
-void normalize_pointers_u_realtime(struct u_realtime *d_u_realtime);
-void normalize_pointers_u_roleplay(struct u_roleplay *d_u_roleplay);
-void normalize_pointers_version_info(struct version_info *d_version_info);
-void normalize_pointers_vlaunchinfo(union vlaunchinfo *d_vlaunchinfo);
-void normalize_pointers_vptrs(union vptrs *d_vptrs);
-void normalize_pointers_you(struct you *d_you);
+void norm_ptrs_book_info(struct book_info *d_book_info);
+void norm_ptrs_dig_info(struct dig_info *d_dig_info);
+void norm_ptrs_engrave_info(struct engrave_info *d_engrave_info);
+void norm_ptrs_obj_split(struct obj_split *d_obj_split);
+void norm_ptrs_polearm_info(struct polearm_info *d_polearm_info);
+void norm_ptrs_takeoff_info(struct takeoff_info *d_takeoff_info);
+void norm_ptrs_tin_info(struct tin_info *d_tin_info);
+void norm_ptrs_tribute_info(struct tribute_info *d_tribute_info);
+void norm_ptrs_victual_info(struct victual_info *d_victual_info);
+void norm_ptrs_warntype_info(struct warntype_info *d_warntype_info);
+void norm_ptrs_d_flags(struct d_flags *d_d_flags);
+void norm_ptrs_d_level(struct d_level *d_d_level);
+void norm_ptrs_damage(struct damage *d_damage);
+void norm_ptrs_dest_area(struct dest_area *d_dest_area);
+void norm_ptrs_dgn_topology(struct dgn_topology *d_dgn_topology);
+void norm_ptrs_dungeon(struct dungeon *d_dungeon);
+void norm_ptrs_ebones(struct ebones *d_ebones);
+void norm_ptrs_edog(struct edog *d_edog);
+void norm_ptrs_egd(struct egd *d_egd);
+void norm_ptrs_emin(struct emin *d_emin);
+void norm_ptrs_engr(struct engr *d_engr);
+void norm_ptrs_epri(struct epri *d_epri);
+void norm_ptrs_eshk(struct eshk *d_eshk);
+void norm_ptrs_fakecorridor(struct fakecorridor *d_fakecorridor);
+void norm_ptrs_fe(struct fe *d_fe);
+void norm_ptrs_flag(struct flag *d_flag);
+void norm_ptrs_fruit(struct fruit *d_fruit);
+void norm_ptrs_gamelog_line(struct gamelog_line *d_gamelog_line);
+void norm_ptrs_kinfo(struct kinfo *d_kinfo);
+void norm_ptrs_levelflags(struct levelflags *d_levelflags);
+void norm_ptrs_linfo(struct linfo *d_linfo);
+void norm_ptrs_ls_t(struct ls_t *d_ls_t);
+void norm_ptrs_mapseen_feat(struct mapseen_feat *d_mapseen_feat);
+void norm_ptrs_mapseen_flags(struct mapseen_flags *d_mapseen_flags);
+void norm_ptrs_mapseen_rooms(struct mapseen_rooms *d_mapseen_rooms);
+void norm_ptrs_mapseen(struct mapseen *d_mapseen);
+void norm_ptrs_mextra(struct mextra *d_mextra);
+void norm_ptrs_mkroom(struct mkroom *d_mkroom);
+void norm_ptrs_monst(struct monst *d_monst);
+void norm_ptrs_mvitals(struct mvitals *d_mvitals);
+void norm_ptrs_nhcoord(struct nhcoord *d_nhcoord);
+void norm_ptrs_nhrect(struct nhrect *d_nhrect);
+void norm_ptrs_novel_tracking(struct novel_tracking *d_novel_tracking);
+void norm_ptrs_obj(struct obj *d_obj);
+void norm_ptrs_objclass(struct objclass *d_objclass);
+void norm_ptrs_oextra(struct oextra *d_oextra);
+void norm_ptrs_prop(struct prop *d_prop);
+void norm_ptrs_q_score(struct q_score *d_q_score);
+void norm_ptrs_rm(struct rm *d_rm);
+void norm_ptrs_s_level(struct s_level *d_s_level);
+void norm_ptrs_skills(struct skills *d_skills);
+void norm_ptrs_spell(struct spell *d_spell);
+void norm_ptrs_stairway(struct stairway *d_stairway);
+void norm_ptrs_trap(struct trap *d_trap);
+void norm_ptrs_u_conduct(struct u_conduct *d_u_conduct);
+void norm_ptrs_u_event(struct u_event *d_u_event);
+void norm_ptrs_u_have(struct u_have *d_u_have);
+void norm_ptrs_u_realtime(struct u_realtime *d_u_realtime);
+void norm_ptrs_u_roleplay(struct u_roleplay *d_u_roleplay);
+void norm_ptrs_version_info(struct version_info *d_version_info);
+void norm_ptrs_vlaunchinfo(union vlaunchinfo *d_vlaunchinfo);
+void norm_ptrs_vptrs(union vptrs *d_vptrs);
+void norm_ptrs_you(struct you *d_you);
 
 void
-normalize_pointers_any(union any *d_any UNUSED)
+norm_ptrs_any(union any *d_any UNUSED)
 {
 }
 void
-normalize_pointers_align(struct align *d_align UNUSED)
+norm_ptrs_align(struct align *d_align UNUSED)
 {
 }
 
 void
-normalize_pointers_arti_info(struct arti_info *d_arti_info UNUSED)
+norm_ptrs_arti_info(struct arti_info *d_arti_info UNUSED)
 {
 }
 
 void
-normalize_pointers_attribs(struct attribs *d_attribs UNUSED)
+norm_ptrs_attribs(struct attribs *d_attribs UNUSED)
 {
 }
 
 void
-normalize_pointers_bill_x(struct bill_x *d_bill_x UNUSED)
+norm_ptrs_bill_x(struct bill_x *d_bill_x UNUSED)
 {
 }
 
 void
-normalize_pointers_branch(struct branch *d_branch UNUSED)
+norm_ptrs_branch(struct branch *d_branch UNUSED)
 {
 }
 
 void
-normalize_pointers_bubble(struct bubble *d_bubble UNUSED)
+norm_ptrs_bubble(struct bubble *d_bubble UNUSED)
 {
 }
 
 void
-normalize_pointers_cemetery(struct cemetery *d_cemetery UNUSED)
+norm_ptrs_cemetery(struct cemetery *d_cemetery UNUSED)
 {
 }
 
 void
-normalize_pointers_context_info(struct context_info *d_context_info UNUSED)
+norm_ptrs_context_info(struct context_info *d_context_info UNUSED)
 {
 }
 
 void
-normalize_pointers_achievement_tracking(struct achievement_tracking *d_achievement_tracking UNUSED)
+norm_ptrs_achievement_tracking(struct achievement_tracking *d_achievement_tracking UNUSED)
 {
 }
 
 void
-normalize_pointers_book_info(struct book_info *d_book_info UNUSED)
+norm_ptrs_book_info(struct book_info *d_book_info UNUSED)
 {
 }
 
 void
-normalize_pointers_dig_info(struct dig_info *d_dig_info UNUSED)
+norm_ptrs_dig_info(struct dig_info *d_dig_info UNUSED)
 {
 }
 
 void
-normalize_pointers_engrave_info(struct engrave_info *d_engrave_info UNUSED)
+norm_ptrs_engrave_info(struct engrave_info *d_engrave_info UNUSED)
 {
 }
 
 void
-normalize_pointers_obj_split(struct obj_split *d_obj_split UNUSED)
+norm_ptrs_obj_split(struct obj_split *d_obj_split UNUSED)
 {
 }
 
 void
-normalize_pointers_polearm_info(struct polearm_info *d_polearm_info UNUSED)
+norm_ptrs_polearm_info(struct polearm_info *d_polearm_info UNUSED)
 {
 }
 
 void
-normalize_pointers_takeoff_info(struct takeoff_info *d_takeoff_info UNUSED)
+norm_ptrs_takeoff_info(struct takeoff_info *d_takeoff_info UNUSED)
 {
 }
 
 void
-normalize_pointers_tin_info(struct tin_info *d_tin_info UNUSED)
+norm_ptrs_tin_info(struct tin_info *d_tin_info UNUSED)
 {
 }
 
 void
-normalize_pointers_tribute_info(struct tribute_info *d_tribute_info UNUSED)
+norm_ptrs_tribute_info(struct tribute_info *d_tribute_info UNUSED)
 {
 }
 
 void
-normalize_pointers_victual_info(struct victual_info *d_victual_info UNUSED)
+norm_ptrs_victual_info(struct victual_info *d_victual_info UNUSED)
 {
 }
 
 void
-normalize_pointers_warntype_info(struct warntype_info *d_warntype_info UNUSED)
+norm_ptrs_warntype_info(struct warntype_info *d_warntype_info UNUSED)
 {
 }
 
 void
-normalize_pointers_d_flags(struct d_flags *d_d_flags UNUSED)
+norm_ptrs_d_flags(struct d_flags *d_d_flags UNUSED)
 {
 }
 
 void
-normalize_pointers_d_level(struct d_level *d_d_level UNUSED)
+norm_ptrs_d_level(struct d_level *d_d_level UNUSED)
 {
 }
 
 void
-normalize_pointers_damage(struct damage *d_damage UNUSED)
+norm_ptrs_damage(struct damage *d_damage UNUSED)
 {
 }
 
 void
-normalize_pointers_dest_area(struct dest_area *d_dest_area UNUSED)
+norm_ptrs_dest_area(struct dest_area *d_dest_area UNUSED)
 {
 }
 
 void
-normalize_pointers_dgn_topology(struct dgn_topology *d_dgn_topology UNUSED)
+norm_ptrs_dgn_topology(struct dgn_topology *d_dgn_topology UNUSED)
 {
 }
 
 void
-normalize_pointers_dungeon(struct dungeon *d_dungeon UNUSED)
+norm_ptrs_dungeon(struct dungeon *d_dungeon UNUSED)
 {
 }
 
 void
-normalize_pointers_ebones(struct ebones *d_ebones UNUSED)
+norm_ptrs_ebones(struct ebones *d_ebones UNUSED)
 {
 }
 
 void
-normalize_pointers_edog(struct edog *d_edog UNUSED)
+norm_ptrs_edog(struct edog *d_edog UNUSED)
 {
 }
 
 void
-normalize_pointers_egd(struct egd *d_egd UNUSED)
+norm_ptrs_egd(struct egd *d_egd UNUSED)
 {
 }
 
 void
-normalize_pointers_emin(struct emin *d_emin UNUSED)
+norm_ptrs_emin(struct emin *d_emin UNUSED)
 {
 }
 
 void
-normalize_pointers_engr(struct engr *d_engr UNUSED)
+norm_ptrs_engr(struct engr *d_engr UNUSED)
 {
 }
 
 void
-normalize_pointers_epri(struct epri *d_epri UNUSED)
+norm_ptrs_epri(struct epri *d_epri UNUSED)
 {
 }
 
 void
-normalize_pointers_eshk(struct eshk *d_eshk UNUSED)
+norm_ptrs_eshk(struct eshk *d_eshk UNUSED)
 {
 }
 
 void
-normalize_pointers_fakecorridor(struct fakecorridor *d_fakecorridor UNUSED)
+norm_ptrs_fakecorridor(struct fakecorridor *d_fakecorridor UNUSED)
 {
 }
 
 void
-normalize_pointers_fe(struct fe *d_fe UNUSED)
+norm_ptrs_fe(struct fe *d_fe UNUSED)
 {
 }
 
 void
-normalize_pointers_flag(struct flag *d_flag UNUSED)
+norm_ptrs_flag(struct flag *d_flag UNUSED)
 {
 }
 
 void
-normalize_pointers_fruit(struct fruit *d_fruit UNUSED)
+norm_ptrs_fruit(struct fruit *d_fruit UNUSED)
 {
 }
 
 void
-normalize_pointers_gamelog_line(struct gamelog_line *d_gamelog_line UNUSED)
+norm_ptrs_gamelog_line(struct gamelog_line *d_gamelog_line UNUSED)
 {
 }
 
 void
-normalize_pointers_kinfo(struct kinfo *d_kinfo UNUSED)
+norm_ptrs_kinfo(struct kinfo *d_kinfo UNUSED)
 {
 }
 
 void
-normalize_pointers_levelflags(struct levelflags *d_levelflags UNUSED)
+norm_ptrs_levelflags(struct levelflags *d_levelflags UNUSED)
 {
 }
 
 void
-normalize_pointers_linfo(struct linfo *d_linfo UNUSED)
+norm_ptrs_linfo(struct linfo *d_linfo UNUSED)
 {
 }
 
 void
-normalize_pointers_ls_t(struct ls_t *d_ls_t UNUSED)
+norm_ptrs_ls_t(struct ls_t *d_ls_t UNUSED)
 {
 }
 
 void
-normalize_pointers_mapseen_feat(struct mapseen_feat *d_mapseen_feat UNUSED)
+norm_ptrs_mapseen_feat(struct mapseen_feat *d_mapseen_feat UNUSED)
 {
 }
 
 void
-normalize_pointers_mapseen_flags(struct mapseen_flags *d_mapseen_flags UNUSED)
+norm_ptrs_mapseen_flags(struct mapseen_flags *d_mapseen_flags UNUSED)
 {
 }
 
 void
-normalize_pointers_mapseen_rooms(struct mapseen_rooms *d_mapseen_rooms UNUSED)
+norm_ptrs_mapseen_rooms(struct mapseen_rooms *d_mapseen_rooms UNUSED)
 {
 }
 
 void
-normalize_pointers_mapseen(struct mapseen *d_mapseen UNUSED)
+norm_ptrs_mapseen(struct mapseen *d_mapseen UNUSED)
 {
 }
 
 void
-normalize_pointers_mextra(struct mextra *d_mextra UNUSED)
+norm_ptrs_mextra(struct mextra *d_mextra UNUSED)
 {
 }
 
 void
-normalize_pointers_mkroom(struct mkroom *d_mkroom UNUSED)
+norm_ptrs_mkroom(struct mkroom *d_mkroom UNUSED)
 {
 }
 
 void
-normalize_pointers_monst(struct monst *d_monst UNUSED)
+norm_ptrs_monst(struct monst *d_monst UNUSED)
 {
 }
 
 void
-normalize_pointers_mvitals(struct mvitals *d_mvitals UNUSED)
+norm_ptrs_mvitals(struct mvitals *d_mvitals UNUSED)
 {
 }
 
 void
-normalize_pointers_nhcoord(struct nhcoord *d_nhcoord UNUSED)
+norm_ptrs_nhcoord(struct nhcoord *d_nhcoord UNUSED)
 {
 }
 
 void
-normalize_pointers_nhrect(struct nhrect *d_nhrect UNUSED)
+norm_ptrs_nhrect(struct nhrect *d_nhrect UNUSED)
 {
 }
 
 void
-normalize_pointers_novel_tracking(struct novel_tracking *d_novel_tracking UNUSED)
+norm_ptrs_novel_tracking(struct novel_tracking *d_novel_tracking UNUSED)
 {
 }
 
 void
-normalize_pointers_obj(struct obj *d_obj UNUSED)
+norm_ptrs_obj(struct obj *d_obj UNUSED)
 {
 }
 
 void
-normalize_pointers_objclass(struct objclass *d_objclass UNUSED)
+norm_ptrs_objclass(struct objclass *d_objclass UNUSED)
 {
 }
 
 void
-normalize_pointers_oextra(struct oextra *d_oextra UNUSED)
+norm_ptrs_oextra(struct oextra *d_oextra UNUSED)
 {
 }
 
 void
-normalize_pointers_prop(struct prop *d_prop UNUSED)
+norm_ptrs_prop(struct prop *d_prop UNUSED)
 {
 }
 
 void
-normalize_pointers_q_score(struct q_score *d_q_score UNUSED)
+norm_ptrs_q_score(struct q_score *d_q_score UNUSED)
 {
 }
 
 void
-normalize_pointers_rm(struct rm *d_rm UNUSED)
+norm_ptrs_rm(struct rm *d_rm UNUSED)
 {
 }
 
 void
-normalize_pointers_s_level(struct s_level *d_s_level UNUSED)
+norm_ptrs_s_level(struct s_level *d_s_level UNUSED)
 {
 }
 
 void
-normalize_pointers_skills(struct skills *d_skills UNUSED)
+norm_ptrs_skills(struct skills *d_skills UNUSED)
 {
 }
 
 void
-normalize_pointers_spell(struct spell *d_spell UNUSED)
+norm_ptrs_spell(struct spell *d_spell UNUSED)
 {
 }
 
 void
-normalize_pointers_stairway(struct stairway *d_stairway UNUSED)
+norm_ptrs_stairway(struct stairway *d_stairway UNUSED)
 {
 }
 
 void
-normalize_pointers_trap(struct trap *d_trap UNUSED)
+norm_ptrs_trap(struct trap *d_trap UNUSED)
 {
 }
 
 void
-normalize_pointers_u_conduct(struct u_conduct *d_u_conduct UNUSED)
+norm_ptrs_u_conduct(struct u_conduct *d_u_conduct UNUSED)
 {
 }
 
 void
-normalize_pointers_u_event(struct u_event *d_u_event UNUSED)
+norm_ptrs_u_event(struct u_event *d_u_event UNUSED)
 {
 }
 
 void
-normalize_pointers_u_have(struct u_have *d_u_have UNUSED)
+norm_ptrs_u_have(struct u_have *d_u_have UNUSED)
 {
 }
 
 void
-normalize_pointers_u_realtime(struct u_realtime *d_u_realtime UNUSED)
+norm_ptrs_u_realtime(struct u_realtime *d_u_realtime UNUSED)
 {
 }
 
 void
-normalize_pointers_u_roleplay(struct u_roleplay *d_u_roleplay UNUSED)
+norm_ptrs_u_roleplay(struct u_roleplay *d_u_roleplay UNUSED)
 {
 }
 
 void
-normalize_pointers_version_info(struct version_info *d_version_info UNUSED)
+norm_ptrs_version_info(struct version_info *d_version_info UNUSED)
 {
 }
 
 void
-normalize_pointers_vlaunchinfo(union vlaunchinfo *d_vlaunchinfo UNUSED)
+norm_ptrs_vlaunchinfo(union vlaunchinfo *d_vlaunchinfo UNUSED)
 {
 }
 
 void
-normalize_pointers_vptrs(union vptrs *d_vptrs UNUSED)
+norm_ptrs_vptrs(union vptrs *d_vptrs UNUSED)
 {
 }
 
 void
-normalize_pointers_you(struct you *d_you UNUSED)
+norm_ptrs_you(struct you *d_you UNUSED)
 {
 }
 #endif  /* SFCTOOL */
