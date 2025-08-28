@@ -382,9 +382,20 @@ sf_log(NHFILE *nhfp, const char *t1, size_t sz, int cnt, char *txtvalue)
 
     if (fp && dolog) {
         iocount = ((nhfp->mode & WRITING) == 0) ? &nhfp->rcount : &nhfp->wcount;
-        (void) fprintf(fp, "%08ld %s sz=%zu cnt=%d |%s|\n",
-                      *iocount,
-                       t1, sz, cnt, txtvalue);
+        (void) fprintf(fp,
+#ifndef VMS
+                       "%08ld %s sz=%zu cnt=%d |%s|\n",
+#else
+                       "%08ld %s sz=%lu cnt=%d |%s|\n",
+#endif
+                       *iocount,
+                       t1,
+#ifndef VMS
+                       sz,
+#else
+                       (unsigned long) sz,
+#endif
+                       cnt, txtvalue);
 //        (*iocount)++;
 //        if (*iocount == 87)
 //            __debugbreak();
