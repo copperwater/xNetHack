@@ -1108,10 +1108,10 @@ static void generate_c_files(void)
 
     /* begin sfnormptrs.tmp */
     Fprintf(SF_NORMALIZE_POINTERS,
-            "void normalize_pointers_any(union any *d_any);\n\n");
+            "void norm_ptrs_any(union any *d_any);\n\n");
     Fprintf(SF_NORMALIZE_POINTERS,
             "void\n"
-            "normalize_pointers_any(union any *d_any UNUSED)\n"
+            "norm_ptrs_any(union any *d_any UNUSED)\n"
             "{\n"
             "}\n");
 
@@ -1225,11 +1225,11 @@ static void generate_c_files(void)
 
 
         Fprintf(SF_NORMALIZE_POINTERS,
-                "\nvoid normalize_pointers_%s(%s "
+                "\nvoid norm_ptrs_%s(%s "
                 "*d_%s);\n",
                 readtagstypes[k].dtype, sfparent, readtagstypes[k].dtype);
         Fprintf(SF_NORMALIZE_POINTERS,
-                "\nvoid\nnormalize_pointers_%s(%s "
+                "\nvoid\nnorm_ptrs_%s(%s "
                 "*d_%s)\n{\n",
                 readtagstypes[k].dtype, sfparent, readtagstypes[k].dtype);
         Snprintf(norm_param_buf, sizeof norm_param_buf, "d_%s",
