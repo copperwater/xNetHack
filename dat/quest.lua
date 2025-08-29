@@ -549,6 +549,7 @@ it to %l for analysis.]],
       guardtalk_before = {
          "\"Did you see Lash LaRue in 'Song of Old Wyoming' the other night?\"",
          "\"Hey, got any potions of hallucination for sale?\"",
+         "\"Hey, got any potions of object detection for sale?\"",
          "\"Did you see the bracelet %l brought back from the last dig?\"",
          "\"So what species do *you* think we evolved from?\"",
          "\"So you're %ls prize pupil!  I don't know what he sees in you.\"",
