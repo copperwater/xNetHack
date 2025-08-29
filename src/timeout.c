@@ -1,4 +1,4 @@
-/* NetHack 3.7	timeout.c	$NHDT-Date: 1727251273 2024/09/25 08:01:13 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.193 $ */
+/* NetHack 3.7	timeout.c	$NHDT-Date: 1756531249 2025/08/29 21:20:49 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.205 $ */
 /* Copyright (c) Stichting Mathematisch Centrum, Amsterdam, 1985. */
 /*-Copyright (c) Robert Patrick Rankin, 2018. */
 /* NetHack may be freely redistributed.  See license for details. */
@@ -2179,7 +2179,13 @@ timer_sanity_check(void)
                    the analyzer isn't aware that isok() filters such things */
                 assert(x > 0 && x < COLNO && y >= 0 && y < ROWNO);
 
-                if (curr->func_index == MELT_ICE_AWAY && !is_ice(x, y))
+                if (curr->func_index == MELT_ICE_AWAY && !is_ice(x, y)
+                    /* the terrain under the span of an open drawbridge might
+                       be frozen moat; is_ice() only checks for that when
+                       the drawbridge is closed (and terrain here would be
+                       DRAWBRIGE_UP) */
+                    && !(levl[x][y].typ == DRAWBRIDGE_DOWN
+                         && (levl[x][y].drawbridgemask & DB_UNDER) == DB_ICE))
                     impossible(
                          "timer sanity: melt timer %lu on non-ice %d <%d,%d>",
                                t_id, levl[x][y].typ, x, y);
