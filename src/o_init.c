@@ -1,4 +1,4 @@
-/* NetHack 3.7	o_init.c	$NHDT-Date: 1720391455 2024/07/07 22:30:55 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.87 $ */
+/* NetHack 3.7	o_init.c	$NHDT-Date: 1756520041 2025/08/29 18:14:01 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.96 $ */
 /* Copyright (c) Stichting Mathematisch Centrum, Amsterdam, 1985. */
 /*-Copyright (c) Robert Patrick Rankin, 2011. */
 /* NetHack may be freely redistributed.  See license for details. */
@@ -692,9 +692,10 @@ disco_append_typename(char *buf, int dis)
 
 /* sort and output sorted_lines to window and free the lines */
 staticfn void
-disco_output_sorted(winid tmpwin,
-                    char **sorted_lines, int sorted_ct,
-                    boolean lootsort)
+disco_output_sorted(
+    winid tmpwin,
+    char **sorted_lines, int sorted_ct,
+    boolean lootsort)
 {
     char *p;
     int j;
@@ -702,6 +703,7 @@ disco_output_sorted(winid tmpwin,
     qsort(sorted_lines, sorted_ct, sizeof (char *), discovered_cmp);
     for (j = 0; j < sorted_ct; ++j) {
         p = sorted_lines[j];
+        assert(p != NULL); /* pacify static analyzer */
         if (lootsort) {
             p[6] = p[0]; /* '*' or ' ' */
             p += 6;
