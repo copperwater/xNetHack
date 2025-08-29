@@ -36,9 +36,12 @@ changes:
 - The spell of restore ability has the same effects, except for curing illness.
 - Monsters hit by a potion of restore ability get cured of any blindness,
   confusion, or stunning, instead of being healed to full HP.
+- If the hero is hit with cancellation, they lose all their magic energy.
 
 ### Interface changes
 
+- There is a visual effect associated with the monster (or the hero) being
+  hit with cancellation.
 
 ### Architectural changes
 

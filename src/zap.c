@@ -3242,6 +3242,12 @@ cancel_monst(struct monst *mdef, struct obj *obj, boolean youattack,
 
     /* now handle special cases */
     if (youdefend) {
+        if (!Blind)
+            pline("Dull sparkles flicker around you.");
+        /* since there is not (yet) a Cancelled status for heroes, at least
+         * temporarily limit their ability to use magical attacks... */
+        u.uen = 0;
+
         if (Upolyd) { /* includes lycanthrope in creature form */
             /*
              * Return to normal form unless Unchanging.
@@ -3267,6 +3273,8 @@ cancel_monst(struct monst *mdef, struct obj *obj, boolean youattack,
             }
         }
     } else {
+        if (canseemon(mdef))
+            pline("Dull sparkles flicker around %s.", mon_nam(mdef));
         mdef->mcan = 1;
         /* force shapeshifter into its base form or mimic to unhide */
         normal_shape(mdef);
