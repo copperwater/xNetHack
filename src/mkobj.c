@@ -4212,12 +4212,12 @@ init_thiefstone(struct obj *stone)
 /* Object material probabilities. */
 /* for objects which are normally iron or metal */
 static const struct icp metal_materials[] = {
-    {74, 0}, /* default to base type, iron or metal */
-    { 5, IRON},
-    { 5, WOOD},
-    { 5, SILVER},
-    { 3, COPPER},
-    { 3, MITHRIL},
+    {75, 0}, /* default to base type, iron or metal */
+    { 6, IRON},
+    { 6, WOOD},
+    { 5, COPPER},
+    { 2, SILVER},
+    { 1, MITHRIL},
     { 1, GOLD},
     { 1, BONE},
     { 1, GLASS},
