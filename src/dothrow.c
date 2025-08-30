@@ -2444,21 +2444,6 @@ gem_accept(struct monst *mon, struct obj *obj)
             goto nopick;
         }
 
-    /* making guesses */
-    } else if (has_oname(obj) || objects[obj->otyp].oc_uname) {
-        if (is_gem) {
-            if (is_buddy) {
-                Strcat(buf, addluck);
-                change_luck(2);
-            } else {
-                Strcat(buf, maybeluck);
-                change_luck(rn2(3) - 1);
-            }
-        } else {
-            Strcat(buf, nogood);
-            goto nopick;
-        }
-
     /* value completely unknown to @ */
     } else {
         if (is_gem) {

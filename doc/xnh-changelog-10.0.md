@@ -37,6 +37,9 @@ changes:
 - Monsters hit by a potion of restore ability get cured of any blindness,
   confusion, or stunning, instead of being healed to full HP.
 - If the hero is hit with cancellation, they lose all their magic energy.
+- Throwing gems that are type-named but not fully identified at a coaligned
+  unicorn no longer gives +2 luck; they are treated the same as non-type-named
+  gems, giving +1 luck.
 
 ### Interface changes
 
