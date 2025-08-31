@@ -1416,7 +1416,7 @@ hit_bars(
         }
     } else {
         if (!Deaf) {
-            static enum sound_effect_entries se[] SOUNDLIBONLY = {
+            static enum sound_effect_entries se[] = {
                 se_zero_invalid,
                 se_bars_whang, se_bars_whap, se_bars_flapp,
                 se_bars_clink, se_bars_clonk
@@ -1436,6 +1436,7 @@ hit_bars(
 
             Soundeffect(se[bsindx], 100);
             pline("%s!", barsounds[bsindx]);
+            nhUse(se[bsindx]);
         }
         if (!(harmless_missile(otmp) || is_flimsy(otmp)))
             noise = 4 * 4;
