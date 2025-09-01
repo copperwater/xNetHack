@@ -1558,7 +1558,7 @@ hmon_hitmon_pet(
     struct obj *obj UNUSED)
 {
     if (mon->mtame && hmd->dmg > 0) {
-        /* do this even if the pet is being killed (affects revival) */
+        /* do this even if the pet is being killed or migrating (affects revival) */
         abuse_dog(mon); /* reduces tameness */
         /* flee if still alive and still tame; if already suffering from
            untimed fleeing, no effect, otherwise increases timed fleeing */
@@ -1576,7 +1576,7 @@ hmon_hitmon_splitmon(
     if ((hmd->mdat == &mons[PM_BLACK_PUDDING]
          || hmd->mdat == &mons[PM_BROWN_PUDDING])
         /* pudding is alive and healthy enough to split */
-        && mon->mhp > 1 && !mon->mcan
+        && mon->mhp > 1 && !mon->mcan && !hmd->offmap
         /* iron weapon using melee or polearm hit [3.6.1: metal weapon too;
            also allow either or both weapons to cause split when twoweap] */
         && obj && (obj == uwep || (u.twoweap && obj == uswapwep))
@@ -1790,20 +1790,6 @@ hmon_hitmon(
 
     if (hmd.jousting) {
         hmon_hitmon_jousting(&hmd, mon, obj);
-        /*
-         * FIXME:
-         * If jousting occurred above, it can lead to:
-         *     mhurtle_to_doom()
-         *      mhurtle()
-         *       mintrap()
-         *        trapeffect_hole()
-         *         trapeffect_level_telep()
-         *          migrate_to_level()
-         * which results in mon->mx being set to 0, and that
-         * can lead to an impossible() in clone_mon() trying
-         * to create a monster at <0,0> when the monster is
-         * a black pudding and hmon_hitmon_splitmon() gets called
-         * below */
     } else if (hmd.unarmed && hmd.dmg > 1 && !thrown && !obj && !Upolyd) {
         hmon_hitmon_stagger(&hmd, mon, obj);
     } else if (!hmd.unarmed && hmd.dmg > 1 && !thrown && !Upolyd
@@ -1828,6 +1814,18 @@ hmon_hitmon(
        a level draining artifact has already done to max HP */
     if (mon->mhp > mon->mhpmax)
         mon->mhp = mon->mhpmax;
+    if (mon->mx == 0) {
+        /*
+         * jousting can lead to:
+         *     mhurtle_to_doom()
+         *      mhurtle()
+         *       mintrap()
+         *        trapeffect_hole()
+         *         trapeffect_level_telep()
+         *          migrate_to_level()
+         * Set offmap in that situation so code to follow can test for it.*/
+        hmd.offmap = TRUE;
+    }
     if (DEADMONSTER(mon))
         hmd.destroyed = TRUE;
 
@@ -1888,7 +1886,7 @@ hmon_hitmon(
         Your("%s %s no longer poisoned.", hmd.saved_oname,
              vtense(hmd.saved_oname, "are"));
 
-    if (!hmd.destroyed) {
+    if (!hmd.destroyed && !hmd.offmap) {
         int hitflags = M_ATTK_HIT;
 
         wakeup(mon, TRUE);
