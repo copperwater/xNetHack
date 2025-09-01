@@ -2072,6 +2072,11 @@ joust(struct monst *mon, /* target */
     /* sanity check; lance must be wielded in order to joust */
     if (obj != uwep && (obj != uswapwep || !u.twoweap))
         return 0;
+    /* can't joust while trapped--not enough room to maneuver;
+     * TODO? if the steed is trapped in a pit, perhaps the hero ought to be
+     * able to joust against a monster that's in a conjoined pit */
+    if (u.utrap)
+        return 0;
 
     /* if using two weapons, use worse of lance and two-weapon skills */
     skill_rating = P_SKILL(weapon_type(obj)); /* lance skill */
