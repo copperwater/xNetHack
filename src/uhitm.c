@@ -1799,9 +1799,11 @@ hmon_hitmon(
          *        trapeffect_hole()
          *         trapeffect_level_telep()
          *          migrate_to_level()
-         * which results in mon-mx being set to 0, and that
+         * which results in mon->mx being set to 0, and that
          * can lead to an impossible() in clone_mon() trying
-         * to create a monster at <0,0> */
+         * to create a monster at <0,0> when the monster is
+         * a black pudding and hmon_hitmon_splitmon() gets called
+         * below */
     } else if (hmd.unarmed && hmd.dmg > 1 && !thrown && !obj && !Upolyd) {
         hmon_hitmon_stagger(&hmd, mon, obj);
     } else if (!hmd.unarmed && hmd.dmg > 1 && !thrown && !Upolyd
