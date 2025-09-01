@@ -1790,6 +1790,18 @@ hmon_hitmon(
 
     if (hmd.jousting) {
         hmon_hitmon_jousting(&hmd, mon, obj);
+        /*
+         * FIXME:
+         * If jousting occurred above, it can lead to:
+         *     mhurtle_to_doom()
+         *      mhurtle()
+         *       mintrap()
+         *        trapeffect_hole()
+         *         trapeffect_level_telep()
+         *          migrate_to_level()
+         * which results in mon-mx being set to 0, and that
+         * can lead to an impossible() in clone_mon() trying
+         * to create a monster at <0,0> */
     } else if (hmd.unarmed && hmd.dmg > 1 && !thrown && !obj && !Upolyd) {
         hmon_hitmon_stagger(&hmd, mon, obj);
     } else if (!hmd.unarmed && hmd.dmg > 1 && !thrown && !Upolyd
