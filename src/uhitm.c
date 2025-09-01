@@ -1752,6 +1752,7 @@ hmon_hitmon(
     hmd.needpoismsg = FALSE;
     hmd.poiskilled = FALSE;
     hmd.already_killed = FALSE;
+    hmd.offmap = FALSE;
     hmd.destroyed = FALSE;
     hmd.dryit = FALSE;
     hmd.doreturn = FALSE;
