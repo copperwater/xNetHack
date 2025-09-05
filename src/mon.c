@@ -4647,6 +4647,13 @@ restrap(struct monst *mtmp)
         return FALSE;
 
     if (mtmp->data->mlet == S_MIMIC) {
+        if (mtmp->msleeping || mtmp->mfrozen) {
+        /*
+         * The mimic needs to be awake to disguise itself
+         * as something else.
+         */
+            return FALSE;
+        }
         set_mimic_sym(mtmp);
         return TRUE;
     } else if (levl[mtmp->mx][mtmp->my].typ == ROOM) {

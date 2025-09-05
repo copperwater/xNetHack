@@ -2920,6 +2920,8 @@ extern void globby_bill_fixup(struct obj *, struct obj *) NONNULLARG12;
 extern void credit_report(struct monst *shkp, int idx,
                           boolean silent) NONNULLARG1;
 extern void use_unpaid_trapobj(struct obj *, coordxy, coordxy) NONNULLARG1;
+extern void noisy_shop(struct mkroom *);
+
 
 /* ### shknam.c ### */
 

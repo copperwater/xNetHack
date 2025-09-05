@@ -1063,6 +1063,16 @@ tended_shop(struct mkroom *sroom)
     return !mtmp ? FALSE : (boolean) inhishop(mtmp);
 }
 
+void
+noisy_shop(struct mkroom *sroom)
+{
+    struct monst *mtmp = sroom->resident;
+
+    if (mtmp && inhishop(mtmp)) {
+        wake_nearto(mtmp->mx, mtmp->my, 11 * 11);
+    }
+}
+
 staticfn struct bill_x *
 onbill(struct obj *obj, struct monst *shkp, boolean silent)
 {

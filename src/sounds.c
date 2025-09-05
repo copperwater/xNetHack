@@ -323,6 +323,7 @@ dosounds(void)
                 "the chime of a cash register.", "Neiman and Marcus arguing!",
             };
             You_hear1(shop_msg[rn2(2) + hallu]);
+            noisy_shop(sroom);
         }
         return;
     }
