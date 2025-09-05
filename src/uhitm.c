@@ -6267,6 +6267,13 @@ mimic_disguised_as_non_mon(struct monst *mtmp)
             && M_AP_TYPE(mtmp) != M_AP_MONSTER);
 }
 
+boolean
+mimic_disguised_as_mon(struct monst *mtmp)
+{
+    return (M_AP_TYPE(mtmp)
+            && M_AP_TYPE(mtmp) == M_AP_MONSTER);
+}
+
 staticfn void
 nohandglow(struct monst *mon)
 {

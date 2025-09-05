@@ -192,7 +192,7 @@ bhitm(struct monst *mtmp, struct obj *otmp)
         reveal_invis = TRUE;
         learn_it = cansee(gb.bhitpos.x, gb.bhitpos.y);
         if (resists_magm(mtmp)) { /* match effect on player */
-            if (mimic_disguised_as_non_mon(mtmp))
+            if (!mimic_disguised_as_mon(mtmp))
                 seemimic(mtmp);
             shieldeff(mtmp->mx, mtmp->my);
             pline("Boing!");
