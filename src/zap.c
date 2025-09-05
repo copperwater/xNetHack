@@ -4692,13 +4692,13 @@ disintegrate_mon(
 void
 ubuzz(int type, int nd)
 {
-    dobuzz(type, nd, u.ux, u.uy, u.dx, u.dy, TRUE);
+    dobuzz(type, nd, u.ux, u.uy, u.dx, u.dy, TRUE, FALSE);
 }
 
 void
 buzz(int type, int nd, coordxy sx, coordxy sy, int dx, int dy)
 {
-    dobuzz(type, nd, sx, sy, dx, dy, TRUE);
+    dobuzz(type, nd, sx, sy, dx, dy, TRUE, FALSE);
 }
 
 /*
@@ -4716,7 +4716,7 @@ dobuzz(
     int nd,                 /* damage strength ('number of dice') */
     coordxy sx, coordxy sy, /* starting point */
     int dx, int dy,         /* direction delta */
-    boolean say)    /* announce out of sight hit/miss events if true */
+    boolean sayhit, boolean saymiss)    /* announce out of sight hit/miss events if true */
 {
     int range, fltyp = zaptype(type), damgtype = fltyp % 10;
     coordxy lsx, lsy;
@@ -4865,7 +4865,7 @@ dobuzz(
                     } else {
                         if (!otmp) {
                             /* normal non-fatal hit */
-                            if (say || canseemon(mon))
+                            if (sayhit || canseemon(mon))
                                 hit(flash_str(fltyp, FALSE), mon, exclam(tmp));
                         } else {
                             /* some armor was destroyed; no damage done */
@@ -4883,7 +4883,8 @@ dobuzz(
                 }
                 range -= 2;
             } else {
-                if (say || canseemon(mon))
+                if (saymiss
+                    || (canseemon(mon) && !mimic_disguised_as_non_mon(mon)))
                     miss(flash_str(fltyp, FALSE), mon);
             }
         } else if (u_at(sx, sy) && range >= 0) {

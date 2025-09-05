@@ -6259,6 +6259,14 @@ stumble_onto_mimic(struct monst *mtmp)
         map_invisible(mtmp->mx, mtmp->my);
 }
 
+boolean
+mimic_disguised_as_non_mon(struct monst *mtmp)
+{
+    return (!sensemon(mtmp)
+            && M_AP_TYPE(mtmp)
+            && M_AP_TYPE(mtmp) != M_AP_MONSTER);
+}
+
 staticfn void
 nohandglow(struct monst *mon)
 {
