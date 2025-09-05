@@ -192,7 +192,7 @@ bhitm(struct monst *mtmp, struct obj *otmp)
         reveal_invis = TRUE;
         learn_it = cansee(gb.bhitpos.x, gb.bhitpos.y);
         if (resists_magm(mtmp)) { /* match effect on player */
-            if (disguised_mimic && !mimic_disguised_as_mon(mtmp))
+            if (disguised_mimic && !disguised_as_mon(mtmp))
                 seemimic(mtmp);
             shieldeff(mtmp->mx, mtmp->my);
             pline("Boing!");
@@ -4887,7 +4887,7 @@ dobuzz(
                 range -= 2;
             } else {
                 if (saymiss
-                    || (canseemon(mon) && !mimic_disguised_as_non_mon(mon)))
+                    || (canseemon(mon) && !disguised_as_non_mon(mon)))
                     miss(flash_str(fltyp, FALSE), mon);
             }
         } else if (u_at(sx, sy) && range >= 0) {

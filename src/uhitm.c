@@ -6260,7 +6260,7 @@ stumble_onto_mimic(struct monst *mtmp)
 }
 
 boolean
-mimic_disguised_as_non_mon(struct monst *mtmp)
+disguised_as_non_mon(struct monst *mtmp)
 {
     return (!sensemon(mtmp)
             && M_AP_TYPE(mtmp)
@@ -6268,7 +6268,7 @@ mimic_disguised_as_non_mon(struct monst *mtmp)
 }
 
 boolean
-mimic_disguised_as_mon(struct monst *mtmp)
+disguised_as_mon(struct monst *mtmp)
 {
     return (M_AP_TYPE(mtmp)
             && M_AP_TYPE(mtmp) == M_AP_MONSTER);
