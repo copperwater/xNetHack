@@ -418,6 +418,7 @@ sys/unix/hints/include:
 compiler.370       cross-post.370     cross-pre1.370     cross-pre2.370
 gbdates-post.370   gbdates-pre.370    misc.370           multisnd-post.370
 multisnd1-pre.370  multisnd2-pre.370  multiw-1.370       multiw-2.370
+response.370
 
 sys/vms:
 (files for VMS version)
