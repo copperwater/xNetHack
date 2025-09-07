@@ -16,6 +16,7 @@ nethack
 tiles.bmp
 *.moc
 *.lnk
+*.rsp
 graphicschk
 nhdat
 o

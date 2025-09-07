@@ -461,6 +461,9 @@ SYSCONFENSURE = (if ! test -f $(INSTDIR)/sysconf ; then \
 #
 #-INCLUDE multisnd2-pre.370
 #
+#
+#-INCLUDE response.370
+#
 
 ifdef MAKEFILE_TOP
 .PHONY: bundle

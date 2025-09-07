@@ -448,6 +448,10 @@ MANDIR=/usr/share/man/man6
 #-INCLUDE multisnd2-pre.370
 #
 
+#
+#-INCLUDE response.370
+#
+
 #-POST
 
 #

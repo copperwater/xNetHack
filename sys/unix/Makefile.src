@@ -198,7 +198,7 @@ ARFLAGS = rcs
 # The Qt and Be window systems are written in C++, while the rest of
 # NetHack is standard C.  If using Qt, uncomment the LINK line here to get
 # the C++ libraries linked in.
-CXXFLAGS = $(CCXXFLAGS) -I. -I$(QTDIR)/include $(QTCXXFLAGS)
+CXXFLAGS ?= $(CCXXFLAGS) -I. -I$(QTDIR)/include $(QTCXXFLAGS)
 CXX ?= g++
 MOC ?= moc
 MOCPATH ?= $(QTDIR)/bin/$(MOC)
@@ -642,7 +642,11 @@ DATE_O = $(TARGETPFX)date.o
 all:	$(GAME)
 	@echo ""
 
-pregame:
+create_responsefiles:
+	echo $(CC_COMPILER_SWITCHES) >$(CC_RESPONSEFILE)
+	echo $(CXX_COMPILER_SWITCHES) >$(CXX_RESPONSEFILE)
+
+pregame: $(RESPONSEFILES)
 	$(PREGAME)
 
 $(GAME):	pregame $(MAKEDEFS) $(LUALIB) $(WAVS) $(SYSTEM)
@@ -808,6 +812,7 @@ clean:
 	-rm -f *.o $(HACK_H) $(CONFIG_H)
 	-rm -f monstr.c vis_tab.c ../include/vis_tab.h #obsolete generated files
 	true; $(CLEANMORE)
+	true; $(CLEAN_CC_RESPONSEFILE) $(CLEAN_CXX_RESPONSEFILE)
 
 spotless: clean
 	-rm -f a.out core $(HACKLIB) $(GAMEBIN) Sys* 
