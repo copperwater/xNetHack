@@ -242,6 +242,13 @@ fopen_config_file(const char *filename, int src)
     if (filename && *filename) {
         set_configfile_name(filename);
 #ifdef UNIX
+        if (!strncmp(configfile, "~/", 2) && (envp = nh_getenv("HOME")) != 0) {
+            /* support for command line '--nethackrc=~/path' (or for
+               NETHACKOPTIONS='@~/path'; we don't support ~user/path) */
+            Snprintf(tmp_config, sizeof tmp_config, "%s/%s",
+                     envp, configfile + 2); /* insert $HOME/ and remove ~/ */
+            set_configfile_name(tmp_config);
+        }
         if (access(configfile, 4) == -1) { /* 4 is R_OK on newer systems */
             /* nasty sneaky attempt to read file through
              * NetHack's setuid permissions -- this is the only
