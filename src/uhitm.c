@@ -4008,7 +4008,8 @@ mhitm_ad_phys(
             if (mattk->aatyp == AT_WEAP && otmp) {
                 struct obj *marmg;
                 int tmp;
-                boolean was_poisoned = (otmp->opoisoned || permapoisoned(otmp));
+                boolean was_poisoned = (otmp->opoisoned
+                                        || permapoisoned(otmp));
 
                 if (otmp->otyp == CORPSE
                     && touch_petrifies(&mons[otmp->corpsenm])) {
@@ -4051,6 +4052,9 @@ mhitm_ad_phys(
                     tmp -= rnd(-u.uac);
                 if (tmp < 1)
                     tmp = 1;
+                if (Half_physical_damage)
+                    tmp = (tmp + 1) / 2;
+
                 if (u.mh - tmp > 1
                     && (objects[otmp->otyp].oc_material == IRON
                         /* relevant 'metal' objects are scalpel and tsurugi */
@@ -4071,13 +4075,13 @@ mhitm_ad_phys(
                     char buf[BUFSZ];
 
                     /* similar to mhitm_really_poison, but we don't use the
-                     * exact same values, nor do we want the same 1/8 chance of
-                     * the poison taking (use 1/4, same as in the mhitm case). */
+                     * exact same values, nor do we want same 1/8 chance of
+                     * poison taking (use 1/4, same as in the mhitm case). */
                     Sprintf(buf, "%s %s", s_suffix(Monnam(magr)),
                             mpoisons_subj(magr, mattk));
                     /* arbitrary, but most poison sources in the game are
                      * strength-based. With hpdamchance = 10, HP damage occurs
-                     * 1/2 of the time and it will hit Str the rest of the time.
+                     * 1/2 of the time and it will hit Str rest of the time.
                      * (This is the same as poisoned ammo.) */
                     poisoned(buf, A_STR, pmname(magr->data, Mgender(magr)),
                              10, FALSE);

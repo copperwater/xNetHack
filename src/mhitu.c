@@ -1199,7 +1199,8 @@ hitmu(struct monst *mtmp, struct attack *mattk)
             mhm.damage = 1;
     }
 
-    if (mhm.damage) {
+    if (mhm.damage > 0) {
+        /* [Half_physical_damage isn't applied to mhm.permdmg] */
         if (Half_physical_damage
             /* Mitre of Holiness, even if not currently blessed */
             || (Role_if(PM_CLERIC) && uarmh && is_quest_artifact(uarmh)

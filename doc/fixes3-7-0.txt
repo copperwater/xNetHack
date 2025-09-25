@@ -2132,6 +2132,7 @@ don't try to split a pudding that got jousted into a hole and is off the map
 mounted hero was able to deliver joust hits when trapped
 timer sanity check for melting ice gave false complaint about non-ice for
 	frozen moat under open drawbridge
+mhitm_ad_phys() was not applying Half_physical_damage when hero was target
 
 
 Fixes to 3.7.0-x Platform and/or Interface Problems Exposed Via git Repository
