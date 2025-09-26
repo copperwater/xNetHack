@@ -8,7 +8,6 @@
 #       MS Visual Studio Visual C++ compiler
 #
 #       Visual Studio Compilers Tested:
-#            - Microsoft Visual Studio 2019 Community Edition v 16.11.42
 #            - Microsoft Visual Studio 2022 Community Edition v 17.14.15
 #
 #==============================================================================
@@ -1178,15 +1177,14 @@ rc=Rc.exe
 # is too old or untested.
 #
 # Recently tested versions:
-TESTEDVS2019 = 14.29.30157.0
 TESTEDVS2022 = 14.44.35217.0
+# Other versions:
+TESTEDVS2026 = 14.50.35503.0
 
-VS2019CUR = $(TESTEDVS2019:.=)
-VS2022CUR = $(TESTEDVS2022:.=)
-VS2019UP1 = $(VS2019CUR) + 1
-VS2022UP1 = $(VS2022CUR) + 1
-VS20191ST = 1419300000
-VS20221ST = $(VS2019UP1)
+VS20261ST = 1450000000
+VS2026CUR = $(TESTEDVS2026:.=)
+VS2026DN1 = $(VS20261ST) - 1
+VS2026UP1 = $(VS2026CUR) + 1
 
 #!MESSAGE $(MAKEFLAGS)
 #!MESSAGE $(MAKEDIR)
@@ -1198,28 +1196,25 @@ MAKEVERSION=$(MAKEVERSION: =)
 #!MESSAGE $(MAKEVERSION)
 
 VSSPECIAL=
-VSNEWEST=2022
+VSNEWEST=2026
 !IF ($(MAKEVERSION) < 1411000000)
 VSVER=0000		#untested ancient version
-!ELSEIF ($(MAKEVERSION) < $(VS20191ST))
-VSVER=2017
-!ELSEIF ($(MAKEVERSION) > $(VS20191ST)) && ($(MAKEVERSION) < $(VS2019UP1))
-VSVER=2019
-!ELSEIF ($(MAKEVERSION) > $(VS20221ST)) && ($(MAKEVERSION) < $(VS2022UP1))
+!ELSEIF ($(MAKEVERSION) < $(VS20261ST))
 VSVER=2022
-!ELSEIF ($(MAKEVERSION) > $(VS2022CUR))
+!ELSEIF ($(MAKEVERSION) > $(VS20261ST)) && ($(MAKEVERSION) < $(VS2026UP1))
+VSVER=2026
+!ELSEIF ($(MAKEVERSION) > $(VS2026CUR))
 VSVER=2999              #untested future version
 !ENDIF
 
-!IF ($(VSVER) >= 2012)
 !IF ($(VSVER) <= $(VSNEWEST))
-!IF ($(VSVER) == 2017)
-!MESSAGE Autodetected Visual Studio $(VSVER) which we stopped testing with in March 2024
+!IF ($(MAKEVERSION) < $(VS20261ST))
+!MESSAGE Autodetected Visual Studio $(VSVER) or earlier
 !ELSE
 !MESSAGE Autodetected Visual Studio $(VSVER) $(VSSPECIAL)
 !ENDIF
 !ENDIF
-!ENDIF
+
 !IF ($(VSVER) == 2999)
 !MESSAGE The NMAKE version of this Visual Studio $(_NMAKE_VER) is newer than the
 !MESSAGE most recent at the time this Makefile was crafted (Visual Studio $(VSNEWEST)).
@@ -1227,23 +1222,9 @@ VSVER=2999              #untested future version
 !MESSAGE will still work.
 !ELSEIF ($(VSVER) == 0000)
 !MESSAGE The version of Visual Studio appears to be quite old, older
-!MESSAGE than VS2010 which is the oldest supported version by this
+!MESSAGE than VS2010 which is the oldest version confirmed to work with this
 !MESSAGE Makefile, so we'll stop now.
 !ERROR Untested old Visual Studio version with NMAKE $(_NMAKE_VER).
-!ENDIF
-
-!IF ($(VSVER) == 2010)
-# For VS2010 use "setenv /x86" or "setenv /x64" before invoking make process
-# DO NOT DELETE THE FOLLOWING LINE
-!include <win32.mak>
-! ENDIF
-
-!IF ($(VSVER) == 2010)
-CL_RECENT=
-!ELSE
-! IF ($(VSVER) > 2010)
-CL_RECENT=-sdl
-! ENDIF
 !ENDIF
 
 !IF ($(VSVER) >= 2019) && ("$(WANT_ASAN)"=="Y")
