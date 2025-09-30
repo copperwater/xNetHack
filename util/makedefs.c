@@ -152,7 +152,6 @@ void do_oracles(void);
 void do_date(void);
 void do_dungeon(void);
 void do_options(void);
-void do_monstr(void);
 void do_objs(void);
 void do_permonst(void);
 void do_questtxt(void);
