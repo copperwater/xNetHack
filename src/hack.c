@@ -4327,9 +4327,10 @@ dump_weights(void)
 {
     int i, cnt = 0, nmwidth = 49, mcount = NUMMONS, ocount = NUM_OBJECTS;
     char nmbuf[BUFSZ], nmbufbase[BUFSZ];
+    size_t num_entries = (size_t) (mcount + ocount);
 
     weightlist = (struct weight_table_entry *)
-                alloc(sizeof (struct weight_table_entry) * (mcount + ocount));
+                alloc(sizeof (struct weight_table_entry) * num_entries);
     decl_globals_init();
     init_objects();
     for (i = 0; i < mcount; ++i) {
