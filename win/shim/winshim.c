@@ -191,7 +191,7 @@ win_request_info *
 shim_ctrl_nhwindow(
     winid window UNUSED,
     int request UNUSED,
-    win_request_info *wri) {
+    win_request_info *wri UNUSED) {
     return (win_request_info *) 0;
 }
 #else /* !__EMSCRIPTEN__ */
