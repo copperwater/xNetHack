@@ -4015,7 +4015,7 @@ Example:
 %.sd
 \begin{verbatim}
    # replace small punctuation (tick marks) with digits
-   SYMBOLS=S_boulder:0,S_golem:7
+   SYMBOLS=S_golem:7
 \end{verbatim}
 %.ed
 
@@ -4051,7 +4051,8 @@ Here is an example of configuration file contents:
     OPTIONS=lit_corridor    # Show lit corridors differently
     OPTIONS=hilite_pet,hilite_pile
     # Replace small punctuation (tick marks) with digits
-    SYMBOLS=S_boulder:0,S_golem:7
+    OPTIONS=boulder:0
+    SYMBOLS=S_golem:7
 
     # No startup splash screen. Windows GUI only.
     OPTIONS=!splash_screen

@@ -3664,7 +3664,7 @@ See the \(lqModifying NetHack Symbols\(rq section.
 Example:
 .sd
 \f(CR# replace small punctuation (tick marks) with digits\fP
-\f(CRSYMBOLS=S_boulder:0,S_golem:7\fP
+\f(CRSYMBOLS=S_golem:7\fP
 .ed
 .lp WIZKIT
 Debug mode only:  extra items to add to initial inventory.
@@ -3699,7 +3699,8 @@ OPTIONS=color           # Display things in color if possible
 OPTIONS=lit_corridor    # Show lit corridors differently
 OPTIONS=hilite_pet,hilite_pile
 # Replace small punctuation (tick marks) with digits
-SYMBOLS=S_boulder:0,S_golem:7
+OPTIONS=boulder:0
+SYMBOLS=S_golem:7
 #
 # No startup splash screen. Windows GUI only.
 OPTIONS=!splash_screen
