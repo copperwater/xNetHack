@@ -568,14 +568,21 @@ apply_customizations(
             }
         }
     }
-    if (at_least_one) {
-        shuffle_customizations();
-    }
+    iflags.pending_customizations = at_least_one;
 }
 
 /* Shuffle the customizations to match shuffled object descriptions,
  * so a red potion isn't displayed with a blue customization, and so on.
  */
+
+void
+maybe_shuffle_customizations(void)
+{
+    if (iflags.pending_customizations) {
+        shuffle_customizations();
+        iflags.pending_customizations = 0;
+    }
+}
 
 #if 0
 staticfn void

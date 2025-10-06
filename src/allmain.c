@@ -178,6 +178,8 @@ moveloop_core(void)
 #ifdef POSITIONBAR
     do_positionbar();
 #endif
+    if (iflags.pending_customizations)
+        maybe_shuffle_customizations();
 
     dobjsfree();
 
