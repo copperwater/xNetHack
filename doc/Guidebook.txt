@@ -4058,7 +4058,7 @@
        Example:
 
             # replace small punctuation (tick marks) with digits
-            SYMBOLS=S_boulder:0,S_golem:7
+            SYMBOLS=S_golem:7
 
      WIZKIT
        Debug mode only:  extra items to add to initial inventory.  Value is
@@ -4107,7 +4107,8 @@
      OPTIONS=lit_corridor    # Show lit corridors differently
      OPTIONS=hilite_pet,hilite_pile
      # Replace small punctuation (tick marks) with digits
-     SYMBOLS=S_boulder:0,S_golem:7
+     OPTIONS=boulder:0
+     SYMBOLS=S_golem:7
      #
      # No startup splash screen. Windows GUI only.
      OPTIONS=!splash_screen
@@ -4149,7 +4150,6 @@
      be set to the full name of a configuration file you want to  use.   If
      that  full  name  doesn't start with a slash, precede it with `@' (at-
      sign) to let NetHack know that the rest is intended as  a  file  name.
-     If it does start with `/', the at-sign is optional.
 
 
      NetHack 3.7.0                                              May 1, 2025
@@ -4161,6 +4161,8 @@
      NetHack Guidebook                                                   64
 
 
+
+     If it does start with `/', the at-sign is optional.
 
      9.4.  Customization options
 
@@ -4214,8 +4216,6 @@
 
      autoquiver
        This option controls what happens when you attempt  the  `f'  (fire)
-       command  when  nothing is quivered or readied (default false).  When
-       true, the computer will fill your quiver  or  quiver  sack  or  make
 
 
      NetHack 3.7.0                                              May 1, 2025
@@ -4228,6 +4228,8 @@
 
 
 
+       command  when  nothing is quivered or readied (default false).  When
+       true, the computer will fill your quiver  or  quiver  sack  or  make
        ready some suitable weapon.  Note that it will not take into account
        the blessed/cursed status, enchantment, damage, or  quality  of  the
        weapon;  you are free to manually fill your quiver or quiver sack or
@@ -4280,8 +4282,6 @@
 
      catname
        Name  your  starting  cat (for example "catname:Morris").  Cannot be
-       set with the `O' command.
-
 
 
      NetHack 3.7.0                                              May 1, 2025
@@ -4293,6 +4293,8 @@
      NetHack Guidebook                                                   66
 
 
+
+       set with the `O' command.
 
      character
        Synonym for "role" to pick the type of your character  (for  example
@@ -4346,8 +4348,6 @@
        The  listings  of  vanquished monsters and of genocided types can be
        sorted, so there are two additional choices for `v' and `g':
 
-            ? - prompt you and default to ask on the prompt;
-            # - disclose it without prompting, ask for sort order.
 
 
      NetHack 3.7.0                                              May 1, 2025
@@ -4360,10 +4360,13 @@
 
 
 
-            Asking refers to picking one of the orderings from a menu.  The
-            `+'  disclose  without  prompting choice, or being prompted and
-            answering `y' rather than `a', will default to showing monsters
-            in the order specified by the sortvanquished option.
+            ? - prompt you and default to ask on the prompt;
+            # - disclose it without prompting, ask for sort order.
+
+       Asking refers to picking one of the orderings from a menu.  The  `+'
+       disclose  without  prompting choice, or being prompted and answering
+       `y' rather than `a', will default to showing monsters in  the  order
+       specified by the sortvanquished option.
 
        Omitted  categories are implicitly added with `n' prefix.  Specified
        categories with omitted prefix implicitly use `+' prefix.  Order  of
@@ -4411,9 +4414,6 @@
        on).   If  this  is off, dropping an object shifts all the remaining
        inventory letters.  Persistent.
 
-     force_invmenu
-       Commands asking for an inventory item show a menu instead of a  text
-       query with possible menu letters. Default is off.
 
 
      NetHack 3.7.0                                              May 1, 2025
@@ -4425,6 +4425,10 @@
      NetHack Guidebook                                                   68
 
 
+
+     force_invmenu
+       Commands asking for an inventory item show a menu instead of a  text
+       query with possible menu letters. Default is off.
 
      fruit
        Name   a  fruit  after  something  you  enjoy  eating  (for  example
@@ -4475,11 +4479,7 @@
        highlight  pets and setting it will turn the hilite_pet option on or
        off as warranted.
 
-     hilite_pile
-       Visually  distinguish  piles  of  objects  from  individual  objects
-       (default  off).   The behavior of this option depends on the type of
-       windowing you use.  In text windowing, text highlighting or  inverse
-       video  is  often  used; with tiles, generally displays a small plus-
+
 
 
      NetHack 3.7.0                                              May 1, 2025
@@ -4492,6 +4492,11 @@
 
 
 
+     hilite_pile
+       Visually  distinguish  piles  of  objects  from  individual  objects
+       (default  off).   The behavior of this option depends on the type of
+       windowing you use.  In text windowing, text highlighting or  inverse
+       video  is  often  used; with tiles, generally displays a small plus-
        symbol beside the object on the top of the pile.
 
      hitpointbar
@@ -4541,11 +4546,6 @@
      lootabc
        When using a menu to interact with a container,  use  the  old  `a',
        `b',  and `c' keyboard shortcuts rather than the mnemonics `o', `i',
-       and `b' (default off).  Persistent.
-
-     mail
-       Enable mail delivery during the game (default on).  Persistent.
-
 
 
      NetHack 3.7.0                                              May 1, 2025
@@ -4557,6 +4557,11 @@
      NetHack Guidebook                                                   70
 
 
+
+       and `b' (default off).  Persistent.
+
+     mail
+       Enable mail delivery during the game (default on).  Persistent.
 
      male
        An obsolete synonym for "gender:male".  Cannot be set with  the  `O'
@@ -4607,11 +4612,6 @@
      menu_first_page
        Key to jump to the first page in a menu.  Default `^'.
 
-     menu_headings
-       Controls how the headings in a menu are highlighted.  Takes  a  text
-       attribute,  or text color and attribute separated by ampersand.  For
-       allowed attributes and colors, see "Configuring Menu  Colors".   Not
-       all ports can actually display all types.
 
 
      NetHack 3.7.0                                              May 1, 2025
@@ -4623,6 +4623,12 @@
      NetHack Guidebook                                                   71
 
 
+
+     menu_headings
+       Controls how the headings in a menu are highlighted.  Takes  a  text
+       attribute,  or text color and attribute separated by ampersand.  For
+       allowed attributes and colors, see "Configuring Menu  Colors".   Not
+       all ports can actually display all types.
 
      menu_invert_all
        Key to invert all items in a menu.  Default `@'.
@@ -4672,12 +4678,6 @@
        Key  to  search for some text and toggle selection state of matching
        menu items.  Default `:'.
 
-     menu_select_all
-       Key to select all items in a menu.  Default `.'.
-
-     menu_select_page
-       Key to select all items on this page of a menu.  Default `,'.
-
 
 
      NetHack 3.7.0                                              May 1, 2025
@@ -4689,6 +4689,12 @@
      NetHack Guidebook                                                   72
 
 
+
+     menu_select_all
+       Key to select all items in a menu.  Default `.'.
+
+     menu_select_page
+       Key to select all items on this page of a menu.  Default `,'.
 
      menu_shift_left
        Key to scroll a menu--one which has been scrolled right--back to the
@@ -4738,12 +4744,6 @@
 
        For  backward  compatibility,  no value needs to be specified (which
        defaults to "full"), or it can be negated (which defaults  to  "sin-
-       gle").
-
-     name
-       Set  your  character's  name  (defaults to your user name).  You can
-       also set your character's role by appending a dash and one  or  more
-       letters  of the role (that is, by suffixing one of -A -B -C -H -K -M
 
 
      NetHack 3.7.0                                              May 1, 2025
@@ -4756,6 +4756,12 @@
 
 
 
+       gle").
+
+     name
+       Set  your  character's  name  (defaults to your user name).  You can
+       also set your character's role by appending a dash and one  or  more
+       letters  of the role (that is, by suffixing one of -A -B -C -H -K -M
        -P -Ra -Ro -S -T -V -W).  If -@ is used for the role, then a  random
        one will be automatically chosen.
 
@@ -4804,12 +4810,6 @@
 
      paranoid_confirmation
        A space  separated  list  of  specific  situations  where  alternate
-       prompting  is  desired.   The default is "paranoid_confirmation:pray
-       swim trap".
-
-       Confirm     - for any prompts which are set to require "yes"  rather
-                     than  `y',  also  require  "no"  to  reject instead of
-                     accepting any non-yes response as no; changes pray and
 
 
      NetHack 3.7.0                                              May 1, 2025
@@ -4822,6 +4822,12 @@
 
 
 
+       prompting  is  desired.   The default is "paranoid_confirmation:pray
+       swim trap".
+
+       Confirm     - for any prompts which are set to require "yes"  rather
+                     than  `y',  also  require  "no"  to  reject instead of
+                     accepting any non-yes response as no; changes pray and
                      AutoAll to require "yes" or `no' too;
        quit        - require  "yes" rather than `y' to confirm quitting the
                      game or switching into non-scoring explore mode;
@@ -4870,12 +4876,6 @@
        new  entries  and  remove  some old ones, you can use multiple para-
        noid_confirmation option settings, or you can use the `+'  form  and
        list  entries to be added by their name and entries to be removed by
-       `!' and name.  The positive (no `!') and negative (with `!') entries
-       can be intermixed.
-
-     pauper
-       Start  the  character  with no possessions (default false).  Persis-
-       tent.
 
 
      NetHack 3.7.0                                              May 1, 2025
@@ -4887,6 +4887,13 @@
      NetHack Guidebook                                                   75
 
 
+
+       `!' and name.  The positive (no `!') and negative (with `!') entries
+       can be intermixed.
+
+     pauper
+       Start  the  character  with no possessions (default false).  Persis-
+       tent.
 
      perm_invent
        If true, always display your current inventory in a window  (default
@@ -4934,14 +4941,7 @@
        Loaded),  you will be asked if you want to continue.  (Default `S').
        Persistent.
 
-     pickup_stolen
-       If this option is on and autopickup is  also  on,  try  to  pick  up
-       things  that  a  monster  stole  from  you,  even  if they aren't in
-       pickup_types or match an autopickup exception.  Default is on.  Per-
-       sistent.
 
-     pickup_thrown
-       If  this  option  is  on  and  autopickup is also on, try to pick up
 
 
      NetHack 3.7.0                                              May 1, 2025
@@ -4954,6 +4954,14 @@
 
 
 
+     pickup_stolen
+       If this option is on and autopickup is  also  on,  try  to  pick  up
+       things  that  a  monster  stole  from  you,  even  if they aren't in
+       pickup_types or match an autopickup exception.  Default is on.  Per-
+       sistent.
+
+     pickup_thrown
+       If  this  option  is  on  and  autopickup is also on, try to pick up
        things that you threw, even if they aren't in pickup_types or  match
        an autopickup exception.  Default is on.  Persistent.
 
@@ -5000,14 +5008,6 @@
      query_menu
        Use a menu when asked specific yes/no queries, instead of a prompt.
 
-     quick_farsight
-       When set, usually prevents the "you sense your surroundings" message
-       where play pauses to allow you to browse the map whenever  clairvoy-
-       ance  randomly activates.  Some situations, such as being underwater
-       or engulfed, ignore this option.  It does not affect  the  clairvoy-
-       ance  spell where pausing to examine revealed objects or monsters is
-       less intrusive.  Default is off.  Persistent.
-
 
 
      NetHack 3.7.0                                              May 1, 2025
@@ -5019,6 +5019,14 @@
      NetHack Guidebook                                                   77
 
 
+
+     quick_farsight
+       When set, usually prevents the "you sense your surroundings" message
+       where play pauses to allow you to browse the map whenever  clairvoy-
+       ance  randomly activates.  Some situations, such as being underwater
+       or engulfed, ignore this option.  It does not affect  the  clairvoy-
+       ance  spell where pausing to examine revealed objects or monsters is
+       less intrusive.  Default is off.  Persistent.
 
      race
        Selects your race (for example,  race:human).   Choices  are  human,
@@ -5065,15 +5073,7 @@
        map.  Not all ports support run length compression. It has no effect
        on reading an existing save file.
 
-     runmode
-       Controls the amount of screen  updating  for  the  map  window  when
-       engaged  in multi-turn movement (running via shift+direction or con-
-       trol+direction and so forth, or via  the  travel  command  or  mouse
-       click).  The possible values are:
 
-       teleport - update the map after movement has finished;
-       run      - update the map after every seven or so steps;
-       walk     - update the map after each step;
 
 
      NetHack 3.7.0                                              May 1, 2025
@@ -5086,6 +5086,15 @@
 
 
 
+     runmode
+       Controls the amount of screen  updating  for  the  map  window  when
+       engaged  in multi-turn movement (running via shift+direction or con-
+       trol+direction and so forth, or via  the  travel  command  or  mouse
+       click).  The possible values are:
+
+       teleport - update the map after movement has finished;
+       run      - update the map after every seven or so steps;
+       walk     - update the map after each step;
        crawl    - like walk, but pause briefly after each step.
 
        This  option  only affects the game's screen display, not the actual
@@ -5131,15 +5140,6 @@
        off).  By default, this feature is suppressed when building the pro-
        gram.  Persistent.
 
-     showvers
-       Include the game's version number on the status lines (default off).
-       Potentially useful if you switch between different versions or vari-
-       ants, or you are making screenshots or streaming video.   Using  the
-       statuslines:3  option is recommended so that there will be more room
-       available for status information, unless you're using  nethack's  Qt
-       interface  or  your  terminal emulator window displays fewer than 25
-       lines.  Persistent.
-
 
 
      NetHack 3.7.0                                              May 1, 2025
@@ -5151,6 +5151,15 @@
      NetHack Guidebook                                                   79
 
 
+
+     showvers
+       Include the game's version number on the status lines (default off).
+       Potentially useful if you switch between different versions or vari-
+       ants, or you are making screenshots or streaming video.   Using  the
+       statuslines:3  option is recommended so that there will be more room
+       available for status information, unless you're using  nethack's  Qt
+       interface  or  your  terminal emulator window displays fewer than 25
+       lines.  Persistent.
 
      silent
        Suppress terminal beeps (default on).  Persistent.
@@ -5197,15 +5206,6 @@
 
        t - traditional--order by monster level; ties are broken by internal
            monster index; default;
-       d - order by monster difficulty  rating;  ties  broken  by  internal
-           index;
-       a - order  alphabetically,  first  any  unique monsters then all the
-           others;
-       c - order by monster class, by low to high level within each class;
-       n - order by count, high to low; ties are broken by internal monster
-           index;
-       z - order by count, low to high; ties broken by internal index.
-
 
 
      NetHack 3.7.0                                              May 1, 2025
@@ -5217,6 +5217,15 @@
      NetHack Guidebook                                                   80
 
 
+
+       d - order by monster difficulty  rating;  ties  broken  by  internal
+           index;
+       a - order  alphabetically,  first  any  unique monsters then all the
+           others;
+       c - order by monster class, by low to high level within each class;
+       n - order by count, high to low; ties are broken by internal monster
+           index;
+       z - order by count, low to high; ties broken by internal index.
 
        Can  be interactively set via the `m O' command or via using the `m'
        prefix before either the #vanquished command or the #genocided  com-
@@ -5263,15 +5272,6 @@
        When pausing momentarily for display effect, such as with explosions
        and moving objects, use a timer rather than sending extra characters
        to  the  screen.   (Applies  to  "tty" and "curses" interfaces only;
-       "X11" interface always uses a timer-based delay.  The default is  on
-       if configured into the program.)  Persistent.
-
-     tips
-       Show some helpful tips during gameplay (default on).  Persistent.
-
-     tombstone
-       Draw a tombstone graphic upon your death (default on).  Persistent.
-
 
 
      NetHack 3.7.0                                              May 1, 2025
@@ -5283,6 +5283,15 @@
      NetHack Guidebook                                                   81
 
 
+
+       "X11" interface always uses a timer-based delay.  The default is  on
+       if configured into the program.)  Persistent.
+
+     tips
+       Show some helpful tips during gameplay (default on).  Persistent.
+
+     tombstone
+       Draw a tombstone graphic upon your death (default on).  Persistent.
 
      toptenwin
        Put  the  ending  display  in  a NetHack window instead of on stdout
@@ -5330,15 +5339,6 @@
             v - in view only
             a - in same area only
 
-       The  area-filter tries to be slightly predictive--if you're standing
-       on a doorway, it will consider the area on the side of the door  you
-       were last moving towards.
-
-       Filtering can also be changed when getting a location with the "get-
-       pos.filter" key.
-
-
-
 
      NetHack 3.7.0                                              May 1, 2025
 
@@ -5349,6 +5349,13 @@
      NetHack Guidebook                                                   82
 
 
+
+            The  area-filter  tries  to  be  slightly predictive--if you're
+            standing on a doorway, it will consider the area on the side of
+            the door you were last moving towards.
+
+       Filtering can also be changed when getting a location with the "get-
+       pos.filter" key.
 
      whatis_menu
        When getting a location on the map, and using a key to cycle through
@@ -5396,13 +5403,6 @@
      Some options are dynamic and can be specified during the game with the
      `O' command.
 
-     align_message
-       Where  to  align  or place the message window (top, bottom, left, or
-       right)
-
-     align_status
-       Where to align or place the status window  (top,  bottom,  left,  or
-       right).
 
 
 
@@ -5415,6 +5415,14 @@
      NetHack Guidebook                                                   83
 
 
+
+     align_message
+       Where  to  align  or place the message window (top, bottom, left, or
+       right)
+
+     align_status
+       Where to align or place the status window  (top,  bottom,  left,  or
+       right).
 
      ascii_map
        If  NetHack  can,  it should display the map using simple characters
@@ -5462,14 +5470,6 @@
      font_size_message
        If NetHack can, it should use this size font for the message window.
 
-     font_size_status
-       If NetHack can, it should use this size font for the status window.
-
-     font_size_text
-       If NetHack can, it should use this size font for text windows.
-
-     fullscreen
-       If NetHack can, it should try to display on the entire screen rather
 
 
      NetHack 3.7.0                                              May 1, 2025
@@ -5482,6 +5482,14 @@
 
 
 
+     font_size_status
+       If NetHack can, it should use this size font for the status window.
+
+     font_size_text
+       If NetHack can, it should use this size font for text windows.
+
+     fullscreen
+       If NetHack can, it should try to display on the entire screen rather
        than in a window.
 
      guicolor
@@ -5528,14 +5536,6 @@
 
      splash_screen
        If  NetHack  can, it should display an opening splash screen when it
-       starts up (default yes).
-
-     statuslines
-       Number  of  lines  for  traditional  below-the-map  status  display.
-       Acceptable values are 2 and 3 (default is 2).
-
-       When set to 3, the tty interface moves some fields around and mainly
-       shows status conditions on their own line.   A  display  capable  of
 
 
      NetHack 3.7.0                                              May 1, 2025
@@ -5548,6 +5548,14 @@
 
 
 
+       starts up (default yes).
+
+     statuslines
+       Number  of  lines  for  traditional  below-the-map  status  display.
+       Acceptable values are 2 and 3 (default is 2).
+
+       When set to 3, the tty interface moves some fields around and mainly
+       shows status conditions on their own line.   A  display  capable  of
        showing  at least 25 lines is recommended.  The value can be toggled
        back and forth during the game with the `O' command.
 
@@ -5595,14 +5603,6 @@
      use_darkgray
        Use bold black instead of blue for black glyphs (TTY only).
 
-     use_inverse
-       If NetHack can, it should display inverse when  the  game  specifies
-       it.
-
-     vary_msgcount
-       If  NetHack can, it should display this number of messages at a time
-       in the message window.
-
 
      NetHack 3.7.0                                              May 1, 2025
 
@@ -5613,6 +5613,14 @@
      NetHack Guidebook                                                   86
 
 
+
+     use_inverse
+       If NetHack can, it should display inverse when  the  game  specifies
+       it.
+
+     vary_msgcount
+       If  NetHack can, it should display this number of messages at a time
+       in the message window.
 
      windowborders
        Whether to draw boxes around the map, status area, message area, and
@@ -5660,14 +5668,6 @@
        If NetHack can, it should wrap long lines of text if they don't  fit
        in the visible area of the window.
 
-     9.6.  Crash Report Options
-
-          Please  note  that NetHack does not send any information off your
-     computer unless you manually click submit on a form.
-
-          OPTION=crash_email:email_address
-
-
 
 
      NetHack 3.7.0                                              May 1, 2025
@@ -5679,6 +5679,13 @@
      NetHack Guidebook                                                   87
 
 
+
+     9.6.  Crash Report Options
+
+          Please  note  that NetHack does not send any information off your
+     computer unless you manually click submit on a form.
+
+          OPTION=crash_email:email_address
 
           OPTION=crash_name:your_name
             These options are used only to save  you  some  typing  on  the
@@ -5727,13 +5734,6 @@
      subkeyvalue
        (Win32 tty NetHack only).  May be used to alter the  value  of  key-
        strokes that the operating system returns to NetHack to help compen-
-       sate for international keyboard issues.   OPTIONS=subkeyvalue:171/92
-       will  return  92  to  NetHack,  if  171  was  originally going to be
-       returned.  You can use multiple subkeyvalue assignments in the  con-
-       figuration file if needed.  Cannot be set with the `O' command.
-
-     video
-       Set the video mode used (PC NetHack only).  Values are "autodetect",
 
 
      NetHack 3.7.0                                              May 1, 2025
@@ -5746,6 +5746,13 @@
 
 
 
+       sate for international keyboard issues.   OPTIONS=subkeyvalue:171/92
+       will  return  92  to  NetHack,  if  171  was  originally going to be
+       returned.  You can use multiple subkeyvalue assignments in the  con-
+       figuration file if needed.  Cannot be set with the `O' command.
+
+     video
+       Set the video mode used (PC NetHack only).  Values are "autodetect",
        "default", "vga", or "vesa".  Setting "vesa" will cause the game  to
        display  tiles, using the full capability of the VGA hardware.  Set-
        ting "vga" will cause the game to display tiles, fixed at 640x480 in
@@ -5792,14 +5799,7 @@
      you  can  define  patterns  to  be  checked  when the game is about to
      autopickup something.
 
-     autopickup_exception
-       Sets an exception to the pickup_types option.  The autopickup_excep-
-       tion option should be followed by a regular expression to be used as
-       a pattern to match against the singular form of the  description  of
-       an object at your location.
 
-       In  addition, some characters are treated specially if they occur as
-       the first character in the pattern, specifically:
 
 
      NetHack 3.7.0                                              May 1, 2025
@@ -5811,6 +5811,15 @@
      NetHack Guidebook                                                   89
 
 
+
+     autopickup_exception
+       Sets an exception to the pickup_types option.  The autopickup_excep-
+       tion option should be followed by a regular expression to be used as
+       a pattern to match against the singular form of the  description  of
+       an object at your location.
+
+       In  addition, some characters are treated specially if they occur as
+       the first character in the pattern, specifically:
 
             < - always pickup an object that matches rest of pattern;
             > - never pickup an object that matches rest of pattern.
@@ -5857,15 +5866,6 @@
 
      Menu accelerator keys
        The menu control or accelerator keys can also be rebound via OPTIONS
-       lines in the configuration file.  You cannot bind object symbols  or
-       selection letters into menu accelerators.  Some interfaces only sup-
-       port some of the menu accelerators.
-
-     Mouse buttons
-       You can bind "mouse1"  or  "mouse2"  to  "nothing",  "therecmdmenu",
-       "clicklook", or "mouseaction".
-
-
 
 
      NetHack 3.7.0                                              May 1, 2025
@@ -5877,6 +5877,14 @@
      NetHack Guidebook                                                   90
 
 
+
+       lines in the configuration file.  You cannot bind object symbols  or
+       selection letters into menu accelerators.  Some interfaces only sup-
+       port some of the menu accelerators.
+
+     Mouse buttons
+       You can bind "mouse1"  or  "mouse2"  to  "nothing",  "therecmdmenu",
+       "clicklook", or "mouseaction".
 
      Special command keys
        Below  are the special commands you can rebind.  Some of them can be
@@ -5924,14 +5932,6 @@
        When asked for a location, the key to go to  next  closest  door  or
        doorway.  Default is `d'.
 
-     getpos.door.prev
-       When asked for a location, the key to go to previous closest door or
-       doorway.  Default is `D'.
-
-     getpos.help
-       When asked for a location, the key to show help.  Default is `?'.
-
-
 
 
      NetHack 3.7.0                                              May 1, 2025
@@ -5943,6 +5943,13 @@
      NetHack Guidebook                                                   91
 
 
+
+     getpos.door.prev
+       When asked for a location, the key to go to previous closest door or
+       doorway.  Default is `D'.
+
+     getpos.help
+       When asked for a location, the key to show help.  Default is `?'.
 
      getpos.mon.next
        When asked for a location, the key to go to  next  closest  monster.
@@ -5991,13 +5998,6 @@
      getpos.pick.quick
        When asked for a location, the key to choose the location, skip ask-
        ing for more info, and exit the location asking  loop.   Default  is
-       `;'.
-
-     getpos.pick.verbose
-       When  asked for a location, the key to choose the location, and show
-       more info without asking.  Default is `:'.
-
-
 
 
      NetHack 3.7.0                                              May 1, 2025
@@ -6009,6 +6009,12 @@
      NetHack Guidebook                                                   92
 
 
+
+       `;'.
+
+     getpos.pick.verbose
+       When  asked for a location, the key to choose the location, and show
+       more info without asking.  Default is `:'.
 
      getpos.self
        When asked for a location, the key to go to your location.   Default
@@ -6058,12 +6064,6 @@
        Here's  an example of message types using NetHack's internal pattern
        matching facility:
 
-            MSGTYPE=stop "You feel hungry."
-            MSGTYPE=hide "You displaced *."
-
-       specifies that whenever a message "You feel hungry"  is  shown,  the
-       user  is prompted with more-prompt, and a message matching "You dis-
-       placed <something>." is not shown at all.
 
 
      NetHack 3.7.0                                              May 1, 2025
@@ -6075,6 +6075,13 @@
      NetHack Guidebook                                                   93
 
 
+
+            MSGTYPE=stop "You feel hungry."
+            MSGTYPE=hide "You displaced *."
+
+       specifies that whenever a message "You feel hungry"  is  shown,  the
+       user  is prompted with more-prompt, and a message matching "You dis-
+       placed <something>." is not shown at all.
 
        The order of the defined MSGTYPE lines is important; the last match-
        ing rule is used. Put the general case first, exceptions below them.
@@ -6122,13 +6129,6 @@
        ple MENUCOLOR entries in your configuration file, and the last MENU-
        COLOR line that matches a menu line will be used for the line.
 
-          Note that if you intend to have one or more color  specifications
-     match   " uncursed ",   you   will   probably   want   to   turn   the
-     implicit_uncursed option off so that all items known  to  be  uncursed
-     are actually displayed with the "uncursed" description.
-
-
-
 
 
 
@@ -6141,6 +6141,11 @@
      NetHack Guidebook                                                   94
 
 
+
+          Note that if you intend to have one or more color  specifications
+     match   " uncursed ",   you   will   probably   want   to   turn   the
+     implicit_uncursed option off so that all items known  to  be  uncursed
+     are actually displayed with the "uncursed" description.
 
      9.13.  Configuring User Sounds
 
@@ -6191,11 +6196,6 @@
 
           For  example,  the following line in your configuration file will
      cause the hitpoints field to display in the color  red  if  your  hit-
-     points drop to or below a threshold of 30%:
-
-     OPTION=hilite_status:hitpoints/<=30%/red/normal
-
-     (That  example  is  actually  specifying  red&normal for <=30% and no-
 
 
      NetHack 3.7.0                                              May 1, 2025
@@ -6208,6 +6208,11 @@
 
 
 
+     points drop to or below a threshold of 30%:
+
+     OPTION=hilite_status:hitpoints/<=30%/red/normal
+
+     (That  example  is  actually  specifying  red&normal for <=30% and no-
      color&normal for >30%.)
 
           For another example, the following  line  in  your  configuration
@@ -6256,12 +6261,7 @@
        "experience",   "time",  and  "score"  are  conditionally  displayed
        depending upon your other option settings.
 
-       Instead of a behavior, "condition"  takes  the  following  condition
-       flags:  stone,  slime, strngl, foodpois, termill, blind, deaf, stun,
-       conf, hallu, lev, fly, and ride.  You can use "major_troubles" as an
-       alias  for stone through termill, "minor_troubles" for blind through
-       hallu, "movement" for lev, fly, and ride, and "all" for every condi-
-       tion.
+
 
 
      NetHack 3.7.0                                              May 1, 2025
@@ -6273,6 +6273,13 @@
      NetHack Guidebook                                                   96
 
 
+
+       Instead of a behavior, "condition"  takes  the  following  condition
+       flags:  stone,  slime, strngl, foodpois, termill, blind, deaf, stun,
+       conf, hallu, lev, fly, and ride.  You can use "major_troubles" as an
+       alias  for stone through termill, "minor_troubles" for blind through
+       hallu, "movement" for lev, fly, and ride, and "all" for every condi-
+       tion.
 
        Allowed  behaviors are "always", "up", "down", "changed", a percent-
        age or absolute number threshold, or text to match against.  For the
@@ -6321,13 +6328,6 @@
             instead,  it also matches when value is below or above.  If the
             prefix is `<' or `>', only match when strictly above or below.
 
-          * criticalhp only applies to the hitpoints field  and  only  when
-            current hit points are below a threshold (which varies by maxi-
-            mum hit points and experience level).  When  the  threshold  is
-            met,  a  criticalhp  rule  takes precedence over all other hit-
-            points rules.
-
-
 
 
      NetHack 3.7.0                                              May 1, 2025
@@ -6339,6 +6339,12 @@
      NetHack Guidebook                                                   97
 
 
+
+          * criticalhp only applies to the hitpoints field  and  only  when
+            current hit points are below a threshold (which varies by maxi-
+            mum hit points and experience level).  When  the  threshold  is
+            met,  a  criticalhp  rule  takes precedence over all other hit-
+            points rules.
 
           * text match sets the attribute when the field value matches  the
             text.   Text  matches can only be used for "alignment", "carry-
@@ -6388,12 +6394,6 @@
      following character literally.  Thus \ needs to be represented as  \\.
      The  special  prefix  form  \m  switches on the meta bit in the symbol
      value, and the ^ prefix causes the following character to  be  treated
-     as a control character.
-
-        NetHack Symbols
-           Symbol Name            Description
-        -----------------------------------------------------------------
-
 
 
      NetHack 3.7.0                                              May 1, 2025
@@ -6406,6 +6406,11 @@
 
 
 
+     as a control character.
+
+        NetHack Symbols
+           Symbol Name            Description
+        -----------------------------------------------------------------
            S_air                  (air)
         _  S_altar                (altar)
         "  S_amulet               (amulet)
@@ -6454,11 +6459,6 @@
         \  S_expl_tr              (explosion top right)
         |  S_expl_ml              (explosion middle left)
            S_expl_mc              (explosion middle center)
-        |  S_expl_mr              (explosion middle right)
-        \  S_expl_bl              (explosion bottom left)
-        -  S_expl_bc              (explosion bottom center)
-        /  S_expl_br              (explosion bottom right)
-        e  S_eye                  (eye or sphere)
 
 
 
@@ -6472,6 +6472,11 @@
 
 
 
+        |  S_expl_mr              (explosion middle right)
+        \  S_expl_bl              (explosion bottom left)
+        -  S_expl_bc              (explosion bottom center)
+        /  S_expl_br              (explosion bottom right)
+        e  S_eye                  (eye or sphere)
         ^  S_falling_rock_trap    (falling rock trap)
         f  S_feline               (cat or other feline)
         ^  S_fire_trap            (fire trap)
@@ -6520,11 +6525,6 @@
         N  S_naga                 (naga)
         .  S_ndoor                (doorway without door)
         n  S_nymph                (nymph)
-        O  S_ogre                 (ogre)
-        o  S_orc                  (orc)
-        p  S_piercer              (piercer)
-        ^  S_pit                  (pit)
-        #  S_poisoncloud          (poison cloud)
 
 
 
@@ -6538,6 +6538,11 @@
 
 
 
+        O  S_ogre                 (ogre)
+        o  S_orc                  (orc)
+        p  S_piercer              (piercer)
+        ^  S_pit                  (pit)
+        #  S_poisoncloud          (poison cloud)
         ^  S_polymorph_trap       (polymorph trap)
         }  S_pool                 (water)
         !  S_potion               (potion)
@@ -6586,11 +6591,6 @@
         #  S_tree                 (tree)
         T  S_troll                (troll)
         |  S_trwall               (wall)
-        -  S_tuwall               (wall)
-        U  S_umber                (umber hulk)
-           S_unexplored           (unexplored terrain)
-        u  S_unicorn              (unicorn or horse)
-        <  S_upladder             (ladder up)
 
 
 
@@ -6604,6 +6604,11 @@
 
 
 
+        -  S_tuwall               (wall)
+        U  S_umber                (umber hulk)
+           S_unexplored           (unexplored terrain)
+        u  S_unicorn              (unicorn or horse)
+        <  S_upladder             (ladder up)
         <  S_upstair              (staircase up)
         V  S_vampire              (vampire)
         |  S_vbeam                (vertical beam [zap animation])
@@ -6652,12 +6657,7 @@
      has a UTF8 handler within the symbols file such as the enhanced1  set,
      or individually within your nethack.rc file.
 
-          The format for defining a glyph representation is:
 
-     OPTIONS=glyph:glyphid/U+nnnn/R-G-B
-
-          The  window port that is active needs to provide support for dis-
-     playing UTF-8 character sequences and explicit  red-green-blue  colors
 
 
      NetHack 3.7.0                                              May 1, 2025
@@ -6670,6 +6670,12 @@
 
 
 
+          The format for defining a glyph representation is:
+
+     OPTIONS=glyph:glyphid/U+nnnn/R-G-B
+
+          The  window port that is active needs to provide support for dis-
+     playing UTF-8 character sequences and explicit  red-green-blue  colors
      in order for the glyph representation to be visible.  For example, the
      following line in your configuration file will cause the glyph  repre-
      sentation  for  glyphid G_pool to use Unicode codepoint U+224B and the
@@ -6717,12 +6723,6 @@
 
           The most crucial settings to make the game more accessible are:
 
-     symset:plain
-       Load a symbol set appropriate for use by blind players.
-
-     menustyle:traditional
-       This will assist in the interface to speech synthesizers.
-
 
 
 
@@ -6735,6 +6735,12 @@
      NetHack Guidebook                                                  103
 
 
+
+     symset:plain
+       Load a symbol set appropriate for use by blind players.
+
+     menustyle:traditional
+       This will assist in the interface to speech synthesizers.
 
      nomenu_overlay
        Show menus on a cleared screen and aligned to the left edge.
@@ -6785,12 +6791,6 @@
        your  screen-reader  reads  those lines. The same information can be
        seen via the "#attributes" command.
 
-     showdamage
-       Give a message of damage taken and how many hit points are left.
-
-
-
-
 
      NetHack 3.7.0                                              May 1, 2025
 
@@ -6801,6 +6801,9 @@
      NetHack Guidebook                                                  104
 
 
+
+     showdamage
+       Give a message of damage taken and how many hit points are left.
 
      9.18.  Global Configuration for System Administrators
 
@@ -6853,9 +6856,6 @@
 
        ENTRYMAX = Maximum number of entries in the score file.
 
-       POINTSMIN = Minimum  number  of  points to get an entry in the score
-       file.
-
 
 
      NetHack 3.7.0                                              May 1, 2025
@@ -6867,6 +6867,9 @@
      NetHack Guidebook                                                  105
 
 
+
+       POINTSMIN = Minimum  number  of  points to get an entry in the score
+       file.
 
        PERS_IS_UID = 0 or 1 to use user names or numeric  userids,  respec-
        tively, to identify unique people for the score file.
@@ -6918,10 +6921,7 @@
        internally  inconsistent  state,  or  if  the  #bugreport command is
        invoked.
 
-     10.  Scoring
 
-          NetHack maintains a list of the top scores  or  scorers  on  your
-     machine,  depending  on  how  it  is set up.  In the latter case, each
 
 
      NetHack 3.7.0                                              May 1, 2025
@@ -6934,6 +6934,10 @@
 
 
 
+     10.  Scoring
+
+          NetHack maintains a list of the top scores  or  scorers  on  your
+     machine,  depending  on  how  it  is set up.  In the latter case, each
      account on the machine can post only one  non-winning  score  on  this
      list.   If  you score higher than someone else on this list, or better
      your previous score, you will be inserted in the  proper  place  under
@@ -6984,10 +6988,6 @@
      user  name  to be allowed to use debug mode; for others, the hero must
      be given a particular character name (but may be any role; there's  no
      connection  between "wizard mode" and the Wizard role).  Attempting to
-     start a game in debug mode when not  allowed  or  not  available  will
-     result in falling back to explore mode instead.
-
-
 
 
      NetHack 3.7.0                                              May 1, 2025
@@ -6999,6 +6999,9 @@
      NetHack Guidebook                                                  107
 
 
+
+     start a game in debug mode when not  allowed  or  not  available  will
+     result in falling back to explore mode instead.
 
      12.  Credits
 
@@ -7051,9 +7054,6 @@
      Kevin  Darcy later joined the main NetHack Development Team to produce
      subsequent revisions of 3.0.
 
-          Olaf Seibert ported NetHack 2.3  and  3.0  to  the  Amiga.   Norm
-     Meluch,  Stephen  Spackman  and Pierre Martineau designed overlay code
-     for PC NetHack 3.0.  Johnny Lee ported NetHack 3.0 to  the  Macintosh.
 
 
      NetHack 3.7.0                                              May 1, 2025
@@ -7066,6 +7066,9 @@
 
 
 
+          Olaf Seibert ported NetHack 2.3  and  3.0  to  the  Amiga.   Norm
+     Meluch,  Stephen  Spackman  and Pierre Martineau designed overlay code
+     for PC NetHack 3.0.  Johnny Lee ported NetHack 3.0 to  the  Macintosh.
      Along  with  various  other Dungeoneers, they continued to enhance the
      PC, Macintosh, and Amiga ports through the later revisions of 3.0.
 
@@ -7117,9 +7120,6 @@
           Warwick  Allison wrote a graphically displayed version of NetHack
      for the Atari where the tiny pictures were described  as  "icons"  and
      were  distinct  for specific types of monsters and objects rather than
-     just their classes.  He contributed them to  the  NetHack  Development
-     Team  which rechristened them "tiles", original usage which has subse-
-     quently been picked up by various other games.  NetHack's  tiles  sup-
 
 
      NetHack 3.7.0                                              May 1, 2025
@@ -7132,6 +7132,9 @@
 
 
 
+     just their classes.  He contributed them to  the  NetHack  Development
+     Team  which rechristened them "tiles", original usage which has subse-
+     quently been picked up by various other games.  NetHack's  tiles  sup-
      port  was  then  implemented  on other platforms (initially MS-DOS but
      eventually Windows, Qt, and X11 too).
 
@@ -7183,9 +7186,6 @@
      1999's  year 99 was followed by 2000's year 100.  That got written out
      successfully but it unintentionally introduced an extra column in  the
      file layout which prevented score entries from being read back in cor-
-     rectly, interfering  with  insertion  of  new  high  scores  and  with
-     retrieval  of  old  character names to use for random ghost and statue
-     names in the current game.)
 
 
      NetHack 3.7.0                                              May 1, 2025
@@ -7197,6 +7197,10 @@
      NetHack Guidebook                                                  110
 
 
+
+     rectly, interfering  with  insertion  of  new  high  scores  and  with
+     retrieval  of  old  character names to use for random ghost and statue
+     names in the current game.)
 
           The 3.3 NetHack Development Team, consisting of Michael  Allison,
      Ken  Arromdee,  David  Cohrs, Jessie Collet, Steve Creps, Kevin Darcy,
@@ -7248,10 +7252,6 @@
           Janne  Salmijarvi  and  Teemu  Suikki maintained and enhanced the
      Amiga port of 3.4 after Janne Salmijarvi resurrected it for 3.3.1.
 
-          Christian "Marvin" Bressler maintained 3.4 for the Atari after he
-     resurrected it for 3.3.1.
-
-
 
 
      NetHack 3.7.0                                              May 1, 2025
@@ -7263,6 +7263,9 @@
      NetHack Guidebook                                                  111
 
 
+
+          Christian "Marvin" Bressler maintained 3.4 for the Atari after he
+     resurrected it for 3.3.1.
 
           The  release  of NetHack 3.4.3 in December 2003 marked the begin-
      ning of a long release hiatus. 3.4.3 proved to be a remarkably  stable
@@ -7315,9 +7318,6 @@
 
           Michael Allison, David Cohrs, Bart  House,  Pasi  Kallinen,  Alex
      Kompel,  Dion  Nicolaas, Derek S. Ray and Yitzhak Sapir maintained the
-     port of NetHack 3.6 for Microsoft Windows.
-
-
 
 
      NetHack 3.7.0                                              May 1, 2025
@@ -7329,6 +7329,8 @@
      NetHack Guidebook                                                  112
 
 
+
+     port of NetHack 3.6 for Microsoft Windows.
 
           Pat Rankin attempted to keep the VMS  port  running  for  NetHack
      3.6,  hindered  by  limited  access.  Kevin Smolkowski has updated and
@@ -7370,8 +7372,6 @@
 
           The official NetHack web site is  maintained  by  Ken  Lorber  at
      https://www.nethack.org/.
-
-
 
 
 
