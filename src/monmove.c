@@ -241,22 +241,33 @@ boolean
 onscary(coordxy x, coordxy y, struct monst *mtmp)
 {
     struct engr *ep;
+    /* <0,0> is used by musical scaring;
+     * it doesn't care about scrolls or engravings or dungeon branch */
+    boolean auditory_scare = (x == 0 && y == 0),
+            magical_scare = !auditory_scare;
 
-    /* creatures who are directly resistant to magical scaring:
-     * humans aren't monsters
-     * uniques have ascended their base monster instincts
-     * Rodney, lawful minions, Angels, the Riders, shopkeepers
-     * inside their own shop, priests inside their own temple */
+    /* creatures who are directly resistant to any type of scaring:
+     * Rodney, lawful minions, Angels, the Riders */
     if (mtmp->iswiz || is_lminion(mtmp) || mtmp->data == &mons[PM_ANGEL]
-        || is_rider(mtmp->data)
-        || mtmp->data->mlet == S_HUMAN || unique_corpstat(mtmp->data)
-        || (mtmp->isshk && inhishop(mtmp))
+        || is_rider(mtmp->data))
+        return FALSE;
+
+    /* creatures who are directly resistant to magical scaring
+     * based on the mere presence of something at a location:
+     * humans etc.
+     * uniques have ascended their base monster instincts */
+    if (magical_scare
+        && (mtmp->data->mlet == S_HUMAN || unique_corpstat(mtmp->data)))
+        return FALSE;
+
+    /* creatues who resist scaring under particular circumstances:
+     * shopkeepers inside their own shop
+     * priests inside their own temple */
+    if ((mtmp->isshk && inhishop(mtmp))
         || (mtmp->ispriest && inhistemple(mtmp)))
         return FALSE;
 
-    /* <0,0> is used by musical scaring to check for the above;
-     * it doesn't care about scrolls or engravings or dungeon branch */
-    if (x == 0 && y == 0)
+    if (auditory_scare)
         return TRUE;
 
     /* should this still be true for defiled/molochian altars? */
@@ -286,7 +297,7 @@ onscary(coordxy x, coordxy y, struct monst *mtmp)
                 || (Displaced && mtmp->mux == x && mtmp->muy == y)
                 || (ep->guardobjects && vobj_at(x, y)))
             && !(mtmp->isshk || mtmp->isgd || !mtmp->mcansee
-                 || mtmp->mpeaceful || mtmp->data->mlet == S_HUMAN
+                 || mtmp->mpeaceful
                  || mtmp->data == &mons[PM_MINOTAUR]
                  || Inhell || In_endgame(&u.uz)));
 }
