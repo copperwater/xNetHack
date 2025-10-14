@@ -3444,8 +3444,22 @@ itemactions(struct obj *otmp)
 
     /* W: wear armor */
     if (!already_worn) {
-        if (otmp->oclass == ARMOR_CLASS)
-            ia_addmenu(win, IA_WEAR_OBJ, 'W', "Wear this armor");
+        if (otmp->oclass == ARMOR_CLASS) {
+            /* if 'otmp' is worn we skip 'W' (and show 'T' above instead);
+               if it isn't, we either show "W - wear this" if otmp's slot
+               isn't populated, or "W - [already wearing <simple-armor>]";
+               for the latter, picking 'W' will fail but we don't want to
+               omit 'W' in this situation */
+            long Wmask = armcat_to_wornmask(objects[otmp->otyp].oc_armcat);
+            struct obj *o = wearmask_to_obj(Wmask);
+
+            if (!o)
+                Strcpy(buf, "Wear this armor");
+            else
+                Sprintf(buf, "[already wearing %s]", an(armor_simple_name(o)));
+
+            ia_addmenu(win, IA_WEAR_OBJ, 'W', buf);
+        }
     }
 
     /* x: Swap main and readied weapon */

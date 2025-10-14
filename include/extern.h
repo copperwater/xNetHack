@@ -3866,6 +3866,8 @@ extern void setworn(struct obj *, long) NO_NNARGS; /* has tests for obj */
 extern void setnotworn(struct obj *) NO_NNARGS; /* has tests for obj */
 extern void allunworn(void);
 extern struct obj *wearmask_to_obj(long);
+extern int wornmask_to_armcat(long);
+extern long armcat_to_wornmask(int);
 extern long wearslot(struct obj *) NONNULLARG1;
 extern void check_wornmask_slots(void);
 extern void mon_set_minvis(struct monst *) NONNULLARG1;
