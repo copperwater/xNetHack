@@ -3333,15 +3333,29 @@ itemactions(struct obj *otmp)
 
     /* P: put on accessory */
     if (!already_worn) {
-        if (otmp->oclass == RING_CLASS || otmp->otyp == MEAT_RING)
-            ia_addmenu(win, IA_WEAR_OBJ, 'P', "Put this ring on");
-        else if (otmp->oclass == AMULET_CLASS)
-            ia_addmenu(win, IA_WEAR_OBJ, 'P', "Put this amulet on");
-        else if (otmp->otyp == TOWEL || otmp->otyp == BLINDFOLD)
-            ia_addmenu(win, IA_WEAR_OBJ, 'P',
-                       "Use this to blindfold yourself");
-        else if (otmp->otyp == LENSES)
-            ia_addmenu(win, IA_WEAR_OBJ, 'P', "Put these lenses on");
+        /* if 'otmp' is worn, we'll skip 'P' and show 'R' below;
+           if not worn, we show 'P - Put on this <simple-item>' if
+           the slot is available, or 'P - <unavailable>'; for the latter,
+           'P' will fail but we don't want to omit the choice because
+           item actions can be used to learn commands */
+        *buf = '\0';
+        if (otmp->oclass == RING_CLASS || otmp->otyp == MEAT_RING) {
+            Strcpy(buf, (!uleft || !uright) ? "Put this ring on"
+                                            : "[both ring fingers in use]");
+        } else if (otmp->oclass == AMULET_CLASS) {
+            Strcpy(buf, !uamul ? "Put this amulet on"
+                               : "[already wearing an amulet]");
+        } else if (otmp->otyp == TOWEL || otmp->otyp == BLINDFOLD
+                   || otmp->otyp == LENSES) {
+            if (ublindf)
+                Strcpy(buf, "[already wearing eyewear]");
+            else if (otmp->otyp == LENSES)
+                Strcpy(buf, "Put these lenses on");
+            else
+                Strcpy(buf, "Use this to blindfold yourself");
+        }
+        if (*buf)
+            ia_addmenu(win, IA_WEAR_OBJ, 'P', buf);
     }
 
     /* q: drink item */
@@ -3365,8 +3379,14 @@ itemactions(struct obj *otmp)
         ia_addmenu(win, IA_READ_OBJ, 'r', buf);
 
     /* R: remove accessory or rub item */
-    if (otmp->owornmask & W_ACCESSORY)
-        ia_addmenu(win, IA_TAKEOFF_OBJ, 'R', "Remove this accessory");
+    if (otmp->owornmask & W_ACCESSORY) {
+        Sprintf(buf, "Remove this %s",
+                (otmp->owornmask & W_RING) ? "ring"
+                : (otmp->owornmask & W_AMUL) ? "amulet"
+                  : (otmp->owornmask & W_TOOL) ? "eyewear"
+                    : "accessory"); /* catchall */
+        ia_addmenu(win, IA_TAKEOFF_OBJ, 'R', buf);
+    }
     if (otmp->otyp == OIL_LAMP || otmp->otyp == MAGIC_LAMP
         || otmp->otyp == BRASS_LANTERN) {
         Sprintf(buf, "Rub this %s", simpleonames(otmp));
