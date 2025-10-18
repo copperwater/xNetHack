@@ -3339,20 +3339,21 @@ itemactions(struct obj *otmp)
            'P' will fail but we don't want to omit the choice because
            item actions can be used to learn commands */
         *buf = '\0';
-        if (otmp->oclass == RING_CLASS || otmp->otyp == MEAT_RING) {
-            Strcpy(buf, (!uleft || !uright) ? "Put this ring on"
-                                            : "[both ring fingers in use]");
-        } else if (otmp->oclass == AMULET_CLASS) {
+        if (otmp->oclass == AMULET_CLASS) {
             Strcpy(buf, !uamul ? "Put this amulet on"
                                : "[already wearing an amulet]");
-        } else if (otmp->otyp == TOWEL || otmp->otyp == BLINDFOLD
+        } else if (otmp->oclass == RING_CLASS || otmp->otyp == MEAT_RING) {
+            Strcpy(buf, (!uleft || !uright) ? "Put this ring on"
+                                            : "[both ring fingers in use]");
+        } else if (otmp->otyp == BLINDFOLD || otmp->otyp == TOWEL
                    || otmp->otyp == LENSES) {
             if (ublindf)
                 Strcpy(buf, "[already wearing eyewear]");
             else if (otmp->otyp == LENSES)
                 Strcpy(buf, "Put these lenses on");
             else
-                Strcpy(buf, "Use this to blindfold yourself");
+                Sprintf(buf, "Put this on%s",
+                        (otmp->otyp == TOWEL) ? " to blindfold yourself" : "");
         }
         if (*buf)
             ia_addmenu(win, IA_WEAR_OBJ, 'P', buf);
@@ -3381,10 +3382,10 @@ itemactions(struct obj *otmp)
     /* R: remove accessory or rub item */
     if (otmp->owornmask & W_ACCESSORY) {
         Sprintf(buf, "Remove this %s",
-                (otmp->owornmask & W_RING) ? "ring"
-                : (otmp->owornmask & W_AMUL) ? "amulet"
+                (otmp->owornmask & W_AMUL) ? "amulet"
+                : (otmp->owornmask & W_RING) ? "ring"
                   : (otmp->owornmask & W_TOOL) ? "eyewear"
-                    : "accessory"); /* catchall */
+                    : "accessory"); /* catchall -- can't happen */
         ia_addmenu(win, IA_TAKEOFF_OBJ, 'R', buf);
     }
     if (otmp->otyp == OIL_LAMP || otmp->otyp == MAGIC_LAMP
