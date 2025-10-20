@@ -475,6 +475,7 @@ struct instance_globals_i {
     /* invent.c */
     char *invbuf;
     unsigned invbufsiz;
+    boolean item_action_in_progress;
     int in_sync_perminvent;
 
     /* mon.c */

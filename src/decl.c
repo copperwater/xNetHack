@@ -413,6 +413,7 @@ static const struct instance_globals_i g_init_i = {
     /* invent.c */
     NULL, /* invbuf */
     0U, /* invbufsize */
+    FALSE, /* item_action_in_progress */
     0,       /* in_sync_perminvent */
     /* mon.c */
     NULL, /* itermonarr */

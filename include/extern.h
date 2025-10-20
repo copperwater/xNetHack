@@ -746,6 +746,7 @@ extern void Ring_gone(struct obj *) NONNULLARG1;
 extern void Blindf_on(struct obj *) NONNULLARG1;
 extern void Blindf_off(struct obj *);
 extern int dotakeoff(void);
+extern int ia_dotakeoff(void);
 extern int doremring(void);
 extern int cursed(struct obj *);
 extern int armoroff(struct obj *);
