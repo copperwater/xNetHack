@@ -3343,8 +3343,11 @@ itemactions(struct obj *otmp)
             Strcpy(buf, !uamul ? "Put this amulet on"
                                : "[already wearing an amulet]");
         } else if (otmp->oclass == RING_CLASS || otmp->otyp == MEAT_RING) {
-            Strcpy(buf, (!uleft || !uright) ? "Put this ring on"
-                                            : "[both ring fingers in use]");
+            if (!uleft || !uright)
+                Strcpy(buf, "Put this ring on");
+            else
+                Sprintf(buf, "[both ring %s in use]",
+                        makeplural(body_part(FINGER)));
         } else if (otmp->otyp == BLINDFOLD || otmp->otyp == TOWEL
                    || otmp->otyp == LENSES) {
             if (ublindf)
