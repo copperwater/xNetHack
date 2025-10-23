@@ -1208,7 +1208,7 @@ getlev(NHFILE *nhfp, int pid, xint8 lev)
            them is different now than when the level was saved */
         restore_cham(mtmp);
         /* give hiders a chance to hide before their next move */
-        if (ghostly || (elapsed > 00 && elapsed > (long) rnd(10)))
+        if (ghostly || (elapsed > 0L && elapsed > (long) rnd(10)))
             hide_monst(mtmp);
     }
 #endif /* !SFCTOOL */

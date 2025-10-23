@@ -76,9 +76,9 @@ struct objclass {
 #define IMMEDIATE 2 /* directional beam that doesn't ricochet */
 #define RAY       3 /* beam that does bounce off walls */
     /* overloaded oc_dir: strike mode bit mask for weapons and weptools */
-#define PIERCE   01 /* pointed weapon punctures target */
-#define SLASH    02 /* sharp weapon cuts target */
-#define WHACK    04 /* blunt weapon bashes target */
+#define PIERCE    1 /* pointed weapon punctures target */
+#define SLASH     2 /* sharp weapon cuts target */
+#define WHACK     4 /* blunt weapon bashes target */
     Bitfield(oc_material, 5); /* one of obj_material_types */
 
     schar oc_subtyp;
