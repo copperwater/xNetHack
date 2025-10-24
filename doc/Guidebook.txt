@@ -15,7 +15,7 @@
                        Original version - Eric S. Raymond
      (Edited and expanded for NetHack 3.7.0 by Mike Stephenson and others)
 
-                                  May 1, 2025
+                                October 24, 2025
 
 
 
@@ -126,7 +126,7 @@
 
 
 
-     NetHack 3.7.0                                              May 1, 2025
+     NetHack 3.7.0                                         October 24, 2025
 
 
 
@@ -192,7 +192,7 @@
      NetHack  continues  this  fine tradition.  Unlike text adventure games
 
 
-     NetHack 3.7.0                                              May 1, 2025
+     NetHack 3.7.0                                         October 24, 2025
 
 
 
@@ -258,7 +258,7 @@
 
 
 
-     NetHack 3.7.0                                              May 1, 2025
+     NetHack 3.7.0                                         October 24, 2025
 
 
 
@@ -324,7 +324,7 @@
 
 
 
-     NetHack 3.7.0                                              May 1, 2025
+     NetHack 3.7.0                                         October 24, 2025
 
 
 
@@ -390,7 +390,7 @@
 
 
 
-     NetHack 3.7.0                                              May 1, 2025
+     NetHack 3.7.0                                         October 24, 2025
 
 
 
@@ -456,7 +456,7 @@
           The  number  of  turns  elapsed so far, displayed if you have the
 
 
-     NetHack 3.7.0                                              May 1, 2025
+     NetHack 3.7.0                                         October 24, 2025
 
 
 
@@ -522,7 +522,7 @@
 
 
 
-     NetHack 3.7.0                                              May 1, 2025
+     NetHack 3.7.0                                         October 24, 2025
 
 
 
@@ -588,7 +588,7 @@
 
 
 
-     NetHack 3.7.0                                              May 1, 2025
+     NetHack 3.7.0                                         October 24, 2025
 
 
 
@@ -654,7 +654,7 @@
 
 
 
-     NetHack 3.7.0                                              May 1, 2025
+     NetHack 3.7.0                                         October 24, 2025
 
 
 
@@ -720,7 +720,7 @@
           instead.  Only these one-step  movement  commands  cause  you  to
 
 
-     NetHack 3.7.0                                              May 1, 2025
+     NetHack 3.7.0                                         October 24, 2025
 
 
 
@@ -786,7 +786,7 @@
           ing  <Control>.  ^<key>  is  used  as  shorthand elsewhere in the
 
 
-     NetHack 3.7.0                                              May 1, 2025
+     NetHack 3.7.0                                         October 24, 2025
 
 
 
@@ -852,7 +852,7 @@
 
 
 
-     NetHack 3.7.0                                              May 1, 2025
+     NetHack 3.7.0                                         October 24, 2025
 
 
 
@@ -918,7 +918,7 @@
 
 
 
-     NetHack 3.7.0                                              May 1, 2025
+     NetHack 3.7.0                                         October 24, 2025
 
 
 
@@ -984,7 +984,7 @@
 
 
 
-     NetHack 3.7.0                                              May 1, 2025
+     NetHack 3.7.0                                         October 24, 2025
 
 
 
@@ -1050,7 +1050,7 @@
           at an adjacent "remembered, unseen monster" marker.
 
 
-     NetHack 3.7.0                                              May 1, 2025
+     NetHack 3.7.0                                         October 24, 2025
 
 
 
@@ -1116,7 +1116,7 @@
 
 
 
-     NetHack 3.7.0                                              May 1, 2025
+     NetHack 3.7.0                                         October 24, 2025
 
 
 
@@ -1182,7 +1182,7 @@
      (R)UNIX is a registered trademark of The Open Group.
 
 
-     NetHack 3.7.0                                              May 1, 2025
+     NetHack 3.7.0                                         October 24, 2025
 
 
 
@@ -1248,7 +1248,7 @@
           menu_next_page, and menu_last_page keys (`^', `<',  `>',  `|'  by
 
 
-     NetHack 3.7.0                                              May 1, 2025
+     NetHack 3.7.0                                         October 24, 2025
 
 
 
@@ -1314,7 +1314,7 @@
           doesn't  and give that name to the result, while splitting (count
 
 
-     NetHack 3.7.0                                              May 1, 2025
+     NetHack 3.7.0                                         October 24, 2025
 
 
 
@@ -1380,7 +1380,7 @@
 
 
 
-     NetHack 3.7.0                                              May 1, 2025
+     NetHack 3.7.0                                         October 24, 2025
 
 
 
@@ -1446,7 +1446,7 @@
           extinct.
 
 
-     NetHack 3.7.0                                              May 1, 2025
+     NetHack 3.7.0                                         October 24, 2025
 
 
 
@@ -1512,7 +1512,7 @@
 
 
 
-     NetHack 3.7.0                                              May 1, 2025
+     NetHack 3.7.0                                         October 24, 2025
 
 
 
@@ -1578,7 +1578,7 @@
 
 
 
-     NetHack 3.7.0                                              May 1, 2025
+     NetHack 3.7.0                                         October 24, 2025
 
 
 
@@ -1644,7 +1644,7 @@
           right away.)  Since using this  command  by  accident  can  cause
 
 
-     NetHack 3.7.0                                              May 1, 2025
+     NetHack 3.7.0                                         October 24, 2025
 
 
 
@@ -1710,7 +1710,7 @@
           Default key is `M-R'.
 
 
-     NetHack 3.7.0                                              May 1, 2025
+     NetHack 3.7.0                                         October 24, 2025
 
 
 
@@ -1776,7 +1776,7 @@
           (worn blindfold or towel or lenses, lit lamp(s) and/or candle(s),
 
 
-     NetHack 3.7.0                                              May 1, 2025
+     NetHack 3.7.0                                         October 24, 2025
 
 
 
@@ -1842,7 +1842,7 @@
 
 
 
-     NetHack 3.7.0                                              May 1, 2025
+     NetHack 3.7.0                                         October 24, 2025
 
 
 
@@ -1908,7 +1908,7 @@
           line will show "(no travel path)" if your character does not know
 
 
-     NetHack 3.7.0                                              May 1, 2025
+     NetHack 3.7.0                                         October 24, 2025
 
 
 
@@ -1974,7 +1974,7 @@
 
 
 
-     NetHack 3.7.0                                              May 1, 2025
+     NetHack 3.7.0                                         October 24, 2025
 
 
 
@@ -2040,7 +2040,7 @@
           Set one or more intrinsic attributes.  Autocompletes.  Debug mode
 
 
-     NetHack 3.7.0                                              May 1, 2025
+     NetHack 3.7.0                                         October 24, 2025
 
 
 
@@ -2106,7 +2106,7 @@
      "high"]  bit),  you  can invoke many extended commands by meta-ing the
 
 
-     NetHack 3.7.0                                              May 1, 2025
+     NetHack 3.7.0                                         October 24, 2025
 
 
 
@@ -2172,7 +2172,7 @@
 
 
 
-     NetHack 3.7.0                                              May 1, 2025
+     NetHack 3.7.0                                         October 24, 2025
 
 
 
@@ -2238,7 +2238,7 @@
 
 
 
-     NetHack 3.7.0                                              May 1, 2025
+     NetHack 3.7.0                                         October 24, 2025
 
 
 
@@ -2304,7 +2304,7 @@
 
 
 
-     NetHack 3.7.0                                              May 1, 2025
+     NetHack 3.7.0                                         October 24, 2025
 
 
 
@@ -2370,7 +2370,7 @@
      them).  Some monsters who can open doors can also use unlocking tools.
 
 
-     NetHack 3.7.0                                              May 1, 2025
+     NetHack 3.7.0                                         October 24, 2025
 
 
 
@@ -2436,7 +2436,7 @@
      been  nullified,  giving  access  to  whatever is beyond them.  In the
 
 
-     NetHack 3.7.0                                              May 1, 2025
+     NetHack 3.7.0                                         October 24, 2025
 
 
 
@@ -2502,7 +2502,7 @@
      play.
 
 
-     NetHack 3.7.0                                              May 1, 2025
+     NetHack 3.7.0                                         October 24, 2025
 
 
 
@@ -2568,7 +2568,7 @@
 
 
 
-     NetHack 3.7.0                                              May 1, 2025
+     NetHack 3.7.0                                         October 24, 2025
 
 
 
@@ -2634,7 +2634,7 @@
      attack, when guessing where an unseen monster is or when  deliberately
 
 
-     NetHack 3.7.0                                              May 1, 2025
+     NetHack 3.7.0                                         October 24, 2025
 
 
 
@@ -2700,7 +2700,7 @@
      noid_confirmation:attack  option  to  require  a  response  of   "yes"
 
 
-     NetHack 3.7.0                                              May 1, 2025
+     NetHack 3.7.0                                         October 24, 2025
 
 
 
@@ -2766,7 +2766,7 @@
 
 
 
-     NetHack 3.7.0                                              May 1, 2025
+     NetHack 3.7.0                                         October 24, 2025
 
 
 
@@ -2832,7 +2832,7 @@
      are  encumbered,  one  of the conditions Burdened, Stressed, Strained,
 
 
-     NetHack 3.7.0                                              May 1, 2025
+     NetHack 3.7.0                                         October 24, 2025
 
 
 
@@ -2898,7 +2898,7 @@
 
 
 
-     NetHack 3.7.0                                              May 1, 2025
+     NetHack 3.7.0                                         October 24, 2025
 
 
 
@@ -2964,7 +2964,7 @@
      `X'  command  to engage or disengage that.  Only some types of charac-
 
 
-     NetHack 3.7.0                                              May 1, 2025
+     NetHack 3.7.0                                         October 24, 2025
 
 
 
@@ -3030,7 +3030,7 @@
 
 
 
-     NetHack 3.7.0                                              May 1, 2025
+     NetHack 3.7.0                                         October 24, 2025
 
 
 
@@ -3096,7 +3096,7 @@
      you'll be told that you feel more confident in your skills.   At  that
 
 
-     NetHack 3.7.0                                              May 1, 2025
+     NetHack 3.7.0                                         October 24, 2025
 
 
 
@@ -3162,7 +3162,7 @@
 
 
 
-     NetHack 3.7.0                                              May 1, 2025
+     NetHack 3.7.0                                         October 24, 2025
 
 
 
@@ -3228,7 +3228,7 @@
      what you eat."
 
 
-     NetHack 3.7.0                                              May 1, 2025
+     NetHack 3.7.0                                         October 24, 2025
 
 
 
@@ -3261,8 +3261,8 @@
 
           A  scroll  whose label is known can be read even when the hero is
      blind.  If a scroll has been discovered, it will be listed  in  inven-
-     tory  by  type  rather  than  by label, but the label is known in that
-     situtaion even though it isn't shown.
+     tory by type rather than by label, but the label is known in that sit-
+     uation even though it isn't shown.
 
           Many scrolls produce a different effect from usual  if  they  are
      blessed or cursed, or read while the hero is confused.
@@ -3294,7 +3294,7 @@
 
 
 
-     NetHack 3.7.0                                              May 1, 2025
+     NetHack 3.7.0                                         October 24, 2025
 
 
 
@@ -3360,7 +3360,7 @@
 
 
 
-     NetHack 3.7.0                                              May 1, 2025
+     NetHack 3.7.0                                         October 24, 2025
 
 
 
@@ -3426,7 +3426,7 @@
 
 
 
-     NetHack 3.7.0                                              May 1, 2025
+     NetHack 3.7.0                                         October 24, 2025
 
 
 
@@ -3492,7 +3492,7 @@
 
 
 
-     NetHack 3.7.0                                              May 1, 2025
+     NetHack 3.7.0                                         October 24, 2025
 
 
 
@@ -3558,7 +3558,7 @@
 
 
 
-     NetHack 3.7.0                                              May 1, 2025
+     NetHack 3.7.0                                         October 24, 2025
 
 
 
@@ -3624,7 +3624,7 @@
      either.
 
 
-     NetHack 3.7.0                                              May 1, 2025
+     NetHack 3.7.0                                         October 24, 2025
 
 
 
@@ -3690,7 +3690,7 @@
      with your hands and feet.
 
 
-     NetHack 3.7.0                                              May 1, 2025
+     NetHack 3.7.0                                         October 24, 2025
 
 
 
@@ -3756,7 +3756,7 @@
 
 
 
-     NetHack 3.7.0                                              May 1, 2025
+     NetHack 3.7.0                                         October 24, 2025
 
 
 
@@ -3822,7 +3822,7 @@
 
 
 
-     NetHack 3.7.0                                              May 1, 2025
+     NetHack 3.7.0                                         October 24, 2025
 
 
 
@@ -3888,7 +3888,7 @@
      ning  NetHack  for  the first time, you should find a default template
 
 
-     NetHack 3.7.0                                              May 1, 2025
+     NetHack 3.7.0                                         October 24, 2025
 
 
 
@@ -3954,7 +3954,7 @@
 
 
 
-     NetHack 3.7.0                                              May 1, 2025
+     NetHack 3.7.0                                         October 24, 2025
 
 
 
@@ -4020,7 +4020,7 @@
        begins; whatever follows will be common to all sections.   Otherwise
 
 
-     NetHack 3.7.0                                              May 1, 2025
+     NetHack 3.7.0                                         October 24, 2025
 
 
 
@@ -4086,7 +4086,7 @@
 
 
 
-     NetHack 3.7.0                                              May 1, 2025
+     NetHack 3.7.0                                         October 24, 2025
 
 
 
@@ -4152,7 +4152,7 @@
      sign) to let NetHack know that the rest is intended as  a  file  name.
 
 
-     NetHack 3.7.0                                              May 1, 2025
+     NetHack 3.7.0                                         October 24, 2025
 
 
 
@@ -4218,7 +4218,7 @@
        This option controls what happens when you attempt  the  `f'  (fire)
 
 
-     NetHack 3.7.0                                              May 1, 2025
+     NetHack 3.7.0                                         October 24, 2025
 
 
 
@@ -4284,7 +4284,7 @@
        Name  your  starting  cat (for example "catname:Morris").  Cannot be
 
 
-     NetHack 3.7.0                                              May 1, 2025
+     NetHack 3.7.0                                         October 24, 2025
 
 
 
@@ -4350,7 +4350,7 @@
 
 
 
-     NetHack 3.7.0                                              May 1, 2025
+     NetHack 3.7.0                                         October 24, 2025
 
 
 
@@ -4416,7 +4416,7 @@
 
 
 
-     NetHack 3.7.0                                              May 1, 2025
+     NetHack 3.7.0                                         October 24, 2025
 
 
 
@@ -4482,7 +4482,7 @@
 
 
 
-     NetHack 3.7.0                                              May 1, 2025
+     NetHack 3.7.0                                         October 24, 2025
 
 
 
@@ -4548,7 +4548,7 @@
        `b',  and `c' keyboard shortcuts rather than the mnemonics `o', `i',
 
 
-     NetHack 3.7.0                                              May 1, 2025
+     NetHack 3.7.0                                         October 24, 2025
 
 
 
@@ -4614,7 +4614,7 @@
 
 
 
-     NetHack 3.7.0                                              May 1, 2025
+     NetHack 3.7.0                                         October 24, 2025
 
 
 
@@ -4680,7 +4680,7 @@
 
 
 
-     NetHack 3.7.0                                              May 1, 2025
+     NetHack 3.7.0                                         October 24, 2025
 
 
 
@@ -4746,7 +4746,7 @@
        defaults to "full"), or it can be negated (which defaults  to  "sin-
 
 
-     NetHack 3.7.0                                              May 1, 2025
+     NetHack 3.7.0                                         October 24, 2025
 
 
 
@@ -4812,7 +4812,7 @@
        A space  separated  list  of  specific  situations  where  alternate
 
 
-     NetHack 3.7.0                                              May 1, 2025
+     NetHack 3.7.0                                         October 24, 2025
 
 
 
@@ -4878,7 +4878,7 @@
        list  entries to be added by their name and entries to be removed by
 
 
-     NetHack 3.7.0                                              May 1, 2025
+     NetHack 3.7.0                                         October 24, 2025
 
 
 
@@ -4944,7 +4944,7 @@
 
 
 
-     NetHack 3.7.0                                              May 1, 2025
+     NetHack 3.7.0                                         October 24, 2025
 
 
 
@@ -5010,7 +5010,7 @@
 
 
 
-     NetHack 3.7.0                                              May 1, 2025
+     NetHack 3.7.0                                         October 24, 2025
 
 
 
@@ -5076,7 +5076,7 @@
 
 
 
-     NetHack 3.7.0                                              May 1, 2025
+     NetHack 3.7.0                                         October 24, 2025
 
 
 
@@ -5142,7 +5142,7 @@
 
 
 
-     NetHack 3.7.0                                              May 1, 2025
+     NetHack 3.7.0                                         October 24, 2025
 
 
 
@@ -5208,7 +5208,7 @@
            monster index; default;
 
 
-     NetHack 3.7.0                                              May 1, 2025
+     NetHack 3.7.0                                         October 24, 2025
 
 
 
@@ -5274,7 +5274,7 @@
        to  the  screen.   (Applies  to  "tty" and "curses" interfaces only;
 
 
-     NetHack 3.7.0                                              May 1, 2025
+     NetHack 3.7.0                                         October 24, 2025
 
 
 
@@ -5340,7 +5340,7 @@
             a - in same area only
 
 
-     NetHack 3.7.0                                              May 1, 2025
+     NetHack 3.7.0                                         October 24, 2025
 
 
 
@@ -5406,7 +5406,7 @@
 
 
 
-     NetHack 3.7.0                                              May 1, 2025
+     NetHack 3.7.0                                         October 24, 2025
 
 
 
@@ -5472,7 +5472,7 @@
 
 
 
-     NetHack 3.7.0                                              May 1, 2025
+     NetHack 3.7.0                                         October 24, 2025
 
 
 
@@ -5538,7 +5538,7 @@
        If  NetHack  can, it should display an opening splash screen when it
 
 
-     NetHack 3.7.0                                              May 1, 2025
+     NetHack 3.7.0                                         October 24, 2025
 
 
 
@@ -5604,7 +5604,7 @@
        Use bold black instead of blue for black glyphs (TTY only).
 
 
-     NetHack 3.7.0                                              May 1, 2025
+     NetHack 3.7.0                                         October 24, 2025
 
 
 
@@ -5670,7 +5670,7 @@
 
 
 
-     NetHack 3.7.0                                              May 1, 2025
+     NetHack 3.7.0                                         October 24, 2025
 
 
 
@@ -5736,7 +5736,7 @@
        strokes that the operating system returns to NetHack to help compen-
 
 
-     NetHack 3.7.0                                              May 1, 2025
+     NetHack 3.7.0                                         October 24, 2025
 
 
 
@@ -5802,7 +5802,7 @@
 
 
 
-     NetHack 3.7.0                                              May 1, 2025
+     NetHack 3.7.0                                         October 24, 2025
 
 
 
@@ -5868,7 +5868,7 @@
        The menu control or accelerator keys can also be rebound via OPTIONS
 
 
-     NetHack 3.7.0                                              May 1, 2025
+     NetHack 3.7.0                                         October 24, 2025
 
 
 
@@ -5934,7 +5934,7 @@
 
 
 
-     NetHack 3.7.0                                              May 1, 2025
+     NetHack 3.7.0                                         October 24, 2025
 
 
 
@@ -6000,7 +6000,7 @@
        ing for more info, and exit the location asking  loop.   Default  is
 
 
-     NetHack 3.7.0                                              May 1, 2025
+     NetHack 3.7.0                                         October 24, 2025
 
 
 
@@ -6066,7 +6066,7 @@
 
 
 
-     NetHack 3.7.0                                              May 1, 2025
+     NetHack 3.7.0                                         October 24, 2025
 
 
 
@@ -6132,7 +6132,7 @@
 
 
 
-     NetHack 3.7.0                                              May 1, 2025
+     NetHack 3.7.0                                         October 24, 2025
 
 
 
@@ -6198,7 +6198,7 @@
      cause the hitpoints field to display in the color  red  if  your  hit-
 
 
-     NetHack 3.7.0                                              May 1, 2025
+     NetHack 3.7.0                                         October 24, 2025
 
 
 
@@ -6264,7 +6264,7 @@
 
 
 
-     NetHack 3.7.0                                              May 1, 2025
+     NetHack 3.7.0                                         October 24, 2025
 
 
 
@@ -6330,7 +6330,7 @@
 
 
 
-     NetHack 3.7.0                                              May 1, 2025
+     NetHack 3.7.0                                         October 24, 2025
 
 
 
@@ -6396,7 +6396,7 @@
      value, and the ^ prefix causes the following character to  be  treated
 
 
-     NetHack 3.7.0                                              May 1, 2025
+     NetHack 3.7.0                                         October 24, 2025
 
 
 
@@ -6462,7 +6462,7 @@
 
 
 
-     NetHack 3.7.0                                              May 1, 2025
+     NetHack 3.7.0                                         October 24, 2025
 
 
 
@@ -6528,7 +6528,7 @@
 
 
 
-     NetHack 3.7.0                                              May 1, 2025
+     NetHack 3.7.0                                         October 24, 2025
 
 
 
@@ -6594,7 +6594,7 @@
 
 
 
-     NetHack 3.7.0                                              May 1, 2025
+     NetHack 3.7.0                                         October 24, 2025
 
 
 
@@ -6660,7 +6660,7 @@
 
 
 
-     NetHack 3.7.0                                              May 1, 2025
+     NetHack 3.7.0                                         October 24, 2025
 
 
 
@@ -6726,7 +6726,7 @@
 
 
 
-     NetHack 3.7.0                                              May 1, 2025
+     NetHack 3.7.0                                         October 24, 2025
 
 
 
@@ -6792,7 +6792,7 @@
        seen via the "#attributes" command.
 
 
-     NetHack 3.7.0                                              May 1, 2025
+     NetHack 3.7.0                                         October 24, 2025
 
 
 
@@ -6858,7 +6858,7 @@
 
 
 
-     NetHack 3.7.0                                              May 1, 2025
+     NetHack 3.7.0                                         October 24, 2025
 
 
 
@@ -6924,7 +6924,7 @@
 
 
 
-     NetHack 3.7.0                                              May 1, 2025
+     NetHack 3.7.0                                         October 24, 2025
 
 
 
@@ -6990,7 +6990,7 @@
      connection  between "wizard mode" and the Wizard role).  Attempting to
 
 
-     NetHack 3.7.0                                              May 1, 2025
+     NetHack 3.7.0                                         October 24, 2025
 
 
 
@@ -7056,7 +7056,7 @@
 
 
 
-     NetHack 3.7.0                                              May 1, 2025
+     NetHack 3.7.0                                         October 24, 2025
 
 
 
@@ -7122,7 +7122,7 @@
      were  distinct  for specific types of monsters and objects rather than
 
 
-     NetHack 3.7.0                                              May 1, 2025
+     NetHack 3.7.0                                         October 24, 2025
 
 
 
@@ -7188,7 +7188,7 @@
      file layout which prevented score entries from being read back in cor-
 
 
-     NetHack 3.7.0                                              May 1, 2025
+     NetHack 3.7.0                                         October 24, 2025
 
 
 
@@ -7254,7 +7254,7 @@
 
 
 
-     NetHack 3.7.0                                              May 1, 2025
+     NetHack 3.7.0                                         October 24, 2025
 
 
 
@@ -7320,7 +7320,7 @@
      Kompel,  Dion  Nicolaas, Derek S. Ray and Yitzhak Sapir maintained the
 
 
-     NetHack 3.7.0                                              May 1, 2025
+     NetHack 3.7.0                                         October 24, 2025
 
 
 
@@ -7386,7 +7386,7 @@
 
 
 
-     NetHack 3.7.0                                              May 1, 2025
+     NetHack 3.7.0                                         October 24, 2025
 
 
 
@@ -7452,7 +7452,7 @@
      sends a particularly intriguing modification  to  help  out  with  the
 
 
-     NetHack 3.7.0                                              May 1, 2025
+     NetHack 3.7.0                                         October 24, 2025
 
 
 
@@ -7518,7 +7518,7 @@
 
 
 
-     NetHack 3.7.0                                              May 1, 2025
+     NetHack 3.7.0                                         October 24, 2025
 
 
 
@@ -7584,7 +7584,7 @@
 
 
 
-     NetHack 3.7.0                                              May 1, 2025
+     NetHack 3.7.0                                         October 24, 2025
 
 
 
@@ -7650,7 +7650,7 @@
 
 
 
-     NetHack 3.7.0                                              May 1, 2025
+     NetHack 3.7.0                                         October 24, 2025
 
 
 
