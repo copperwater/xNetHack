@@ -550,7 +550,7 @@ Cross-compiler url:      https://github.com/bebbo/amiga-gcc
         brew install bash wget make lhasa gmp mpfr libmpc flex gettext \
         texinfo gcc make autoconf
 
-    After installing the prerequite packages and the cross-compiler
+    After installing the prerequisite packages and the cross-compiler
     it was a straightforward build:
 
             git clone https://github.com/bebbo/amiga-gcc.git
@@ -646,7 +646,7 @@ Cross-compiler url: https://emscripten.org/docs/getting_started/downloads.html
     For macOS, you will need to install Xcode, git, cmake, Python 3.5 or new
     (at time of this writing).
 
-    After installing the prerequite packages above, obtain the cross-compiler
+    After installing the prerequisite packages above, obtain the cross-compiler
     via git and build it from the directory of your choice using steps similar
     to these:
 
