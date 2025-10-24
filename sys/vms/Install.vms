@@ -76,7 +76,7 @@
     used if symbols are set up to run them.  Or if you have them but do not
     have symbols set up, you may edit spec_lev.com to have it run them.
     If neither of those situations applies, spec_lev.com will default to
-    copying pre-genearated versions of the appropriate files (dgn_lex.c,
+    copying pre-generated versions of the appropriate files (dgn_lex.c,
     lev_lex.c, dgn_yacc.c, lev_yacc.c, dgn_comp.h, and lev_comp.h) from
     [.sys.share] into [.util]*.c and [.include]*.h.
 

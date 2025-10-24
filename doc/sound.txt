@@ -87,7 +87,7 @@ There are 4 distinct types of sound sound_triggers used by NetHack.
                                  at the outset (ambience_begin), at the
                                  termination (ambience_end), and
                                  periodically in-between as needed
-                                 (ambience_upate), likely with a different
+                                 (ambience_update), likely with a different
                                  hero proximity value.
 
     SOUND_TRIGGER_VERBAL         Invoked by the core when someone (or something)
@@ -233,7 +233,7 @@ sound_play_usersound(char *filename, int32_t volume, int32_t usidx);
 sound_ambience(int32_t ambienceid, int32_t ambience_action,
                int32_t hero_proximity);
     -- NetHack will call this function when it wants a particular
-       ambience related sound played in order to provide atomosphere
+       ambience related sound played in order to provide atmosphere
        or flavor.
     -- The ambienceid is used to identify the particular ambience sound
        being sought. The abienceid identifiers are from the
