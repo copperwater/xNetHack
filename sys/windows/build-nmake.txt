@@ -62,7 +62,7 @@ Building
 Two different versions of NetHack will be built for Windows from the
 command line using the Makefile approach:
     A tty port utilizing the Win32 Console I/O subsystem Console,
-    and a curses interface in an executabled called NetHack.exe.
+    and a curses interface in an executable called NetHack.exe.
         NetHack
     A Win32 native port built on the Windows API Graphical NetHack,
     and graphical curses in an executable called NetHackW.exe.

@@ -623,7 +623,7 @@ early_options(int *argc_p, char ***argv_p, char **hackdir_p)
 
     /*
      * Both *argc_p and *argv_p account for the program name as (*argv_p)[0];
-     * local argc and argv impicitly discard that (by starting 'ndx' at 1).
+     * local argc and argv implicitly discard that (by starting 'ndx' at 1).
      * argcheck() doesn't mind, prscore() (via scores_only()) does (for the
      * number of args it gets passed, not for the value of argv[0]).
      */

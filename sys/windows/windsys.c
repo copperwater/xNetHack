@@ -827,9 +827,9 @@ get_executable_path(void)
     path_buffer[length] = '\0';
 #endif
 
-    char *seperator = strrchr(path_buffer, PATH_SEPARATOR);
-    if (seperator)
-        *seperator = '\0';
+    char *separator = strrchr(path_buffer, PATH_SEPARATOR);
+    if (separator)
+        *separator = '\0';
 
     path_buffer_set = TRUE;
     return path_buffer;
