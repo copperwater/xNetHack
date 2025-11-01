@@ -1528,6 +1528,7 @@ a gas spore that was killed when an engulfer swallowed it produced an explosion
 hallucination can display objects on the map that have a description (for
 	shuffling into play at game start) but no name; examining those might
 	trigger a crash
+some food and paper items do no damage when bashing
 
 
 Fixes to 3.7.0-x General Problems Exposed Via git Repository
