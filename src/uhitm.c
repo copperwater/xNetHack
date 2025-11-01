@@ -1316,6 +1316,13 @@ hmon_hitmon_misc_obj(
         hmd->get_dmg_bonus = FALSE;
         break;
     default:
+        if (objects[obj->otyp].oc_material == VEGGY) {
+            /* vegetables (and similar) do no damage, because they
+               aren't rigid enough */
+            hmd->dmg = 0;
+            hmd->get_dmg_bonus = FALSE;
+            break;
+        }
         /* non-weapons can damage because of their weight */
         /* (but not too much) */
         hmd->dmg = (obj->owt + 99) / 100;
