@@ -1316,9 +1316,12 @@ hmon_hitmon_misc_obj(
         hmd->get_dmg_bonus = FALSE;
         break;
     default:
-        if (objects[obj->otyp].oc_material == VEGGY) {
+        if ((objects[obj->otyp].oc_material == VEGGY ||
+             objects[obj->otyp].oc_material == PAPER) &&
+            obj->oclass != SPBOOK_CLASS) {
             /* vegetables (and similar) do no damage, because they
-               aren't rigid enough */
+               aren't rigid enough; paper objects also do no damage,
+               except for books */
             hmd->dmg = 0;
             hmd->get_dmg_bonus = FALSE;
             break;
