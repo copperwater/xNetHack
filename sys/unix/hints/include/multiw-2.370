@@ -15,7 +15,7 @@
 #     - WINOBJ0
 #---
 # User selections could be specified as combinations of any of the following:
-# WIN_WANT_TTY=1, WIN_WANT_CURSES=1, WIN_WANT_QT=1, WIN_WANT_X11=1
+# WANT_WIN_TTY=1, WANT_WIN_CURSES=1, WANT_WIN_QT=1, WANT_WIN_X11=1
 # The selections will all be linked into the same binary.
 #
 # Assuming you have the prerequisite packages mentioned above, you can
