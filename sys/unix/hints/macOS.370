@@ -281,12 +281,12 @@ WINLIB += $(shell PKG_CONFIG_PATH=$(QTDIR)/lib/pkgconfig \
 		pkg-config Qt5Gui Qt5Widgets Qt5Multimedia --libs)
 endif    # WANT_WIN_QT5
 ifdef WANT_WIN_QT6
-QTCXXFLAGS += -std=c++17 -I $(QTDIR)/include -I $(QTDIR)/include/QtCore \
-		-I $(QTDIR)/include/QtMultimedia
+QTCXXFLAGS += $(sort $(shell PKG_CONFIG_PATH=$(QTDIR)/lib/pkgconfig \
+		pkg-config Qt6Gui Qt6Widgets Qt6Multimedia --cflags))
 MOC = moc
 MOCPATH = $(QTDIR)/share/qt/libexec/moc
-WINLIB += -F $(QTDIR)/Frameworks -framework QtCore -framework QtGui \
-		-framework QtWidgets -framework QtMultimedia
+WINLIB += $(shell PKG_CONFIG_PATH=$(QTDIR)/lib/pkgconfig \
+		pkg-config Qt6Gui Qt6Widgets Qt6Multimedia --libs)
 endif    # WANT_WIN_QT6
 VARDATND0 += nhtiles.bmp rip.xpm nhsplash.xpm
 # XXX if /Developer/qt exists and QTDIR not set, use that
