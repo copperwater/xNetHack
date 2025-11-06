@@ -2703,12 +2703,12 @@ update_inventory(void)
      * attempt in the shop code handled it for unpaid items but not for
      * paying for used-up shop items; that follows a different code path.)
      */
-    program_state.in_update_inventory = TRUE;
+    program_state.in_update_inventory = 1;
     save_suppress_price = iflags.suppress_price;
     iflags.suppress_price = 0;
     (*windowprocs.win_update_inventory)(0);
     iflags.suppress_price = save_suppress_price;
-    program_state.in_update_inventory = FALSE;
+    program_state.in_update_inventory = 0;
 }
 
 /* the #perminv command - call interface's persistent inventory routine */
