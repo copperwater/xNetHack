@@ -2703,12 +2703,10 @@ update_inventory(void)
      * attempt in the shop code handled it for unpaid items but not for
      * paying for used-up shop items; that follows a different code path.)
      */
-    program_state.in_update_inventory = TRUE;
     save_suppress_price = iflags.suppress_price;
     iflags.suppress_price = 0;
     (*windowprocs.win_update_inventory)(0);
     iflags.suppress_price = save_suppress_price;
-    program_state.in_update_inventory = FALSE;
 }
 
 /* the #perminv command - call interface's persistent inventory routine */
@@ -4026,7 +4024,7 @@ display_inventory(const char *lets, boolean want_reply)
 {
     struct _cmd_queue *cmdq = cmdq_pop();
 
-    if (cmdq && !program_state.in_update_inventory) {
+    if (cmdq) {
         if (cmdq->typ == CMDQ_KEY) {
             struct obj *otmp;
 
