@@ -1,4 +1,4 @@
-NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.1535 $ $NHDT-Date: 1740629713 2025/02/26 20:15:13 $
+NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.1572 $ $NHDT-Date: 1762577372 2025/11/07 20:49:32 $
 
 General Fixes and Modified Features
 -----------------------------------
@@ -2825,6 +2825,8 @@ archeologists' fedora is lucky
 telepathic hero can discern which particular monster just read a scroll
 add "make fetch-docs" to download pre-formatted documentation
 monsters will use throw-and-return weapons such as an aklys
+uncursed genocide while hallucinating deliberately mis-reports hero's role as
+	target but was also inappropriately showing it to livelog/#chronicle
 
 
 Platform- and/or Interface-Specific New Features
