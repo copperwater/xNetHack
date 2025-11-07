@@ -4663,8 +4663,8 @@ water_damage(
         water_damage_chain(obj->cobj, FALSE);
         return ER_DAMAGED; /* contents were damaged */
     } else if (Waterproof_container(obj)) {
-        if (in_invent) {
-            pline_The("%s slides right off your %s.", hliquid("water"), ostr);
+        if (in_invent && !Blind && !Underwater) {
+            pline_The("%s cannot get into your %s.", hliquid("water"), ostr);
             gm.mentioned_water = !Hallucination;
             makeknown(obj->otyp); /* if an oilskin sack, discover it; doesn't
                                    * matter for chest, large box, ice box */

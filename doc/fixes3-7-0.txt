@@ -1529,6 +1529,7 @@ hallucination can display objects on the map that have a description (for
 	shuffling into play at game start) but no name; examining those might
 	trigger a crash
 some food and paper items do no damage when bashing
+improved messages for oilskin sacks protecting from water damage
 
 
 Fixes to 3.7.0-x General Problems Exposed Via git Repository
