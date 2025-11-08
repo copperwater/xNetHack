@@ -4850,7 +4850,7 @@ void NetHackQtBind::qt_update_inventory()
 	main->updateInventory();
     /* doesn't work yet
     if (program_state.something_worth_saving && iflags.perm_invent)
-        display_inventory(NULL, FALSE);
+        repopulate_perminvent();
     */
 }
 

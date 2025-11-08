@@ -2098,7 +2098,7 @@ amii_update_inventory()
 
     if (WIN_INVEN != WIN_ERR && (cw = amii_wins[WIN_INVEN])
         && cw->type == NHW_MENU && cw->win) {
-        display_inventory(NULL, FALSE);
+        repopulate_perminvent();
     }
 }
 
