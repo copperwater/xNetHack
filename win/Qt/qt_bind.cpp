@@ -502,7 +502,7 @@ void NetHackQtBind::qt_update_inventory(int arg UNUSED)
 
     /* doesn't work yet
     if (program_state.something_worth_saving && iflags.perm_invent)
-        display_inventory(NULL, false);
+        repopulate_perminvent();
     */
 }
 

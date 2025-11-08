@@ -172,11 +172,11 @@ VDECLCB(shim_status_update,
     "vipiiip",
     A2P fldidx, P2V ptr, A2P chg, A2P percent, A2P color, P2V colormasks)
 #ifdef __EMSCRIPTEN__
-/* XXX: calling display_inventory() from shim_update_inventory() causes reentrancy that breaks emscripten Asyncify */
-/* this should be fine since according to windows.doc, the only purpose of shim_update_inventory() is to call display_inventory() */
+/* XXX: calling repopulate_perminvent() from shim_update_inventory() causes reentrancy that breaks emscripten Asyncify */
+/* this should be fine since according to windows.doc, the only purpose of shim_update_inventory() is to call repopulate_perminvent() */
 void shim_update_inventory(int a1 UNUSED) {
     if(iflags.perm_invent) {
-        display_inventory(NULL, FALSE);
+        repopulate_perminvent();
     }
 }
 

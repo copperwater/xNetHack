@@ -1358,6 +1358,7 @@ extern void sync_perminvent(void);
 extern void perm_invent_toggled(boolean negated);
 extern void prepare_perminvent(winid window);
 extern struct obj *carrying_stoning_corpse(void);
+extern void repopulate_perminvent(void);
 
 /* ### ioctl.c ### */
 

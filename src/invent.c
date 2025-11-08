@@ -4047,6 +4047,13 @@ display_inventory(const char *lets, boolean want_reply)
                            FALSE, want_reply, (long *) 0);
 }
 
+void
+repopulate_perminvent(void)
+{
+        (void) display_pickinv(NULL, (char *) 0, (char *) 0,
+                               FALSE, FALSE, (long *) 0);
+}
+
 /*
  * Show what is current using inventory letters.
  *

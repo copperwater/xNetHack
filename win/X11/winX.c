@@ -1295,7 +1295,7 @@ X11_update_inventory(int arg)
         if (program_state.in_moveloop || program_state.gameover) {
             updated_inventory = 1; /* hack to avoid mapping&raising window */
             if (!arg) {
-                (void) display_inventory((char *) 0, FALSE);
+                repopulate_perminvent();
             } else {
                 x11_scroll_perminv(arg);
             }
