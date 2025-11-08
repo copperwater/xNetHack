@@ -2860,20 +2860,24 @@ do_genocide(
     }
 
     which = "all ";
-    Strcpy(buf, ptr->pmnames[NEUTRAL]); /* standard singular */
-    if ((ptr->geno & G_UNIQ) && ptr != &mons[PM_HIGH_CLERIC])
-        which = !type_is_pname(ptr) ? "the " : "";
-    Strcpy(realbuf, buf); /* save true name, to avoid Hallu for livelog */
+    Strcpy(realbuf, ptr->pmnames[NEUTRAL]); /* standard singular */
     if (Hallucination) {
+        /* hallucinate hero's type */
         if (Upolyd) {
             Strcpy(buf, pmname(gy.youmonst.data,
                                flags.female ? FEMALE : MALE));
         } else {
             Strcpy(buf, (flags.female && gu.urole.name.f) ? gu.urole.name.f
-                                                       : gu.urole.name.m);
+                                                          : gu.urole.name.m);
             buf[0] = lowc(buf[0]);
         }
+    } else {
+        /* use actual type */
+        Strcpy(buf, realbuf);
+        if ((ptr->geno & G_UNIQ) && ptr != &mons[PM_HIGH_CLERIC])
+            which = !type_is_pname(ptr) ? "the " : "";
     }
+
     if (how & REALLY) {
         if (!num_genocides())
             livelog_printf(LL_CONDUCT | LL_GENOCIDE,
@@ -2902,13 +2906,13 @@ do_genocide(
             }
 
             /* Polymorphed characters will die as soon as they're rehumanized.
-             */
-            /* KMH -- Unchanging prevents rehumanization */
+               KMH -- Unchanging prevents rehumanization. */
             if (Upolyd && ptr != gy.youmonst.data) {
                 delayed_killer(POLYMORPH, svk.killer.format, svk.killer.name);
                 You_feel("%s inside.", udeadinside());
-            } else
+            } else {
                 done(GENOCIDED);
+            }
         } else if (ptr == gy.youmonst.data) {
             rehumanize();
         }
