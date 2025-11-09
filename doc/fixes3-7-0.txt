@@ -1,4 +1,4 @@
-NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.1573 $ $NHDT-Date: 1762680996 2025/11/09 01:36:36 $
+NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.1574 $ $NHDT-Date: 1762727599 2025/11/09 14:33:19 $
 
 General Fixes and Modified Features
 -----------------------------------
@@ -2830,6 +2830,8 @@ add "make fetch-docs" to download pre-formatted documentation
 monsters will use throw-and-return weapons such as an aklys
 uncursed genocide while hallucinating deliberately mis-reports hero's role as
 	target but was also inappropriately showing it to livelog/#chronicle
+livelog/#chronicle for bribing a demon lord reported random monster and
+	currency if hero was hallucinating
 
 
 Platform- and/or Interface-Specific New Features
