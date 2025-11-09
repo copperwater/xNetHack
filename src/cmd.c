@@ -1,4 +1,4 @@
-/* NetHack 3.7	cmd.c	$NHDT-Date: 1736401574 2025/01/08 21:46:14 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.744 $ */
+/* NetHack 3.7	cmd.c	$NHDT-Date: 1762680996 2025/11/09 01:36:36 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.755 $ */
 /* Copyright (c) Stichting Mathematisch Centrum, Amsterdam, 1985. */
 /*-Copyright (c) Robert Patrick Rankin, 2013. */
 /* NetHack may be freely redistributed.  See license for details. */
@@ -5260,7 +5260,7 @@ yn_function(
         query = qbuf;
     }
 
-    if ((cmdq = cmdq_pop()) != 0) {
+    if (addcmdq && (cmdq = cmdq_pop()) != 0) {
         cq = *cmdq;
         free(cmdq);
     } else {
@@ -5323,7 +5323,7 @@ yn_function(
        it is most likely caused by saving a keystroke that was just used
        to answer a context-sensitive prompt, then using the do-again
        command with context that has changed */
-    if (resp && res && !strchr(resp, res)) {
+    if (resp && *resp && res && !strchr(resp, res)) {
         /* this probably needs refinement since caller is expecting something
            within 'resp' and ESC won't be (it could be present, but as a flag
            for unshown possibilities rather than as acceptable input) */
@@ -5405,9 +5405,11 @@ paranoid_ynq(
             /* for empty input, return value c will already be 'n' */
         } while (ParanoidConfirm && strcmpi(ans, "no") && --trylimit);
     } else if (accept_q) {
-        c = ynq(prompt); /* 'y', 'n', or 'q' */
+        /* 'y', 'n', or 'q' */
+        c = yn_function(prompt, ynqchars, 'n', FALSE);
     } else {
-        c = y_n(prompt); /* 'y' or 'n' */
+        /* 'y' or 'n' */
+        c = yn_function(prompt, ynchars, 'n', FALSE);
     }
     if (c != 'y' && (c != 'q' || !accept_q))
         c = 'n';

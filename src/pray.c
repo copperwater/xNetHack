@@ -1,4 +1,4 @@
-/* NetHack 3.7	pray.c	$NHDT-Date: 1727250729 2024/09/25 07:52:09 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.220 $ */
+/* NetHack 3.7	pray.c	$NHDT-Date: 1762680996 2025/11/09 01:36:36 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.244 $ */
 /* Copyright (c) Benson I. Margulies, Mike Stephenson, Steve Linhart, 1989. */
 /* NetHack may be freely redistributed.  See license for details. */
 
@@ -2207,12 +2207,12 @@ dopray(void)
     if (ParanoidPray) {
         ok = paranoid_query(ParanoidConfirm,
                             "Are you sure you want to pray?");
-
+#if 0
         /* clear command recall buffer; otherwise ^A to repeat p(ray) would
            do so without confirmation (if 'ok') or do nothing (if '!ok') */
         cmdq_clear(CQ_REPEAT);
         cmdq_add_ec(CQ_REPEAT, dopray);
-
+#endif
         if (!ok) /* declined the "are you sure?" confirmation */
             return ECMD_OK;
     }

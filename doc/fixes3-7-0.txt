@@ -1,4 +1,4 @@
-NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.1572 $ $NHDT-Date: 1762577372 2025/11/07 20:49:32 $
+NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.1573 $ $NHDT-Date: 1762680996 2025/11/09 01:36:36 $
 
 General Fixes and Modified Features
 -----------------------------------
@@ -2137,6 +2137,9 @@ timer sanity check for melting ice gave false complaint about non-ice for
 mhitm_ad_phys() was not applying Half_physical_damage when hero was target
 throwing crystal plate mail or helm of brilliance up against the ceiling could
 	result in the item being cracked and then vanishing
+yn_function (used all over the place) sometimes triggered an impossible()
+	during do-again (^A) processing [ongoing revisions; more are probably
+	needed; listed here in case ^A behavior changes]
 
 
 Fixes to 3.7.0-x Platform and/or Interface Problems Exposed Via git Repository
