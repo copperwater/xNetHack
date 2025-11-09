@@ -1,4 +1,4 @@
-/* NetHack 3.7	spell.c	$NHDT-Date: 1725227807 2024/09/01 21:56:47 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.173 $ */
+/* NetHack 3.7	spell.c	$NHDT-Date: 1762680996 2025/11/09 01:36:36 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.179 $ */
 /*      Copyright (c) M. Stephenson 1988                          */
 /* NetHack may be freely redistributed.  See license for details. */
 
@@ -713,11 +713,12 @@ rejectcasting(void)
 staticfn boolean
 getspell(int *spell_no)
 {
-    int nspells, idx;
+    int nspells, idx, retry_limit;
     char ilet, lets[BUFSZ], qbuf[QBUFSZ];
     struct _cmd_queue cq, *cmdq;
 
-    if (spellid(0) == NO_SPELL) {
+    nspells = num_spells();
+    if (!nspells) {
         You("don't know any spells right now.");
         return FALSE;
     }
@@ -728,7 +729,6 @@ getspell(int *spell_no)
         cq = *cmdq;
         free(cmdq);
         if (cq.typ == CMDQ_KEY) {
-            nspells = num_spells();
             idx = spell_let_to_idx(cq.key);
             if (idx < 0 || idx >= nspells)
                 return FALSE;
@@ -740,27 +740,33 @@ getspell(int *spell_no)
     }
 
     if (flags.menu_style == MENU_TRADITIONAL) {
-        /* we know there is at least 1 known spell */
-        nspells = num_spells();
-
+        /* if we get here, we know there is at least 1 known spell */
         if (nspells == 1)
             Strcpy(lets, "a");
         else if (nspells < 27)
             Sprintf(lets, "a-%c", 'a' + nspells - 1);
         else if (nspells == 27)
-            Sprintf(lets, "a-zA");
+            Strcpy(lets, "a-zA");
         /* this assumes that there are at most 52 spells... */
         else
             Sprintf(lets, "a-zA-%c", 'A' + nspells - 27);
 
-        for (;;) {
-            Snprintf(qbuf, sizeof(qbuf), "Cast which spell? [%s *?]",
-                     lets);
+        Snprintf(qbuf, sizeof qbuf, "Cast which spell? [%s *?]", lets);
+        for (retry_limit = 0; ; ++retry_limit) {
+            if (retry_limit == 10) {
+                /* limit is mainly to prevent the fuzzer from getting stuck
+                   since hangup should hit the 'quitchars' case; fuzzer
+                   would too, but after an arbitrary number of attempts */
+                pline("That's enough tries.");
+                return FALSE;
+            }
             ilet = yn_function(qbuf, (char *) 0, '\0', TRUE);
             if (ilet == '*' || ilet == '?')
                 break; /* use menu mode */
-            if (strchr(quitchars, ilet))
+            if (strchr(quitchars, ilet)) {
+                pline1(Never_mind);
                 return FALSE;
+            }
 
             idx = spell_let_to_idx(ilet);
             if (idx < 0 || idx >= nspells) {
