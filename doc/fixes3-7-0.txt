@@ -1,4 +1,4 @@
-NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.1574 $ $NHDT-Date: 1762727599 2025/11/09 14:33:19 $
+NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.1575 $ $NHDT-Date: 1762750699 2025/11/09 20:58:19 $
 
 General Fixes and Modified Features
 -----------------------------------
@@ -1530,6 +1530,8 @@ hallucination can display objects on the map that have a description (for
 	trigger a crash
 some food and paper items do no damage when bashing
 improved messages for oilskin sacks protecting from water damage
+some messages by amorous demons and mail daemon were delivered as verbal ones
+	even when the hero is deaf
 
 
 Fixes to 3.7.0-x General Problems Exposed Via git Repository
