@@ -214,6 +214,7 @@ if [ -d djgpp/target ]; then
    cd ../../
 fi
 
+set -x
 
 FONT_VERSION="4.49"
 FONT_FILE="terminus-font-$FONT_VERSION"
@@ -228,13 +229,15 @@ if [ ! -d "$FONT_LFILE" ]; then
 	#Mac
 	curl -L $FONT_URL --output $FONT_RFILE
     else
-	wget --quiet --no-hsts $FONT_URL
+#	wget --quiet --no-hsts $FONT_URL
+	curl -L $FONT_URL --output $FONT_RFILE
     fi
     tar -xvf $FONT_RFILE
     rm $FONT_RFILE
 else
 	echo "terminus fonts are already available in lib/$FONT_LFILE"
 fi
+set +x
 
 cd ../
 
