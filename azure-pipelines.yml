@@ -32,10 +32,10 @@ strategy:
       imageName: 'windows-2025'
       toolchainName: mingw
       buildTargetName: all
-    linux_latest_cross_msdos:
-      imageName: 'ubuntu-latest'
-      toolchainName: cross
-      buildTargetName: msdos
+#    linux_latest_cross_msdos:
+#      imageName: 'ubuntu-latest'
+#      toolchainName: cross
+#      buildTargetName: msdos
     linux_noble_docs:
       imageName: 'ubuntu-24.04'
       toolchainName: docs
