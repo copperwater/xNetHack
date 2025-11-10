@@ -227,13 +227,19 @@ if [ ! -d "$FONT_LFILE" ]; then
     echo "Getting terminus fonts"
     if [ "$(uname)" = "Darwin" ]; then
 	#Mac
-	curl -L $FONT_URL --output $FONT_RFILE
+	curl -s -L $FONT_URL --output $FONT_RFILE
     else
 #	wget --quiet --no-hsts $FONT_URL
-	curl -L $FONT_URL --output $FONT_RFILE
+	curl --help all
+	curl -s -L $FONT_URL --output $FONT_RFILE
     fi
-    tar -xvf $FONT_RFILE
-    rm $FONT_RFILE
+    ls -l
+    if [ -f "$FONT_RFILE" ]; then
+        tar -xvf $FONT_RFILE
+        rm $FONT_RFILE
+    else
+	    echo "terminus fonts failed to download correctly to lib/$FONT_LFILE"
+    fi
 else
 	echo "terminus fonts are already available in lib/$FONT_LFILE"
 fi
