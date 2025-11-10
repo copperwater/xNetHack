@@ -32,10 +32,10 @@ strategy:
       imageName: 'windows-2025'
       toolchainName: mingw
       buildTargetName: all
-#    linux_latest_cross_msdos:
-#      imageName: 'ubuntu-latest'
-#      toolchainName: cross
-#      buildTargetName: msdos
+    linux_latest_cross_msdos:
+      imageName: 'ubuntu-latest'
+      toolchainName: cross
+      buildTargetName: msdos
     linux_noble_docs:
       imageName: 'ubuntu-24.04'
       toolchainName: docs
@@ -227,6 +227,7 @@ steps:
 - bash: |
     sudo apt -qq -y install libfl2
     export GCCVER=gcc1220
+    export IN_CI=SKIP_FONTS_IN_CI=1
     cd sys/unix
     sh setup.sh hints/linux.370
     cd ../..
@@ -234,7 +235,7 @@ steps:
     sys/msdos/fetch-cross-compiler.sh
     retVal=$?
     if [ $retVal -eq 0 ]; then
-        make LUA_VERSION=5.4.6 WANT_WIN_TTY=1 WANT_WIN_CURSES=1 CROSS_TO_MSDOS=1 package
+        make LUA_VERSION=5.4.6 WANT_WIN_TTY=1 WANT_WIN_CURSES=1 CROSS_TO_MSDOS=1 $IN_CI package
     fi
   condition: and(eq( variables['Agent.OS'], 'Linux' ), eq( variables.toolchain, 'cross'))
   workingDirectory: $(Agent.BuildDirectory)/$(netHackPath)
