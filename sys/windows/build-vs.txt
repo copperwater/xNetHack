@@ -2,8 +2,8 @@ Building NetHack using the Visual Studio IDE
 
 Prerequisite Requirements:
 
-  o Visual Studio Community Edition
-        A copy of Microsoft Visual Studio Community Edition needs to
+  o Visual Studio Community
+        A copy of a version of Microsoft Visual Studio Community needs to
         be installed on your machine. See:
         https://visualstudio.microsoft.com/vs/community/
   o Lua
@@ -57,7 +57,7 @@ versions:
 | Building And Running Using Visual Studio 2022 or greater  |
 \-----------------------------------------------------------/
 
-When using Visual Studio Community Edition, load the provided solution
+When using a version of Visual Studio Community, load the provided solution
 file within the IDE, build the solution.
 
 The Visual Studio NetHack solution file can be found here:

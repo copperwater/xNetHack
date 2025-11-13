@@ -2,8 +2,8 @@ Building NetHack using the Visual Studio nmake from the command line
 
 Prerequisite Requirements:
 
-  o Visual Studio Community Edition
-        A copy of Microsoft Visual Studio Community Edition needs to
+  o Visual Studio Community
+        A copy of Microsoft Visual Studio Community needs to
         be installed on your machine. See:
         https://visualstudio.microsoft.com/vs/community/
   o Lua
@@ -54,7 +54,7 @@ You can use one of the following build environments:
 
 /-----------------------------------------------------------\
 | Building From the Command Line Using nmake from one of the |
-| Visual Studio Community Editions                           |
+| Visual Studio Community versions                           |
 \-----------------------------------------------------------/
 
 Building
