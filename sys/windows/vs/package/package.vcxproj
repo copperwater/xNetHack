@@ -1,9 +1,17 @@
 <?xml version="1.0" encoding="utf-8"?>
 <Project DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup Label="ProjectConfigurations">
+    <ProjectConfiguration Include="Debug|ARM64">
+      <Configuration>Debug</Configuration>
+      <Platform>ARM64</Platform>
+    </ProjectConfiguration>
     <ProjectConfiguration Include="Debug|Win32">
       <Configuration>Debug</Configuration>
       <Platform>Win32</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Release|ARM64">
+      <Configuration>Release</Configuration>
+      <Platform>ARM64</Platform>
     </ProjectConfiguration>
     <ProjectConfiguration Include="Release|Win32">
       <Configuration>Release</Configuration>
@@ -40,7 +48,15 @@
     <ConfigurationType>Makefile</ConfigurationType>
     <UseDebugLibraries>true</UseDebugLibraries>
   </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|ARM64'" Label="Configuration">
+    <ConfigurationType>Makefile</ConfigurationType>
+    <UseDebugLibraries>true</UseDebugLibraries>
+  </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" Label="Configuration">
+    <ConfigurationType>Makefile</ConfigurationType>
+    <UseDebugLibraries>false</UseDebugLibraries>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|ARM64'" Label="Configuration">
     <ConfigurationType>Makefile</ConfigurationType>
     <UseDebugLibraries>false</UseDebugLibraries>
   </PropertyGroup>
@@ -54,9 +70,9 @@
   </ImportGroup>
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup>
-	<NMakeBuildCommandLine>pushd $(vsDir)package %26%26 nmake -F package.nmake BinDir=&quot;$(BinDir)\&quot; Platform=&quot;$(Platform)&quot; PlatformShortName=&quot;$(PlatformShortName)&quot; Configuration=&quot;$(Configuration)&quot; NETHACK_VERSION=&quot;$(NETHACK_VERSION)&quot; %26%26 popd</NMakeBuildCommandLine>
-	<NMakeCleanCommandLine>pushd $(vsDir)package %26%26 nmake -F package.nmake clean %26%26 popd</NMakeCleanCommandLine>
-	<NMakeReBuildCommandLine>pushd $(vsDir)package %26%26 nmake -F package.nmake rebuild %26%26 popd</NMakeReBuildCommandLine>
+    <NMakeBuildCommandLine>pushd $(vsDir)package %26%26 nmake -F package.nmake BinDir="$(BinDir)\" Platform="$(Platform)" PlatformShortName="$(PlatformShortName)" Configuration="$(Configuration)" NETHACK_VERSION="$(NETHACK_VERSION)" %26%26 popd</NMakeBuildCommandLine>
+    <NMakeCleanCommandLine>pushd $(vsDir)package %26%26 nmake -F package.nmake clean %26%26 popd</NMakeCleanCommandLine>
+    <NMakeReBuildCommandLine>pushd $(vsDir)package %26%26 nmake -F package.nmake rebuild %26%26 popd</NMakeReBuildCommandLine>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
