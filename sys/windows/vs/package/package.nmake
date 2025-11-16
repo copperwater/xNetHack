@@ -91,11 +91,11 @@ $(DBGSYMZIP): $(PDBTOZIP)
 $(VSBINDIR)\license: $(BinDir)\license
 	copy /Y $(BinDir)\license $@
 $(VSBINDIR)\Guidebook.txt: $(BinDir)\Guidebook.txt
-	copy /Y $(BinDir)\Guidebook.txt $@
+	copy /Y $(DocDir)\Guidebook.txt $@
 $(VSBINDIR)\NetHack.exe: $(BinDir)\NetHack.exe
 	copy /Y $(BinDir)\NetHack.exe $@
 $(VSBINDIR)\NetHack.txt: $(BinDir)\NetHack.txt
-	copy /Y $(BinDir)\NetHack.txt $@
+	copy /Y $(DocDir)\NetHack.txt $@
 $(VSBINDIR)\NetHackW.exe: $(BinDir)\NetHackW.exe
 	copy /Y $(BinDir)\NetHackW.exe $@
 $(VSBINDIR)\opthelp: $(BinDir)\opthelp

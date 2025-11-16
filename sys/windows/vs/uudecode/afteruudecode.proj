@@ -4,7 +4,6 @@
   <Target Name="Build"
      Inputs="$(ToolsDir)uudecode.exe;@(UUFiles)"
 	 Outputs="@(IconFiles);@(BmpFiles);@(RecordFiles)">
-	<Exec Command="&quot;$(ToolsDir)uudecode.exe&quot; &quot;$(SysWindDir)nhico.uu&quot;" WorkingDirectory="$(WinWin32Dir)"/>
 	<Exec Command="&quot;$(ToolsDir)uudecode.exe&quot; &quot;$(WinWin32Dir)mnsel.uu&quot;" WorkingDirectory="$(WinWin32Dir)"/>
 	<Exec Command="&quot;$(ToolsDir)uudecode.exe&quot; &quot;$(WinWin32Dir)mnselcnt.uu&quot;" WorkingDirectory="$(WinWin32Dir)"/>
 	<Exec Command="&quot;$(ToolsDir)uudecode.exe&quot; &quot;$(WinWin32Dir)mnunsel.uu&quot;" WorkingDirectory="$(WinWin32Dir)"/>
@@ -74,6 +73,7 @@
 	<Exec Command="&quot;$(ToolsDir)uudecode.exe&quot; &quot;$(SndWavDir)sound_Wooden_Harp_G.uu&quot;" WorkingDirectory="$(SndWavDir)"/>
 	<Exec Command="&quot;$(ToolsDir)uudecode.exe&quot; &quot;$(SndWavDir)sa2_xpleveldown.uu&quot;" WorkingDirectory="$(SndWavDir)"/>
 	<Exec Command="&quot;$(ToolsDir)uudecode.exe&quot; &quot;$(SndWavDir)sa2_xplevelup.uu&quot;" WorkingDirectory="$(SndWavDir)"/>
+	<Exec Command="&quot;$(ToolsDir)uudecode.exe&quot; &quot;$(SysWindDir)nhico.uu&quot;" WorkingDirectory="$(SysWindDir)"/>
   </Target>
   <Target Name="Clean">
 	<Delete Files="@(IconFiles);@(BmpFiles);@(RecordFiles)"/>
