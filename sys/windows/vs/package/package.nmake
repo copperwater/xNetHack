@@ -41,6 +41,7 @@ X11     = $(ROOTDIR)\win\X11     # X11 support files
 LIBDIR  = $(ROOTDIR)\lib         # libraries and external bits
 SUBMDIR = $(ROOTDIR)\submodules  # NetHack git submodules
 SndWavDir = $(ROOTDIR)\sound\wav # sound files that get integrated
+DocDir  = $(ROOTDIR)\doc
 
 # Directories we might place collected things
 #
