@@ -82,11 +82,11 @@
   <ItemDefinitionGroup>
     <ClCompile>
       <AdditionalOptions>/Gs /Oi- /w44774 /w45262 %(AdditionalOptions)</AdditionalOptions>
-      <DisableSpecificWarnings>4100;4244;4245;4310;4706;4820;4324</DisableSpecificWarnings>
+      <DisableSpecificWarnings>4244;4245;4310;4706;4820;4324</DisableSpecificWarnings>
       <Optimization>Disabled</Optimization>
       <OmitFramePointers>true</OmitFramePointers>
       <AdditionalIncludeDirectories>$(WinWin32Dir);$(IncDir);$(SysWindDir);$(SysShareDir);$(WinShareDir);$(LuaDir);%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
-      <PreprocessorDefinitions>TILES;_WINDOWS;DLB;MSWIN_GRAPHICS;SAFEPROCS;NOTTYGRAPHICS;SND_LIB_WINDSOUND;USER_SOUNDS;HAS_STDINT_H;HAS_INTTYPES_H;PDC_WIDE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>TILES;_WINDOWS;DLB;MSWIN_GRAPHICS;SAFEPROCS;NOTTYGRAPHICS;SND_LIB_WINDSOUND;USER_SOUNDS;SND_SOUNDEFFECTS_AUTOMAP;HAS_STDINT_H;HAS_INTTYPES_H;PDC_WIDE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <LanguageStandard_C Condition="'$(DefaultPlatformToolset)'!='v142' And '$(Configuration)|$(Platform)'=='Debug|Win32'">stdclatest</LanguageStandard_C>
       <LanguageStandard_C Condition="'$(DefaultPlatformToolset)'!='v142' And '$(Configuration)|$(Platform)'=='Release|Win32'">stdclatest</LanguageStandard_C>
       <LanguageStandard_C Condition="'$(DefaultPlatformToolset)'!='v142' And '$(Configuration)|$(Platform)'=='Debug|x64'">stdclatest</LanguageStandard_C>
