@@ -42,23 +42,30 @@
   </PropertyGroup>
   <PropertyGroup>
     <HostTools></HostTools>
+    <Host>$(Platform)</Host>
   </PropertyGroup>
   <PropertyGroup Condition="'$(PROCESSOR_ARCHITECTURE)'=='ARM64'AND '$(Platform)'=='x86'">
     <HostTools>..\ARM64\</HostTools>
+    <Host>arm64</Host>
   </PropertyGroup>
   <PropertyGroup Condition="'$(PROCESSOR_ARCHITECTURE)'=='ARM64'AND '$(Platform)'=='x64'">
     <HostTools>..\ARM64\</HostTools>
+    <Host>arm64</Host>
   </PropertyGroup>
   <PropertyGroup Condition="'$(PROCESSOR_ARCHITECTURE)'=='ARM64'AND '$(Platform)'=='ARM64'">
     <HostTools>..\ARM64\</HostTools>
+    <Host>arm64</Host>
   </PropertyGroup>
   <PropertyGroup Condition="'$(PROCESSOR_ARCHITECTURE)'=='AMD64'AND '$(Platform)'=='x86'">
     <HostTools>..\x64\</HostTools>
+    <Host>x64</Host>
   </PropertyGroup>
   <PropertyGroup Condition="'$(PROCESSOR_ARCHITECTURE)'=='AMD64'AND '$(Platform)'=='x64'">
     <HostTools>..\x64\</HostTools>
+    <Host>x64</Host>
   </PropertyGroup>
   <PropertyGroup Condition="'$(PROCESSOR_ARCHITECTURE)'=='AMD64'AND '$(Platform)'=='ARM64'">
     <HostTools>..\x64\</HostTools>
+    <Host>x64</Host>
   </PropertyGroup>
 </Project>

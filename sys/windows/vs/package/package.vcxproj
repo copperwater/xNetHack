@@ -70,7 +70,7 @@
   </ImportGroup>
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup>
-    <NMakeBuildCommandLine>pushd $(vsDir)package %26%26 nmake /NOLOGO -F package.nmake BinDir="$(BinDir)\" Platform="$(Platform)" PlatformShortName="$(PlatformShortName)" Configuration="$(Configuration)" NETHACK_VERSION="$(NETHACK_VERSION)" %26%26 popd</NMakeBuildCommandLine>
+    <NMakeBuildCommandLine>pushd $(vsDir)package %26%26 nmake /NOLOGO -F package.nmake BinDir="$(BinDir)\" Configuration="$(Configuration)" Platform="$(Platform)" PSN="$(PlatformShortName)" NETHACK_VERSION="$(NETHACK_VERSION)" Host="$(Host)" %26%26 popd</NMakeBuildCommandLine>
     <NMakeCleanCommandLine>pushd $(vsDir)package %26%26 nmake /NOLOGO -F package.nmake clean %26%26 popd</NMakeCleanCommandLine>
     <NMakeReBuildCommandLine>pushd $(vsDir)package %26%26 nmake /NOLOGO -F package.nmake rebuild %26%26 popd</NMakeReBuildCommandLine>
   </PropertyGroup>
