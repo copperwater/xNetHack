@@ -103,7 +103,7 @@ $(VSBINDIR)\NetHackW.exe: $(BinDir)NetHackW.exe
 $(VSBINDIR)\opthelp: $(BinDir)opthelp
 	copy /Y $(BinDir)opthelp $@
 $(VSBINDIR)\nhdat$(NHV): $(BinDir)nhdat$(NHV)
-	copy /Y $(BinDir)\nhdat$(NHV) $@
+	copy /Y $(BinDir)nhdat$(NHV) $@
 $(VSBINDIR)\symbols.template: $(BinDir)symbols.template
 	copy /Y $(BinDir)symbols.template $@
 $(VSBINDIR)\nethackrc.template: $(BinDir)nethackrc.template
