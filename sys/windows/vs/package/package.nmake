@@ -18,24 +18,40 @@ NHV=$(NHV:"=)
 #  relative directories from root of NetHack tree.
 #
 
-#LIBSDIR=lib           # libraries and external bits
-#SUBMSDIR=submodules   # NetHack git submodules
-ROOTDIR=..\..\..\..\   # root of NetHack tree relative to project file
-PlatformFileName=$(lowercase $(PSN))
-PackageDir=$(PackageBin)
+#LIBSDIR=lib              # libraries and external bits
+#SUBMSDIR=submodules      # NetHack git submodules
+PACKAGESDIR=vspackage     # put in vspackage to distinguish
+ROOTDIR=..\..\..\..       # root of NetHack tree relative to project file
+PlatformFileName=$(lowercase $(PlatformShortName))
 
 # Directories we might have to collect things from
-LIBDIR = $(ROOTDIR)lib
-# Documentation and text files
-DocDir = $(ROOTDIR)doc
-# binary
+#
+INCL    = $(ROOTDIR)\include     # NetHack include files
+DAT     = $(ROOTDIR)\dat         # NetHack data files
+DOC     = $(ROOTDIR)\doc         # NetHack documentation files
+UTIL    = $(ROOTDIR)\util        # Utility source
+SRC     = $(ROOTDIR)\src         # Main source
+SSYS    = $(ROOTDIR)\sys\share   # Shared system files
+MSWSYS  = $(ROOTDIR)\sys\windows # MS windows specific files
+TTY     = $(ROOTDIR)\win\tty     # window port files (tty)
+MSWIN   = $(ROOTDIR)\win\win32   # window port files (win32)
+WCURSES = $(ROOTDIR)\win\curses  # window port files (curses)
+WSHR    = $(ROOTDIR)\win\share   # Tile support files
+QT      = $(ROOTDIR)\win\Qt      # QT support files
+X11     = $(ROOTDIR)\win\X11     # X11 support files
+LIBDIR  = $(ROOTDIR)\lib         # libraries and external bits
+SUBMDIR = $(ROOTDIR)\submodules  # NetHack git submodules
+SndWavDir = $(ROOTDIR)\sound\wav # sound files that get integrated
+DocDir  = $(ROOTDIR)\doc
 
 # Directories we might place collected things
 #
-VSBINDIR=$(ROOTDIR)vsbinary
-VSPACKAGEDIR = $(ROOTDIR)vspackage
+VSBINDIR=$(ROOTDIR)\vsbinary
+VSPACKAGEDIR = $(ROOTDIR)\vspackage
 
-default: showvar packageall
+
+
+default: packageall
 
 #===============================================================================
 # makefile rules
@@ -64,7 +80,7 @@ DBGSYMZIP = $(VSPACKAGEDIR)\nethack-$(NHV)-win-$(PlatformFileName)-debugsymbols.
 
 packageall: packagezip
 
-packagezip: vsbindir vspackagedir $(FILESTOZIP) $(MAINZIP) $(DBGSYMZIP)
+packagezip: showvar vsbindir vspackagedir $(FILESTOZIP) $(MAINZIP) $(DBGSYMZIP)
 	@echo NetHack Windows package created: $(MAINZIP)
 
 $(MAINZIP): $(FILESTOZIP)
@@ -74,35 +90,34 @@ $(MAINZIP): $(FILESTOZIP)
 $(DBGSYMZIP): $(PDBTOZIP)
 	tar -a -cf $(DBGSYMZIP) $(PDBTOZIP)
 
-$(VSBINDIR)\license: $(PackageDir)\license
-	copy /Y $(PackageDir)\license $@
-$(VSBINDIR)\Guidebook.txt: $(DocDir)\Guidebook.txt
+$(VSBINDIR)\license: $(BinDir)\license
+	copy /Y $(BinDir)\license $@
+$(VSBINDIR)\Guidebook.txt: $(BinDir)\Guidebook.txt
 	copy /Y $(DocDir)\Guidebook.txt $@
-$(VSBINDIR)\NetHack.exe: $(PackageDir)\NetHack.exe
-	copy /Y $(PackageDir)\NetHack.exe $@
-$(VSBINDIR)\NetHack.txt: $(DocDir)\NetHack.txt
+$(VSBINDIR)\NetHack.exe: $(BinDir)\NetHack.exe
+	copy /Y $(BinDir)\NetHack.exe $@
+$(VSBINDIR)\NetHack.txt: $(BinDir)\NetHack.txt
 	copy /Y $(DocDir)\NetHack.txt $@
-$(VSBINDIR)\NetHackW.exe: $(PackageDir)\NetHackW.exe
-	copy /Y $(PackageDir)\NetHackW.exe $@
-$(VSBINDIR)\opthelp: $(PackageDir)\opthelp
-	copy /Y $(PackageDir)\opthelp $@
-$(VSBINDIR)\nhdat$(NHV): $(PackageDir)\nhdat$(NHV)
-	copy /Y $(PackageDir)\nhdat$(NHV) $@
-$(VSBINDIR)\symbols.template: $(PackageDir)\symbols.template
-	copy /Y $(PackageDir)\symbols.template $@
-$(VSBINDIR)\nethackrc.template: $(PackageDir)\nethackrc.template
-	copy /Y $(PackageDir)\nethackrc.template $@
-$(VSBINDIR)\sysconf.template: $(PackageDir)\sysconf.template
-	copy /Y $(PackageDir)\sysconf.template $@
+$(VSBINDIR)\NetHackW.exe: $(BinDir)\NetHackW.exe
+	copy /Y $(BinDir)\NetHackW.exe $@
+$(VSBINDIR)\opthelp: $(BinDir)\opthelp
+	copy /Y $(BinDir)\opthelp $@
+$(VSBINDIR)\nhdat$(NHV): $(BinDir)\nhdat$(NHV)
+	copy /Y $(BinDir)\nhdat$(NHV) $@
+$(VSBINDIR)\symbols.template: $(BinDir)\symbols.template
+	copy /Y $(BinDir)\symbols.template $@
+$(VSBINDIR)\nethackrc.template: $(BinDir)\nethackrc.template
+	copy /Y $(BinDir)\nethackrc.template $@
+$(VSBINDIR)\sysconf.template: $(BinDir)\sysconf.template
+	copy /Y $(BinDir)\sysconf.template $@
 $(VSBINDIR)\record:
-	-if not exist $(VSBINDIR)\record. goto>$(VSBINDIR)record.
+	-if not exist $(VSBINDIR)\record. goto>$(VSBINDIR)\record.
 
 showvar:
-	@echo PackageDir=[$(PackageDir)]
+	@echo BinDir=[$(BinDir)]
 	@echo Platform=[$(Platform)]
-	@echo PlatformShortName=[$(PSN)]
+	@echo PlatformShortName=[$(PlatformShortName)]
 	@echo Configuration=[$(Configuration)]
-	@echo Host=[$(Host)]
 
 vspackagedir:
 	@if not exist $(VSPACKAGEDIR)\*.* echo creating directory $(VSPACKAGEDIR:\=/)
@@ -113,10 +128,10 @@ vsbindir:
 	@if not exist $(VSBINDIR)\*.* mkdir $(VSBINDIR)
 
 clean:
-#	@if exist $(LIBDIR)$(PDCDIST) rmdir /Q $(LIBDIR)$(PDCDIST) /s
-#	@if exist $(LIBDIR)lua-$(LUA_VERSION) rmdir /Q $(LIBDIR)lua-$(LUA_VERSION) /s
+#	@if exist $(LIBDIR)\$(PDCDIST) rmdir /Q $(LIBDIR)\$(PDCDIST) /s
+#	@if exist $(LIBDIR)\lua-$(LUA_VERSION) rmdir /Q $(LIBDIR)\lua-$(LUA_VERSION) /s
 #	@if exist ..\..\..\..\include\nhlua.h del /Q ..\..\..\..\include\nhlua.h
 
 rebuild:
-#	@if exist $(LIBDIR)$(PDCDIST) echo nothing to do for lib\$(PDCDIST)
-#	@if exist $(LIBDIR)lua-$(LUA_VERSION) echo nothing to do for lib\lua-$(LUA_VERSION)
+#	@if exist $(LIBDIR)\$(PDCDIST) echo nothing to do for lib\$(PDCDIST)
+#	@if exist $(LIBDIR)\lua-$(LUA_VERSION) echo nothing to do for lib\lua-$(LUA_VERSION)
