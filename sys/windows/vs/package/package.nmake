@@ -18,17 +18,17 @@ NHV=$(NHV:"=)
 #  relative directories from root of NetHack tree.
 #
 
-BACKSLASH=^\
-#LIBSDIR=lib                      # libraries and external bits
-#SUBMSDIR=submodules              # NetHack git submodules
-PACKAGESDIR=vspackage             # put in vspackage to distinguish
-ROOTDIR=..\..\..\..$(BACKSLASH)   # root of NetHack tree relative to project file
+#LIBSDIR=lib           # libraries and external bits
+#SUBMSDIR=submodules   # NetHack git submodules
+ROOTDIR=..\..\..\..\   # root of NetHack tree relative to project file
 PlatformFileName=$(lowercase $(PSN))
+PackageDir=$(PackageBin)
 
 # Directories we might have to collect things from
-LIBDIR = $(ROOTDIR)lib$(BACKSLASH)
+LIBDIR = $(ROOTDIR)lib
 # Documentation and text files
-DocDir = $(ROOTDIR)doc$(BACKSLASH)
+DocDir = $(ROOTDIR)doc
+# binary
 
 # Directories we might place collected things
 #
@@ -74,31 +74,31 @@ $(MAINZIP): $(FILESTOZIP)
 $(DBGSYMZIP): $(PDBTOZIP)
 	tar -a -cf $(DBGSYMZIP) $(PDBTOZIP)
 
-$(VSBINDIR)\license: $(BinDir)license
-	copy /Y $(BinDir)license $@
-$(VSBINDIR)\Guidebook.txt: $(DocDir)Guidebook.txt
-	copy /Y $(DocDir)Guidebook.txt $@
-$(VSBINDIR)\NetHack.exe: $(BinDir)NetHack.exe
-	copy /Y $(BinDir)NetHack.exe $@
-$(VSBINDIR)\NetHack.txt: $(DocDir)NetHack.txt
-	copy /Y $(DocDir)NetHack.txt $@
-$(VSBINDIR)\NetHackW.exe: $(BinDir)NetHackW.exe
-	copy /Y $(BinDir)NetHackW.exe $@
-$(VSBINDIR)\opthelp: $(BinDir)opthelp
-	copy /Y $(BinDir)opthelp $@
-$(VSBINDIR)\nhdat$(NHV): $(BinDir)nhdat$(NHV)
-	copy /Y $(BinDir)nhdat$(NHV) $@
-$(VSBINDIR)\symbols.template: $(BinDir)symbols.template
-	copy /Y $(BinDir)symbols.template $@
-$(VSBINDIR)\nethackrc.template: $(BinDir)nethackrc.template
-	copy /Y $(BinDir)nethackrc.template $@
-$(VSBINDIR)\sysconf.template: $(BinDir)sysconf.template
-	copy /Y $(BinDir)sysconf.template $@
+$(VSBINDIR)\license: $(PackageDir)\license
+	copy /Y $(PackageDir)\license $@
+$(VSBINDIR)\Guidebook.txt: $(DocDir)\Guidebook.txt
+	copy /Y $(DocDir)\Guidebook.txt $@
+$(VSBINDIR)\NetHack.exe: $(PackageDir)\NetHack.exe
+	copy /Y $(PackageDir)\NetHack.exe $@
+$(VSBINDIR)\NetHack.txt: $(DocDir)\NetHack.txt
+	copy /Y $(DocDir)\NetHack.txt $@
+$(VSBINDIR)\NetHackW.exe: $(PackageDir)\NetHackW.exe
+	copy /Y $(PackageDir)\NetHackW.exe $@
+$(VSBINDIR)\opthelp: $(PackageDir)\opthelp
+	copy /Y $(PackageDir)\opthelp $@
+$(VSBINDIR)\nhdat$(NHV): $(PackageDir)\nhdat$(NHV)
+	copy /Y $(PackageDir)\nhdat$(NHV) $@
+$(VSBINDIR)\symbols.template: $(PackageDir)\symbols.template
+	copy /Y $(PackageDir)\symbols.template $@
+$(VSBINDIR)\nethackrc.template: $(PackageDir)\nethackrc.template
+	copy /Y $(PackageDir)\nethackrc.template $@
+$(VSBINDIR)\sysconf.template: $(PackageDir)\sysconf.template
+	copy /Y $(PackageDir)\sysconf.template $@
 $(VSBINDIR)\record:
 	-if not exist $(VSBINDIR)\record. goto>$(VSBINDIR)record.
 
 showvar:
-	@echo BinDir=[$(BinDir)]
+	@echo PackageDir=[$(PackageDir)]
 	@echo Platform=[$(Platform)]
 	@echo PlatformShortName=[$(PSN)]
 	@echo Configuration=[$(Configuration)]
