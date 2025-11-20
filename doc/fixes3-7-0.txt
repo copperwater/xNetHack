@@ -1,4 +1,4 @@
-NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.1575 $ $NHDT-Date: 1762750699 2025/11/09 20:58:19 $
+NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.1576 $ $NHDT-Date: 1763708572 2025/11/20 23:02:52 $
 
 General Fixes and Modified Features
 -----------------------------------
@@ -1532,6 +1532,9 @@ some food and paper items do no damage when bashing
 improved messages for oilskin sacks protecting from water damage
 some messages by amorous demons and mail daemon were delivered as verbal ones
 	even when the hero is deaf
+travel couldn't find the vibrating square if it was covered by an object or
+	a monster; it isn't really a trap so treat it as special terrain
+travel would stop one step in front of known vibrating square like other traps
 
 
 Fixes to 3.7.0-x General Problems Exposed Via git Repository

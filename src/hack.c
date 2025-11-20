@@ -1,4 +1,4 @@
-/* NetHack 3.7	hack.c	$NHDT-Date: 1736530208 2025/01/10 09:30:08 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.477 $ */
+/* NetHack 3.7	hack.c	$NHDT-Date: 1763708572 2025/11/20 23:02:52 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.494 $ */
 /* Copyright (c) Stichting Mathematisch Centrum, Amsterdam, 1985. */
 /*-Copyright (c) Derek S. Ray, 2015. */
 /* NetHack may be freely redistributed.  See license for details. */
@@ -2425,7 +2425,10 @@ avoid_moving_on_trap(coordxy x, coordxy y, boolean msg)
 {
     struct trap *trap;
 
-    if ((trap = t_at(x, y)) && trap->tseen) {
+    if ((trap = t_at(x, y)) && trap->tseen
+        /* the vibrating square is implemented as a trap but treated as if
+           it were a type of terrain */
+        && trap->ttyp != VIBRATING_SQUARE) {
         if (msg && flags.mention_walls) {
             set_msg_xy(x, y);
             You("stop in front of %s.",

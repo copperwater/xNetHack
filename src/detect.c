@@ -1,4 +1,4 @@
-/* NetHack 3.7	detect.c	$NHDT-Date: 1745114235 2025/04/19 17:57:15 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.190 $ */
+/* NetHack 3.7	detect.c	$NHDT-Date: 1763708572 2025/11/20 23:02:52 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.191 $ */
 /* Copyright (c) Stichting Mathematisch Centrum, Amsterdam, 1985. */
 /*-Copyright (c) Robert Patrick Rankin, 2018. */
 /* NetHack may be freely redistributed.  See license for details. */
@@ -2178,6 +2178,12 @@ reveal_terrain_getglyph(
             keep_objs = (which_subset & TER_OBJ) != 0,
             keep_mons = (which_subset & TER_MON) != 0,
             full = (which_subset & TER_FULL) != 0;
+
+    /*
+     * FIXME:
+     *  travel treats discovered vibrating square as if it were terrain
+     *  rather than a trap so this should do so too.
+     */
 
     /* for 'full', show the actual terrain for the entire level,
        otherwise what the hero remembers for seen locations with

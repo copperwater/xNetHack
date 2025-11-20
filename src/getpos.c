@@ -1,4 +1,4 @@
-/* NetHack 3.7	getpos.c	$NHDT-Date: 1723875487 2024/08/17 06:18:07 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.3 $ */
+/* NetHack 3.7	getpos.c	$NHDT-Date: 1763708572 2025/11/20 23:02:52 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.6 $ */
 /*-Copyright (c) Pasi Kallinen, 2023. */
 /* NetHack may be freely redistributed.  See license for details. */
 
@@ -18,6 +18,7 @@ staticfn void gloc_filter_floodfill(coordxy, coordxy);
 staticfn void gloc_filter_init(void);
 staticfn void gloc_filter_done(void);
 staticfn void gather_locs(coord **, int *, int);
+staticfn boolean known_vibrating_square_at(coordxy, coordxy);
 staticfn void truncate_to_map(coordxy *, coordxy *, schar, schar);
 staticfn void getpos_refresh(void);
 /* Callback function for getpos() to highlight desired map locations.
@@ -192,7 +193,7 @@ getpos_help(boolean force, const char *goal)
     putstr(tmpwin, 0, sbuf);
     putstr(tmpwin, 0, "Or enter a background symbol (ex. '<').");
     Sprintf(sbuf, "Use '%s' to move the cursor on yourself.",
-           visctrl(gc.Cmd.spkeys[NHKF_GETPOS_SELF]));
+            visctrl(gc.Cmd.spkeys[NHKF_GETPOS_SELF]));
     putstr(tmpwin, 0, sbuf);
     if (!iflags.terrainmode || (iflags.terrainmode & TER_MON) != 0) {
         getpos_help_keyxhelp(tmpwin,
@@ -417,10 +418,26 @@ gloc_filter_done(void)
     }
 }
 
+staticfn boolean
+known_vibrating_square_at(coordxy x, coordxy y)
+{
+    /* note: this only acknowledges the genuine vibrating square, not
+       fake ones produced by wizard mode wishing for traps which could
+       possibly be transfered to normal play via bones file */
+    if (invocation_pos(x, y)) {
+        struct trap *ttmp = t_at(x, y);
+
+        return ttmp && ttmp->ttyp == VIBRATING_SQUARE && ttmp->tseen;
+    }
+    return FALSE;
+}
+
 DISABLE_WARNING_UNREACHABLE_CODE
 
 boolean
-gather_locs_interesting(coordxy x, coordxy y, int gloc)
+gather_locs_interesting(
+    coordxy x, coordxy y,
+    int gloc)
 {
     int glyph, sym;
 
@@ -439,7 +456,7 @@ gather_locs_interesting(coordxy x, coordxy y, int gloc)
         /* unlike '/M', this skips monsters revealed by
            warning glyphs and remembered unseen ones */
         return (glyph_is_monster(glyph)
-                && glyph != monnum_to_glyph(PM_LONG_WORM_TAIL,MALE)
+                && glyph != monnum_to_glyph(PM_LONG_WORM_TAIL, MALE)
                 && glyph != monnum_to_glyph(PM_LONG_WORM_TAIL, FEMALE));
     case GLOC_OBJS:
         return (glyph_is_object(glyph)
@@ -482,7 +499,8 @@ gather_locs_interesting(coordxy x, coordxy y, int gloc)
                           || is_cmap_room(sym)
                           || is_cmap_corr(sym)))
                      || glyph_is_nothing(glyph)
-                     || glyph_is_unexplored(glyph)));
+                     || glyph_is_unexplored(glyph))
+                || known_vibrating_square_at(x, y));
     }
     /*NOTREACHED*/
     return FALSE;
@@ -1069,6 +1087,11 @@ getpos(coord *ccp, boolean force, const char *goal)
                                         && matching[glyph_to_cmap(k)])
                                         goto foundc;
                                 }
+                                /* FIXME: check player-specified vib.sq trap
+                                   symbol rather than or in addition to '~' */
+                                if (c == '~'
+                                    && known_vibrating_square_at(tx, ty))
+                                    goto foundc;
                                 /* last, try actual terrain here (shouldn't
                                    we be using svl.lastseentyp[][] instead?) */
                                 if (levl[tx][ty].seenv) {
