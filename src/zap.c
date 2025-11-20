@@ -3801,8 +3801,8 @@ zap_map(
  *  function) several objects and monsters on its path.  The return value
  *  is the monster hit (weapon != ZAPPED_WAND), or a null monster pointer.
  *
- * Thrown and kicked objects (THROWN_WEAPON or KICKED_WEAPON) may be
- * destroyed and *pobj set to NULL to indicate this.
+ *  Thrown and kicked objects (THROWN_WEAPON or KICKED_WEAPON) may be
+ *  destroyed and *pobj set to NULL to indicate this.
  *
  *  Check !u.uswallow before calling bhit().
  *  This function reveals the absence of a remembered invisible monster in
@@ -3828,8 +3828,8 @@ bhit(
     boolean in_skip = FALSE, allow_skip = FALSE;
     boolean tethered_weapon = FALSE;
     int skiprange_start = 0, skiprange_end = 0, skipcount = 0;
-    struct obj *was_returning =
-        (iflags.returning_missile == obj) ? obj : (struct obj *) 0;
+    struct obj *was_returning = (iflags.returning_missile == obj) ? obj
+                                : (struct obj *) 0;
 
     if (weapon == KICKED_WEAPON) {
         /* object starts one square in front of player */
@@ -4067,8 +4067,7 @@ bhit(
             break;
         }
         if (weapon != ZAPPED_WAND && weapon != INVIS_BEAM) {
-            /* 'I' present but no monster: erase */
-            /* do this before the tmp_at() */
+            /* 'I' present but no monster: erase; do this before tmp_at() */
             if (glyph_is_invisible(levl[x][y].glyph) && cansee(x, y)) {
                 unmap_object(x, y);
                 newsym(x, y);
@@ -4715,11 +4714,11 @@ buzz(int type, int nd, coordxy sx, coordxy sy, int dx, int dy)
  */
 void
 dobuzz(
-    int type,       /* 0..29 (by hero) or -39..-10 (by monster) */
+    int type,               /* 0..29 (by hero) or -39..-10 (by monster) */
     int nd,                 /* damage strength ('number of dice') */
     coordxy sx, coordxy sy, /* starting point */
     int dx, int dy,         /* direction delta */
-    boolean sayhit, boolean saymiss)    /* announce out of sight hit/miss events if true */
+    boolean sayhit, boolean saymiss) /* report out of sight hit/miss events */
 {
     int range, fltyp = zaptype(type), damgtype = fltyp % 10;
     coordxy lsx, lsy;
