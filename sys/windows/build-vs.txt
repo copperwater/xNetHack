@@ -78,7 +78,7 @@ versions:
 
 
 /-----------------------------------------------------------\
-| Building And Running Using Visual Studio 2022 or greater  |
+| Building And Running Using Visual Studio Community        |
 \-----------------------------------------------------------/
 
 When using a version of Visual Studio Community, load the provided solution
@@ -90,7 +90,15 @@ The Visual Studio NetHack solution file can be found here:
 The steps are:
     1. Launch the IDE.
     2. Open the appropriate solution file in sys\windows\vs\NetHack.sln.
-    3. Select the build configuration you wish to use (Release, Debug, etc.).
+    3. Select the build platform and configuration that you wish
+       to target (x64 or ARM64, and Release or Debug).
+       (Note: If you want to target an ARM64 build from an x64 machine,
+              or target an x64 build from an ARM64 machine, you need to
+              first complete the build for the native machine type target.
+              That's necessary to ensure that host-native versions of
+              uudecode.exe, makedefs.exe, tilemap.exe, tile2bmp.exe and
+              dlb.exe tools are available for execution during the build
+              steps that rely on those tools.)
     4. From the build menu, select build solution.
     5. Type F5 to start debugging.
 
