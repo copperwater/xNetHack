@@ -21,7 +21,7 @@ Prerequisite Requirements:
         Visual Studio Installer Individual Components dialog:
 
         Under Compilers, build tools, and runtimes:
-            o MSVC Build Tools for ARM64/ARM64ED (Latest)
+            o MSVC Build Tools for ARM64/ARM64EC (Latest)
             o MSVC Build Tools for x64/x86 (Latest)
 
         You can use the Visual Studio Installer "Modify" button
