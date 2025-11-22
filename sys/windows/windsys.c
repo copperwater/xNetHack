@@ -25,6 +25,7 @@
 #include "wintty.h"
 #endif
 #include <inttypes.h>
+#include <errno.h>
 
 #ifdef WIN32
 #include <VersionHelpers.h>
@@ -260,11 +261,11 @@ VA_DECL(const char *, s)
         buf[0] = '\n';
         (void) vsnprintf(&buf[1], sizeof buf - (1 + sizeof "\n"), s, VA_ARGS);
         Strcat(buf, "\n");
-        msmsg(buf);
+        msmsg("%s", buf);
     } else {
         (void) vsnprintf(buf, sizeof buf - sizeof "\n", s, VA_ARGS);
         Strcat(buf, "\n");
-        raw_printf(buf);
+        raw_printf("%s",buf);
     }
 #ifdef MSWIN_GRAPHICS
     if (windowprocs.win_raw_print == mswin_raw_print)
