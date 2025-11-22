@@ -299,6 +299,18 @@ USE_DLB = Y
 #==========================================
 #==========================================
 
+ifeq "$(MSYSTEM)" "MINGW32"
+arch = x86
+else
+arch = x64
+endif
+MACH := $(shell echo $$PROCESSOR_IDENTIFIER | cut -f1 -d ' ')
+MACH := $(strip $(MACH))
+# Print the detected architecture (for debugging)
+#$(info Detected Architecture:$(MACH).)
+ifeq "$(MACH)" "ARMv8"
+arch=arm64
+endif
 ifdef CI_COMPILER
 cc = gcc -c
 cxx = g++ -c
@@ -311,15 +323,16 @@ ld = gcc
 endif
 ifeq "$(MSYSTEM)" "MINGW32"
 rc = windres --target=pe-i386
-else # MINGW64
+else # MINGW64 or arm64
+ifeq "$(arch)" "arm64"
+#rc = windres --target=pe-arm64
+rc = windres
+else
 rc = windres --target=pe-x86-64
 endif
-
-ifeq "$(MSYSTEM)" "MINGW32"
-arch = x86
-else # MINGW64
-arch = x64
 endif
+
+
 
 #
 # Handle user settings
@@ -414,8 +427,15 @@ $(U)lua.exe: $(OLUA)/lua.o $(LUALIB)
 $(LUADLL): $(ULUADLL)
 	cp $< $@
 
+
+ifeq "$(arch)" "arm64"
+lparam=-Wl,--export-all-symbols
+else
+lparam=-Wl,--export-all-symbols -Wl,--add-stdcall-alias
+endif
+
 $(ULUADLL) $(LUAIMP): $(LUAOBJS) | $(OLUA)
-	$(ld) $(LDFLAGS) -fPIC -shared -Wl,--export-all-symbols -Wl,--add-stdcall-alias \
+	$(ld) $(LDFLAGS) -fPIC -shared $(lparam) \
 		-Wl,--out-implib=$(LUAIMP) $^ -o$(ULUADLL)
 
 $(LUASTATIC): $(LUAOBJS) | $(OLUA) 
@@ -1357,7 +1377,16 @@ $(ONH)/%.o: $(SRC)/%.c $(NHLUAH) | $(ONH)
 #==========================================
 # package
 #==========================================
+ifeq "$(arch)" "x64"
 TARGET_CPU = x64
+else
+ifeq "$(arch)" "arm64"
+TARGET_CPU = arm64
+else
+TARGET_CPU = x86
+endif
+endif
+
 NHV=370
 PKGFILES = nethackrc.template Guidebook.txt license NetHack.exe NetHack.txt \
 	NetHackW.exe opthelp nhdat370 record symbols sysconf.template $(notdir $(LUADLL))
