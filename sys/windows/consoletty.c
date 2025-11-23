@@ -774,7 +774,7 @@ emit_start_256color(int u256coloridx)
     Snprintf(tcolorbuf, sizeof tcolorbuf, tcfmtstr256,
              (long) u256coloridx);
     WriteConsoleA(console.hConOut, (LPCSTR) tcolorbuf,
-                  (long) strlen(tcolorbuf), &unused, NULL);
+                  (int) strlen(tcolorbuf), &unused, NULL);
 }
 
 void
