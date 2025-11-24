@@ -1,4 +1,4 @@
-/* NetHack 3.7	pager.c	$NHDT-Date: 1737013431 2025/01/15 23:43:51 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.287 $ */
+/* NetHack 3.7	pager.c	$NHDT-Date: 1764044196 2025/11/24 20:16:36 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.292 $ */
 /* Copyright (c) Stichting Mathematisch Centrum, Amsterdam, 1985. */
 /*-Copyright (c) Robert Patrick Rankin, 2018. */
 /* NetHack may be freely redistributed.  See license for details. */
@@ -394,11 +394,17 @@ look_at_object(
             otmp->where = OBJ_FREE; /* object_from_map set it to OBJ_FLOOR */
             dealloc_obj(otmp), otmp = NULL; /* has no contents */
         }
-    } else
+    } else {
         Strcpy(buf, something); /* sanity precaution */
+    }
 
     if (otmp && otmp->where == OBJ_BURIED)
         Strcat(buf, " (buried)");
+    /* check TREE before STONE due to level.flags.arboreal */
+    else if (IS_TREE(levl[x][y].typ))
+        /* "dangling": "hanging" could imply that it's growing on this tree */
+        Snprintf(eos(buf), BUFSZ - strlen(buf), " %s in a tree",
+                 (otmp && is_treefruit(otmp)) ? "dangling" : "stuck");
     else if (levl[x][y].typ == STONE || levl[x][y].typ == SCORR)
         Strcat(buf, " embedded in stone");
     else if (IS_WALL(levl[x][y].typ) || levl[x][y].typ == SDOOR)

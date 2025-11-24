@@ -1,4 +1,4 @@
-/* NetHack 3.7	mkobj.c	$NHDT-Date: 1737528890 2025/01/21 22:54:50 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.315 $ */
+/* NetHack 3.7	mkobj.c	$NHDT-Date: 1764044196 2025/11/24 20:16:36 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.326 $ */
 /* Copyright (c) Stichting Mathematisch Centrum, Amsterdam, 1985. */
 /*-Copyright (c) Derek S. Ray, 2015. */
 /* NetHack may be freely redistributed.  See license for details. */
@@ -1977,6 +1977,18 @@ struct obj *
 rnd_treefruit_at(coordxy x, coordxy y)
 {
     return mksobj_at(ROLL_FROM(treefruits), x, y, TRUE, FALSE);
+}
+
+/* for describing objects embedded in trees */
+boolean
+is_treefruit(struct obj *otmp)
+{
+    int fruitidx;
+
+    for (fruitidx = 0; fruitidx < SIZE(treefruits); ++fruitidx)
+        if (treefruits[fruitidx] == otmp->otyp)
+            return TRUE;
+    return FALSE;
 }
 
 /* create a stack of N gold pieces; never returns Null */

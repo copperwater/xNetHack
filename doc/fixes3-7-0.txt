@@ -1,4 +1,4 @@
-NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.1576 $ $NHDT-Date: 1763708572 2025/11/20 23:02:52 $
+NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.1578 $ $NHDT-Date: 1764044196 2025/11/24 20:16:36 $
 
 General Fixes and Modified Features
 -----------------------------------
@@ -1537,6 +1537,10 @@ travel couldn't find the vibrating square if it was covered by an object or
 travel would stop one step in front of known vibrating square like other traps
 fix bug which delayed burden changes due to monster actions (e.g. reverting to
         natural form due to damage, changing carry capacity) for one turn
+on arboreal levels (Ranger quest) where STONE terrain is treated as TREE, an
+	object at a tree location would be described as "embedded in stone"
+an item at an ordinary tree location, whether the level is arboreal or not,
+	would be described as itself with no mention of the tree
 
 
 Fixes to 3.7.0-x General Problems Exposed Via git Repository
