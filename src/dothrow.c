@@ -268,7 +268,7 @@ throw_obj(struct obj *obj, int shotlimit)
         }
         freeinv(otmp);
         throwit(otmp, wep_mask, twoweap, oldslot);
-        (void) encumber_msg();
+        encumber_msg();
     }
     gm.m_shot.n = gm.m_shot.i = 0;
     gm.m_shot.o = STRANGE_OBJECT;
@@ -1699,7 +1699,7 @@ throwit(
                 if (!impaired && rn2(100)) {
                     pline("%s to your hand!", Tobjnam(obj, "return"));
                     obj = addinv_before(obj, oldslot);
-                    (void) encumber_msg();
+                    encumber_msg();
                     /* addinv autoquivers an aklys if quiver is empty;
                        if obj is quivered, remove it before wielding */
                     if (obj->owornmask & W_QUIVER)
@@ -1886,7 +1886,7 @@ return_throw_to_inv(
             set_twoweap(TRUE); /* u.twoweap = TRUE */
     }
 
-    (void) encumber_msg();
+    encumber_msg();
     return obj;
 }
 
@@ -2124,7 +2124,7 @@ thitmonst(
                     sho_obj_return_to_u(obj);
                 obj = addinv(obj); /* back into your inventory */
                 nhUse(obj);
-                (void) encumber_msg();
+                encumber_msg();
             }
             return 1; /* caller doesn't need to place it */
         }

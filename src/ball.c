@@ -34,7 +34,7 @@ ballrelease(boolean showmsg)
         /* [this used to test 'if (uwep != uball)' but that always passes
            after the setuwep() above] */
         freeinv(uball); /* remove from inventory but don't place on floor */
-        (void) encumber_msg();
+        encumber_msg();
     }
 }
 

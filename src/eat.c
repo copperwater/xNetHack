@@ -130,7 +130,7 @@ init_uhunger(void)
     u.uhs = NOT_HUNGRY;
     if (ATEMP(A_STR) < 0) {
         ATEMP(A_STR) = 0;
-        (void) encumber_msg();
+        encumber_msg();
     }
 }
 

@@ -671,7 +671,7 @@ Gloves_off(void)
     }
     setworn((struct obj *) 0, W_ARMG);
     svc.context.takeoff.cancelled_don = FALSE;
-    (void) encumber_msg(); /* immediate feedback for GoP */
+    encumber_msg(); /* immediate feedback for GoP */
 
     /* usually can't remove gloves when they're slippery but it can
        be done by having them fall off (polymorph), stolen, or

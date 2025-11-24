@@ -550,7 +550,7 @@ fix_worst_trouble(int trouble)
                 disp.botl = TRUE;
             }
         }
-        (void) encumber_msg();
+        encumber_msg();
         break;
     case TROUBLE_BLIND: { /* handles deafness as well as blindness */
         char msgbuf[BUFSZ];
@@ -1263,7 +1263,7 @@ pleased(aligntyp g_align)
             if (ABASE(A_STR) < AMAX(A_STR)) {
                 ABASE(A_STR) = AMAX(A_STR);
                 disp.botl = TRUE; /* before potential message */
-                (void) encumber_msg();
+                encumber_msg();
             }
             if (u.uhunger < 900)
                 init_uhunger();

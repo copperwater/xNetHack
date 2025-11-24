@@ -90,7 +90,7 @@ moveloop_preamble(boolean resuming)
         fix_shop_damage();
     }
 
-    (void) encumber_msg(); /* in case they auto-picked up something */
+    encumber_msg(); /* in case they auto-picked up something */
     if (gd.defer_see_monsters) {
         gd.defer_see_monsters = FALSE;
         see_monsters();
@@ -197,7 +197,7 @@ moveloop_core(void)
         u.umovement -= NORMAL_SPEED;
 
         do { /* hero can't move this turn loop */
-            mvl_wtcap = encumber_msg();
+            encumber_msg();
 
             svc.context.mon_moving = TRUE;
             do {
@@ -206,6 +206,10 @@ moveloop_core(void)
                     break; /* it's now your turn */
             } while (monscanmove);
             svc.context.mon_moving = FALSE;
+
+            /* this needs to be after the monster movement loop in
+               case monster actions affected burden, e.g. rehumanize */
+            mvl_wtcap = near_capacity();
 
             if (!monscanmove && u.umovement < NORMAL_SPEED) {
                 /* both hero and monsters are out of steam this round */
@@ -392,7 +396,7 @@ moveloop_core(void)
            inventory may have changed in, e.g., nh_timeout(); we do
            need two checks here so that the player gets feedback
            immediately if their own action encumbered them */
-        (void) encumber_msg();
+        encumber_msg();
 
 #ifdef STATUS_HILITES
         if (iflags.hilite_delta)

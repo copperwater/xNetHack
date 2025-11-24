@@ -1535,6 +1535,8 @@ some messages by amorous demons and mail daemon were delivered as verbal ones
 travel couldn't find the vibrating square if it was covered by an object or
 	a monster; it isn't really a trap so treat it as special terrain
 travel would stop one step in front of known vibrating square like other traps
+fix bug which delayed burden changes due to monster actions (e.g. reverting to
+        natural form due to damage, changing carry capacity) for one turn
 
 
 Fixes to 3.7.0-x General Problems Exposed Via git Repository

@@ -1214,7 +1214,7 @@ unturn_dead(struct monst *mon)
         }
     }
     if (is_u && res)
-        (void) encumber_msg();
+        encumber_msg();
 
     return res;
 }

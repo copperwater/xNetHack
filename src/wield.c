@@ -958,7 +958,7 @@ chwepon(struct obj *otmp, int amount)
         if (otyp != STRANGE_OBJECT)
             makeknown(otyp);
         if (multiple)
-            (void) encumber_msg();
+            encumber_msg();
         return 1;
     } else if (uwep->otyp == CRYSKNIFE && amount < 0) {
         multiple = (uwep->quan > 1L);
@@ -975,7 +975,7 @@ chwepon(struct obj *otmp, int amount)
         if (otyp != STRANGE_OBJECT && otmp->bknown)
             makeknown(otyp);
         if (multiple)
-            (void) encumber_msg();
+            encumber_msg();
         return 1;
     }
 

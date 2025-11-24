@@ -1972,10 +1972,9 @@ pickup_prinv(
 }
 
 /*
- * prints a message if encumbrance changed since the last check and
- * returns the new encumbrance value (from near_capacity()).
+ * prints a message if encumbrance changed since the last check
  */
-int
+void
 encumber_msg(void)
 {
     int newcap = near_capacity();
@@ -2018,7 +2017,6 @@ encumber_msg(void)
     }
 
     go.oldcap = newcap;
-    return newcap;
 }
 
 /* Is there a container at x,y. Optional: return count of containers at x,y */
@@ -3821,7 +3819,7 @@ tipcontainer(struct obj *box) /* or bag */
         if (targetbox)
             targetbox->owt = weight(targetbox);
         if (srcheld || dstheld)
-            (void) encumber_msg();
+            encumber_msg();
     }
 
     if (srcheld || dstheld)

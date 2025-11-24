@@ -191,7 +191,7 @@ adjattrib(
     if (msgflg <= 0)
         You_feel("%s%s!", (incr > 1 || incr < -1) ? "very " : "", attrstr);
     if (program_state.in_moveloop && (ndx == A_STR || ndx == A_CON))
-        (void) encumber_msg();
+        encumber_msg();
     return TRUE;
 }
 
@@ -401,7 +401,7 @@ poisoned(
         /* "Poisoned by a poisoned ___" is redundant */
         done(strstri(pkiller, "poison") ? DIED : POISONING);
     }
-    (void) encumber_msg();
+    encumber_msg();
 }
 
 void
@@ -477,7 +477,7 @@ restore_attrib(void)
         }
     }
     if (disp.botl)
-        (void) encumber_msg();
+        encumber_msg();
 }
 
 #define AVAL 50 /* tune value for exercise gains */
@@ -511,7 +511,7 @@ exercise(int i, boolean inc_or_dec)
                     (inc_or_dec) ? "inc" : "dec", AEXE(i));
     }
     if (svm.moves > 0 && (i == A_STR || i == A_CON))
-        (void) encumber_msg();
+        encumber_msg();
 }
 
 staticfn void
@@ -753,7 +753,7 @@ redist_attr(void)
         if (ABASE(i) < ATTRMIN(i))
             ABASE(i) = ATTRMIN(i);
     }
-    /* (void) encumber_msg(); -- caller needs to do this */
+    /* encumber_msg(); -- caller needs to do this */
 }
 
 /* apply minor variation to attributes */

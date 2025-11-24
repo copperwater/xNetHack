@@ -839,7 +839,7 @@ dropz(struct obj *obj, boolean with_impact)
             map_object(obj, 0);
         newsym(u.ux, u.uy); /* remap location under self */
     }
-    (void) encumber_msg();
+    encumber_msg();
 }
 
 /* when swallowed, move dropped object from OBJ_FREE to u.ustuck's inventory;
@@ -2431,7 +2431,7 @@ set_wounded_legs(long side, int timex)
        direct assignment instead of bitwise-OR so getting wounded in
        one leg mysteriously healed the other */
     EWounded_legs |= side;
-    (void) encumber_msg();
+    encumber_msg();
 }
 
 void
@@ -2470,7 +2470,7 @@ heal_legs(
            more when steed becomes healthy, then possible floor
            feedback, then able to carry less when back on foot]. */
         if (how == 0)
-            (void) encumber_msg();
+            encumber_msg();
     }
 }
 

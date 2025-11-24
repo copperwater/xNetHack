@@ -2405,7 +2405,7 @@ extern int query_category(const char *, struct obj *, int, menu_item **, int) NO
 extern int query_objlist(const char *, struct obj **, int, menu_item **, int,
                          boolean(*)(struct obj *)) NONNULLARG24;
 extern struct obj *pick_obj(struct obj *) NONNULLARG1;
-extern int encumber_msg(void);
+extern void encumber_msg(void);
 extern int container_at(coordxy, coordxy, boolean);
 extern int doloot(void);
 extern void observe_quantum_cat(struct obj *, boolean, boolean) NONNULLARG1;

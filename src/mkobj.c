@@ -1657,7 +1657,7 @@ shrink_glob(
     }
     if (updinv) {
         update_inventory();
-        (void) encumber_msg();
+        encumber_msg();
     }
 }
 
@@ -2892,7 +2892,7 @@ hornoplenty(
             /* item still in magic horn was weightless; when it's now in
                a carried container, hero's encumbrance could change */
             if (carried(targetbox)) {
-                (void) encumber_msg();
+                encumber_msg();
                 update_inventory(); /* for contents count or wizweight */
             }
         } else {

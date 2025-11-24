@@ -811,7 +811,7 @@ dismount_steed(
         (void) float_down(0L, W_SADDLE);
         gi.in_steed_dismounting = FALSE;
         disp.botl = TRUE;
-        (void) encumber_msg();
+        encumber_msg();
         gv.vision_full_recalc = 1;
     } else
         disp.botl = TRUE;

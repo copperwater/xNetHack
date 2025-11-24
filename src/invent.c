@@ -1269,7 +1269,7 @@ hold_another_object(
                 prinv(hold_msg, obj, oquan);
             /* obj made it into inventory and is staying there */
             update_inventory();
-            (void) encumber_msg();
+            encumber_msg();
         }
     }
     return obj;
