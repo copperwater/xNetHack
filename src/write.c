@@ -4,7 +4,6 @@
 #include "hack.h"
 
 staticfn int cost(struct obj *) NONNULLARG1;
-staticfn boolean label_known(int, struct obj *) NO_NNARGS;
 staticfn int write_ok(struct obj *) NO_NNARGS;
 staticfn char *new_book_description(int, char *) NONNULL NONNULLPTRS;
 
@@ -55,34 +54,6 @@ cost(struct obj *otmp)
         impossible("You can't write such a weird scroll!");
     }
     return 1000;
-}
-
-/* decide whether the hero knowns a particular scroll's label;
-   unfortunately, we can't track things that haven't been added to
-   the discoveries list and aren't present in current inventory,
-   so some scrolls with ought to yield True will end up False */
-staticfn boolean
-label_known(int scrolltype, struct obj *objlist)
-{
-    struct obj *otmp;
-
-    /* only scrolls */
-    if (objects[scrolltype].oc_class != SCROLL_CLASS)
-        return FALSE;
-    /* type known implies full discovery; otherwise,
-       user-assigned name implies partial discovery */
-    if (objects[scrolltype].oc_name_known || objects[scrolltype].oc_uname)
-        return TRUE;
-    /* check inventory, including carried containers with known contents */
-    for (otmp = objlist; otmp; otmp = otmp->nobj) {
-        if (otmp->otyp == scrolltype && otmp->dknown)
-            return TRUE;
-        if (Has_contents(otmp) && otmp->cknown
-            && label_known(scrolltype, otmp->cobj))
-            return TRUE;
-    }
-    /* not found */
-    return FALSE;
 }
 
 /* getobj callback for object to write on */
@@ -399,8 +370,11 @@ dowrite(struct obj *pen)
     /* unlike alchemy, for example, a successful result yields the
        specifically chosen item so hero recognizes it even if blind;
        the exception is for being lucky writing an undiscovered scroll,
-       where the label associated with the type-name isn't known yet */
-    new_obj->dknown = label_known(new_obj->otyp, gi.invent) ? 1 : 0;
+       where the label associated with the type-name isn't known yet;
+       but if writing by description, the description is always known */
+    new_obj->dknown = FALSE;
+    if (objects[new_obj->otyp].oc_name_known || by_descr)
+        observe_object(new_obj);
 
     new_obj = hold_another_object(new_obj, "Oops!  %s out of your grasp!",
                                   The(aobjnam(new_obj, "slip")),
