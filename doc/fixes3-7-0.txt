@@ -1,4 +1,4 @@
-NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.1578 $ $NHDT-Date: 1764044196 2025/11/24 20:16:36 $
+NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.1580 $ $NHDT-Date: 1764109066 2025/11/25 22:17:46 $
 
 General Fixes and Modified Features
 -----------------------------------
@@ -1541,6 +1541,7 @@ on arboreal levels (Ranger quest) where STONE terrain is treated as TREE, an
 	object at a tree location would be described as "embedded in stone"
 an item at an ordinary tree location, whether the level is arboreal or not,
 	would be described as itself with no mention of the tree
+some types of shopkeeper now start with a scroll of charging
 
 
 Fixes to 3.7.0-x General Problems Exposed Via git Repository
