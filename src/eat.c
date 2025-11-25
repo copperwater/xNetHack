@@ -1547,7 +1547,8 @@ consume_tin(const char *mesg)
         mnum = tin->corpsenm;
         if (mnum == NON_PM) {
             pline("It turns out to be empty.");
-            tin->dknown = tin->known = 1;
+            observe_object(tin);
+            tin->known = 1;
             tin = costly_tin(COST_OPEN);
             use_up_tin(tin);
             if (always_eat)
@@ -1579,8 +1580,10 @@ consume_tin(const char *mesg)
             if (y_n("Eat it?") == 'n') {
                 if (flags.verbose)
                     You("discard the open tin.");
-                if (!Hallucination)
-                    tin->dknown = tin->known = 1;
+                if (!Hallucination) {
+                    observe_object(tin);
+                    tin->known = 1;
+                }
                 tin = costly_tin(COST_OPEN);
                 use_up_tin(tin);
                 return;
@@ -1594,7 +1597,8 @@ consume_tin(const char *mesg)
 
         eating_conducts(&mons[mnum]);
 
-        tin->dknown = tin->known = 1;
+        observe_object(tin);
+        tin->known = 1;
         /* charge for one at pre-eating cost */
         tin = svc.context.tin.tin = costly_tin(COST_OPEN);
 
@@ -1641,7 +1645,8 @@ consume_tin(const char *mesg)
                   Blind ? "" : " ", Blind ? "" : hcolor(NH_GREEN));
         } else {
             pline("It contains spinach.");
-            tin->dknown = tin->known = 1;
+            observe_object(tin);
+            tin->known = 1;
         }
 
         if (!always_eat && y_n("Eat it?") == 'n') {
@@ -2265,7 +2270,8 @@ eataccessory(struct obj *otmp)
         if (u.uhp <= 0)
             return; /* died from sink fall */
     }
-    otmp->known = otmp->dknown = 1; /* by taste */
+    observe_object(otmp);
+    otmp->known = 1; /* by taste */
     if (!rn2(otmp->oclass == RING_CLASS ? 3 : 5)) {
         switch (otmp->otyp) {
         default:

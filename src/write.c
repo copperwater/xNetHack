@@ -143,7 +143,7 @@ dowrite(struct obj *pen)
             return ECMD_OK;
         }
     }
-    paper->dknown = 1;
+    observe_object(paper);
     if (paper->otyp != SCR_BLANK_PAPER && paper->otyp != SPE_BLANK_PAPER) {
         pline("That %s is not blank!", typeword);
         exercise(A_WIS, FALSE);
@@ -326,13 +326,8 @@ dowrite(struct obj *pen)
      *
      * Writing by description requires that the hero knows the
      * description (a scroll's label, that is, since books by_descr
-     * are rejected above).  BUG:  We can only do this for known
-     * scrolls and for the case where the player has assigned a
-     * name to put it onto the discoveries list; we lack a way to
-     * track other scrolls which have been seen closely enough to
-     * read the label without then being ID'd or named.  The only
-     * exception is for currently carried inventory, where we can
-     * check for one [with its dknown bit set] of the same type.
+     * are rejected above).  This is done by checking to see if a
+     * scroll with the same description has been encountered.
      *
      * Normal requirements can be overridden if hero is Lucky.
      */
@@ -345,7 +340,7 @@ dowrite(struct obj *pen)
     /* if known, then either by-name or by-descr works */
     if (!objects[new_obj->otyp].oc_name_known
         /* else if named, then only by-descr works */
-        && !(by_descr && label_known(new_obj->otyp, gi.invent))
+        && !(by_descr && objects[new_obj->otyp].oc_encountered)
         /* else fresh knowledge of the spell works */
         && spell_knowledge != spe_Fresh
         /* and Luck might override after previous checks have failed */

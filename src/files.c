@@ -2515,7 +2515,7 @@ wizkit_addinv(struct obj *obj)
         return;
 
     /* subset of starting inventory pre-ID */
-    obj->dknown = 1;
+    observe_object(obj);
     if (Role_if(PM_CLERIC))
         obj->bknown = 1; /* ok to bypass set_bknown() */
     /* same criteria as lift_object()'s check for available inventory slot */

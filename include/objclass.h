@@ -54,8 +54,8 @@ struct objclass {
                                      * otherwise, obj->dknown and obj->bknown
                                      * tell all, and obj->known should always
                                      * be set for proper merging behavior. */
-    Bitfield(oc_pre_discovered, 1); /* already known at start of game; flagged
-                                     * as such when discoveries are listed */
+    Bitfield(oc_encountered, 1);    /* hero has observed such an item at least
+                                       once (perhaps without naming it) */
     Bitfield(oc_magic, 1);          /* inherently magical object */
     Bitfield(oc_charged, 1);        /* may have +n or (n) charges */
     Bitfield(oc_unique, 1);         /* special one-of-a-kind object */

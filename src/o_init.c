@@ -377,7 +377,7 @@ savenames(NHFILE *nhfp)
     unsigned int len;
 
     if (update_file(nhfp)) {
-        for (i = 0; i < (MAXOCLASSES + 2); ++i) { 
+        for (i = 0; i < (MAXOCLASSES + 2); ++i) {
             Sfo_int(nhfp, &svb.bases[i], "names-bases");
         }
         for (i = 0; i < NUM_OBJECTS; ++i) {
@@ -436,41 +436,50 @@ restnames(NHFILE *nhfp)
 }
 
 #ifndef SFCTOOL
+/* make the object dknown and mark it as encountered */
+void
+observe_object(struct obj *obj)
+{
+    obj->dknown = 1;
+    discover_object(obj->otyp, FALSE, TRUE, FALSE);
+}
+
 void
 discover_object(
     int oindx,
     boolean mark_as_known,
+    boolean mark_as_encountered,
     boolean credit_hero)
 {
-    if (!objects[oindx].oc_name_known
+    if ((!objects[oindx].oc_name_known && mark_as_known)
+        || (!objects[oindx].oc_encountered && mark_as_encountered)
         || (Role_if(PM_SAMURAI)
             && Japanese_item_name(oindx, (const char *) 0))) {
         int dindx, acls = objects[oindx].oc_class;
 
         /* Loop thru disco[] 'til we find the target (which may have been
            uname'd) or the next open slot; one or the other will be found
-           before we reach the next class...
-         */
+           before we reach the next class... */
         for (dindx = svb.bases[acls]; svd.disco[dindx] != 0; dindx++)
             if (svd.disco[dindx] == oindx)
                 break;
         svd.disco[dindx] = oindx;
 
-        /* if already known, we forced an item with a Japanese name into
-           disco[] but don't want to exercise wisdom or update perminv */
-        if (objects[oindx].oc_name_known)
-            return;
+        if (mark_as_encountered)
+            objects[oindx].oc_encountered = 1;
 
-        if (mark_as_known) {
+        if (!objects[oindx].oc_name_known && mark_as_known) {
             objects[oindx].oc_name_known = 1;
             if (credit_hero)
                 exercise(A_WIS, TRUE);
-        }
-        /* !in_moveloop => initial inventory, gameover => final disclosure */
-        if (program_state.in_moveloop && !program_state.gameover) {
-            if (objects[oindx].oc_class == GEM_CLASS)
-                gem_learned(oindx); /* could affect price of unpaid gems */
-            update_inventory();
+
+            /* !in_moveloop => initial inventory,
+               gameover => final disclosure */
+            if (program_state.in_moveloop && !program_state.gameover) {
+                if (objects[oindx].oc_class == GEM_CLASS)
+                    gem_learned(oindx); /* could affect price of unpaid gems */
+                update_inventory();
+            }
         }
     }
 }
@@ -514,9 +523,11 @@ interesting_to_discover(int i)
     if (Role_if(PM_SAMURAI) && Japanese_item_name(i, (const char *) 0))
         return TRUE;
 
-    /* Pre-discovered objects are now printed with a '*' */
+    /* Objects that were discovered without encountering them are now printed
+       with a '*' */
     return (boolean) (objects[i].oc_uname != (char *) 0
-                      || (objects[i].oc_name_known
+                      || ((objects[i].oc_name_known
+                           || objects[i].oc_encountered)
                           && OBJ_DESCR(objects[i]) != (char *) 0));
 }
 
@@ -550,7 +561,7 @@ sortloot_descr(int otyp, char *outbuf)
     o = cg.zeroobj;
     o.otyp = otyp;
     o.oclass = objects[otyp].oc_class;
-    o.dknown = 1;
+    o.dknown = 1; /* not observe_object, this isn't a real object */
     o.known = (objects[otyp].oc_name_known || !objects[otyp].oc_uses_known)
               ? 1 : 0;
     o.corpsenm = NON_PM; /* suppress statue and figurine details */
@@ -784,7 +795,7 @@ dodiscovered(void) /* free after Robert Viduya */
                         prev_class = oclass;
                     }
                 }
-                Strcpy(buf,  objects[dis].oc_pre_discovered ? "* " : "  ");
+                Strcpy(buf, objects[dis].oc_encountered ? "  " : "* ");
                 if (lootsort)
                     (void) sortloot_descr(dis, &buf[2]);
                 disco_append_typename(buf, dis);
@@ -1011,7 +1022,7 @@ doclassdisco(void)
              ++i) {
             if ((dis = svd.disco[i]) != 0 && interesting_to_discover(dis)) {
                 ++ct;
-                Strcpy(buf,  objects[dis].oc_pre_discovered ? "* " : "  ");
+                Strcpy(buf, objects[dis].oc_encountered ? "  " : "* ");
                 if (lootsort)
                     (void) sortloot_descr(dis, &buf[2]);
                 disco_append_typename(buf, dis);
@@ -1113,7 +1124,7 @@ rename_disco(void)
             odummy.oclass = objects[dis].oc_class;
             odummy.quan = 1L;
             odummy.known = !objects[dis].oc_uses_known;
-            odummy.dknown = 1;
+            odummy.dknown = 1; /* not observe_object: it isn't real */
             docall(&odummy);
         }
     }

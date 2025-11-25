@@ -1133,7 +1133,7 @@ hmon_hitmon_misc_obj(
                 corpse_xname(obj, (const char *) 0,
                              obj->dknown ? CXN_PFX_THE
                              : CXN_ARTICLE));
-            obj->dknown = 1;
+            observe_object(obj);
             if (!munstone(mon, TRUE))
                 minstapetrify(mon, TRUE);
             if (resists_ston(mon))

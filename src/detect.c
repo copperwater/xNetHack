@@ -26,7 +26,7 @@ staticfn void reconstrain_map(void);
 staticfn void map_redisplay(void);
 staticfn void browse_map(unsigned, const char *);
 staticfn void map_monst(struct monst *, boolean);
-staticfn void do_dknown_of(struct obj *);
+staticfn void observe_recursively(struct obj *);
 staticfn boolean check_map_spot(coordxy, coordxy, char, unsigned);
 staticfn boolean clear_stale_map(char, unsigned);
 staticfn void sense_trap(struct trap *, coordxy, coordxy, int);
@@ -246,14 +246,14 @@ o_material(struct obj *obj, unsigned material)
 }
 
 staticfn void
-do_dknown_of(struct obj *obj)
+observe_recursively(struct obj *obj)
 {
     struct obj *otmp;
 
-    obj->dknown = 1;
+    observe_object(obj);
     if (Has_contents(obj)) {
         for (otmp = obj->cobj; otmp; otmp = otmp->nobj)
-            do_dknown_of(otmp);
+            observe_recursively(otmp);
     }
 }
 
@@ -638,7 +638,7 @@ object_detect(struct obj *detector, /* object doing the detecting */
 
     if (do_dknown)
         for (obj = gi.invent; obj; obj = obj->nobj)
-            do_dknown_of(obj);
+            observe_recursively(obj);
 
     for (obj = fobj; obj; obj = obj->nobj) {
         if ((!class && !boulder) || o_in(obj, class) || o_in(obj, boulder)) {
@@ -648,7 +648,7 @@ object_detect(struct obj *detector, /* object doing the detecting */
                 ct++;
         }
         if (do_dknown)
-            do_dknown_of(obj);
+            observe_recursively(obj);
     }
 
     for (obj = svl.level.buriedobjlist; obj; obj = obj->nobj) {
@@ -659,7 +659,7 @@ object_detect(struct obj *detector, /* object doing the detecting */
                 ct++;
         }
         if (do_dknown)
-            do_dknown_of(obj);
+            observe_recursively(obj);
     }
 
     if (u.usteed)
@@ -673,7 +673,7 @@ object_detect(struct obj *detector, /* object doing the detecting */
                 || o_in(obj, boulder))
                 ct++;
             if (do_dknown)
-                do_dknown_of(obj);
+                observe_recursively(obj);
         }
         if ((is_cursed && M_AP_TYPE(mtmp) == M_AP_OBJECT
              && (!class || class == objects[mtmp->mappearance].oc_class))
@@ -932,7 +932,7 @@ detect_obj_traps(
         }
         if (Is_box(otmp) && otmp->otrapped) {
             otmp->tknown = 1;
-            otmp->dknown = 1;
+            observe_object(otmp);
             result |= u_at(x, y) ? OTRAP_HERE : OTRAP_THERE;
             if (ft) {
                 flash_glyph_at(x, y, trapglyph, FOUND_FLASH_COUNT);
@@ -1508,7 +1508,7 @@ do_vicinity_map(
                    unlike object detection, we don't notice buried items */
                 otmp = svl.level.objects[zx][zy];
                 if (extended)
-                    otmp->dknown = 1;
+                    observe_object(otmp);
                 map_object(otmp, TRUE);
                 newglyph = glyph_at(zx, zy);
                 /* if otmp is underwater, we'll need to redisplay the water */

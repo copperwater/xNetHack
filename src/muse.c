@@ -207,7 +207,7 @@ mplayhorn(
                     ? "nearby" : "in the distance");
         unknow_object(otmp); /* hero loses info when unseen obj is used */
     } else if (self) {
-        otmp->dknown = 1;
+        observe_object(otmp);
         objnamp = xname(otmp);
         if (strlen(objnamp) >= QBUFSZ)
             objnamp = simpleonames(otmp);
@@ -216,7 +216,7 @@ mplayhorn(
         pline("%s!", monverbself(mtmp, Monnam(mtmp), "play", objbuf));
         makeknown(otmp->otyp); /* (wands handle this slightly differently) */
     } else {
-        otmp->dknown = 1;
+        observe_object(otmp);
         objnamp = xname(otmp);
         if (strlen(objnamp) >= QBUFSZ)
             objnamp = simpleonames(otmp);
@@ -242,7 +242,7 @@ mreadmsg(struct monst *mtmp, struct obj *otmp)
     if (!vismon && Deaf)
         return; /* no feedback */
 
-    otmp->dknown = 1; /* seeing or hearing scroll read reveals its label */
+    observe_object(otmp); /* seeing/hearing scroll read reveals its label */
     Strcpy(onambuf, singular(otmp, vismon ? doname : ansimpleoname));
 
     if (vismon) {
@@ -291,7 +291,7 @@ staticfn void
 mquaffmsg(struct monst *mtmp, struct obj *otmp)
 {
     if (canseemon(mtmp)) {
-        otmp->dknown = 1;
+        observe_object(otmp);
         pline_mon(mtmp, "%s drinks %s!", Monnam(mtmp), singular(otmp, doname));
     } else if (!Deaf) {
         Soundeffect(se_mon_chugging_potion, 25);
@@ -1967,7 +1967,7 @@ use_offensive(struct monst *mtmp)
          * are not objects.  Also set dknown in mthrowu.c.
          */
         if (cansee(mtmp->mx, mtmp->my)) {
-            otmp->dknown = 1;
+            observe_object(otmp);
             pline_mon(mtmp, "%s hurls %s!",
                       Monnam(mtmp), singular(otmp, doname));
         }
@@ -3129,7 +3129,7 @@ muse_unslime(
         vis |= canseemon(mon); /* burning potion may improve visibility */
         if (vis) {
             if (!Unaware)
-                obj->dknown = 1; /* hero is watching mon drink obj */
+                observe_object(obj); /* hero is watching mon drink obj */
             pline("%s quaffs a burning %s",
                   saw_lit ? upstart(strcpy(Pronoun, mhe(mon))) : Monnam(mon),
                   simpleonames(obj));

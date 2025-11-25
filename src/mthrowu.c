@@ -334,7 +334,7 @@ ohitmon(
     ismimic = M_AP_TYPE(mtmp) && M_AP_TYPE(mtmp) != M_AP_MONSTER;
     vis = cansee(gb.bhitpos.x, gb.bhitpos.y);
     if (vis)
-        otmp->dknown = 1;
+        observe_object(otmp);
 
     tmp = 5 + find_mac(mtmp) + omon_adj(mtmp, otmp, FALSE);
     /* High level monsters will be more likely to hit */
@@ -652,7 +652,7 @@ m_throw(
         singleobj->ox = gb.bhitpos.x += dx;
         singleobj->oy = gb.bhitpos.y += dy;
         if (cansee(gb.bhitpos.x, gb.bhitpos.y))
-            singleobj->dknown = 1;
+            observe_object(singleobj);
 
         mtmp = m_at(gb.bhitpos.x, gb.bhitpos.y);
         if (mtmp && shade_miss(mon, mtmp, singleobj, TRUE, TRUE)) {

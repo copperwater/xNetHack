@@ -1542,6 +1542,9 @@ on arboreal levels (Ranger quest) where STONE terrain is treated as TREE, an
 an item at an ordinary tree location, whether the level is arboreal or not,
 	would be described as itself with no mention of the tree
 some types of shopkeeper now start with a scroll of charging
+objects are now accurately tracked as discovered even if not type-named nor
+        formally identified (fixing some bugs in scroll writing, and making
+        the discoveries list more accurate)
 
 
 Fixes to 3.7.0-x General Problems Exposed Via git Repository

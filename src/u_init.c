@@ -562,8 +562,8 @@ knows_object(int obj, boolean override_pauper)
 {
     if (u.uroleplay.pauper && !override_pauper)
         return;
-    discover_object(obj, TRUE, FALSE);
-    objects[obj].oc_pre_discovered = 1; /* not a "discovery" */
+    /* mark as known, but not yet encountered */
+    discover_object(obj, TRUE, FALSE, FALSE);
 }
 
 /* Know ordinary (non-magical) objects of a certain class,
@@ -1207,6 +1207,7 @@ ini_inv_adjust_obj(struct trobj *trop, struct obj *obj)
     } else {
         if (objects[obj->otyp].oc_uses_known)
             obj->known = 1;
+        /* not observe_object during startup, that's handled later */
         obj->dknown = obj->bknown = obj->rknown = 1;
         if (Is_container(obj) || obj->otyp == STATUE) {
             obj->cknown = obj->lknown = 1;
@@ -1246,9 +1247,9 @@ ini_inv_use_obj(struct obj *obj)
 {
     /* Make the type known if necessary */
     if (OBJ_DESCR(objects[obj->otyp]) && obj->known)
-        discover_object(obj->otyp, TRUE, FALSE);
+        discover_object(obj->otyp, TRUE, TRUE, FALSE);
     if (obj->otyp == OIL_LAMP)
-        discover_object(POT_OIL, TRUE, FALSE);
+        discover_object(POT_OIL, TRUE, TRUE, FALSE);
 
     if (obj->oclass == ARMOR_CLASS) {
         if (is_shield(obj) && !uarms && !(uwep && bimanual(uwep))) {

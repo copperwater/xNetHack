@@ -178,7 +178,7 @@ loot_classify(Loot *sort_item, struct obj *obj)
      * will put lower valued ones before higher valued ones.
      */
     if (!Blind)
-        obj->dknown = 1; /* xname(obj) does this; we want it sooner */
+        observe_object(obj); /* xname(obj) does this; we want it sooner */
     seen = obj->dknown ? TRUE : FALSE,
     /* class order */
     classorder = flags.sortpack ? flags.inv_order : def_srt_order;
@@ -1196,7 +1196,7 @@ hold_another_object(
     char buf[BUFSZ];
 
     if (!Blind)
-        obj->dknown = 1; /* maximize mergeability */
+        observe_object(obj); /* maximize mergeability */
     if (obj->oartifact) {
         /* place_object may change these */
         boolean crysknife = (obj->otyp == CRYSKNIFE);
@@ -2546,7 +2546,8 @@ fully_identify_obj(struct obj *otmp)
     makeknown(otmp->otyp);
     if (otmp->oartifact)
         discover_artifact((xint16) otmp->oartifact);
-    otmp->known = otmp->dknown = otmp->bknown = otmp->rknown = 1;
+    observe_object(otmp);
+    otmp->known = otmp->bknown = otmp->rknown = 1;
     set_cknown_lknown(otmp); /* set otmp->{cknown,lknown} if applicable */
     if (otmp->otyp == EGG && otmp->corpsenm != NON_PM)
         learn_egg_type(otmp->corpsenm);
@@ -6123,7 +6124,7 @@ display_binventory(coordxy x, coordxy y, boolean as_if_seen)
     for (n = 0, obj = svl.level.buriedobjlist; obj; obj = obj->nobj)
         if (obj->ox == x && obj->oy == y) {
             if (as_if_seen)
-                obj->dknown = 1;
+                observe_object(obj);
             n++;
         }
 

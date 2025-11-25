@@ -625,7 +625,7 @@ xname_flags(
     if (!nn && ocl->oc_uses_known && ocl->oc_unique)
         obj->known = 0;
     if (!Blind && !gd.distantname)
-        obj->dknown = 1;
+        observe_object(obj);
     if (Role_if(PM_CLERIC))
         obj->bknown = 1; /* avoid set_bknown() to bypass update_inventory() */
 
@@ -1057,6 +1057,8 @@ minimal_xname(struct obj *obj)
     bareobj = cg.zeroobj;
     bareobj.otyp = otyp;
     bareobj.oclass = obj->oclass;
+    /* not observe_object, either the hero observed the object already or this
+       is overriding ID and shouldn't discover the object */
     bareobj.dknown = (obj->dknown || iflags.override_ID) ? 1 : 0;
     /* suppress known except for amulets (needed for fakes and real A-of-Y) */
     bareobj.known = (obj->oclass == AMULET_CLASS)
@@ -1945,7 +1947,8 @@ killer_xname(struct obj *obj)
         save_oname = ONAME(obj);
 
     /* killer name should be more specific than general xname; however, exact
-       info like blessed/cursed and rustproof makes things be too verbose */
+       info like blessed/cursed and rustproof makes things be too verbose; set
+       dknown (not observe_object) because dead characters don't observe */
     obj->known = obj->dknown = 1;
     obj->bknown = obj->rknown = obj->greased = 0;
     /* if character is a priest[ess], bknown will get toggled back on */

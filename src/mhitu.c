@@ -2128,7 +2128,7 @@ doseduce(struct monst *mon)
                 /* have her call your gloves by their correct
                    name, possibly revealing them to you */
                 if (yourgloves)
-                    yourgloves->dknown = 1;
+                    observe_object(yourgloves);
                 verbalize("Well, then you owe me %s%s!",
                           yourgloves ? yname(yourgloves)
                                      : "twelve pairs of gloves",

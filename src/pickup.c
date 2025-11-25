@@ -1816,7 +1816,7 @@ pickup_object(
     /* In case of auto-pickup, where we haven't had a chance
        to look at it yet; affects docall(SCR_SCARE_MONSTER). */
     if (!Blind)
-        obj->dknown = 1;
+        observe_object(obj);
 
     if (obj == uchain) { /* do not pick up attached chain */
         return 0;

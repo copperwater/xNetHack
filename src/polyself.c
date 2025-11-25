@@ -646,7 +646,7 @@ polyself(int psflags)
                        re-converting scales to mail poses risk
                        of evaporation due to over enchanting */
                     uarm->otyp += GRAY_DRAGON_SCALES - GRAY_DRAGON_SCALE_MAIL;
-                    uarm->dknown = 1;
+                    observe_object(uarm);
                     disp.botl = TRUE; /* AC is changing */
                 }
                 uskin = uarm;
@@ -1371,7 +1371,7 @@ rehumanize(void)
             return; /* don't rehumanize after all */
         } else if (uamul && uamul->otyp == AMULET_OF_UNCHANGING) {
             Your("%s %s!", simpleonames(uamul), otense(uamul, "fail"));
-            uamul->dknown = 1;
+            observe_object(uamul);
             makeknown(AMULET_OF_UNCHANGING);
         }
     }

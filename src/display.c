@@ -346,7 +346,7 @@ map_object(struct obj *obj, int show)
             neardist = (r * r) * 2 - r; /* same as r*r + r*(r-1) */
 
         if (distu(x, y) <= neardist) {
-            obj->dknown = 1;
+            observe_object(obj);
             glyph = obj_to_glyph(obj, newsym_rn2);
         }
     }
@@ -1585,7 +1585,7 @@ see_nearby_objects(void)
             if (!cansee(ix, iy) || distu(ix, iy) > neardist)
                 continue;
 
-            obj->dknown = 1; /* near enough to see it */
+            observe_object(obj);
             /* operate on remembered glyph rather than current one */
             glyph = levl[ix][iy].glyph;
             if (glyph_is_generic_object(glyph))

@@ -2733,10 +2733,10 @@ potion_dip(struct obj *obj, struct obj *potion)
         else
             singlepotion->cursed = obj->cursed; /* odiluted left as-is */
         singlepotion->bknown = FALSE;
-        if (Blind) {
-            singlepotion->dknown = FALSE;
-        } else {
-            singlepotion->dknown = !Hallucination;
+        singlepotion->dknown = FALSE; /* provisionally */
+        if (!Blind) {
+            if (!Hallucination)
+                observe_object(singlepotion);
             *newbuf = '\0';
             if (mixture == POT_WATER && singlepotion->dknown)
                 Sprintf(newbuf, "clears");
@@ -2756,7 +2756,7 @@ potion_dip(struct obj *obj, struct obj *potion)
                 struct obj fakeobj;
 
                 fakeobj = cg.zeroobj;
-                fakeobj.dknown = 1;
+                fakeobj.dknown = 1; /* no need to observe_object */
                 fakeobj.otyp = old_otyp;
                 fakeobj.oclass = POTION_CLASS;
                 docall(&fakeobj);

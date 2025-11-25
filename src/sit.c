@@ -371,7 +371,8 @@ lay_an_egg(void)
     uegg->owt = weight(uegg);
     /* this sets hatch timers if appropriate */
     set_corpsenm(uegg, egg_type_from_parent(u.umonnum, FALSE));
-    uegg->known = uegg->dknown = 1;
+    uegg->known = 1;
+    observe_object(uegg);
     You("%s an egg.", eggs_in_water(gy.youmonst.data) ? "spawn" : "lay");
     dropy(uegg);
     stackobj(uegg);

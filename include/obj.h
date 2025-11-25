@@ -107,7 +107,9 @@ struct obj {
                              * or enchantment); many items have this preset if
                              * they lack anything interesting to discover */
     Bitfield(dknown, 1);    /* description known (item seen "up close");
-                             * some types of items always have dknown set */
+                             * some types of items always have dknown set;
+                             * use observe_object to set to TRUE so that the
+                             * discoveries list is still correct */
     Bitfield(bknown, 1);    /* BUC (blessed/uncursed/cursed) known */
     Bitfield(rknown, 1);    /* rustproofing status known */
     Bitfield(cknown, 1); /* for containers (including statues): the contents

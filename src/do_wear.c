@@ -1196,12 +1196,12 @@ learnring(struct obj *ring, boolean observed)
            mark this ring as having been seen (no need for makeknown);
            otherwise if we have seen this ring, discover its type */
         if (objects[ringtype].oc_name_known)
-            ring->dknown = 1;
+            observe_object(ring);
         else if (ring->dknown)
             makeknown(ringtype);
 #if 0 /* see learnwand() */
         else
-            ring->eknown = 1;
+            observe_object(ring);
 #endif
     }
 

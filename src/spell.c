@@ -234,7 +234,7 @@ deadbook(struct obj *book2)
 
     You("turn the pages of the Book of the Dead...");
     makeknown(SPE_BOOK_OF_THE_DEAD);
-    book2->dknown = 1; /* in case blind now and hasn't been seen yet */
+    observe_object(book2); /* in case blind now and hasn't been seen yet */
     /* KMH -- Need ->known to avoid "_a_ Book of the Dead" */
     book2->known = 1;
     if (invocation_pos(u.ux, u.uy) && !On_stairs(u.ux, u.uy)) {
@@ -896,8 +896,9 @@ skill_based_spellbook_id(void)
         }
 
         if (objects[booktype].oc_level <= known_up_to_level)
-            /* makeknown(booktype) but don't exercise Wisdom */
-            discover_object(booktype, TRUE, FALSE);
+            /* makeknown(booktype) but don't exercise Wisdom or mark as
+               encountered */
+            discover_object(booktype, TRUE, FALSE, FALSE);
     }
 }
 

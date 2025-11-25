@@ -834,6 +834,8 @@ static const char dknowns[] = { WAND_CLASS,   RING_CLASS, POTION_CLASS,
 void
 clear_dknown(struct obj *obj)
 {
+    /* note: this is an unobserving not an observing, so don't call
+       observe_object even if dknown is being set to 1 */
     obj->dknown = strchr(dknowns, obj->oclass) ? 0 : 1;
     if ((obj->otyp >= ELVEN_SHIELD && obj->otyp <= ORCISH_SHIELD)
         || obj->otyp == SHIELD_OF_REFLECTION
@@ -960,6 +962,7 @@ mksobj_init(struct obj **obj, boolean artif)
                we initialize glob->owt explicitly so weight() doesn't
                need to perform any fix up and returns glob->owt as-is */
             otmp->owt = objects[otmp->otyp].oc_weight;
+            /* dknown, but not observed */
             otmp->known = otmp->dknown = 1;
             otmp->corpsenm = PM_GRAY_OOZE + (otmp->otyp - GLOB_OF_GRAY_OOZE);
             start_glob_timeout(otmp, 0L);
