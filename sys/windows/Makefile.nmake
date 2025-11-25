@@ -9,7 +9,7 @@
 #
 #       Visual Studio Compilers Tested:
 #            - Microsoft Visual Studio Community 2022 v 17.14.21
-#            - Microsoft Visual Studio Community 2026 v 18.0.1
+#            - Microsoft Visual Studio Community 2026 v 18.0.2
 #
 #==============================================================================
 #   This is used for building two distinct executables of NetHack:
@@ -1186,7 +1186,7 @@ rc=Rc.exe
 # Recently tested versions:
 TESTEDVS2022 = 14.44.35221.0
 # Other versions:
-TESTEDVS2026 = 14.50.35718.0
+TESTEDVS2026 = 14.50.35719.0
 
 VS20261ST = 1450000000
 VS2026CUR = $(TESTEDVS2026:.=)
@@ -2042,7 +2042,7 @@ fetch-Lua: fetch-actual-Lua
 fetch-actual-Lua:
 	@if not exist $(LIBDIR)*.* mkdir $(R_LIBDIR)
 	cd $(LIBDIR)
-	curl -R -O http://www.lua.org/ftp/lua-$(LUAVER).tar.gz
+	curl -L -R -O http://www.lua.org/ftp/lua-$(LUAVER).tar.gz
 	tar zxf lua-$(LUAVER).tar.gz
 	if exist lua-$(LUAVER).tar.gz del lua-$(LUAVER).tar.gz
 	if exist lua-$(LUAVER).tar del lua-$(LUAVER).tar
