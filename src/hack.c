@@ -4126,7 +4126,25 @@ saving_grace(int dmg)
         return 0;
     }
 
-    if (!u.usaving_grace && dmg >= u.uhp && (u.uhp * 100 / u.uhpmax) > 90) {
+    if (!svc.context.mon_moving) {
+        /* saving grace doesn't protect you from your own actions */
+        return dmg;
+    }
+
+    if (dmg < u.uhp || u.uhp <= 0) {
+        /* no need for saving grace */
+        return dmg;
+    }
+
+    if (gs.saving_grace_turn) {
+        /* saving grace already triggered and prevents HP reducing below 1
+           this turn (specifically: until the next player action or turn
+           boundary), don't print further messages or livelog entries */
+        return u.uhp - 1;
+    }
+
+    if (!u.usaving_grace &&
+        (gu.uhp_at_start_of_monster_turn * 100 / u.uhpmax) >= 90) {
         /* saving_grace doesn't have it's own livelog classification;
            we might invent one, or perhaps use LL_LIFESAVE, but surviving
            certain death (or preserving worn amulet of life saving) via
@@ -4135,11 +4153,14 @@ saving_grace(int dmg)
            from #chronicle during play but show it to livelog observers */
         livelog_printf(LL_CONDUCT | LL_SPOILER, "%s (%d damage, %d/%d HP)",
                        "survived one-shot death via saving-grace",
-                       dmg, u.uhp, u.uhpmax);
+                       /* include damage that happened earlier this turn */
+                       gu.uhp_at_start_of_monster_turn - u.uhp + dmg,
+                       gu.uhp_at_start_of_monster_turn, u.uhpmax);
 
         /* note: this could reduce dmg to 0 if u.uhpmax==1 */
         dmg = u.uhp - 1;
         u.usaving_grace = 1; /* used up */
+        gs.saving_grace_turn = TRUE;
         end_running(TRUE);
         if (u.usleep)
             unmul("Suddenly you wake up!");
