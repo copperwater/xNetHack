@@ -1545,6 +1545,7 @@ some types of shopkeeper now start with a scroll of charging
 objects are now accurately tracked as discovered even if not type-named nor
         formally identified (fixing some bugs in scroll writing, and making
         the discoveries list more accurate)
+you cannot sacrifice objects/corpses while stunned or confused
 
 
 Fixes to 3.7.0-x General Problems Exposed Via git Repository
