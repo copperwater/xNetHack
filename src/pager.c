@@ -1706,61 +1706,93 @@ do_look(int mode, coord *click_cc)
             any = cg.zeroany;
             win = create_nhwindow(NHW_MENU);
             start_menu(win, MENU_BEHAVE_STANDARD);
+
+            /*
+             * Originally this was just a y|n question about whether to
+             * use the cursor or to type a word.  When other choices were
+             * added, it was changed to be a menu.  Using 'y' and 'n' as
+             * unshown accelerators keeps backwards compatibility with
+             * the old y|n behavior.
+             *
+             * Initially the menu included a third choice and always used
+             * 'a', 'b', and 'c'.  Then it was changed to be controlled by
+             * the 'lootabc' option instead, defaulting to '/', 'i', '?'
+             * when that's false.  Eventually additional entries have been
+             * introduced.
+             *
+             * When lootabc is set, abandon the 'y'|'n' compatibility in
+             * favor of newer '/' and '?' compatobility instead.
+             */
+
             any.a_char = '/';
-            /* 'y' and 'n' to keep backwards compatibility with previous
-               versions: "Specify unknown object by cursor?" */
             add_menu(win, &nul_glyphinfo, &any,
-                     flags.lootabc ? 0 : any.a_char, 'y', ATR_NONE,
+                     flags.lootabc ? 0 : any.a_char,
+                     flags.lootabc ? '/' : 'y', ATR_NONE,
                      clr, "something on the map", MENU_ITEMFLAGS_NONE);
             any.a_char = 'i';
             add_menu(win, &nul_glyphinfo, &any,
+                     /* [don't use 'i' as lootabc group accelerator because
+                        it will make the regular 'i' choice inaccessible] */
                      flags.lootabc ? 0 : any.a_char, 0, ATR_NONE,
                      clr, "something you're carrying", MENU_ITEMFLAGS_NONE);
             any.a_char = '?';
             add_menu(win, &nul_glyphinfo, &any,
-                     flags.lootabc ? 0 : any.a_char, 'n', ATR_NONE,
+                     flags.lootabc ? 0 : any.a_char,
+                     flags.lootabc ? '?' : 'n', ATR_NONE,
                      clr, "something else (by symbol or name)",
                      MENU_ITEMFLAGS_NONE);
             if (!u.uswallow && !Hallucination) {
                 any = cg.zeroany;
                 add_menu_str(win, "");
-                /* these options work sensibly for the swallowed case,
-                   but there's no reason for the player to use them then;
+                /* these options work sensibly for swallowed case, but
+                   there's no reason for player to use them then because
+                   the swallowed display hides all applicable targets;
                    objects work fine when hallucinating, but screen
                    symbol/monster class letter doesn't match up with
                    bogus monster type, so suppress when hallucinating */
                 any.a_char = 'm';
                 add_menu(win, &nul_glyphinfo, &any,
-                         flags.lootabc ? 0 : any.a_char, 0, ATR_NONE,
+                         flags.lootabc ? 0 : any.a_char,
+                         flags.lootabc ? any.a_char : 0, ATR_NONE,
                          clr, "nearby monsters", MENU_ITEMFLAGS_NONE);
                 any.a_char = 'M';
                 add_menu(win, &nul_glyphinfo, &any,
-                         flags.lootabc ? 0 : any.a_char, 0, ATR_NONE, clr,
-                         "all monsters shown on map", MENU_ITEMFLAGS_NONE);
+                         flags.lootabc ? 0 : any.a_char,
+                         flags.lootabc ? any.a_char : 0, ATR_NONE,
+                         clr, "all monsters shown on map",
+                         MENU_ITEMFLAGS_NONE);
                 any.a_char = 'o';
                 add_menu(win, &nul_glyphinfo, &any,
-                         flags.lootabc ? 0 : any.a_char, 0, ATR_NONE,
+                         flags.lootabc ? 0 : any.a_char,
+                         flags.lootabc ? any.a_char : 0, ATR_NONE,
                          clr, "nearby objects", MENU_ITEMFLAGS_NONE);
                 any.a_char = 'O';
                 add_menu(win, &nul_glyphinfo, &any,
-                         flags.lootabc ? 0 : any.a_char, 0, ATR_NONE, clr,
-                         "all objects shown on map", MENU_ITEMFLAGS_NONE);
+                         flags.lootabc ? 0 : any.a_char,
+                         flags.lootabc ? any.a_char : 0, ATR_NONE,
+                         clr, "all objects shown on map",
+                         MENU_ITEMFLAGS_NONE);
                 any.a_char = 't';
                 add_menu(win, &nul_glyphinfo, &any,
-                         flags.lootabc ? 0 : any.a_char, '^', ATR_NONE,
+                         flags.lootabc ? 0 : any.a_char,
+                         flags.lootabc ? any.a_char : '^', ATR_NONE,
                          clr, "nearby traps", MENU_ITEMFLAGS_NONE);
                 any.a_char = 'T';
                 add_menu(win, &nul_glyphinfo, &any,
-                         flags.lootabc ? 0 : any.a_char, '\"', ATR_NONE,
+                         flags.lootabc ? 0 : any.a_char,
+                         flags.lootabc ? any.a_char : '\"', ATR_NONE,
                          clr, "all seen or remembered traps",
                          MENU_ITEMFLAGS_NONE);
                 any.a_char = 'e';
                 add_menu(win, &nul_glyphinfo, &any,
-                         flags.lootabc ? 0 : any.a_char, '`', ATR_NONE,
+                         flags.lootabc ? 0 : any.a_char,
+                         /* [don't use 'e' as lootabc group accelerator] */
+                         flags.lootabc ? 0 : '`', ATR_NONE,
                          clr, "nearby engravings", MENU_ITEMFLAGS_NONE);
                 any.a_char = 'E';
                 add_menu(win, &nul_glyphinfo, &any,
-                         flags.lootabc ? 0 : any.a_char, '|', ATR_NONE,
+                         flags.lootabc ? 0 : any.a_char,
+                         flags.lootabc ? any.a_char : '|', ATR_NONE,
                          clr, "all seen or remembered engravings",
                          MENU_ITEMFLAGS_NONE);
             }
