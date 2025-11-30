@@ -786,7 +786,7 @@ newgame(void)
                        * in hero's initial inventory */
     init_artifacts(); /* before u_init() in case $WIZKIT specifies
                        * any artifacts */
-    u_init();
+    u_init_misc();
 
     l_nhcore_init();  /* create a Lua state that lasts until end of game */
     reset_glyphmap(gm_newgame);
@@ -801,14 +801,15 @@ newgame(void)
 
     mklev();
     u_on_upstairs();
-    if (wizard)
-        obj_delivery(FALSE); /* finish wizkit */
     vision_reset();          /* set up internals for level (after mklev) */
     check_special_room(FALSE);
 
     if (MON_AT(u.ux, u.uy))
         mnexto(m_at(u.ux, u.uy), RLOC_NOMSG);
     (void) makedog();
+
+    u_init_inventory_attrs();
+    u_init_skills_discoveries();
     docrt();
 
     if (flags.legacy) {

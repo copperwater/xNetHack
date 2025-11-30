@@ -27,6 +27,7 @@ staticfn void knows_class(char);
 staticfn void u_init_role(void);
 staticfn void u_init_race(void);
 staticfn void pauper_reinit(void);
+staticfn const struct def_skill *skills_for_role(void);
 staticfn void u_init_carry_attr_boost(void);
 staticfn boolean restricted_spell_discipline(int);
 
@@ -625,7 +626,11 @@ knows_class(char sym)
     }
 }
 
-/* role-specific initializations */
+/* role-specific initializations, mostly inventory
+
+   other things may be initialised here, but the function might run more than
+   once, so any non-inventory initialisations should be nonrandom and
+   idempotent (i.e. doing them twice is OK) */
 staticfn void
 u_init_role(void)
 {
@@ -654,7 +659,6 @@ u_init_role(void)
         knows_object(TOUCHSTONE, FALSE); /* FALSE: don't override pauper here,
                                           * but TOUCHSTONE will be made known
                                           * in pauper_reinit() */
-        skill_init(Skill_A);
         break;
     case PM_BARBARIAN:
         if (rn2(100) >= 50) { /* see above comment */
@@ -666,11 +670,9 @@ u_init_role(void)
             ini_inv(Lamp);
         knows_class(WEAPON_CLASS); /* excluding polearms */
         knows_class(ARMOR_CLASS);
-        skill_init(Skill_B);
         break;
     case PM_CAVE_DWELLER:
         ini_inv(Cave_man);
-        skill_init(Skill_C);
         break;
     case PM_HEALER:
         u.umoney0 = rn1(1000, 1001);
@@ -678,7 +680,6 @@ u_init_role(void)
         if (!rn2(25))
             ini_inv(Lamp);
         knows_object(POT_FULL_HEALING, FALSE);
-        skill_init(Skill_H);
         break;
     case PM_KNIGHT:
         ini_inv(Knight);
@@ -686,7 +687,6 @@ u_init_role(void)
         knows_class(ARMOR_CLASS);
         /* give knights chess-like mobility--idea from wooledge@..cwru.edu */
         HJumping |= FROMOUTSIDE;
-        skill_init(Skill_K);
         break;
     case PM_MONK: {
         static const struct trobj *M_spell[] = {
@@ -702,7 +702,6 @@ u_init_role(void)
         knows_class(ARMOR_CLASS);
         /* sufficiently martial-arts oriented item to ignore language issue */
         knows_object(SHURIKEN, FALSE);
-        skill_init(Skill_Mon);
         break;
     }
     case PM_CLERIC: /* priest/priestess */
@@ -712,7 +711,6 @@ u_init_role(void)
         else if (!rn2(10))
             ini_inv(Lamp);
         knows_object(POT_WATER, TRUE); /* override pauper */
-        skill_init(Skill_P);
         /* KMH, conduct --
          * Some may claim that this isn't agnostic, since they
          * are literally "priests" and they have holy water.
@@ -724,7 +722,6 @@ u_init_role(void)
     case PM_RANGER:
         ini_inv(Ranger);
         knows_class(WEAPON_CLASS); /* bows, arrows, spears only */
-        skill_init(Skill_Ran);
         break;
     case PM_ROGUE:
         u.umoney0 = 0;
@@ -735,7 +732,6 @@ u_init_role(void)
                                     * but sack will be made known in
                                     * pauper_reinit() */
         knows_class(WEAPON_CLASS); /* daggers only */
-        skill_init(Skill_R);
         break;
     case PM_SAMURAI:
         ini_inv(Samurai);
@@ -753,7 +749,6 @@ u_init_role(void)
                    samarai an advantage of knowing several items in advance */
                 knows_object(i, FALSE);
         }
-        skill_init(Skill_S);
         break;
     case PM_TOURIST:
         u.umoney0 = rnd(1000);
@@ -766,7 +761,6 @@ u_init_role(void)
             ini_inv(Towel);
         else if (!rn2(20))
             ini_inv(Magicmarker);
-        skill_init(Skill_T);
         break;
     case PM_VALKYRIE:
         ini_inv(Valkyrie);
@@ -774,21 +768,24 @@ u_init_role(void)
             ini_inv(Lamp);
         knows_class(WEAPON_CLASS); /* excludes polearms */
         knows_class(ARMOR_CLASS);
-        skill_init(Skill_V);
         break;
     case PM_WIZARD:
         ini_inv(Wizard);
         if (!rn2(5))
             ini_inv(Blindfold);
-        skill_init(Skill_W);
         break;
 
     default: /* impossible */
         break;
     }
+
+    gn.nocreate = STRANGE_OBJECT;
+    gn.nocreate2 = STRANGE_OBJECT;
+    gn.nocreate3 = STRANGE_OBJECT;
+    gn.nocreate4 = STRANGE_OBJECT;
 }
 
-/* race-specific initializations */
+/* race-specific initializations, same restrictions as u_init_role */
 staticfn void
 u_init_race(void)
 {
@@ -940,8 +937,9 @@ u_init_carry_attr_boost(void)
     }
 }
 
+/* initialise u, except inventory, attributes, skills and discoveries */
 void
-u_init(void)
+u_init_misc(void)
 {
     int i;
     struct u_roleplay tmpuroleplay = u.uroleplay; /* set by rcfile options */
@@ -1027,44 +1025,19 @@ u_init(void)
     if (u.uroleplay.blind)
         HBlinded |= FROMOUTSIDE; /* set PermaBlind */
 
-    u_init_role();
-    u_init_race();
-    if (u.uroleplay.pauper)
-        pauper_reinit();
-
     /* roughly based on distribution in human population */
     u.uhandedness = rn2(10) ? RIGHT_HANDED : LEFT_HANDED;
 
-    if (discover)
-        ini_inv(Wishing);
-
-    if (wizard)
-        read_wizkit();
-
-    if (u.umoney0)
-        ini_inv(Money);
-    u.umoney0 += hidden_gold(TRUE); /* in case sack has gold in it */
-
-    find_ac();     /* get initial ac value */
-    init_attr(75); /* init attribute values */
-    vary_init_attr(); /* minor variation to attrs */
-    u_init_carry_attr_boost();
     max_rank_sz(); /* set max str size for class ranks */
-
-    /* If we have at least one spell, force starting Pw to be enough,
-       so hero can cast the level 1 spell they should have */
-    if (num_spells() && (u.uenmax < SPELL_LEV_PW(1)))
-        u.uen = u.uenmax = u.uenpeak = u.ueninc[u.ulevel] = SPELL_LEV_PW(1);
 
     return;
 }
 
-/* skills aren't initialized, so we use the role-specific skill lists */
-staticfn boolean
-restricted_spell_discipline(int otyp)
+/* the appropriate set of skills for the role */
+staticfn const struct def_skill *
+skills_for_role(void)
 {
     const struct def_skill *skills;
-    int this_skill = spell_skilltype(otyp);
 
     switch (Role_switch) {
     case PM_ARCHEOLOGIST:
@@ -1107,9 +1080,19 @@ restricted_spell_discipline(int otyp)
         skills = Skill_W;
         break;
     default:
-        skills = 0; /* lint suppression */
+        panic("No skills found for role");
         break;
     }
+
+    return skills;
+}
+
+/* skills aren't initialized, so we use the role-specific skill lists */
+staticfn boolean
+restricted_spell_discipline(int otyp)
+{
+    const struct def_skill *skills = skills_for_role();
+    int this_skill = spell_skilltype(otyp);
 
     while (skills && skills->skill != P_NONE) {
         if (skills->skill == this_skill)
@@ -1369,8 +1352,6 @@ ini_inv(const struct trobj *trop)
             quan = 1;
         obj = addinv(obj);
 
-        ini_inv_use_obj(obj);
-
         /* First spellbook should be level 1 - did we get it? */
         if (obj->oclass == SPBOOK_CLASS && objects[obj->otyp].oc_level == 1)
             got_sp1 = TRUE;
@@ -1380,6 +1361,59 @@ ini_inv(const struct trobj *trop)
         trop++;
         quan = trquan(trop);
     }
+}
+
+/* initialise starting inventory and attributes
+
+   this function can be run multiple times and will overwrite the effects of
+   previous runs */
+staticfn void
+u_init_inventory_attrs(void)
+{
+    gl.lastinvnr = 51;
+    while (gi.invent)
+        useupall(gi.invent);
+
+    u.umoney0 = 0;
+    u_init_role();
+    u_init_race();
+
+    if (discover)
+        ini_inv(Wishing);
+
+    if (wizard) {
+        read_wizkit();
+        obj_delivery(FALSE); /* finish wizkit */
+    }
+
+    if (u.umoney0)
+        ini_inv(Money);
+    u.umoney0 += hidden_gold(TRUE); /* in case sack has gold in it */
+
+    init_attr(75);    /* init attribute values */
+    vary_init_attr(); /* minor variation to attrs */
+    u_init_carry_attr_boost();
+}
+
+/* side effects of starting inventory (e.g. discovering it) and skills (both
+   those based on role and those based on starting inventory) */
+void
+u_init_skills_discoveries(void)
+{
+    struct obj *otmp;
+    for (otmp = gi.invent; otmp; otmp = otmp->nobj)
+        ini_inv_use_obj(otmp);
+
+    skill_init(skills_for_role());
+    if (u.uroleplay.pauper)
+        pauper_reinit();
+
+    /* If we have at least one spell, force starting Pw to be enough,
+       so hero can cast the level 1 spell they should have */
+    if (num_spells() && (u.uenmax < SPELL_LEV_PW(1)))
+        u.uen = u.uenmax = u.uenpeak = u.ueninc[u.ulevel] = SPELL_LEV_PW(1);
+
+    find_ac();     /* get initial ac value */
 }
 
 #undef UNDEF_TYP

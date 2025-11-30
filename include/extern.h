@@ -3304,7 +3304,9 @@ extern void trap_sanity_check(void);
 
 /* ### u_init.c ### */
 
-extern void u_init(void);
+extern void u_init_misc(void);
+extern void u_init_inventory_attrs(void);
+extern void u_init_skills_discoveries(void);
 
 /* ### uhitm.c ### */
 
