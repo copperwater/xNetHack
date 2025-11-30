@@ -809,11 +809,16 @@ newgame(void)
     (void) makedog();
 
     u_init_inventory_attrs();
-    u_init_skills_discoveries();
     docrt();
+    flush_screen(1);
+    bot();
+    while (u.uroleplay.reroll && reroll_menu()) {
+        u_init_inventory_attrs();
+        bot();
+    }
+    u_init_skills_discoveries();
 
     if (flags.legacy) {
-        flush_screen(1);
         com_pager(u.uroleplay.pauper ? "pauper_legacy" : "legacy");
     }
 

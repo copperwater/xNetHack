@@ -258,6 +258,7 @@ extern void free_ebones(struct monst *) NONNULLARG1;
 
 /* ### botl.c ### */
 
+extern char *get_strength_str(void);
 extern char *do_statusline1(void);
 extern void check_gold_symbol(void);
 extern char *do_statusline2(void);
@@ -2406,6 +2407,7 @@ extern int query_category(const char *, struct obj *, int, menu_item **, int) NO
 /* dotypeinv() call query_objlist with NULL arg1 */
 extern int query_objlist(const char *, struct obj **, int, menu_item **, int,
                          boolean(*)(struct obj *)) NONNULLARG24;
+extern boolean reroll_menu(void);
 extern struct obj *pick_obj(struct obj *) NONNULLARG1;
 extern void encumber_msg(void);
 extern int container_at(coordxy, coordxy, boolean);

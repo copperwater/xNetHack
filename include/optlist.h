@@ -608,6 +608,9 @@ static int optfn_##a(int, int, boolean, char *, char *);
            Off, No, No, No, NoAlias, (boolean *) 0, Term_False,
            (char *)0)
 #endif
+    NHOPTB(reroll, Advanced, 0, opt_in, set_in_config,
+           Off, Yes, No, No, NoAlias, &u.uroleplay.reroll, Term_False,
+           "allow rerolling of starting inventory and items")
     NHOPTB(rest_on_space, Advanced, 0, opt_in, set_in_game, Off,
            Yes, No, No, NoAlias, &flags.rest_on_space, Term_False,
            "space bar is bound to the rest-command")

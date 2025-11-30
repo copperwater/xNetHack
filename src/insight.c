@@ -2109,6 +2109,12 @@ show_conduct(int final)
     if (u.uroleplay.pauper)
         enl_msg(You_, gi.invent ? "started" : "are", "started out",
                 " without possessions", "");
+    if (u.uroleplay.reroll) {
+        Sprintf(buf, "rerolled your character %ld time%s",
+                u.uroleplay.numrerolls, plur(u.uroleplay.numrerolls));
+        you_have_X(buf);
+    }
+
     /* nudist is far more than a subset of possessionless, and a much
        more impressive accomplishment, but showing "started out without
        possessions" before "faithfully nudist" looks more logical */

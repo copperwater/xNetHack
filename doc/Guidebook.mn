@@ -4556,6 +4556,16 @@ If \f(CRrace\fP is not specified, there is no default value;
 player will be prompted unless role forces a choice for race.
 Cannot be set with the \(oq\f(CRO\fP\(cq command.
 Persistent.
+.lp reroll
+Allows rerolling your character's starting inventory and attributes (default
+false).  Persistent.
+.lp ""
+Note that rerolling your character is not a recommended way to play if aiming
+merely to win (a lucky start has a much smaller influence on whether or not
+you win the game than your actions later in the game).  This option exists
+partly as an acknowledgement that some players will insist on doing so anyway,
+and partly because rerolling may be necessary for certain types of challenge
+games.
 .lp rest_on_space
 Make the space bar a synonym for the \(oq.\(cq (#wait) command (default off).
 Persistent.
