@@ -1,4 +1,4 @@
-/* NetHack 3.7	priest.c	$NHDT-Date: 1726862063 2024/09/20 19:54:23 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.103 $ */
+/* NetHack 3.7	priest.c	$NHDT-Date: 1764567778 2025/11/30 21:42:58 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.106 $ */
 /* Copyright (c) Izchak Miller, Steve Linhart, 1989.              */
 /* NetHack may be freely redistributed.  See license for details. */
 
@@ -7,7 +7,7 @@
 
 /* these match the categorizations shown by enlightenment */
 #define ALGN_SINNED (-4) /* worse than strayed (-1..-3) */
-#define ALGN_PIOUS 14    /* better than fervent (9..13) */
+#define ALGN_DEVOUT 14   /* better than fervent (9..13) */
 
 staticfn boolean histemple_at(struct monst *, coordxy, coordxy);
 staticfn boolean has_shrine(struct monst *);
@@ -480,7 +480,7 @@ intemple(int roomno)
                 other_time = &epri_p->peaceful_time;
             } else {
                 msg1 = "experience %s sense of peace.";
-                msg2 = (u.ualign.record >= ALGN_PIOUS) ? "a" : "an unusual";
+                msg2 = (u.ualign.record >= ALGN_DEVOUT) ? "a" : "an unusual";
                 this_time = &epri_p->peaceful_time;
                 other_time = &epri_p->hostile_time;
             }
@@ -560,6 +560,12 @@ priest_talk(struct monst *priest)
 {
     boolean coaligned = p_coaligned(priest);
     boolean strayed = (u.ualign.record < 0);
+
+    /*
+     * Note: we won't be called if hero is Deaf [since dochat() will
+     * return before calling domonnoise()], so we don't need to check
+     * for that before the various calls to verbalize() here.
+     */
 
     /* KMH, conduct */
     if (!u.uconduct.gnostic++)
@@ -898,6 +904,6 @@ restpriest(struct monst *mtmp, boolean ghostly)
 }
 
 #undef ALGN_SINNED
-#undef ALGN_PIOUS
+#undef ALGN_DEVOUT
 
 /*priest.c*/
