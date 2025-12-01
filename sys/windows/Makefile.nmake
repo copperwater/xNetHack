@@ -2065,6 +2065,54 @@ fetch-pdcurses:
 	@echo $(PDCDIST) has been fetched into $(LIBDIR)$(PDCDIST)
 !ENDIF
 
+#https://github.com/universal-ctags/ctags/archive/refs/tags/v6.2.1.zip
+CTAGSVER=6.2.1
+CTAGSURL=https://github.com/universal-ctags/ctags/archive/refs/tags/v$(CTAGSVER).zip
+
+fetch-ctags: $(LIBDIR)ctags.zip
+
+build-ctags: $(LIBDIR)ctags\ctags-$(CTAGSVER)\ctags.exe
+
+$(LIBDIR)ctags\ctags-$(CTAGSVER)\ctags.exe: $(LIBDIR)ctags\ctags-$(CTAGSVER)\mk_mvc.mak
+	@ECHO on
+	cd $(LIBDIR)
+	cd ctags\ctags-$(CTAGSVER)
+	copy win32\config_mvc.h config.h
+	copy win32\gnulib_h\langinfo.h gnulib
+	copy win32\gnulib_h\fnmatch.h gnulib
+	nmake -f mk_mvc.mak
+        copy /Y ctags.exe ..\ctags.exe
+	@echo ctags has been compiled into $(LIBDIR)ctags
+	@ECHO off
+	cd ..\..
+	cd $(R_SRC)
+
+$(LIBDIR)ctags.zip:
+	@if not exist $(LIBDIR)*.* mkdir $(R_LIBDIR)
+	cd $(LIBDIR)
+	curl -L -R $(CTAGSURL) -o ctags.zip
+	cd $(R_SRC)
+	@echo ctags source has been fetched into $@
+
+$(LIBDIR)ctags\ctags-$(CTAGSVER)\mk_mvc.mak: $(LIBDIR)ctags.zip
+	@if not exist $(LIBDIR)*.* mkdir $(R_LIBDIR)
+	cd $(LIBDIR)
+	powershell -command "Expand-Archive -Path $(LIBDIR)ctags.zip -DestinationPath $(LIBDIR)ctags"
+	cd $(R_SRC)
+	@echo ctags source has been expanded from zip file into $(LIBDIR)\ctags\ctags-$(CTAGSVER)
+
+clean-ctags:
+	cd $(LIBDIR)
+	rd $(LIBDIR)\ctags\ctags-$(CTAGSVER) /S
+        cd $(R_SRC)
+
+spotless-ctags:
+	cd $(LIBDIR)
+	@if exist ctags\ctags.exe del ctags\ctags.exe
+	@if exist ctags.zip del ctags.zip
+        cd $(R_SRC)
+
+
 #==========================================
 # DLB utility and nhdatNNN file creation
 #==========================================
@@ -2490,6 +2538,14 @@ $(DAT)bogusmon: $(U)makedefs.exe $(DAT)bogusmon.txt
 #===============================================================================
 # sfutil
 #===============================================================================
+SFCTOOLBIN = $(BinDir)sfctool.exe
+!IF "$(SFCTOOL)" == "1"
+SFCTOOLPKG=$(SFCTOOLBIN)
+!ELSE
+SFCTOOLPKG=
+!ENDIF
+
+!IF "$(SFCTOOLPKG)" != ""
 SFCTOOLOBJS = $(OUTL)sfctool.o \
 	    $(OUTL)sf-alloc.o $(OUTL)sf-artifact.o $(OUTL)sfdata.o \
 	    $(OUTL)sf-date.o $(OUTL)sf-decl.o $(OUTL)sf-calendar.o \
@@ -2503,7 +2559,6 @@ SFCTOOLOBJS = $(OUTL)sfctool.o \
 	    $(OUTL)sf-sys.o $(OUTL)sf-timeout.o $(OUTL)sf-track.o \
 	    $(OUTL)sf-version.o $(OUTL)sf-worm.o $(OUTL)sf-windsys.o
 
-SFCTOOLBIN = $(BinDir)sfctool.exe
 SFFLAGS = -DSFCTOOL -DNOPANICTRACE -DNOCRASHREPORT -DNO_CHRONICLE
 
 #CTAGSCMD = $(LIB)\ctags\ctags.exe
@@ -2610,7 +2665,7 @@ CTAGDEP = $(INCL)align.h  $(INCL)artifact.h $(INCL)artilist.h \
 #	  $(INCL)permonst.h
 CTAGSOPT = --language-force=c --sort=no -D"Bitfield(x,n)=unsigned x : n" --excmd=pattern
 #
-$(UTIL)sf.tags: $(CTAGDEP)
+$(UTIL)sf.tags: $(CTAGSCMD) $(CTAGDEP)
 	$(CTAGSCMD) $(CTAGSOPT) -f $@ $(INCL)align.h
 	$(CTAGSCMD) $(CTAGSOPT) -a -f $@ $(INCL)artifact.h
 	$(CTAGSCMD) $(CTAGSOPT) -a -f $@ $(SRC)artifact.c
@@ -2649,6 +2704,7 @@ $(UTIL)sf.tags: $(CTAGDEP)
 	$(CTAGSCMD) $(CTAGSOPT) -a -f $@ $(INCL)you.h
 	$(CTAGSCMD) $(CTAGSOPT) -a -f $@ $(INCL)onames.h
 	$(CTAGSCMD) $(CTAGSOPT) -a -f $@ $(INCL)wintype.h
+!ENDIF
 
 #===============================================================================
 # Integrated sound files
@@ -2725,7 +2781,7 @@ PKGFILES = nethackrc.template Guidebook.txt license NetHack.exe NetHack.txt \
 FILESTOZIP = $(BinDir)nethackrc.template $(BinDir)Guidebook.txt $(BinDir)license \
 	$(BinDir)NetHack.exe $(BinDir)NetHack.txt $(BinDir)NetHackW.exe \
 	$(BinDir)opthelp $(BinDir)nhdat370 $(BinDir)record \
-	$(BinDir)symbols $(BinDir)sysconf.template $(BinDir)sfctool.exe
+	$(BinDir)symbols $(BinDir)sysconf.template $(SFCTOOLPKG)
 
 DBGSYMS = NetHack.PDB NetHackW.PDB sfctool.PDB
 PDBTOZIP = $(BinDir)NetHack.PDB $(BinDir)NetHackW.PDB $(BinDir)sfctool.PDB
