@@ -2121,7 +2121,6 @@ dospellmenu(
                     ? MENU_ITEMFLAGS_SELECTED : MENU_ITEMFLAGS_NONE);
     }
     how = PICK_ONE;
-    how = PICK_NONE;
     if (splaction == SPELLMENU_VIEW) {
         if (spellid(1) == NO_SPELL) {
             /* only one spell => nothing to swap with */
