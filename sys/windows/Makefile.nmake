@@ -2541,8 +2541,14 @@ $(DAT)bogusmon: $(U)makedefs.exe $(DAT)bogusmon.txt
 SFCTOOLBIN = $(BinDir)sfctool.exe
 !IF "$(SFCTOOL)" == "1"
 SFCTOOLPKG=$(SFCTOOLBIN)
+SFCTOOLBASENAM=sfctool.exe
+SFCTOOLPDBNAM=sfctool.PDB
+SFCTOOLPDBBIN=$(BinDir)sfctool.PDB
 !ELSE
 SFCTOOLPKG=
+SFCTOOLBASENAM=
+SFCTOOLPDBNAM=
+SFCTOOLPDBBIN=
 !ENDIF
 
 !IF "$(SFCTOOLPKG)" != ""
@@ -2776,15 +2782,15 @@ $(SndWavDir)sa2_xplevelup.wav: $(SndWavDir)sa2_xplevelup.uu $(U)uudecode.exe
 #===============================================================================
 
 PKGFILES = nethackrc.template Guidebook.txt license NetHack.exe NetHack.txt \
-	 NetHackW.exe opthelp nhdat370 record symbols sysconf.template \
-	 sfctool.exe
+	 NetHackW.exe opthelp nhdat370 record symbols \
+	 sysconf.template $(SFCTOOLBASENAM)
 FILESTOZIP = $(BinDir)nethackrc.template $(BinDir)Guidebook.txt $(BinDir)license \
 	$(BinDir)NetHack.exe $(BinDir)NetHack.txt $(BinDir)NetHackW.exe \
 	$(BinDir)opthelp $(BinDir)nhdat370 $(BinDir)record \
 	$(BinDir)symbols $(BinDir)sysconf.template $(SFCTOOLPKG)
 
-DBGSYMS = NetHack.PDB NetHackW.PDB sfctool.PDB
-PDBTOZIP = $(BinDir)NetHack.PDB $(BinDir)NetHackW.PDB $(BinDir)sfctool.PDB
+DBGSYMS = NetHack.PDB NetHackW.PDB $(SFCTOOLPDB)
+PDBTOZIP = $(BinDir)NetHack.PDB $(BinDir)NetHackW.PDB $(SFCTOOLPDBBIN)
 MAINZIP = $(PkgDir)nethack-$(NHV)-win-$(TARGET_CPU).zip
 DBGSYMZIP = $(PkgDir)nethack-$(NHV)-win-$(TARGET_CPU)-debugsymbols.zip
 
@@ -2805,7 +2811,7 @@ binary:  envchk.tag libdir.tag ottydir$(TARGET_CPU).tag \
 		$(INCL)nhlua.h $(OUTL)utility.tag \
 		$(DAT)data $(DAT)rumors $(DAT)oracles $(DAT)engrave \
 		$(DAT)epitaph $(DAT)bogusmon $(GAMEDIR)NetHack.exe \
-		$(GAMEDIR)NetHackW.exe $(GAMEDIR)sfctool.exe $(GAMEDIRDLLS) binary.tag
+		$(GAMEDIR)NetHackW.exe $(SFCTOOLPKG) $(GAMEDIRDLLS) binary.tag
 	@echo NetHack is up to date.
 
 #===============================================================================
