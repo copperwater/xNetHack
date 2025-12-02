@@ -16,6 +16,7 @@ staticfn boolean could_advance(int);
 staticfn boolean peaked_skill(int);
 staticfn int slots_required(int);
 staticfn void skill_advance(int);
+staticfn void add_skills_to_menu(winid, boolean, boolean);
 
 /* Categories whose names don't come from OBJ_NAME(objects[type])
  */
@@ -1215,6 +1216,102 @@ static const struct skill_range {
     { P_FIRST_SPELL, P_LAST_SPELL, "Spellcasting Skills" },
 };
 
+/* write a list of skills onto the given menu
+
+   if selectable is set, give selection letters for skills that can be
+   advanced and leave room for them on skills that can't be advanced */
+void
+add_skills_to_menu(winid win, boolean selectable, boolean speedy)
+{
+    int pass, i, len, longest;
+    anything any;
+    char buf[BUFSZ], sklnambuf[BUFSZ];
+    const char *prefix;
+    int clr = NO_COLOR;
+
+    /* Find the longest skill name. */
+    for (longest = 0, i = 0; i < P_NUM_SKILLS; i++) {
+        if (P_RESTRICTED(i))
+            continue;
+        if ((len = Strlen(P_NAME(i))) > longest)
+            longest = len;
+    }
+
+    /* List the skills, making ones that could be advanced selectable if
+       selectable is set.  List the miscellaneous skills first.  Possible
+       future enhancement: list spell skills before weapon skills for
+       spellcaster roles. */
+    for (pass = 0; pass < SIZE(skill_ranges); pass++)
+        for (i = skill_ranges[pass].first; i <= skill_ranges[pass].last;
+             i++) {
+            /* Print headings for skill types */
+            any = cg.zeroany;
+            if (i == skill_ranges[pass].first)
+                add_menu_heading(win, skill_ranges[pass].name);
+
+            if (P_RESTRICTED(i))
+                continue;
+            /*
+             * Sigh, this assumes a monospaced font unless
+             * iflags.menu_tab_sep is set in which case it puts
+             * tabs between columns.
+             * The 12 is the longest skill level name.
+             * The "    " is room for a selection letter and dash, "a - ".
+             */
+            if (!selectable)
+                prefix = "";
+            else if (can_advance(i, speedy))
+                prefix = ""; /* will be preceded by menu choice */
+            else if (could_advance(i))
+                prefix = "  * ";
+            else if (peaked_skill(i))
+                prefix = "  # ";
+            else
+                prefix = "    ";
+            (void) skill_level_name(i, sklnambuf);
+            if (wizard) {
+                if (!iflags.menu_tab_sep)
+                    Snprintf(buf, sizeof buf,
+                             " %s%-*s %-12s %5d(%4d)", prefix,
+                             longest, P_NAME(i), sklnambuf, P_ADVANCE(i),
+                             practice_needed_to_advance(P_SKILL(i)));
+                else
+                    Snprintf(buf, sizeof buf,
+                             " %s%s\t%s\t%5d(%4d)", prefix, P_NAME(i),
+                             sklnambuf, P_ADVANCE(i),
+                             practice_needed_to_advance(P_SKILL(i)));
+            } else {
+                if (!iflags.menu_tab_sep)
+                    Snprintf(buf, sizeof buf,
+                             " %s %-*s [%s]", prefix, longest,
+                             P_NAME(i), sklnambuf);
+                else
+                    Snprintf(buf, sizeof buf,
+                             " %s%s\t[%s]", prefix, P_NAME(i),
+                             sklnambuf);
+            }
+            any.a_int = selectable && can_advance(i, speedy) ? i + 1 : 0;
+            add_menu(win, &nul_glyphinfo, &any, 0, 0,
+                     ATR_NONE, clr, buf, MENU_ITEMFLAGS_NONE);
+        }
+}
+
+/* Displays a skill list for dumplog purposes. */
+void
+show_skills(void)
+{
+    winid win;
+    menu_item *selected;
+
+    pline("Skills:");
+    win = create_nhwindow(NHW_MENU);
+    start_menu(win, MENU_BEHAVE_STANDARD);
+    add_skills_to_menu(win, FALSE, FALSE);
+    end_menu(win, "");
+    nhUse(select_menu(win, PICK_NONE, &selected));
+    destroy_nhwindow(win);
+}
+
 /*
  * The `#enhance' extended command.  What we _really_ would like is
  * to keep being able to pick things to advance until we couldn't any
@@ -1226,14 +1323,11 @@ static const struct skill_range {
 int
 enhance_weapon_skill(void)
 {
-    int pass, i, n, len, longest, to_advance, eventually_advance, maxxed_cnt;
-    char buf[BUFSZ], sklnambuf[BUFSZ];
-    const char *prefix;
+    int i, n, to_advance, eventually_advance, maxxed_cnt;
+    char buf[BUFSZ];
     menu_item *selected;
-    anything any;
     winid win;
     boolean speedy = FALSE;
-    int clr = NO_COLOR;
 
     /* player knows about #enhance, don't show tip anymore */
     svc.context.tips[TIP_ENHANCE] = TRUE;
@@ -1242,13 +1336,11 @@ enhance_weapon_skill(void)
         speedy = TRUE;
 
     do {
-        /* find longest available skill name, count those that can advance */
+        /* count advanceable skills */
         to_advance = eventually_advance = maxxed_cnt = 0;
-        for (longest = 0, i = 0; i < P_NUM_SKILLS; i++) {
+        for (i = 0; i < P_NUM_SKILLS; i++) {
             if (P_RESTRICTED(i))
                 continue;
-            if ((len = Strlen(P_NAME(i))) > longest)
-                longest = len;
             if (can_advance(i, speedy))
                 to_advance++;
             else if (could_advance(i))
@@ -1280,64 +1372,8 @@ enhance_weapon_skill(void)
             add_menu_str(win, "");
         }
 
-        /* List the skills, making ones that could be advanced
-           selectable.  List the miscellaneous skills first.
-           Possible future enhancement:  list spell skills before
-           weapon skills for spellcaster roles. */
-        for (pass = 0; pass < SIZE(skill_ranges); pass++)
-            for (i = skill_ranges[pass].first; i <= skill_ranges[pass].last;
-                 i++) {
-                /* Print headings for skill types */
-                any = cg.zeroany;
-                if (i == skill_ranges[pass].first)
-                    add_menu_heading(win, skill_ranges[pass].name);
-
-                if (P_RESTRICTED(i))
-                    continue;
-                /*
-                 * Sigh, this assumes a monospaced font unless
-                 * iflags.menu_tab_sep is set in which case it puts
-                 * tabs between columns.
-                 * The 12 is the longest skill level name.
-                 * The "    " is room for a selection letter and dash, "a - ".
-                 */
-                if (can_advance(i, speedy))
-                    prefix = ""; /* will be preceded by menu choice */
-                else if (could_advance(i))
-                    prefix = "  * ";
-                else if (peaked_skill(i))
-                    prefix = "  # ";
-                else
-                    prefix =
-                        (to_advance + eventually_advance + maxxed_cnt > 0)
-                            ? "    "
-                            : "";
-                (void) skill_level_name(i, sklnambuf);
-                if (wizard) {
-                    if (!iflags.menu_tab_sep)
-                        Snprintf(buf, sizeof buf,
-                                 " %s%-*s %-12s %5d(%4d)", prefix,
-                                 longest, P_NAME(i), sklnambuf, P_ADVANCE(i),
-                                 practice_needed_to_advance(P_SKILL(i)));
-                    else
-                        Snprintf(buf, sizeof buf,
-                                 " %s%s\t%s\t%5d(%4d)", prefix, P_NAME(i),
-                                 sklnambuf, P_ADVANCE(i),
-                                 practice_needed_to_advance(P_SKILL(i)));
-                } else {
-                    if (!iflags.menu_tab_sep)
-                        Snprintf(buf, sizeof buf,
-                                 " %s %-*s [%s]", prefix, longest,
-                                 P_NAME(i), sklnambuf);
-                    else
-                        Snprintf(buf, sizeof buf,
-                                 " %s%s\t[%s]", prefix, P_NAME(i),
-                                 sklnambuf);
-                }
-                any.a_int = can_advance(i, speedy) ? i + 1 : 0;
-                add_menu(win, &nul_glyphinfo, &any, 0, 0,
-                         ATR_NONE, clr, buf, MENU_ITEMFLAGS_NONE);
-            }
+        add_skills_to_menu(
+            win, to_advance + eventually_advance + maxxed_cnt > 0, speedy);
 
         Strcpy(buf, (to_advance > 0) ? "Pick a skill to advance:"
                                      : "Current skills:");

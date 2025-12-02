@@ -5,6 +5,7 @@
 #include "hack.h"
 
 /* spellmenu arguments; 0..n-1 used as svs.spl_book[] index when swapping */
+#define SPELLMENU_DUMP (-3)
 #define SPELLMENU_CAST (-2)
 #define SPELLMENU_VIEW (-1)
 #define SPELLMENU_SORT (MAXSPELL) /* special menu entry */
@@ -2043,13 +2044,27 @@ dovspell(void)
 
 DISABLE_WARNING_FORMAT_NONLITERAL
 
+/* lists spells for endgame dumplog purposes */
+void
+show_spells(void)
+{
+    int unused = SPELLMENU_DUMP;
+    if (spellid(0) == NO_SPELL) {
+        pline("You didn't know any spells.");
+        pline("%s", "");
+    } else {
+        pline("Spells:");
+        nhUse(dospellmenu("", SPELLMENU_DUMP, &unused));
+    }
+}
+
 /* shows menu of known spells, with options to sort them.
    return FALSE on cancel, TRUE otherwise.
    spell_no is set to the internal spl_book index, if any selected */
 staticfn boolean
 dospellmenu(
     const char *prompt,
-    int splaction, /* SPELLMENU_CAST, SPELLMENU_VIEW, or
+    int splaction, /* SPELLMENU_CAST, SPELLMENU_VIEW, SPELLMENU_DUMP or
                     * svs.spl_book[] index */
     int *spell_no)
 {
@@ -2071,10 +2086,14 @@ dospellmenu(
      * (1) that the font is monospaced, and
      * (2) that selection letters are pre-pended to the
      * given string and are of the form "a - ".
+     * For SPELLMENU_DUMP, (2) is untrue, so four spaces
+     * need to be subtracted.
      */
     if (!iflags.menu_tab_sep) {
-        Sprintf(buf, "%-20s     Level %-12s Fail Retention",
-                "    Name", "Category");
+        Sprintf(buf, "%s%-20s Level %-12s Fail Retention",
+                splaction == SPELLMENU_DUMP ? "" : "    ",
+                "Name",
+                "Category");
         fmt = "%-20s  %2d   %-12s %3d%% %9s";
         sep = ' ';
     } else {
@@ -2102,6 +2121,7 @@ dospellmenu(
                     ? MENU_ITEMFLAGS_SELECTED : MENU_ITEMFLAGS_NONE);
     }
     how = PICK_ONE;
+    how = PICK_NONE;
     if (splaction == SPELLMENU_VIEW) {
         if (spellid(1) == NO_SPELL) {
             /* only one spell => nothing to swap with */
