@@ -1549,6 +1549,7 @@ you cannot sacrifice objects/corpses while stunned or confused
 'whatis' actions // and /? didn't work when the lootabc option was on, they
 	required /a and /c instead; add '/' and '?' as group accelerators so
 	that they work; /y and /n for them now only work when lootabc is off
+writing on an unidentified scroll of blank paper identifies blank paper
 
 
 Fixes to 3.7.0-x General Problems Exposed Via git Repository
