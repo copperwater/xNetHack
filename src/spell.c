@@ -891,7 +891,9 @@ skill_based_spellbook_id(void)
             break;
         case P_UNSKILLED:
         default:
-            known_up_to_level = 1;
+            /* paupers need more skill than this to ID books, but most wizards
+               know the basics */
+            known_up_to_level = u.uroleplay.pauper ? 0 : 1;
             break;
         }
 
