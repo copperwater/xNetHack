@@ -4136,6 +4136,7 @@ choose_thiefstone_loc(coord *cc)
             }
             if (levl[x][y].typ == ROOM || levl[x][y].typ == CORR ||
                 levl[x][y].typ == SCORR) {
+                struct obj *otmp;
                 /* other terrain might be walkable but we don't want to put it
                  * on another feature */
                 quality += 2;
@@ -4146,8 +4147,14 @@ choose_thiefstone_loc(coord *cc)
                     && levl[x][y].is_niche) {
                     quality += 20;
                 }
-                if (container_at(x, y, FALSE)) {
-                    quality += 15;
+                /* modified version of container_at that ignores bags because
+                 * thiefstone can't put items into bags */
+                for (otmp = svl.level.objects[x][y]; otmp;
+                     otmp = otmp->nexthere) {
+                    if (Is_box(otmp)) {
+                        quality += 15;
+                        break;
+                    }
                 }
             }
             if (levl[x][y].typ == STAIRS) {
@@ -4325,9 +4332,11 @@ static const struct icp statue_materials[] = {
     { 1, GOLD}
 };
 static const struct icp figurine_materials[] = {
-    {45, MINERAL},
-    {35, WOOD},
-    {10, PLASTIC},
+    {40, MINERAL},
+    {30, WOOD},
+    {10, BONE},
+    { 5, PLASTIC},
+    { 5, GLASS},
     { 5, METAL},
     { 4, COPPER},
     { 1, GOLD}

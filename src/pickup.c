@@ -1934,7 +1934,7 @@ thiefstone_teleport(struct obj* stone, struct obj* obj, boolean dobill)
             /* put into a container on this spot, if possible */
             for (cobj = svl.level.objects[obj->ox][obj->oy]; cobj;
                  cobj = cobj->nexthere) {
-                if (Is_container(cobj)) {
+                if (Is_box(cobj)) {
                     if (obj_is_burning(obj))
                         end_burn(obj, TRUE);
                     add_to_container(cobj, obj);
