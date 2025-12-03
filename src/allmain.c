@@ -818,6 +818,11 @@ newgame(void)
     }
     u_init_skills_discoveries();
 
+    if (wizard) {
+        read_wizkit();
+        obj_delivery(FALSE); /* finish wizkit */
+    }
+
     if (flags.legacy) {
         com_pager(u.uroleplay.pauper ? "pauper_legacy" : "legacy");
     }
