@@ -1551,10 +1551,6 @@ you cannot sacrifice objects/corpses while stunned or confused
 	that they work; /y and /n for them now only work when lootabc is off
 writing on an unidentified scroll of blank paper identifies blank paper
 dumplogs include spells and skills
-uncursed genocide while hallucinating deliberately mis-reports hero's role as
-	target but was also inappropriately showing it to livelog/#chronicle
-livelog/#chronicle for bribing a demon lord reported random monster and
-	currency if hero was hallucinating
 
 
 Fixes to 3.7.0-x General Problems Exposed Via git Repository
@@ -2165,6 +2161,13 @@ throwing crystal plate mail or helm of brilliance up against the ceiling could
 yn_function (used all over the place) sometimes triggered an impossible()
 	during do-again (^A) processing [ongoing revisions; more are probably
 	needed; listed here in case ^A behavior changes]
+uncursed genocide while hallucinating deliberately mis-reports hero's role as
+	target but was also inappropriately showing it to livelog/#chronicle
+livelog/#chronicle for bribing a demon lord reported random monster and
+	currency if hero was hallucinating
+livelog/#chronicle for saving-grace: if saving-grace prevents hero's death,
+	report it [at present, it uses the livelog classification for breaking
+	a conduct]
 
 
 Fixes to 3.7.0-x Platform and/or Interface Problems Exposed Via git Repository
@@ -2833,9 +2836,6 @@ wand of secret door detection, spell of detect unseen, and wizard mode ^E now
 	flash the cursor at each location where detection finds something
 saving-grace: once per game if receiving a killing blow from full or nearly
 	full HP, survive with 1 HP
-livelog/#chronicle for saving-grace: if saving-grace prevents hero's death,
-	report it [at present, it uses the livelog classification for breaking
-	a conduct]
 enlightenment/attribute disclosure for saving-grace: include a line for have
 	or haven't been saved (game in progress) or did or didn't get saved
 	(game over) via saving-grace
