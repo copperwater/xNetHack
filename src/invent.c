@@ -965,8 +965,6 @@ merged(struct obj **potmp, struct obj **pobj)
  * This is called when adding objects to the hero's inventory normally (via
  * addinv) or when an object in the hero's inventory has been polymorphed
  * in-place.
- *
- * It may be valid to merge this code with addinv_core2().
  */
 void
 addinv_core1(struct obj *obj)
@@ -1017,21 +1015,46 @@ addinv_core1(struct obj *obj)
 }
 
 /*
- * Adjust hero intrinsics as if this object was being added to the hero's
- * inventory.  Called _after_ the object has been added to the hero's
- * inventory.
+ * Adjust hero intrinsics (and perform other side effects) as if this
+ * object was being added to the hero's inventory.  Called _after_ the
+ * object has been added to the hero's inventory.
+ *
+ * This can be used either for updating intrinsics, or to allow the hero to
+ * react to objects that are now in inventory.
  *
  * This is called when adding objects to the hero's inventory normally (via
- * addinv) or when an object in the hero's inventory has been polymorphed
- * in-place.
+ * addinv), when an object in the hero's inventory has been polymorphed
+ * in-place, or when the hero re-examines objects that they picked up while
+ * blind.
+ *
+ * This may occasionally be called on an item that was already in inventory,
+ * so it should be written to work even if called multiple times in a row
+ * (e.g. do not assume that the object was not in inventory already).
  */
 void
 addinv_core2(struct obj *obj)
 {
     if (confers_luck(obj)) {
         /* new luckstone must be in inventory by this point
-         * for correct calculation */
+           for correct calculation */
         set_moreluck();
+    }
+
+    /* Archeologists can decipher the writing on a scroll label to work out
+       what they are (exception: unlabeled scrolls don't have a label to
+       decipher) */
+    if (Role_if(PM_ARCHEOLOGIST) && obj->oclass == SCROLL_CLASS &&
+        obj->otyp != SCR_BLANK_PAPER && !Blind &&
+        !objects[obj->otyp].oc_name_known) {
+        observe_object(obj);
+        pline("You decipher the label on %s.", yname(obj));
+        makeknown(obj->otyp);
+
+        /* conduct: this is avoidable via not picking up / wishing for
+           scrolls */
+        if (!u.uconduct.literate++)
+            livelog_printf(LL_CONDUCT,
+                           "became literate by deciphering a scroll label");
     }
 }
 
@@ -2738,12 +2761,15 @@ learn_unseen_invent(void)
         return; /* sanity check */
 
     for (otmp = gi.invent; otmp; otmp = otmp->nobj) {
-        if (otmp->dknown && (otmp->bknown || !Role_if(PM_CLERIC)))
+        if (otmp->dknown && (otmp->bknown || !Role_if(PM_CLERIC)) &&
+            (otmp->oclass != SCROLL_CLASS || !Role_if(PM_ARCHEOLOGIST)))
             continue; /* already seen */
         invupdated = TRUE;
         /* xname() will set dknown, perhaps bknown (for priest[ess]);
            result from xname() is immediately released for re-use */
         maybereleaseobuf(xname(otmp));
+        addinv_core2(otmp); /* you react to seeing the object */
+
         /*
          * If object->eknown gets implemented (see learnwand(zap.c)),
          * handle deferred discovery here.
