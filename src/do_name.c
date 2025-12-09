@@ -671,6 +671,8 @@ docall(struct obj *obj)
         *uname_p = dupstr(buf);
         discover_object(obj->otyp, FALSE, TRUE, TRUE); /* possibly add to disco[] */
     }
+    if (obj->where == OBJ_INVENT)
+        update_inventory();
 }
 
 staticfn void
