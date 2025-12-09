@@ -2779,6 +2779,18 @@ learn_unseen_invent(void)
         update_inventory();
 }
 
+boolean
+hero_has_one_of_these(short otyp)
+{
+    struct obj *otmp;
+
+    for (otmp = gi.invent; otmp; otmp = otmp->nobj) {
+        if (otmp->otyp == otyp)
+            return TRUE;
+    }
+    return FALSE;
+}
+
 /* persistent inventory window is maintained by interface code;
    'update_inventory' used to be a macro for
    (*windowprocs.win_update_inventory) but the restore hackery to suppress

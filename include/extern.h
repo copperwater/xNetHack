@@ -1360,6 +1360,7 @@ extern void perm_invent_toggled(boolean negated);
 extern void prepare_perminvent(winid window);
 extern struct obj *carrying_stoning_corpse(void);
 extern void repopulate_perminvent(void);
+extern boolean hero_has_one_of_these(short);
 
 /* ### ioctl.c ### */
 
