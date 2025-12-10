@@ -372,7 +372,7 @@ md_rush(struct monst *md,
             SetVoice(md, 0, 80, 0);
             verbalize("This place's too crowded.  I'm outta here.");
         } else {
-            pline1(Never_mind);
+            pline("%s.", Never_mind);
         }
         remove_monster(fx, fy);
 
