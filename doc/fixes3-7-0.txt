@@ -2168,6 +2168,9 @@ livelog/#chronicle for bribing a demon lord reported random monster and
 livelog/#chronicle for saving-grace: if saving-grace prevents hero's death,
 	report it [at present, it uses the livelog classification for breaking
 	a conduct]
+naming a type of item, unnaming it (with name of <space>), naming it again
+	(new name or re-use of old one), then unnaming it again would issue
+	impossible: "named object not in disco"
 
 
 Fixes to 3.7.0-x Platform and/or Interface Problems Exposed Via git Repository
