@@ -5564,7 +5564,9 @@ change the color or appearance of fields in the status display.
 .pg
 The format for defining status colors is:
 .SD n
-\f(CROPTION=hilite_status:\fIfield-name\fP/\fIbehavior\fP/\fIcolor\fP&\fIattributes\fP\fP
+.\" was "\f(CR...\fI...\fP\fP" but font changes don't nest so final \fP didn't
+.\" restore the pre-\f(CR font; assume that was Roman and explicitly use \fR
+\f(CROPTION=hilite_status:\fIfield-name\fP/\fIbehavior\fP/\fIcolor\fP&\fIattributes\fP\fR
 .ED
 .pg
 For example, the following line in your configuration file will cause
