@@ -2359,23 +2359,34 @@ mfndpos(
 staticfn long
 mm_2way_aggression(struct monst *magr, struct monst *mdef)
 {
+    if (On_W_tower_level(&u.uz)) {
+        /* treat inside the Wizard's tower as if it were a separate level
+           from outside so when hero is inside Wizard's tower, both monsters
+           need to be too; when outside, the monsters need to be too */
+        if (In_W_tower(u.ux, u.uy, &u.uz)
+            ? (!In_W_tower(magr->mx, magr->my, &u.uz)
+               || !In_W_tower(mdef->mx, mdef->my, &u.uz))
+            : (In_W_tower(magr->mx, magr->my, &u.uz)
+               || In_W_tower(mdef->mx, mdef->my, &u.uz)))
+            return 0L;
+    }
     /* liches/zombies vs things that can be zombified
 
        Note: avoid this on the Castle level, partly for balance reasons
        (the monster-versus-monster fights clear out significant portions of
        the Castle and make it easier than it should be), partly for flavor
        reasons (monsters who attacked other monsters to zombify them would
-       have been counterattacked to death long before the hero arried).
+       have been counterattacked to death long before the hero arrived).
 
        Also don't include unique monsters in this, otherwise it leads to
        them waking up early (e.g. because a zombie decided to attack the
        Wizard of Yendor). */
-    if (zombie_maker(magr) && zombie_form(mdef->data) != NON_PM)
-        if (!Is_stronghold(&u.uz) &&
-            !unique_corpstat(magr->data) && !unique_corpstat(mdef->data))
+    if (zombie_maker(magr) && zombie_form(mdef->data) != NON_PM) {
+        if (!Is_stronghold(&u.uz)
+            && !unique_corpstat(magr->data) && !unique_corpstat(mdef->data))
             return (ALLOW_M | ALLOW_TM);
-
-    return 0;
+    }
+    return 0L;
 }
 
 /* Monster against monster special attacks; for the specified monster
@@ -2392,7 +2403,7 @@ mm_aggression(
 
     /* don't allow pets to fight each other */
     if (magr->mtame && mdef->mtame)
-        return 0;
+        return 0L;
 
     /* supposedly purple worms are attracted to shrieking because they
        like to eat shriekers, so attack the latter when feasible */
