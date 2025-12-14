@@ -947,7 +947,7 @@ cant_squeeze_thru(struct monst *mon)
     /* lugging too much junk? */
     amt = (mon == &gy.youmonst) ? inv_weight() + weight_cap()
                                : curr_mon_load(mon);
-    if (amt > 600)
+    if (amt > WT_TOOMUCH_DIAGONAL)
         return 2;
 
     /* Sokoban restriction applies to hero only */
