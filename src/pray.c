@@ -217,7 +217,7 @@ in_trouble(void)
         return TROUBLE_STARVING;
     if (region_danger())
         return TROUBLE_REGION;
-    if (critically_low_hp(FALSE))
+    if ((!Upolyd || Unchanging) && critically_low_hp(FALSE))
         return TROUBLE_HIT;
     if (ismnum(u.ulycn))
         return TROUBLE_LYCANTHROPE;

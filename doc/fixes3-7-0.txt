@@ -1552,6 +1552,8 @@ you cannot sacrifice objects/corpses while stunned or confused
 	that they work; /y and /n for them now only work when lootabc is off
 writing on an unidentified scroll of blank paper identifies blank paper
 dumplogs include spells and skills
+praying will not restore monster-form HP while polymorphed, unless you
+        have unchanging
 
 
 Fixes to 3.7.0-x General Problems Exposed Via git Repository
