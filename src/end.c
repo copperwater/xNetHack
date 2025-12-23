@@ -1434,7 +1434,8 @@ really_done(int how)
                                      svp.plname);
         }
         pbuf[0] = '\0';
-        if (y_n("Do you want to write your own epitaph?") == 'y') {
+        if (!done_stopprint
+            && y_n("Do you want to write your own epitaph?") == 'y') {
             char ebuf[BUFSZ];
             ebuf[0] = '\0'; /* don't show junk for EDIT_GETLIN */
             getlin("Enter your epitaph:", ebuf);
