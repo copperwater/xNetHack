@@ -698,8 +698,9 @@ m_throw(
                     hitv = 3 - distmin(u.ux, u.uy, mon->mx, mon->my);
                     if (hitv < -4)
                         hitv = -4;
+                    /* [elves get a shooting bonus, orcs don't...] */
                     if (is_elf(mon->data)
-                        && objects[singleobj->otyp].oc_skill == P_BOW) {
+                        && objects[singleobj->otyp].oc_skill == -P_BOW) {
                         hitv++;
                         if (MON_WEP(mon) && MON_WEP(mon)->otyp == ELVEN_BOW)
                             hitv++;
