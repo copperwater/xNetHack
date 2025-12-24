@@ -1554,6 +1554,7 @@ writing on an unidentified scroll of blank paper identifies blank paper
 dumplogs include spells and skills
 praying will not restore monster-form HP while polymorphed, unless you
         have unchanging
+winter wolf cub was missing for monster to lycanthrope conversion
 
 
 Fixes to 3.7.0-x General Problems Exposed Via git Repository

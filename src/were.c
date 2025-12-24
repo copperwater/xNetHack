@@ -1,4 +1,4 @@
-/* NetHack 3.7	were.c	$NHDT-Date: 1717570494 2024/06/05 06:54:54 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.36 $ */
+/* NetHack 3.7	were.c	$NHDT-Date: 1766588485 2025/12/24 07:01:25 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.41 $ */
 /* Copyright (c) Stichting Mathematisch Centrum, Amsterdam, 1985. */
 /*-Copyright (c) Robert Patrick Rankin, 2011. */
 /* NetHack may be freely redistributed.  See license for details. */
@@ -84,6 +84,7 @@ were_beastie(int pm)
     case PM_WOLF:
     case PM_WARG:
     case PM_WINTER_WOLF:
+    case PM_WINTER_WOLF_CUB:
         return PM_WEREWOLF;
     default:
         break;
