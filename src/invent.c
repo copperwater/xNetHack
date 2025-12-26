@@ -1150,7 +1150,6 @@ addinv_core0(
         setuqwep(obj);
  added:
     obj->pickup_prev = 1;
-    obj->how_lost = 0;
     addinv_core2(obj); /* handle extrinsics conferred by carrying obj */
     carry_obj_effects(obj); /* carrying affects the obj */
     if (update_perm_invent)
@@ -5104,8 +5103,7 @@ mergable(
     if (obj->how_lost == LOST_EXPLODING
         || otmp->how_lost == LOST_EXPLODING)
         return FALSE;
-    if ((obj->how_lost & ~LOSTOVERRIDEMASK)
-        != (otmp->how_lost & ~LOSTOVERRIDEMASK))
+    if (otmp->how_lost != LOST_NONE && (obj->how_lost != otmp->how_lost))
         return FALSE;
 #if 0   /* don't require 'bypass' to match; that results in items dropped
          * via 'D' not stacking with compatible items already on the floor;
