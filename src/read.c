@@ -21,6 +21,8 @@ staticfn void forget(int);
 staticfn int maybe_tame(struct monst *, struct obj *);
 staticfn boolean can_center_cloud(coordxy, coordxy);
 staticfn void display_stinking_cloud_positions(boolean);
+staticfn boolean is_special_armor_enchant(struct obj *);
+staticfn int armor_enchant_limit(struct obj *);
 staticfn void seffect_enchant_armor(struct obj **);
 staticfn void seffect_destroy_armor(struct obj **);
 staticfn void seffect_confuse_monster(struct obj **);
@@ -1110,12 +1112,37 @@ display_stinking_cloud_positions(boolean on_off)
     }
 }
 
+/* some armor vibrates warningly when enchanted beyond a limit,
+   or can be enchanted higher than usual */
+staticfn boolean
+is_special_armor_enchant(struct obj *otmp)
+{
+    return is_elven_armor(otmp)
+        || (Role_if(PM_WIZARD) && otmp->otyp == CORNUTHAUM);
+}
+
+/* return the safe enchantment limit for an armor */
+staticfn int
+armor_enchant_limit(struct obj *otmp)
+{
+    int limit = 3; /* default safe armor enchantment limit */
+
+    /* some armor can take a higher enchantment */
+    if (is_special_armor_enchant(otmp))
+        limit += 2;
+    /* object's internal magic interferes */
+    if (objects[otmp->otyp].oc_magic)
+        limit--;
+
+    return limit;
+}
+
 staticfn void
 seffect_enchant_armor(struct obj **sobjp)
 {
     struct obj *sobj = *sobjp;
     schar s;
-    boolean special_armor;
+    int safe_spe_limit;
     boolean same_color;
     struct obj *otmp = some_armor(&gy.youmonst);
     boolean sblessed = sobj->blessed;
@@ -1160,9 +1187,6 @@ seffect_enchant_armor(struct obj **sobjp)
         otmp->oerodeproof = new_erodeproof ? 1 : 0;
         return;
     }
-    /* elven armor vibrates warningly when enchanted beyond a limit */
-    special_armor = is_elven_armor(otmp)
-        || (Role_if(PM_WIZARD) && otmp->otyp == CORNUTHAUM);
     if (scursed)
         same_color = (otmp->otyp == BLACK_DRAGON_SCALE_MAIL
                       || otmp->otyp == BLACK_DRAGON_SCALES);
@@ -1173,9 +1197,11 @@ seffect_enchant_armor(struct obj **sobjp)
     if (Blind)
         same_color = FALSE;
 
+    safe_spe_limit = armor_enchant_limit(otmp);
+
     /* KMH -- catch underflow */
     s = scursed ? -otmp->spe : otmp->spe;
-    if (s > (special_armor ? 5 : 3) && rn2(s)) {
+    if (s > safe_spe_limit && rn2(s)) {
         otmp->in_use = TRUE;
         pline("%s violently %s%s%s for a while, then %s.", Yname2(otmp),
               otense(otmp, Blind ? "vibrate" : "glow"),
@@ -1254,8 +1280,8 @@ seffect_enchant_armor(struct obj **sobjp)
             alter_cost(otmp, 0L);
     }
 
-    if ((otmp->spe > (special_armor ? 5 : 3))
-        && (special_armor || !rn2(7)))
+    if ((otmp->spe > safe_spe_limit)
+        && (is_special_armor_enchant(otmp) || !rn2(7)))
         pline("%s %s.", Yobjnam2(otmp, "suddenly vibrate"),
               Blind ? "again" : "unexpectedly");
 }
