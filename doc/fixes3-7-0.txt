@@ -1559,6 +1559,7 @@ monster elves shooting arrows weren't getting intended small to-hit and damage
 	bonuses
 safe armor enchantment limit is lowered by one for magical armor
 luck has a reduced effect on to-hit chance
+monsters use wand of teleportation to move hero away from item pile
 
 
 Fixes to 3.7.0-x General Problems Exposed Via git Repository

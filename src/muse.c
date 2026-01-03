@@ -29,6 +29,7 @@ staticfn boolean linedup_chk_corpse(coordxy, coordxy);
 staticfn void m_use_undead_turning(struct monst *, struct obj *);
 staticfn boolean hero_behind_chokepoint(struct monst *);
 staticfn boolean mon_has_friends(struct monst *);
+staticfn boolean mon_likes_objpile_at(struct monst *mtmp, coordxy x, coordxy y) NONNULLARG1;
 staticfn int mbhitm(struct monst *, struct obj *);
 staticfn boolean fhito_loc(struct obj *obj, coordxy x, coordxy y,
                            int (*fhito)(OBJ_P, OBJ_P));
@@ -1388,6 +1389,30 @@ mon_has_friends(struct monst *mtmp)
     return FALSE;
 }
 
+/* does monster like object pile at x,y? */
+staticfn boolean
+mon_likes_objpile_at(struct monst *mtmp, coordxy x, coordxy y)
+{
+    int i;
+    struct obj *otmp;
+
+    if (!isok(x,y) || !OBJ_AT(x,y))
+        return FALSE;
+
+    /* monster likes any of the top 3 items in the pile? */
+    for (i = 0, otmp = svl.level.objects[x][y]; otmp && i < 3; i++) {
+        if (mon_would_take_item(mtmp, otmp))
+            return TRUE;
+        otmp = otmp->nexthere;
+    }
+
+    /* pile is larger than 3 stacks? */
+    if (i >= 3)
+        return TRUE;
+
+    return FALSE;
+}
+
 /* Select an offensive item/action for a monster.  Returns TRUE iff one is
  * found.
  */
@@ -1488,6 +1513,7 @@ find_offensive(struct monst *mtmp)
             /* do try to move hero to a more vulnerable spot */
             && (onscary(u.ux, u.uy, mtmp)
                 || (hero_behind_chokepoint(mtmp) && mon_has_friends(mtmp))
+                || mon_likes_objpile_at(mtmp, u.ux, u.uy)
                 || stairway_at(u.ux, u.uy))) {
             gm.m.offensive = obj;
             gm.m.has_offense = MUSE_WAN_TELEPORTATION;
