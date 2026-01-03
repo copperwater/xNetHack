@@ -7,12 +7,6 @@
 
 \setlist[description]{leftmargin=30mm, topsep=2mm, partopsep=0mm, parsep=0mm, itemsep=1mm, labelwidth=28mm, labelsep=2mm}
 
-\newcommand{\nd}{\noindent}
-
-\newcommand{\tb}[1]{\tt #1 \hfill}
-\newcommand{\bb}[1]{\bf #1 \hfill}
-\newcommand{\ib}[1]{\it #1 \hfill}
-
 \hyphenation{CRASHREPORTURL}
 
 \begin{document}
@@ -77,7 +71,7 @@ at the local inn, becoming more and more depressed as you watch the odds
 of your success being posted on the inn's walls getting lower and lower.
 
 %.pg
-\nd In the morning you awake, collect your belongings, and
+\noindent In the morning you awake, collect your belongings, and
 set off for the dungeon.  After several days of uneventful
 travel, you see the ancient ruins that mark the entrance to the
 Mazes of Menace.  It is late at night, so you make camp at the entrance
@@ -2034,7 +2028,7 @@ Help menu:  get the list of available extended commands.
 \end{description}
 
 %.pg
-\nd If your keyboard has a meta key (which, when pressed in combination
+\noindent If your keyboard has a meta key (which, when pressed in combination
 with another key, modifies it by setting the `meta' [8th, or `high']
 bit), you can invoke many extended commands by meta-ing the first
 letter of the command.
@@ -2146,7 +2140,7 @@ equivalent is used for another command, so the three key combination
 \end{description}
 
 %.pg
-\nd If the {\it number\textunderscore pad\/} option is on, some additional letter commands
+\noindent If the {\it number\textunderscore pad\/} option is on, some additional letter commands
 are available:
 \begin{description}[font=\ttfamily]
 %.lp
@@ -3056,7 +3050,7 @@ leather jacket         & 9 &                   & no armor              & 10\\
 \end{center}
 
 %.pg
-\nd You can also wear other pieces of armor (cloak over suit, shirt under
+\noindent You can also wear other pieces of armor (cloak over suit, shirt under
 suit, helmet, gloves, boots, shield) to lower your armor class even
 further.
 %--too obvious to mention unless we include polymorph into ettin or maralith
@@ -4069,7 +4063,7 @@ you would enter the command
 \end{verbatim}
 %.ED
 
-\nd in {\it csh}
+\noindent in {\it csh}
 (note the need to escape the `!' since it's special
 to that shell), or the pair of commands
 %.SD i
@@ -4079,7 +4073,7 @@ to that shell), or the pair of commands
 \end{verbatim}
 %.ED
 
-\nd in {\it sh}, {\it ksh}, or {\it bash}.
+\noindent in {\it sh}, {\it ksh}, or {\it bash}.
 
 %.pg
 The NETHACKOPTIONS value is effectively the same as a single OPTIONS
@@ -5847,14 +5841,14 @@ can only be bound to a single key.
 %.pg
 \begin{description}[itemindent=10mm, labelwidth=15mm, rightmargin=15mm]
 %.lp
-\item[{\bb{count}}]
+\item[count]
 Prefix key to start a count, to repeat a command this many times.
 With {\it number\textunderscore pad\/} only. Default is~`{\tt n}'.
 %.lp
-\item[{\bb{getdir.help}}]
+\item[getdir.help]
 When asked for a direction, the key to show the help. Default is~`{\tt ?}'.
 %.lp
-\item[{\bb{getdir.mouse}}]
+\item[getdir.mouse]
 When asked for a direction, the key to initiate a simulated mouse click.
 You will be asked to pick a location.
 Use movement keystrokes to move the cursor around the map, then type
@@ -5864,110 +5858,110 @@ to finish as if performing a left or right click.
 Only useful when using the {\tt \#therecmdmenu} command.
 Default is~`{\tt \textunderscore }'.
 %.lp
-\item[{\bb{getdir.self}}]
+\item[getdir.self]
 When asked for a direction, the key to target yourself. Default is~`{\tt .}'.
 %.lp
-\item[{\bb{getdir.self2}}]
+\item[getdir.self2]
 When asked for a direction, an alternate key to target yourself.
 Default is~`{\tt s}'.
 %.lp
-\item[{\bb{getpos.autodescribe}}]
+\item[getpos.autodescribe]
 When asked for a location, the key to toggle {\it autodescribe\/}.
 Default is~`{\tt \#}'.
 %.lp
-\item[{\bb{getpos.all.next}}]
+\item[getpos.all.next]
 When asked for a location, the key to go to next closest interesting thing.
 Default is~`{\tt a}'.
 %.lp
-\item[{\bb{getpos.all.prev}}]
+\item[getpos.all.prev]
 When asked for a location, the key to go to previous closest interesting thing.
 Default is~`{\tt A}'.
 %.lp
-\item[{\bb{getpos.door.next}}]
+\item[getpos.door.next]
 When asked for a location, the key to go to next closest door or doorway.
 Default is~`{\tt d}'.
 %.lp
-\item[{\bb{getpos.door.prev}}]
+\item[getpos.door.prev]
 When asked for a location, the key to go to previous closest door or doorway.
 Default is~`{\tt D}'.
 %.lp
-\item[{\bb{getpos.help}}]
+\item[getpos.help]
 When asked for a location, the key to show help. Default is~`{\tt ?}'.
 %.lp
-\item[{\bb{getpos.mon.next}}]
+\item[getpos.mon.next]
 When asked for a location, the key to go to next closest monster.
 Default is~`{\tt m}'.
 %.lp
-\item[{\bb{getpos.mon.prev}}]
+\item[getpos.mon.prev]
 When asked for a location, the key to go to previous closest monster.
 Default is~`{\tt M}'.
 %.lp
-\item[{\bb{getpos.obj.next}}]
+\item[getpos.obj.next]
 When asked for a location, the key to go to next closest object.
 Default is~`{\tt o}'.
 %.lp
-\item[{\bb{getpos.obj.prev}}]
+\item[getpos.obj.prev]
 When asked for a location, the key to go to previous closest object.
 Default is~`{\tt O}'.
 %.lp
-\item[{\bb{getpos.menu}}]
+\item[getpos.menu]
 When asked for a location, and using one of the next or previous keys to
 cycle through targets, toggle showing a menu instead. Default is~`{\tt !}'.
 %.lp
-\item[{\bb{getpos.moveskip}}]
+\item[getpos.moveskip]
 When asked for a location, and using the shifted movement keys or
 meta-digit keys to fast-move around, move by skipping the same glyphs
 instead of by 8 units.
 Default is~`{\tt *}'.
 %.lp
-\item[{\bb{getpos.filter}}]
+\item[getpos.filter]
 When asked for a location, change the filtering mode when using one of
 the next or previous keys to cycle through targets. Toggles between no
 filtering, in view only, and in the same area only. Default is~`{\tt "}'.
 %.lp
-\item[{\bb{getpos.pick}}]
+\item[getpos.pick]
 When asked for a location, the key to choose the location, and possibly
 ask for more info.
 When simulating a mouse click after being asked for a direction (see
 getdir.mouse above), the key to use to respond as right click.
 Default is~`{\tt .}'.
 %.lp
-\item[{\bb{getpos.pick.once}}]
+\item[getpos.pick.once]
 When asked for a location, the key to choose the location, and skip
 asking for more info.
 When simulating a mouse click after being asked for a direction,
 the key to respond as left click.
 Default is~`{\tt ,}'.
 %.lp
-\item[{\bb{getpos.pick.quick}}]
+\item[getpos.pick.quick]
 When asked for a location, the key to choose the location, skip asking
 for more info, and exit the location asking loop. Default is~`{\tt ;}'.
 %.lp
-\item[{\bb{getpos.pick.verbose}}]
+\item[getpos.pick.verbose]
 When asked for a location, the key to choose the location, and show more
 info without asking. Default is~`{\tt :}'.
 %.lp
-\item[{\bb{getpos.self}}]
+\item[getpos.self]
 When asked for a location, the key to go to your location.
 Default is~`{\tt @}'.
 %.lp
-\item[{\bb{getpos.unexplored.next}}]
+\item[getpos.unexplored.next]
 When asked for a location, the key to go to next closest unexplored location.
 Default is~`{\tt x}'.
 %.lp
-\item[{\bb{getpos.unexplored.prev}}]
+\item[getpos.unexplored.prev]
 When asked for a location, the key to go to previous closest unexplored
 location. Default is~`{\tt X}'.
 %.lp
-\item[{\bb{getpos.valid}}]
+\item[getpos.valid]
 When asked for a location, the key to go to show valid target locations.
 Default is~`{\tt \$}'.
 %.lp
-\item[{\bb{getpos.valid.next}}]
+\item[getpos.valid.next]
 When asked for a location, the key to go to next closest valid location.
 Default is~`{\tt z}'.
 %.lp
-\item[{\bb{getpos.valid.prev}}]
+\item[getpos.valid.prev]
 When asked for a location, the key to go to previous closest valid location.
 Default is~`{\tt Z}'.
 \end{description}
@@ -6943,12 +6937,12 @@ Main events in the course of the game development are described below:
 
 %.pg
 \bigskip
-\nd {\it Jay Fenlason\/} wrote the original {\it Hack}, with help from {\it
+\noindent {\it Jay Fenlason\/} wrote the original {\it Hack}, with help from {\it
 Kenny Woodland}, {\it Mike Thome}, and {\it Jon Payne}.
 
 %.pg
 \medskip
-\nd {\it Andries Brouwer\/} did a major re-write while at
+\noindent {\it Andries Brouwer\/} did a major re-write while at
 Stichting Mathematisch Centrum (now Centrum Wiskunde \& Informatica),
 transforming Hack into a very different game.
 He published the Hack source code for use on UNIX
@@ -6963,7 +6957,7 @@ was created for discussing it.
 
 %.pg
 \medskip
-\nd {\it Don G. Kneller\/} ported {\it Hack\/} 1.0.3 to Microsoft C and MS-DOS,
+\noindent {\it Don G. Kneller\/} ported {\it Hack\/} 1.0.3 to Microsoft C and MS-DOS,
 producing {\it PC Hack\/} 1.01e, added support for DEC Rainbow graphics in
 version 1.03g, and went on to produce at least four more versions (3.0, 3.2,
 3.51, and 3.6;
@@ -6972,12 +6966,12 @@ note that these are old {\it Hack\/} version numbers, not contemporary
 
 %.pg
 \medskip
-\nd {\it R. Black\/} ported {\it PC Hack\/} 3.51 to Lattice C and the Atari
+\noindent {\it R. Black\/} ported {\it PC Hack\/} 3.51 to Lattice C and the Atari
 520/1040ST, producing {\it ST Hack\/} 1.03.
 
 %.pg
 \medskip
-\nd {\it Mike Stephenson\/} merged these various versions back together,
+\noindent {\it Mike Stephenson\/} merged these various versions back together,
 incorporating many of the added features, and produced {\it NetHack\/} version
 1.4 in 1987.
 He then coordinated a cast of thousands in enhancing and debugging
@@ -6988,7 +6982,7 @@ via {\it ftp\/} and {\it uucp\/} after expiring from the newsgroup.
 
 %.pg
 \medskip
-\nd Later, Mike coordinated a major re-write of the game, heading a team which
+\noindent Later, Mike coordinated a major re-write of the game, heading a team which
 included {\it Ken Arromdee}, {\it Jean-Christophe Collet}, {\it Steve Creps},
 {\it Eric Hendrickson}, {\it Izchak Miller}, {\it Eric S. Raymond}, {\it John
 Rupley}, {\it Mike Threepoint}, and {\it Janet Walz}, to produce
@@ -6996,14 +6990,14 @@ Rupley}, {\it Mike Threepoint}, and {\it Janet Walz}, to produce
 
 %.pg
 \medskip
-\nd {\it NetHack\/} 3.0 was ported to the Atari by {\it Eric R. Smith}, to OS/2 by
+\noindent {\it NetHack\/} 3.0 was ported to the Atari by {\it Eric R. Smith}, to OS/2 by
 {\it Timo Hakulinen}, and to VMS by {\it David Gentzel}.  The three of them
 and {\it Kevin Darcy\/} later joined the main {\it NetHack Development Team} to produce
 subsequent revisions of 3.0.
 
 %.pg
 \medskip
-\nd {\it Olaf Seibert\/} ported {\it NetHack\/} 2.3 and 3.0 to the Amiga.  {\it
+\noindent {\it Olaf Seibert\/} ported {\it NetHack\/} 2.3 and 3.0 to the Amiga.  {\it
 Norm Meluch}, {\it Stephen Spackman\/} and {\it Pierre Martineau\/} designed
 overlay code for {\it PC NetHack\/} 3.0.  {\it Johnny Lee\/} ported {\it
 NetHack\/} 3.0 to the Macintosh.  Along with various other Dungeoneers, they
@@ -7022,7 +7016,7 @@ the three component numbering scheme began to be used with 3.1.0.
 
 %.pg
 \medskip
-\nd Headed by {\it Mike Stephenson\/} and coordinated by {\it Izchak Miller\/}
+\noindent Headed by {\it Mike Stephenson\/} and coordinated by {\it Izchak Miller\/}
 and {\it Janet Walz}, the {\it NetHack Development Team} which now included
 {\it Ken Arromdee},
 {\it David Cohrs}, {\it Jean-Christophe Collet}, {\it Kevin Darcy},
@@ -7038,19 +7032,19 @@ Version 3.1.0 was released in January of 1993.
 
 %.pg
 \medskip
-\nd {\it Ken Lorber}, {\it Gregg Wonderly\/} and {\it Greg Olson}, with help
+\noindent {\it Ken Lorber}, {\it Gregg Wonderly\/} and {\it Greg Olson}, with help
 from {\it Richard Addison}, {\it Mike Passaretti}, and {\it Olaf Seibert},
 developed {\it NetHack\/} 3.1 for the Amiga.
 
 %.pg
 \medskip
-\nd {\it Norm Meluch\/} and {\it Kevin Smolkowski}, with help from
+\noindent {\it Norm Meluch\/} and {\it Kevin Smolkowski}, with help from
 {\it Carl Schelin}, {\it Stephen Spackman}, {\it Steve VanDevender},
 and {\it Paul Winner}, ported {\it NetHack\/} 3.1 to the PC.
 
 %.pg
 \medskip
-\nd {\it Jon W\{tte} and {\it Hao-yang Wang},
+\noindent {\it Jon W\{tte} and {\it Hao-yang Wang},
 with help from {\it Ross Brown}, {\it Mike Engber}, {\it David Hairston},
 {\it Michael Hamel}, {\it Jonathan Handler}, {\it Johnny Lee},
 {\it Tim Lennan}, {\it Rob Menke}, and {\it Andy Swanson},
@@ -7059,7 +7053,7 @@ Building on their development, {\it Bart House} added a Think C port.
 
 %.pg
 \medskip
-\nd {\it Timo Hakulinen\/} ported {\it NetHack\/} 3.1 to OS/2.
+\noindent {\it Timo Hakulinen\/} ported {\it NetHack\/} 3.1 to OS/2.
 {\it Eric Smith\/} ported {\it NetHack\/} 3.1 to the Atari.
 {\it Pat Rankin}, with help from {\it Joshua Delahunty},
 was responsible for the VMS version of {\it NetHack\/} 3.1.
@@ -7067,7 +7061,7 @@ was responsible for the VMS version of {\it NetHack\/} 3.1.
 
 %.pg
 \medskip
-\nd {\it Dean Luick}, with help from {\it David Cohrs}, developed
+\noindent {\it Dean Luick}, with help from {\it David Cohrs}, developed
 {\it NetHack\/} 3.1 for X11.
 It drew the map as text rather than graphically but
 included {\tt nh10.bdf}, an optionally used custom X11 font which has
@@ -7079,7 +7073,7 @@ forth, not separate images for beetles and ants or for cloaks and boots).
 
 %.pg
 \medskip
-\nd {\it Warwick Allison\/} wrote a graphically displayed version
+\noindent {\it Warwick Allison\/} wrote a graphically displayed version
 of {\it NetHack\/}
 for the Atari where the tiny pictures were described as ``icons'' and
 were distinct for specific types of monsters and objects rather than just
@@ -7092,7 +7086,7 @@ picked up by various other games.
 
 %.pg
 \medskip
-\nd The 3.2 {\it NetHack Development Team}, comprised of {\it Michael Allison}, {\it Ken
+\noindent The 3.2 {\it NetHack Development Team}, comprised of {\it Michael Allison}, {\it Ken
 Arromdee}, {\it David Cohrs}, {\it Jessie Collet}, {\it Steve Creps}, {\it
 Kevin Darcy}, {\it Timo Hakulinen}, {\it Steve Linhart}, {\it Dean Luick},
 {\it Pat Rankin}, {\it Eric Smith}, {\it Mike Stephenson}, {\it Janet Walz},
@@ -7100,7 +7094,7 @@ and {\it Paul Winner}, released version 3.2.0 in April of 1996.
 
 %.pg
 \medskip
-\nd Version 3.2 marked the tenth anniversary of the formation of the
+\noindent Version 3.2 marked the tenth anniversary of the formation of the
 development team.
 In a testament to their dedication to the game, all thirteen members
 of the original {\it NetHack Development Team} remained on the team at the
@@ -7202,22 +7196,22 @@ runs on:
 
 %.pg
 \medskip
-\nd{\it Pat Rankin} maintained 3.4 for VMS.
+\noindent{\it Pat Rankin} maintained 3.4 for VMS.
 
 %.pg
 \medskip
-\nd {\it Michael Allison} maintained {\it NetHack\/} 3.4 for the MS-DOS
+\noindent {\it Michael Allison} maintained {\it NetHack\/} 3.4 for the MS-DOS
 platform.
 {\it Paul Winner} and {\it Yitzhak Sapir} provided encouragement.
 
 %.pg
 \medskip
-\nd {\it Dean Luick}, {\it Mark Modrall}, and {\it Kevin Hugo} maintained and
+\noindent {\it Dean Luick}, {\it Mark Modrall}, and {\it Kevin Hugo} maintained and
 enhanced the Macintosh port of 3.4.
 
 %.pg
 \medskip
-\nd {\it Michael Allison}, {\it David Cohrs}, {\it Alex Kompel},
+\noindent {\it Michael Allison}, {\it David Cohrs}, {\it Alex Kompel},
 {\it Dion Nicolaas}, and
 {\it Yitzhak Sapir} maintained and enhanced 3.4 for the Microsoft Windows
 platform.
@@ -7226,7 +7220,7 @@ platform.
 
 %.pg
 \medskip
-\nd {\it Ron Van Iwaarden} was the sole maintainer of {\it NetHack\/} for
+\noindent {\it Ron Van Iwaarden} was the sole maintainer of {\it NetHack\/} for
 OS/2 the past
 several releases. Unfortunately Ron's last OS/2 machine stopped working in
 early 2006. A great many thanks to Ron for keeping {\it NetHack\/} alive on
@@ -7234,13 +7228,13 @@ OS/2 all these years.
 
 %.pg
 \medskip
-\nd {\it Janne Salmij\"{a}rvi} and {\it Teemu Suikki} maintained
+\noindent {\it Janne Salmij\"{a}rvi} and {\it Teemu Suikki} maintained
 and enhanced the Amiga port of 3.4 after {\it Janne Salmij\"{a}rvi} resurrected
 it for 3.3.1.
 
 %.pg
 \medskip
-\nd {\it Christian ``Marvin'' Bressler} maintained 3.4 for the Atari after he
+\noindent {\it Christian ``Marvin'' Bressler} maintained 3.4 for the Atari after he
 resurrected it for 3.3.1.
 
 %.pg
@@ -7379,7 +7373,7 @@ some bug fixes.
 
 %.pg
 \medskip
-\nd The official {\it NetHack\/} web site is maintained by {\it Ken Lorber} at
+\noindent The official {\it NetHack\/} web site is maintained by {\it Ken Lorber} at
 {\catcode`\#=11
 \special{html:<a href="https://www.nethack.org/">}}
 https:{\tt /}{\tt /}www.nethack.org{\tt /}.
@@ -7390,7 +7384,7 @@ https:{\tt /}{\tt /}www.nethack.org{\tt /}.
 %.hn 2
 
 \subsection*{Special Thanks}
-\nd On behalf of the {\it NetHack\/} community, thank you very much once
+\noindent On behalf of the {\it NetHack\/} community, thank you very much once
 again to {\it M. Drew Streib} and {\it Pasi Kallinen} for providing a
 public NetHack server at nethack.alt.org. Thanks to {\it Keith Simpson}
 and {\it Andy Thomson} for hardfought.org. Thanks to all those
@@ -7403,7 +7397,7 @@ unnamed dungeoneers who invest their time and effort into annual
 %.hn 2
 \subsection*{Dungeoneers}
 %.pg
-\nd From time to time, some depraved individual out there in netland sends a
+\noindent From time to time, some depraved individual out there in netland sends a
 particularly intriguing modification to help out with the game.  The
 {\it NetHack Development Team} sometimes makes note of the names of the worst
 of these miscreants in this, the list of Dungeoneers:
