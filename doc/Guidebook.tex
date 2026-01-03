@@ -1,11 +1,8 @@
-\documentstyle[titlepage,longtable]{article}
 % NetHack 3.7  Guidebook.tex $NHDT-Date: 1745139202 2025/04/20 00:53:22 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.579 $ */
-%+% we're still limping along in LaTeX 2.09 compatibility mode
-%-%\documentclass{article}
-%-%\usepackage{hyperref} % before longtable
-%-%% if hyperref isn't available, we can get by with this instead
-%-%%\RequirePackage[errorshow]{tracefnt} \DeclareSymbolFont{typewriter}{OT1}{cmtt}{m}{n}
-%-%\usepackage{longtable}
+\documentclass[titlepage, a4paper]{article}
+\usepackage{hyperref}
+\usepackage{longtable}
+
 \textheight 220mm
 \textwidth 160mm
 \oddsidemargin 0mm
@@ -566,7 +563,7 @@ Note: statues are displayed as if they were the monsters they depict
 so won't appear as a {\it grave accent\/} (aka {\it back-tick}).
 \item[\tb{0}]
 An iron ball.
-\item[\tb{\verb+_+}]
+\item[\tb{\textunderscore}]
 An altar, or an iron chain.
 \item[\tb{\{}]
 A fountain or a sink.
@@ -577,8 +574,8 @@ or a pool of lava or a wall of lava.
 An opulent throne.
 \item[\tb{a-z}] {\normalfont and}]
 \item[\tb{A-HJ-Z}] {\normalfont and}]
-%should probably change \item[\tb{@\&\verb+'+:;}] to \item[\tb{\verb+@&':;+}]
-\item[\tb{@\&\verb+'+:;}]
+%should probably change \item[\tb{@\&\textquotesingle:;}] to \item[\tb{\verb+@&':;+}]
+\item[\tb{@\&\textquotesingle:;}]
 Letters and certain other symbols represent the various inhabitants
 of the Mazes of Menace.
 Watch out, they can be nasty and vicious.
@@ -632,7 +629,7 @@ command.
 %.pg
 You can put a number before some commands to repeat them that many
 times; for example, ``{\tt 10s}'' will search ten times.  If you have the
-{\it number\verb+_+pad\/}
+{\it number\textunderscore pad\/}
 option set, you must type `{\tt n}' to prefix a count, so the example above
 would be typed ``{\tt n10s}'' instead.  Commands for which counts make no
 sense ignore them.  In addition, movement commands can be prefixed for
@@ -674,7 +671,7 @@ option is on, a short description of what you see at each location is
 shown as you move the cursor.  Typing `{\tt \#}' while picking a location will
 toggle that option on or off.
 The
-{\it whatis\verb+_+coord\/}
+{\it whatis\textunderscore coord\/}
 option controls whether the short description includes map coordinates.
 
 %.lp ""
@@ -685,7 +682,7 @@ always gives any additional information available about that name.
 You may also request a description of nearby monsters,
 all monsters currently displayed, nearby objects, or all objects.
 The
-{\it whatis\verb+_+coord\/}
+{\it whatis\textunderscore coord\/}
 option controls which format of map coordinate is included with their
 descriptions.
 %.lp
@@ -712,7 +709,7 @@ one-step movement commands cause you to fight monsters; the others
 \verb+   h- . -l   + & \verb+   4- . -6   +\\
 \verb+    / | \    + & \verb+    / | \    +\\
 \verb+   b  j  n   + & \verb+   1  2  3   +\\
-                     & (if {\it number\verb+_+pad\/} set)
+                     & (if {\it number\textunderscore pad\/} set)
 \end{tabular}
 \end{center}
 %.ed
@@ -782,7 +779,7 @@ by using {\tt m} and {\tt G<direction>} in combination.
 {\tt m} can also be used in combination with {\tt g<direction>},
 {\tt <Control>+<direction>}, or {\tt <Shift>+<direction>}.
 %.lp
-\item[\tb{\tt \verb+_+}]
+\item[\tb{\tt \textunderscore }]
 Travel to a map location via a shortest-path algorithm.\\
 %.lp ""
 The shortest path
@@ -799,7 +796,7 @@ location other than the current position.
 \item[\tb{.}]
 Wait or rest, do nothing for one turn.
 Precede with the `{\tt m}' prefix
-to wait for a turn even next to a hostile monster, if {\it safe\verb+_+wait\/}
+to wait for a turn even next to a hostile monster, if {\it safe\textunderscore wait\/}
 is on.
 %.lp
 \item[\tb{a}]
@@ -893,7 +890,7 @@ If you attempt to eat while already satiated, you might choke to death.
 If you risk it, you will be asked whether
 to ``continue eating?'' {\it if you survive the first bite\/}.
 You can set the
-{\it paranoid\verb+_+confirmation:eating\/}
+{\it paranoid\textunderscore confirmation:eating\/}
 option to require a response of ``{\tt yes}'' instead of just `{\tt y}'.
 %.lp
 % Make sure Elbereth is not hyphenated below, the exact spelling matters.
@@ -993,7 +990,7 @@ Repeat previous message.\\
 %.lp ""
 Subsequent {\tt \^{}P}'s repeat earlier messages.
 For some interfaces, the behavior can be varied via the
-{\it msg\verb+_+window\/} option.
+{\it msg\textunderscore window\/} option.
 %.lp
 \item[\tb{q}]
 Quaff (drink) something (potion, water, etc).\\
@@ -1019,7 +1016,7 @@ Remove a worn accessory (ring, amulet, or blindfold).\\
 If you're wearing more than one, you'll be prompted for which one to
 remove.  When you're only wearing one, then by default it will be removed
 without asking, but you can set the
-{\it paranoid\verb+_+confirmation:Remove\/}
+{\it paranoid\textunderscore confirmation:Remove\/}
 option to require a prompt.\\
 %.lp ""
 This command may also be used to take off armor.  The prompt for which
@@ -1035,7 +1032,7 @@ Redraw the screen.
 Search for secret doors and traps around you.
 It usually takes several tries to find something.
 Precede with the `{\tt m}' prefix to wait for a turn
-even next to a hostile monster, if {\it safe\verb+_+wait\/}
+even next to a hostile monster, if {\it safe\textunderscore wait\/}
 is on.\\
 %.lp ""
 Can also be used to figure out whether there is still a monster at
@@ -1077,7 +1074,7 @@ and/or a shirt, or a suit covering a shirt, as if the underlying items
 weren't there.)
 When you're only wearing one, then by default it will
 be taken off without asking, but you can set the
-{\it paranoid\verb+_+confirmation:Remove\/}
+{\it paranoid\textunderscore confirmation:Remove\/}
 option to require a prompt.\\
 %.lp ""
 This command may also be used to remove accessories.  The prompt
@@ -1233,15 +1230,15 @@ May be preceded by `{\tt m}' to select preferred display order.
 %.lp
 \item[\tb{|}]
 If persistent inventory display is supported and enabled (with the
-{\it perm\verb+_+invent\/}
+{\it perm\textunderscore invent\/}
 option), interact with it instead of with the map.
 \\
 %.lp ""
 Allows scrolling with the
-menu\verb+_+first\verb+_+page, menu\verb+_+previous\verb+_+page,
-menu\verb+_+next\verb+_+page, and menu\verb+_+last\verb+_+page
+menu\textunderscore first\textunderscore page, menu\textunderscore previous\textunderscore page,
+menu\textunderscore next\textunderscore page, and menu\textunderscore last\textunderscore page
 keys (`{\tt \^{}}', `{\tt <}', `{\tt >}', `{\tt \verb+|+}' by default).
-Some interfaces also support menu\verb+_+shift\verb+_+left and menu\verb+_+shift\verb+_+right
+Some interfaces also support menu\textunderscore shift\textunderscore left and menu\textunderscore shift\textunderscore right
 keys (`{\tt \verb+{+}' and `{\tt \verb+}+}' by default).
 Use the {\it Return\/} (aka {\it Enter\/}) or {\it Escape\/} key to
 resume play.
@@ -1309,7 +1306,7 @@ Allows you to specify one line of text to associate with the current
 dungeon level.  All levels with annotations are displayed by the
 ``{\tt \#overview}'' command. Autocompletes.
 Default key is `{\tt M-A}',
-and also `{\tt \^{}N}' if {\it number\verb+_+pad\/} is on.
+and also `{\tt \^{}N}' if {\it number\textunderscore pad\/} is on.
 %.lp
 \item[\tb{\#apply}]
 Apply (use) a tool such as a pick-axe, a key, or a lamp.
@@ -1393,14 +1390,14 @@ Default key is `{\tt M-X}'.\\
 Requires confirmation; default response is `{\tt n}' (no).
 To really switch to explore mode, respond with `{\tt y}'.
 You can set the
-{\it paranoid\verb+_+confirmation:quit\/}
+{\it paranoid\textunderscore confirmation:quit\/}
 option to require a response of ``{\tt yes}'' instead.
 %.lp
 \item[\tb{\#fight}]
 Prefix key to force fight a direction, even if you see nothing
 to fight there.
 Default key is `{\tt F}', or `{\tt -}' with
-{\it number\verb+_+pad\/}
+{\it number\textunderscore pad\/}
 %.lp
 \item[\tb{\#fire}]
 Fire ammunition from quiver, possibly autowielding a launcher,
@@ -1436,7 +1433,7 @@ Show what type of thing a map symbol corresponds to. Default key is `{\tt ;}'.
 \item[\tb{\#help}]
 Show the help menu.
 Default key is `{\tt ?}',
-and also `{\tt h}' if {\it number\verb+_+pad\/} is on.
+and also `{\tt h}' if {\it number\textunderscore pad\/} is on.
 %.lp
 \item[\tb{\#herecmdmenu}]
 Show a menu of possible actions directed at your current location.
@@ -1444,7 +1441,7 @@ The menu is limited to a subset of the likeliest actions, not an
 exhaustive set of all possibilities.
 Autocompletes.\\
 %.lp ""
-If mouse support is enabled and the {\it herecmd\verb+_+menu\/}
+If mouse support is enabled and the {\it herecmd\textunderscore menu\/}
 option is On, clicking on the hero (or steed when mounted) will
 execute this command.
 %.lp
@@ -1463,12 +1460,12 @@ Invoke an object's special powers. Autocompletes. Default key is `{\tt M-i}'.
 \item[\tb{\#jump}]
 Jump to another location. Autocompletes.
 Default key is `{\tt M-j}',
-and also `{\tt j}' if {\it number\verb+_+pad\/} is on.
+and also `{\tt j}' if {\it number\textunderscore pad\/} is on.
 %.lp
 \item[\tb{\#kick}]
 Kick something.
 Default key is `{\tt \^{}D}',
-and also `{\tt k}' if {\it number\verb+_+pad\/} is on.
+and also `{\tt k}' if {\it number\textunderscore pad\/} is on.
 %.lp
 \item[\tb{\#known}]
 Show what object types have been discovered.
@@ -1508,7 +1505,7 @@ from a steed standing next to you. Autocompletes.
 Precede with the `{\tt m}' prefix to skip containers at your location
 and go directly to removing a saddle.
 Default key is `{\tt M-l}',
-and also `{\tt l}' if {\it number\verb+_+pad\/} is on.
+and also `{\tt l}' if {\it number\textunderscore pad\/} is on.
 %.lp
 \item[\tb{\#monster}]
 Use a monster's special ability (when polymorphed into monster form).
@@ -1574,7 +1571,7 @@ Debug mode only.\\
 Asks for confirmation; default is `{\tt n}' (no); continue playing.
 To really panic, respond with `{\tt y}'.
 You can set the
-{\it paranoid\verb+_+confirmation:quit\/}
+{\it paranoid\textunderscore confirmation:quit\/}
 option to require a response of ``{\tt yes}'' instead.
 %.lp
 \item[\tb{\#pay}]
@@ -1582,7 +1579,7 @@ Pay your shopping bill. Default key is `{\tt p}'.
 %.lp
 \item[\tb{\#perminv}]
 If persistent inventory display is supported and enabled (with the
-{\it perm\verb+_+invent\/} option), interact with it instead of with the map.
+{\it perm\textunderscore invent\/} option), interact with it instead of with the map.
 You'll be prompted for menu scrolling keystrokes such
 as `{\tt \verb+>+}' and `{\tt \verb+<+}'.
 Press {\tt Return} or {\tt Escape} to resume normal play.
@@ -1606,7 +1603,7 @@ You probably shouldn't start off a new game by praying right away.)
 Since using this command by accident can cause trouble, there is an
 option to make you confirm your intent before praying.  It is enabled
 by default, and you can reset the
-{\it paranoid\verb+_+confirmation\/}
+{\it paranoid\textunderscore confirmation\/}
 option to disable it.
 %.lp
 \item[\tb{\#prevmsg}]
@@ -1629,7 +1626,7 @@ you are asked to confirm your intent before quitting.
 Default response is `{\tt n}' (no); continue playing.
 To really quit, respond with `{\tt y}'.
 You can set the
-{\it paranoid\verb+_+confirmation:quit\/}
+{\it paranoid\textunderscore confirmation:quit\/}
 option to require a response of ``{\tt yes}'' instead.
 %.lp
 \item[\tb{\#quiver}]
@@ -1641,7 +1638,7 @@ Read a scroll, a spellbook, or something else. Default key is `{\tt r}'.
 \item[\tb{\#redraw}]
 Redraw the screen.
 Default key is `{\tt \^{}R}',
-and also `{\tt \^{}L}' if {\it number\verb+_+pad\/} is on.
+and also `{\tt \^{}L}' if {\it number\textunderscore pad\/} is on.
 %.lp
 \item[\tb{\#remove}]
 Remove an accessory (ring, amulet, etc). Default key is `{\tt R}'.
@@ -1657,7 +1654,7 @@ Default key is `{\tt m}'.
 %.lp
 \item[\tb{\#retravel}]
 Travel to a previously selected travel destination.
-Default key is `{\tt C-\verb+_+}'.
+Default key is `{\tt C-\textunderscore }'.
 See also {\tt \#travel}.
 %.lp
 \item[\tb{\#ride}]
@@ -1670,20 +1667,20 @@ Rub a lamp or a stone. Autocompletes. Default key is `{\tt M-r}'.
 \item[\tb{\#run}]
 Prefix key to run towards a direction.
 Default key is `{\tt G}' when
-{\it number\verb+_+pad\/}
+{\it number\textunderscore pad\/}
 is off,
 `{\tt 5}' when
-{\it number\verb+_+pad\/}
+{\it number\textunderscore pad\/}
 is set to 1~or~3,
 otherwise `{\tt M-5}' when it is set to 2~or~4.
 %.lp
 \item[\tb{\#rush}]
 Prefix key to rush towards a direction.
 Default key is `{\tt g}' when
-{\it number\verb+_+pad\/}
+{\it number\textunderscore pad\/}
 is off,
 `{\tt M-5}' when
-{\it number\verb+_+pad\/}
+{\it number\textunderscore pad\/}
 is set to 1~or~3,
 otherwise `{\tt 5}' when it is set to 2~or~4.
 %.lp
@@ -1823,7 +1820,7 @@ Autocompletes.
 %%--invoking it by mouse seems to be broken
 %% \\
 %% .lp ""
-%% If mouse support is enabled and the {\it herecmd\verb+_+menu\/}
+%% If mouse support is enabled and the {\it herecmd\textunderscore menu\/}
 %% option is On, clicking on an adjacent location will execute this command.
 %.lp
 \item[\tb{\#throw}]
@@ -1853,7 +1850,7 @@ Autocompletes. Default key is `{\tt M-T}'.
 %.lp
 \item[\tb{\#travel}]
 Travel to a specific location on the map.
-Default key is `{\tt \verb+_+}'.
+Default key is `{\tt \textunderscore }'.
 Using the ``request menu'' prefix shows a menu of interesting targets in sight
 without asking to move the cursor.
 When picking a target with cursor and the {\it autodescribe\/}
@@ -1867,7 +1864,7 @@ Turn undead away. Autocompletes. Default key is `{\tt M-t}'.
 \item[\tb{\#twoweapon}]
 Toggle two-weapon combat on or off. Autocompletes.
 Default key is `{\tt X}',
-and also `{\tt M-2}' if {\it number\verb+_+pad\/} is off.\\
+and also `{\tt M-2}' if {\it number\textunderscore pad\/} is off.\\
 %.lp ""
 Note that you must
 use suitable weapons for this type of combat, or it will
@@ -1875,7 +1872,7 @@ be automatically turned off.
 %.lp
 \item[\tb{\#untrap}]
 Untrap something (trap, door, or chest).
-Default key is `{\tt M-u}', and `{\tt u}' if {\it number\verb+_+pad\/} is on.\\
+Default key is `{\tt M-u}', and `{\tt u}' if {\it number\textunderscore pad\/} is on.\\
 %.lp ""
 In some circumstances it can also be used to rescue trapped monsters.
 %.lp
@@ -1932,7 +1929,7 @@ Debug mode only.
 \item[\tb{\#wait}]
 Rest one move while doing nothing.
 Default key is `{\tt .}', and also `{\tt{ }}' if
-{\it rest\verb+_+on\verb+_+space\/} is on.
+{\it rest\textunderscore on\textunderscore space\/} is on.
 %.lp
 \item[\tb{\#wear}]
 Wear a piece of armor. Default key is `{\tt W}'.
@@ -2081,7 +2078,7 @@ equivalent is used for another command, so the three key combination
 {\tt\#?} (not supported by all platforms)
 %.lp
 \item[\tb{M-2}]
-{\tt\#twoweapon} (unless the {\it number\verb+_+pad\/} option is enabled)
+{\tt\#twoweapon} (unless the {\it number\textunderscore pad\/} option is enabled)
 %.lp
 \item[\tb{M-a}]
 {\tt\#adjust}
@@ -2163,7 +2160,7 @@ equivalent is used for another command, so the three key combination
 \elist
 
 %.pg
-\nd If the {\it number\verb+_+pad\/} option is on, some additional letter commands
+\nd If the {\it number\textunderscore pad\/} option is on, some additional letter commands
 are available:
 \blist{}
 %.lp
@@ -2471,7 +2468,7 @@ There are several options which can be used to augment the normal feedback.
 
 %.pg
 The
-{\it pile\verb+_+limit\/}
+{\it pile\textunderscore limit\/}
 option controls how many objects can be in a
 pile---sharing the same map location---for
 the game to state ``there are objects here'' instead of listing them.
@@ -2493,7 +2490,7 @@ auto-pickup and without giving feedback about them.
 
 %.pg
 The
-{\it mention\verb+_+walls\/}
+{\it mention\textunderscore walls\/}
 option controls whether you get feedback if you try to walk into a wall
 or solid stone or off the edge of the map.
 Normally nothing happens (unless the hero is blind and no wall is shown,
@@ -2503,7 +2500,7 @@ some non-obvious reason.
 
 %.pg
 The
-{\it mention\verb+_+decor\/}
+{\it mention\textunderscore decor\/}
 option controls whether you get feedback when walking on ``furniture.''
 Normally stepping onto stairs or a fountain or an altar or various other
 things doesn't elicit anything unless it is covered by one or more objects
@@ -2524,7 +2521,7 @@ case the back on land circumstance is implied.
 The
 {\it confirm\/}
 and
-{\it safe\verb+_+pet\/}
+{\it safe\textunderscore pet\/}
 options control what happens when you try to move onto a peaceful monster's
 spot or a tame one's spot.
 
@@ -2536,13 +2533,13 @@ onto a visible monster's spot without the move being considered an attack
 (see the {\it Fighting\/} subsection of {\it Monsters\/} below).
 The `{\tt fight}' command prefix (default `{\tt F}';
 also `{\tt -}' if
-{\it number\verb+_+pad\/}
+{\it number\textunderscore pad\/}
 is on) can be used to force an attack, when guessing where an unseen
 monster is or when deliberately attacking a peaceful or tame creature.
 
 %.pg
 The
-{\it run\verb+_+mode}
+{\it run\textunderscore mode}
 option controls how frequently the map gets redrawn when moving more
 than one step in a single command (so when rushing, running, or traveling).
 
@@ -2605,7 +2602,7 @@ In most circumstances, if you attempt to attack a peaceful monster by
 moving into its location, you'll be asked to confirm your intent.  By
 default an answer of `{\tt y}' acknowledges that intent,
 which can be error prone if you're using `{\tt y}' to move.  You can set the
-{\it paranoid\verb+_+confirmation:attack\/}
+{\it paranoid\textunderscore confirmation:attack\/}
 option to require a response of ``{\tt yes}'' instead.
 %.pg
 
@@ -2804,7 +2801,7 @@ by the presence of the word {\tt cursed}, {\tt uncursed} or
 In some cases {\tt uncursed} will be omitted as being redundant when
 enough other information is displayed.
 The
-{\it implicit\verb+_+uncursed\/}
+{\it implicit\textunderscore uncursed\/}
 option can be used to control this; toggle it off to have {\tt uncursed}
 be displayed even when that can be deduced from other attributes.
 
@@ -2941,7 +2938,7 @@ The number of items that the character has a chance to fire varies from
 turn to turn.  You can explicitly limit the number of shots by using a
 numeric prefix before the `{\tt t}' or `{\tt f}' command.
 For example, ``{\tt 2f}'' (or ``{\tt n2f}'' if using
-{\it number\verb+_+pad\/}
+{\it number\textunderscore pad\/}
 mode) would ensure that at most 2 arrows are shot
 even if you could have fired 3.  If you specify
 a larger number than would have been shot (``{\tt 4f}'' in this example),
@@ -3490,7 +3487,7 @@ you are carrying (shopkeepers aside).
 Gold pieces are the only type of object where bless/curse state does not
 apply.
 They're always uncursed but never described as uncursed even if you turn
-off the ``{\it implicit\verb+_+uncursed\/}'' option.
+off the ``{\it implicit\textunderscore uncursed\/}'' option.
 You can set the ``{\it goldX\/}''
 option if you prefer to have gold pieces be treated as bless/curse state
 {\it unknown\/} rather than as known to be uncursed.
@@ -3520,7 +3517,7 @@ again you will re-discover the object and resume remembering it.
 The situation is the same for a pile of objects, except that only the
 top item of the pile is displayed.
 The
-{\it hilite\verb+_+pile\/}
+{\it hilite\textunderscore pile\/}
 option can be enabled in order to show an item differently when it is
 the top one of a pile.
 
@@ -4153,7 +4150,7 @@ Cannot be set with the `{\tt O}' command.  Persistent.
 \item[\ib{autodescribe}]
 Automatically describe the terrain under cursor when asked to get a location
 on the map (default true).
-The {\it whatis\verb+_+coord\/}
+The {\it whatis\textunderscore coord\/}
 option controls whether the description includes map coordinates.
 %.lp
 \item[\ib{autodig}]
@@ -4169,8 +4166,8 @@ Automatically pick up things onto which you move (default off).
 Persistent.
 \\
 %.lp ""
-See ``{\it pickup\verb+_+types\/}'' and also
-``{\it autopickup\verb+_+exception\/}'' for ways to refine the behavior.
+See ``{\it pickup\textunderscore types\/}'' and also
+``{\it autopickup\textunderscore exception\/}'' for ways to refine the behavior.
 \\
 %.lp ""
 Note: prior to version 3.7.0, the default for {\it autopickup\/} was {\it on}.
@@ -4269,16 +4266,16 @@ players if it detects some anticipated mistakes (default on).
 Have user confirm attacks on pets, shopkeepers, and other
 peaceable creatures (default on).  Persistent.
 %.lp
-\item[\ib{dark\verb+_+room}]
+\item[\ib{dark\textunderscore room}]
 Show out-of-sight areas of lit rooms (default on).  Persistent.
 %.lp
 \item[\ib{deaf}]
 Start the character permanently deaf (default false).  Persistent.
 %.lp
-\item[\ib{dropped\verb+_+nopick}]
+\item[\ib{dropped\textunderscore nopick}]
 If this option is on, items you dropped will not be automatically picked up,
 even if ``{\it autopickup\/}'' is also on and they are in
-``{\it pickup\verb+_+types\/}'' or match a positive autopickup exception
+``{\it pickup\textunderscore types\/}'' or match a positive autopickup exception
 (default on).  Persistent.
 %.lp
 \item[\ib{disclose}]
@@ -4411,7 +4408,7 @@ When filtering objects based on bless/curse state (BUCX), whether to
 treat gold pieces as {\tt X} (unknown bless/curse state, when `on')
 or {\tt U} (known to be uncursed, when `off', the default).
 Gold is never blessed or cursed, but it is not described as ``uncursed''
-even when the {\it implicit\verb+_+uncursed\/} option is `off'.
+even when the {\it implicit\textunderscore uncursed\/} option is `off'.
 %.lp
 \item[\ib{help}]
 If more information is available for an object looked at
@@ -4420,12 +4417,12 @@ Turning help off makes just looking at things faster, since you aren't
 interrupted with the ``{\tt More info?}'' prompt, but it also means that you
 might miss some interesting and/or important information.  Persistent.
 %.lp
-\item[\ib{herecmd\verb+_+menu}]
+\item[\ib{herecmd\textunderscore menu}]
 When using a windowport that supports mouse and clicking on yourself or
 next to you, show a menu of possible actions for the location.
 Same as ``{\tt \#herecmdmenu}'' and ``{\tt \#therecmdmenu}'' commands.
 %.lp
-\item[\ib{hilite\verb+_+pet}]
+\item[\ib{hilite\textunderscore pet}]
 Visually distinguish pets from similar animals (default off).
 The behavior of this option depends on the type of windowing you use.
 In text windowing, text highlighting or inverse video is often used;
@@ -4434,9 +4431,9 @@ with tiles, generally displays a heart symbol near pets.
 %.lp ""
 With the tty or curses interface, the {\it petattr\/}
 option controls how to highlight pets and setting it will turn the
-{\it hilite\verb+_+pet\/} option on or off as warranted.
+{\it hilite\textunderscore pet\/} option on or off as warranted.
 %.lp
-\item[\ib{hilite\verb+_+pile}]
+\item[\ib{hilite\textunderscore pile}]
 Visually distinguish piles of objects from individual objects (default off).
 The behavior of this option depends on the type of windowing you use.
 In text windowing, text highlighting or inverse video is often used;
@@ -4477,7 +4474,7 @@ Cannot be set with the `{\tt O}' command.
 \item[\ib{ignintr}]
 Ignore interrupt signals, including breaks (default off).  Persistent.
 %.lp
-\item[\ib{implicit\verb+_+uncursed}]
+\item[\ib{implicit\textunderscore uncursed}]
 Omit ``uncursed'' from object descriptions when it can be deduced from
 other aspects of the description (default on).
 Persistent.
@@ -4489,7 +4486,7 @@ If you use menu coloring, you may want to turn this off.
 Display an introductory message when starting the game (default on).
 Persistent.
 %.lp
-\item[\ib{lit\verb+_+corridor}]
+\item[\ib{lit\textunderscore corridor}]
 Show corridor squares seen by night vision or a light source held by your
 character as lit (default off).  Persistent.
 %.lp
@@ -4506,15 +4503,15 @@ Enable mail delivery during the game (default on).  Persistent.
 An obsolete synonym for ``{\tt gender:male}''.  Cannot be set with the
 `{\tt O}' command.
 %.lp
-\item[\ib{mention\verb+_+decor}]
+\item[\ib{mention\textunderscore decor}]
 Give feedback when walking onto various dungeon features such as stairs,
 fountains, or altars which are ordinarily only described when covered
 by one or more objects (default off).  Persistent.
 %.lp
-\item[\ib{mention\verb+_+map}]
+\item[\ib{mention\textunderscore map}]
 Give feedback when interesting map locations change (default off).
 %.lp
-\item[\ib{mention\verb+_+walls}]
+\item[\ib{mention\textunderscore walls}]
 Give feedback when walking against a wall (default off).  Persistent.
 %.lp
 \item[\ib{menucolors}]
@@ -4542,43 +4539,43 @@ object classes rather than a character prompt, and then a menu of matching
 objects for selection.
 (Choosing its `A' (Autoselect-All) choice skips the second menu.
 To avoid choosing that by accident,
-set {\it paranoid\verb+_+confirm:AutoAll\/} to require confirmation.)
+set {\it paranoid\textunderscore confirm:AutoAll\/} to require confirmation.)
 Partial skips the object class filtering and
 immediately displays a menu of all objects.
-\item[\ib{menu\verb+_+deselect\verb+_+all}]
+\item[\ib{menu\textunderscore deselect\textunderscore all}]
 Key to deselect all items in a menu.
 Implemented by the Amiga, Gem, X11 and tty ports.
 Default `-'.
-\item[\ib{menu\verb+_+deselect\verb+_+page}]
+\item[\ib{menu\textunderscore deselect\textunderscore page}]
 Key to deselect all items on this page of a menu.
 Implemented by the Amiga, Gem and tty ports.
 Default `\verb+\+'.
-\item[\ib{menu\verb+_+first\verb+_+page}]
+\item[\ib{menu\textunderscore first\textunderscore page}]
 Key to jump to the first page in a menu.
 Implemented by the Amiga, Gem and tty ports.
 Default `\verb+^+'.
-\item[\ib{menu\verb+_+headings}]
+\item[\ib{menu\textunderscore headings}]
 Controls how the headings in a menu are highlighted.
 Takes a text attribute, or text color and attribute separated by ampersand.
 For allowed attributes and colors, see ``{\it Configuring Menu Colors\/}``.
 Not all ports can actually display all types.
-\item[\ib{menu\verb+_+invert\verb+_+all}]
+\item[\ib{menu\textunderscore invert\textunderscore all}]
 Key to invert all items in a menu.
 Implemented by the Amiga, Gem, X11 and tty ports.
 Default `@'.
-\item[\ib{menu\verb+_+invert\verb+_+page}]
+\item[\ib{menu\textunderscore invert\textunderscore page}]
 Key to invert all items on this page of a menu.
 Implemented by the Amiga, Gem and tty ports.
 Default `\verb+~+'.
-\item[\ib{menu\verb+_+last\verb+_+page}]
+\item[\ib{menu\textunderscore last\textunderscore page}]
 Key to jump to the last page in a menu.
 Implemented by the Amiga, Gem and tty ports.
 Default `\verb+|+'.
-\item[\ib{menu\verb+_+next\verb+_+page}]
+\item[\ib{menu\textunderscore next\textunderscore page}]
 Key to go to the next menu page.
 Implemented by the Amiga, Gem and tty ports.
 Default `\verb+>+'.
-\item[\ib{menu\verb+_+objsyms}]
+\item[\ib{menu\textunderscore objsyms}]
 % [originally menu_objsyms was a boolean]
 % Show object symbols in menu headings in menus where
 % the object symbols act as menu accelerators (default off).
@@ -4613,46 +4610,46 @@ objects among classes.
 Supported by tty and curses.
 When setting the value, it can be specified by digit or keyword.
 The default value is {\tt Conditional} (4).
-\item[\ib{menu\verb+_+overlay}]
+\item[\ib{menu\textunderscore overlay}]
 Do not clear the screen before drawing menus, and align
 menus to the right edge of the screen. Only for the tty port.
 (default on)
-\item[\ib{menu\verb+_+previous\verb+_+page}]
+\item[\ib{menu\textunderscore previous\textunderscore page}]
 Key to go to the previous menu page.
 Implemented by the Amiga, Gem and tty ports.
 Default `\verb+<+'.
-\item[\ib{menu\verb+_+search}]
+\item[\ib{menu\textunderscore search}]
 Key to search for some text and toggle selection state of matching menu items.
 Default `:'.
-\item[\ib{menu\verb+_+select\verb+_+all}]
+\item[\ib{menu\textunderscore select\textunderscore all}]
 Key to select all items in a menu.
 Implemented by the Amiga, Gem, X11 and tty ports.
 Default `.'.
-\item[\ib{menu\verb+_+select\verb+_+page}]
+\item[\ib{menu\textunderscore select\textunderscore page}]
 Key to select all items on this page of a menu.
 Implemented by the Amiga, Gem and tty ports.
 Default `,'.
 
 %.lp
-\item[\ib{menu\verb+_+shift\verb+_+left}]
+\item[\ib{menu\textunderscore shift\textunderscore left}]
 Key to scroll a menu---one which has been
 scrolled right---back to the left.
-Implemented for {\it perm\verb+_+invent\/} only by curses and X11.
+Implemented for {\it perm\textunderscore invent\/} only by curses and X11.
 Default `{\tt \verb+{+}'.
 
 %.lp
-\item[\ib{menu\verb+_+shift\verb+_+right}]
+\item[\ib{menu\textunderscore shift\textunderscore right}]
 Key to scroll a menu which has text beyond the
 right edge to the right.
-Implemented for {\it perm\verb+_+invent\/} only by curses by X11.
+Implemented for {\it perm\textunderscore invent\/} only by curses by X11.
 Default `{\tt \verb+}+}'.
 % %.lp
-% \item[\ib{menu\verb+_+tab\verb+_+sep}]
+% \item[\ib{menu\textunderscore tab\textunderscore sep}]
 % Format menu entries using TAB to separate columns (default off).
 % Only applicable to some menus, and only useful to some interfaces.
 % Debug mode only.
 %.lp
-\item[\ib{mon\verb+_+movement}]
+\item[\ib{mon\textunderscore movement}]
 Show a message when hero notices a monster movement (default is off).
 %.lp
 \item[\ib{monpolycontrol}]
@@ -4663,7 +4660,7 @@ Debug mode only.
 Prompt for destination whenever any monster gets teleported (default off).
 Debug mode only.
 %.lp
-\item[\ib{mouse\verb+_+support}]
+\item[\ib{mouse\textunderscore support}]
 Allow use of the mouse for input and travel.
 Valid settings are:
 
@@ -4677,7 +4674,7 @@ Valid settings are:
 
 Omitting a value is the same as specifying {\tt 1}
 and negating
-{\it mouse\verb+_+support\/}
+{\it mouse\textunderscore support\/}
 is the same as specifying {\tt 0}.
 %.lp
 \item[\ib{msghistory}]
@@ -4685,7 +4682,7 @@ The number of top line messages to save (and be able to recall
 with `{\tt \^{}P}') (default 20).
 Cannot be set with the `{\tt O}' command.
 %.lp
-\item[\ib{msg\verb+_+window}]
+\item[\ib{msg\textunderscore window}]
 Allows you to change the way recalled messages are displayed.
 Currently it is only supported for tty (all four choices) and for curses
 (`{\tt f}' and `{\tt r}' choices, default `{\tt r}').
@@ -4730,7 +4727,7 @@ Start the character with no armor (default false).  Persistent.
 \item[\ib{null}]
 Send padding nulls to the terminal (default on).  Persistent.
 %.lp
-\item[\ib{number\verb+_+pad}]
+\item[\ib{number\textunderscore pad}]
 Use digit keys instead of letters to move (default 0 or off).\\
 Valid settings are:
 
@@ -4750,7 +4747,7 @@ Valid settings are:
 
 For backward compatibility, omitting a value is the same as specifying {\tt 1}
 and negating
-{\it number\verb+_+pad\/}
+{\it number\textunderscore pad\/}
 is the same as specifying {\tt 0}.
 (Settings {\tt 2} and {\tt 4} are for compatibility with MS-DOS or old PC Hack;
 in addition to the different behavior for `{\tt 5}', `{\tt Alt-5}' acts as `{\tt G}'
@@ -4767,10 +4764,10 @@ Specify the order to list object types in (default
 containing the symbols for the various object types.  Any omitted types
 are filled in at the end from the previous order.
 %.lp
-\item[\ib{paranoid\verb+_+confirmation}]
+\item[\ib{paranoid\textunderscore confirmation}]
 A space separated list of specific situations where alternate
 prompting is desired.
-The default is ``{\it paranoid\verb+_+confirmation:pray swim trap}''.
+The default is ``{\it paranoid\textunderscore confirmation:pray swim trap}''.
 %.sd
 %.si
 \newlength{\pcwidth}
@@ -4831,17 +4828,17 @@ turn on all of the above.
 %.ed
 By default, the pray, swim, and trap choices are enabled, the others disabled.
 To disable them without setting
-any of the other choices, use ``{\it paranoid\verb+_+confirmation:none}''.
+any of the other choices, use ``{\it paranoid\textunderscore confirmation:none}''.
 To keep them enabled while setting any of the others, you can
 include them in the list, such as
-``{\it par\-a\-noid\verb+_+con\-fir\-ma\-tion:attack~pray~swim~Remove\/}''
+``{\it par\-a\-noid\textunderscore con\-fir\-ma\-tion:attack~pray~swim~Remove\/}''
 or you can precede the first entry in the list with a plus sign,
-``{\it paranoid\verb+_+confirmation:\verb|+|attack~Remove\/}''.
+``{\it paranoid\textunderscore confirmation:\verb|+|attack~Remove\/}''.
 To remove an entry that has been previously set without removing others,
 precede the first entry in the list with a minus sign,
-``{\it paranoid\verb+_+confirmation:-swim\/}.
+``{\it paranoid\textunderscore confirmation:-swim\/}.
 To both add some new entries and remove some old ones, you can use
-multiple {\it paranoid\verb+_+confirmation\/} option settings, or you can
+multiple {\it paranoid\textunderscore confirmation\/} option settings, or you can
 use the `{\tt \verb|+|}' form and list entries to be added by their name
 and entries to be removed by `{\tt !}' and name.
 The positive (no `!') and negative (with `!') entries
@@ -4850,22 +4847,22 @@ can be intermixed.
 \item[\ib{pauper}]
 Start the character with no possessions (default false).  Persistent.
 %.lp
-\item[\ib{perm\verb+_+invent}]
+\item[\ib{perm\textunderscore invent}]
 If true, always display your current inventory in a window (default is false).
 %.lp ""
 \\
 This only
 makes sense for windowing system interfaces that implement this feature.
 For those that do, the
-{\tt perminv\verb+_+mode}
+{\tt perminv\textunderscore mode}
 option can be used to refine what gets displayed
-for {\it perm\verb+_+invent\/}.
+for {\it perm\textunderscore invent\/}.
 Setting that to a value other than {\it none\/}
-while {\it perm\verb+_+invent\/} is false will change it to true.
+while {\it perm\textunderscore invent\/} is false will change it to true.
 %.lp
-\item[\ib{perminv\verb+_+mode}]
+\item[\ib{perminv\textunderscore mode}]
 Augments the
-{\tt perm\verb+_+invent}
+{\tt perm\textunderscore invent}
 option.
 Value is one of
 %.PS "\f(CRin-use\fP"
@@ -4874,7 +4871,7 @@ Value is one of
 \blist{\leftmargin \pcwidth \topsep 1mm \itemsep 0mm}
 %.PL
 \item[{\tt none}]
-behave as if {\it perm\verb+_+invent\/} is false;
+behave as if {\it perm\textunderscore invent\/} is false;
 \item[{all}]
 show all inventory except for gold;
 \item[{full}]
@@ -4883,7 +4880,7 @@ show full inventory including gold;
 only show items which are in use (worn, wielded, lit lamp).
 %.PE
 \elist
-Default is {\it none\/} but if {\it perm\verb+_+invent\/} gets set to true
+Default is {\it none\/} but if {\it perm\textunderscore invent\/} gets set to true
 while it is {\it none\/} it will be changed to {\it all\/}.
 %.lp ""
 \\
@@ -4894,7 +4891,7 @@ included for {\it all\/} despite that mode normally omitting gold.
 \item[\ib{petattr}]
 Specifies one or more text highlighting attributes to use when showing
 pets on the map.
-Effectively a superset of the {\it hilite\verb+_+pet\/} boolean option.
+Effectively a superset of the {\it hilite\textunderscore pet\/} boolean option.
 Curses or tty interface only; value is one of
 none, bold, dim, underline, italic, blink, and inverse.
 Some of those choices might not work,
@@ -4911,29 +4908,29 @@ it will be silently ignored.  For example, ``{\tt horse}'' will only be
 honored when playing a knight.
 Cannot be set with the `{\tt O}' command.
 %.lp
-\item[\ib{pickup\verb+_+burden}]
+\item[\ib{pickup\textunderscore burden}]
 When you pick up an item that would exceed this encumbrance
 level (Unencumbered, Burdened, streSsed, straiNed, overTaxed,
 or overLoaded), you will be asked if you want to continue.
 (Default `S').  Persistent.
 %.lp
-\item[\ib{pickup\verb+_+stolen}]
+\item[\ib{pickup\textunderscore stolen}]
 If this option is on and ``{\it autopickup\/}'' is also on, try to pick up
 things that a monster stole from you, even if they aren't in
-``{\it pickup\verb+_+types\/}'' or
+``{\it pickup\textunderscore types\/}'' or
 match an autopickup exception.
 Default is on.
 Persistent.
 %.lp
-\item[\ib{pickup\verb+_+thrown}]
+\item[\ib{pickup\textunderscore thrown}]
 If this option is on and ``{\it autopickup\/}'' is also on, try to pick up
 things that you threw, even if they aren't in
-``{\it pickup\verb+_+types\/}'' or
+``{\it pickup\textunderscore types\/}'' or
 match an autopickup exception.
 Default is on.
 Persistent.
 %.lp
-\item[\ib{pickup\verb+_+types}]
+\item[\ib{pickup\textunderscore types}]
 Specify the object types to be picked up when ``{\it autopickup\/}''
 is on.
 Default is all types.
@@ -4943,20 +4940,20 @@ Persistent.
 The value is a list of object symbols, such as
 {\tt \verb&pickup_types:$?!&} to pick up gold, scrolls, and potions.
 You can use
-``{\it autopickup\verb+_+exception\/}''
+``{\it autopickup\textunderscore exception\/}''
 configuration file lines to further refine ``{\it autopickup\/}'' behavior.
 \\
 %.lp ""
-There is no way to set {\it pickup\verb+_+types\/} to ``{\it none}''.
+There is no way to set {\it pickup\textunderscore types\/} to ``{\it none}''.
 (Setting it to an empty value reverts to ``{\it all}''.)
 If you want to avoid automatically picking up any types of items but do
 want to have {\it autopickup\/} on in order to have
-{\it autopickup\verb+_+exceptions\/} control what you do and don't pick
-up, you can set {\it pickup\verb+_+types\/} to `{\tt .}'.
+{\it autopickup\textunderscore exceptions\/} control what you do and don't pick
+up, you can set {\it pickup\textunderscore types\/} to `{\tt .}'.
 That is the type symbol for {\it venom\/} and you won't come across
 any venom items so won't unintentionally pick such up.
 %.lp
-\item[\ib{pile\verb+_+limit}]
+\item[\ib{pile\textunderscore limit}]
 When walking across a pile of objects on the floor, threshold at which
 the message ``there are few/several/many objects here'' is given instead
 of showing a popup list of those objects.  A value of 0 means ``no limit''
@@ -4980,10 +4977,10 @@ something pushes the old item into your alternate weapon slot (default off).
 Likewise for the `{\tt a}' (apply) command if it causes the applied item to
 become wielded.  Persistent.
 %.lp
-\item[\ib{query\verb+_+menu}]
+\item[\ib{query\textunderscore menu}]
 Use a menu when asked specific yes/no queries, instead of a prompt.
 %.lp
-\item[\ib{quick\verb+_+farsight}]
+\item[\ib{quick\textunderscore farsight}]
 When set, usually prevents the ``you sense your surroundings'' message
 where play pauses to allow you to browse the map whenever clairvoyance
 randomly activates.
@@ -5004,7 +5001,7 @@ player will be prompted unless role forces a choice for race.
 unless role forces a choice for race.
 Cannot be set with the `{\tt O}' command.  Persistent.
 %.lp
-\item[\ib{rest\verb+_+on\verb+_+space}]
+\item[\ib{rest\textunderscore on\textunderscore space}]
 Make the space bar a synonym for the `{\tt .}' (\#wait) command (default off).
 Persistent.
 %.lp
@@ -5071,14 +5068,14 @@ results of moving.  The default is {\it run\/}; versions prior to 3.4.1
 used {\it teleport\/} only.  Whether or not the effect is noticeable will
 depend upon the window port used or on the type of terminal.  Persistent.
 %.lp
-\item[\ib{safe\verb+_+pet}]
+\item[\ib{safe\textunderscore pet}]
 Prevent you from (knowingly) attacking your pets (default on).  Persistent.
 %.lp
-\item[\ib{safe\verb+_+wait}]
+\item[\ib{safe\textunderscore wait}]
 Prevents you from waiting or searching when next to a hostile monster
 (default on).  Persistent.
 %.lp
-\item[\ib{sanity\verb+_+check}]
+\item[\ib{sanity\textunderscore check}]
 Evaluate monsters, objects, and map prior to each turn (default off).
 Debug mode only.
 %.lp
@@ -5213,7 +5210,7 @@ Allow sounds to be emitted from an integrated sound library (default on).
 Display a sparkly effect when a monster (including yourself) is hit by an
 attack to which it is resistant (default on).  Persistent.
 %.lp
-\item[\ib{spot\verb+_+monsters}]
+\item[\ib{spot\textunderscore monsters}]
 Show a message when hero notices a monster (default is off).
 %.lp
 \item[\ib{standout}]
@@ -5224,13 +5221,13 @@ Controls how many turns status hilite behaviors highlight
 the field. If negated or set to zero, disables status hiliting.
 See ``{\it Configuring Status Hilites\/}'' for further information.
 %.lp
-\item[\ib{status\verb+_+updates}]
+\item[\ib{status\textunderscore updates}]
 Allow updates to the status lines at the bottom of the screen (default true).
 %.lp
-\item[\ib{suppress\verb+_+alert}]
+\item[\ib{suppress\textunderscore alert}]
 This option may be set to a {\it NetHack\/} version level to suppress
 alert notification messages about feature changes for that
-and prior versions (for example, ``{\tt suppress\verb+_+alert:3.3.1}'')
+and prior versions (for example, ``{\tt suppress\textunderscore alert:3.3.1}'')
 %.lp
 \item[\ib{symset}]
 This option may be used to select one of the named symbol sets found within
@@ -5240,7 +5237,7 @@ Use ``{\tt symset:default}'' to explicitly select the default symbols.
 \item[\ib{time}]
 Show the elapsed game time in turns on bottom line (default off).  Persistent.
 %.lp
-\item[\ib{timed\verb+_+delay}]
+\item[\ib{timed\textunderscore delay}]
 When pausing momentarily for display effect, such as with explosions and
 moving objects, use a timer rather than sending extra characters to the
 screen.  (Applies to ``tty'' and ``curses'' interfaces only; ``X11'' interface always
@@ -5263,10 +5260,10 @@ the score list around after game end on a terminal or emulating window.
 Allow the travel command via mouse click (default on).
 Turning this option off will prevent the game from attempting unintended
 moves if you make inadvertent mouse clicks on the map window.
-Does not affect traveling via the `{\tt \verb+_+}' (``{\tt \#travel}'')
+Does not affect traveling via the `{\tt \textunderscore }' (``{\tt \#travel}'')
 command.  Persistent.
 % %.lp
-% \item[ib{travel\verb+_+debug}]
+% \item[ib{travel\textunderscore debug}]
 % Display intended path during each step of travel (default off).
 % Debug mode only.
 %.lp
@@ -5277,7 +5274,7 @@ Setting this option on or off in the config file will skip the query.
 \item[\ib{verbose}]
 Provide more commentary during the game (default on).  Persistent.
 %.lp
-\item[\ib{whatis\verb+_+coord}]
+\item[\ib{whatis\textunderscore coord}]
 When using the `{\tt /}' or `{\tt ;}' commands to look around on the map with
 ``{\tt autodescribe}''
 on, display coordinates after the description.
@@ -5298,13 +5295,13 @@ The possible settings are:
 
 %.lp ""
 The
-{\it whatis\verb+_+coord\/}
+{\it whatis\textunderscore coord\/}
 option is also used with
 the `{\tt /m}', `{\tt /M}', `{\tt /o}', and `{\tt /O}' sub-commands
 of `{\tt /}',
 where the `{\it none\/}' setting is overridden with `{\it map}'.
 %.lp
-\item[\ib{whatis\verb+_+filter}]
+\item[\ib{whatis\textunderscore filter}]
 When getting a location on the map, and using the keys to cycle through
 next and previous targets, allows filtering the possible targets.
 (default none)\\
@@ -5327,12 +5324,12 @@ the door you were last moving towards.\\
 Filtering can also be changed when getting a location with
 the ``getpos.filter'' key.
 %.lp
-\item[\ib{whatis\verb+_+menu}]
+\item[\ib{whatis\textunderscore menu}]
 When getting a location on the map, and using a key to cycle through
 next and previous targets, use a menu instead to pick a target.
 (default off)
 %.lp
-\item[\ib{whatis\verb+_+moveskip}]
+\item[\ib{whatis\textunderscore moveskip}]
 When getting a location on the map, and using shifted movement keys or
 meta-digit keys to fast-move, instead of moving 8 units at a time,
 move by skipping the same glyphs.
@@ -5382,13 +5379,13 @@ with the `{\tt O}' command.
 
 \blist{}
 %.lp
-\item[\ib{align\verb+_+message}]
+\item[\ib{align\textunderscore message}]
  Where to align or place the message window (top, bottom, left, or right)
 %.lp
-\item[\ib{align\verb+_+status}]
+\item[\ib{align\textunderscore status}]
  Where to align or place the status window (top, bottom, left, or right).
 %.lp
-\item[\ib{ascii\verb+_+map}]
+\item[\ib{ascii\textunderscore map}]
 %.hw DECgraphics IBMgraphics \% don't hyphenate these
 \hyphenation{DECgraphics IBMgraphics}
 If {\it NetHack\/} can, it should display the map using simple
@@ -5397,47 +5394,47 @@ In some cases, characters can be augmented with line-drawing symbols;
 use the {\tt symset}
 option to select a symbol set such as {\it DECgraphics\/}
 or {\it IBMgraphics\/} if your display supports them.
-Setting {\tt ascii\verb+_+map} to {\it True\/} forces
-{\tt tiled\verb+_+map} to be {\it False}.
+Setting {\tt ascii\textunderscore map} to {\it True\/} forces
+{\tt tiled\textunderscore map} to be {\it False}.
 %.lp
 \item[\ib{color}]
 If {\it NetHack\/} can, it should display color for different monsters,
 objects, and dungeon features (default on).
 %.lp
-\item[\ib{eight\verb+_+bit\verb+_+tty}]
+\item[\ib{eight\textunderscore bit\textunderscore tty}]
 If {\it NetHack\/} can, it should pass eight-bit character values (for example, specified with the
 {\it traps \/} option) straight through to your terminal (default off).
 %.lp
-\item[\ib{font\verb+_+map}]
+\item[\ib{font\textunderscore map}]
 If {\it NetHack\/} can, it should use a font by the chosen name for the
 map window.
 %.lp
-\item[\ib{font\verb+_+menu}]
+\item[\ib{font\textunderscore menu}]
 If {\it NetHack\/} can, it should use a font by the chosen name for menu
 windows.
 %.lp
-\item[\ib{font\verb+_+message}]
+\item[\ib{font\textunderscore message}]
 If {\it NetHack\/} can, it should use a font by the chosen name for the message window.
 %.lp
-\item[\ib{font\verb+_+status}]
+\item[\ib{font\textunderscore status}]
 If {\it NetHack\/} can, it should use a font by the chosen name for the status window.
 %.lp
-\item[\ib{font\verb+_+text}]
+\item[\ib{font\textunderscore text}]
 If {\it NetHack\/} can, it should use a font by the chosen name for text windows.
 %.lp
-\item[\ib{font\verb+_+size\verb+_+map}]
+\item[\ib{font\textunderscore size\textunderscore map}]
 If {\it NetHack\/} can, it should use this size font for the map window.
 %.lp
-\item[\ib{font\verb+_+size\verb+_+menu}]
+\item[\ib{font\textunderscore size\textunderscore menu}]
 If {\it NetHack\/} can, it  should use this size font for menu windows.
 %.lp
-\item[\ib{font\verb+_+size\verb+_+message}]
+\item[\ib{font\textunderscore size\textunderscore message}]
 If {\it NetHack\/} can, it should use this size font for the message window.
 %.lp
-\item[\ib{font\verb+_+size\verb+_+status}]
+\item[\ib{font\textunderscore size\textunderscore status}]
 If {\it NetHack\/} can, it should use this size font for the status window.
 %.lp
-\item[\ib{font\verb+_+size\verb+_+text}]
+\item[\ib{font\textunderscore size\textunderscore text}]
 If {\it NetHack\/} can, it should use this size font for text windows.
 %.lp
 \item[\ib{fullscreen}]
@@ -5448,30 +5445,30 @@ Use color text and/or highlighting attributes when displaying some
 non-map data (such as menu selector letters).
 Curses interface only; default is on.
 %.lp
-\item[\ib{large\verb+_+font}]
+\item[\ib{large\textunderscore font}]
 If {\it NetHack\/} can, it should use a large font.
 %.lp
-\item[\ib{map\verb+_+mode}]
+\item[\ib{map\textunderscore mode}]
 If {\it NetHack\/} can, it should display the map in the manner specified.
 %.lp
-\item[\ib{player\verb+_+selection}]
+\item[\ib{player\textunderscore selection}]
 If {\it NetHack\/} can, it should pop up dialog boxes or use prompts for character selection.
 %.lp
-\item[\ib{popup\verb+_+dialog}]
+\item[\ib{popup\textunderscore dialog}]
 If {\it NetHack\/} can, it should pop up dialog boxes for input.
 %.lp
-\item[\ib{preload\verb+_+tiles}]
+\item[\ib{preload\textunderscore tiles}]
 If {\it NetHack\/} can, it should preload tiles into memory.
 For example, in the protected mode MS-DOS version, control whether tiles
 get pre-loaded into RAM at the start of the game.  Doing so
 enhances performance of the tile graphics, but uses more memory. (default on).
 Cannot be set with the `{\tt O}' command.
 %.lp
-\item[\ib{scroll\verb+_+amount}]
+\item[\ib{scroll\textunderscore amount}]
 If {\it NetHack\/} can, it should scroll the display by this number of cells
-when the hero reaches the scroll\verb+_+margin.
+when the hero reaches the scroll\textunderscore margin.
 %.lp
-\item[\ib{scroll\verb+_+margin}]
+\item[\ib{scroll\textunderscore margin}]
 If {\it NetHack\/} can, it should scroll the display when the hero or cursor
 is this number of cells away from the edge of the window.
 %.lp
@@ -5483,7 +5480,7 @@ choose from at game startup, if it can. Not all ports support this option.
 If {\it NetHack\/} can, it should display an onscreen keyboard.
 Handhelds are most likely to support this option.
 %.lp
-\item[\ib{splash\verb+_+screen}]
+\item[\ib{splash\textunderscore screen}]
 If {\it NetHack\/} can, it should display an opening splash screen when
 it starts up (default yes).
 %.lp
@@ -5500,7 +5497,7 @@ command.
 
 %.lp ""
 The {\tt curses} interface does likewise if the
-{\it align\verb+_+status\/}
+{\it align\textunderscore status\/}
 option is set to {\it top\/} or {\it bottom\/} but ignores
 {\it statuslines\/}
 when set to {\it left\/} or {\it right}.
@@ -5521,16 +5518,16 @@ older than {\tt qt-5.9},
 can only be set in the run-time configuration file or via NETHACKOPTIONS,
 not during play with the `{\tt O}' command.)
 %.lp
-\item[\ib{term\verb+_+cols} {\normalfont and}]
+\item[\ib{term\textunderscore cols} {\normalfont and}]
 %.lp
-\item[\ib{term\verb+_+rows}]
+\item[\ib{term\textunderscore rows}]
 Curses interface only.
 Number of columns and rows to use for the display.
 Curses will attempt to resize to the values specified but will settle
 for smaller sizes if they are too big.
 Default is the current window size.
 %.lp
-\item[\ib{tile\verb+_+file}]
+\item[\ib{tile\textunderscore file}]
 Specify the name of an alternative tile file to override the default.
 \\
 %.lp ""
@@ -5538,30 +5535,30 @@ Note: the X11 interface uses X resources rather than NetHack's options
 to select an alternate tile file.
 See {\tt NetHack.ad}, the sample X ``application defaults'' file.
 %.lp
-\item[\ib{tile\verb+_+height}]
+\item[\ib{tile\textunderscore height}]
 Specify the preferred height of each tile in a tile capable port.
 %.lp
-\item[\ib{tile\verb+_+width}]
+\item[\ib{tile\textunderscore width}]
 Specify the preferred width of each tile in a tile capable port
 %.lp
-\item[\ib{tiled\verb+_+map}]
+\item[\ib{tiled\textunderscore map}]
 If {\it NetHack\/} can, it should display the map using {\it tiles} graphics
 rather than simple characters (letters and punctuation, possibly
 augmented by line-drawing symbols).
-Setting {\tt tiled\verb+_+map} to {\it True\/} forces
-{\tt ascii\verb+_+map} to be {\it False}.
+Setting {\tt tiled\textunderscore map} to {\it True\/} forces
+{\tt ascii\textunderscore map} to be {\it False}.
 %.lp
-\item[\ib{use\verb+_+darkgray}]
+\item[\ib{use\textunderscore darkgray}]
 Use bold black instead of blue for black glyphs (TTY only).
 %.lp
-\item[\ib{use\verb+_+inverse}]
+\item[\ib{use\textunderscore inverse}]
 If {\it NetHack\/} can, it should display inverse when the game specifies it.
 %.lp
-\item[\ib{use\verb+_+menu\verb+_+glyphs}]
+\item[\ib{use\textunderscore menu\textunderscore glyphs}]
 If {\it NetHack\/} can, it should display glyphs next to objects in the
 inventory.
 %.lp
-\item[\ib{vary\verb+_+msgcount}]
+\item[\ib{vary\textunderscore msgcount}]
 If {\it NetHack\/} can, it should display this number of messages at a time
 in the message window.
 %.lp
@@ -5577,8 +5574,8 @@ Acceptable values are
 {\tt 1} --- on, always show borders\\
 {\tt 2} --- auto, on display is at least
 (\verb&24+2&)x(\verb&80+2&) [default]\\
-{\tt 3} --- on, except forced off for perm\verb+_+invent\\
-{\tt 4} --- auto, except forced off for perm\verb+_+invent\\
+{\tt 3} --- on, except forced off for perm\textunderscore invent\\
+{\tt 4} --- auto, except forced off for perm\textunderscore invent\\
 %.ei
 %.ed
 
@@ -5677,7 +5674,7 @@ ESC into a meta-shifted version of the second character (default off).
 %.lp ""
 This conversion is only done for commands, not for other input prompts.
 Note that typing one or more digits as a count prefix prior to a
-command---preceded by {\tt n} if the {\it number\verb+_+pad\/}
+command---preceded by {\tt n} if the {\it number\textunderscore pad\/}
 option is set---is
 also subject to this conversion, so attempting to
 abort the count by typing ESC will leave {\it NetHack\/} waiting for another
@@ -5720,15 +5717,15 @@ Setting {\it autodetect\/} attempts {\it vesa\/}, then {\it vga\/}, and
 finally sets {\it default\/} if neither of those modes works.
 Cannot be set with the `{\tt O}' command.
 %.lp
-\item[\ib{video\verb+_+height}]
+\item[\ib{video\textunderscore height}]
 Set the VGA mode resolution height (MS-DOS only, with video:vesa)
 %.lp
-\item[\ib{video\verb+_+width}]
+\item[\ib{video\textunderscore width}]
 Set the VGA mode resolution width (MS-DOS only, with video:vesa)
 %.lp
 \item[\ib{videocolors}]
 \begin{sloppypar}
-Set the color palette for PC systems using NO\verb+_+TERMS
+Set the color palette for PC systems using NO\textunderscore TERMS
 (default 4-2-6-1-5-3-15-12-10-14-9-13-11, {\it PC\/ NetHack\/} only).
 The order of colors is red, green, brown, blue, magenta, cyan,
 bright.white, bright.red, bright.green, yellow, bright.blue,
@@ -5762,18 +5759,18 @@ and User sounds.
 
 %.pg
 You can further refine the behavior of the ``{\tt autopickup}'' option
-beyond what is available through the ``{\tt pickup\verb+_+types}'' option.
+beyond what is available through the ``{\tt pickup\textunderscore types}'' option.
 
 %.pg
-By placing ``{\tt autopickup\verb+_+exception}'' lines in your configuration
+By placing ``{\tt autopickup\textunderscore exception}'' lines in your configuration
 file, you can define patterns to be checked when the game is about to
 autopickup something.
 
 \blist{}
 %.lp
-\item[\ib{autopickup\verb+_+exception}]
-Sets an exception to the ``{\it pickup\verb+_+types}'' option.
-The {\it autopickup\verb+_+exception\/} option should be followed by a regular
+\item[\ib{autopickup\textunderscore exception}]
+Sets an exception to the ``{\it pickup\textunderscore types}'' option.
+The {\it autopickup\textunderscore exception\/} option should be followed by a regular
 expression to be used as a pattern to match against the singular form of the
 description of an object at your location.
 
@@ -5787,7 +5784,7 @@ character in the pattern, specifically:
 %.ei
 %.ed
 
-The {\it autopickup\verb+_+exception\/} rules are processed in the order
+The {\it autopickup\textunderscore exception\/} rules are processed in the order
 in which they appear in your configuration file, thus allowing a
 later rule to override an earlier rule.
 
@@ -5795,7 +5792,7 @@ later rule to override an earlier rule.
 Exceptions can be set with the `{\tt O}' command, but because they are not
 included in your configuration file, they won't be in effect if you save
 and then restore your game.
-{\it autopickup\verb+_+exception\/} rules are not saved with the game.
+{\it autopickup\textunderscore exception\/} rules are not saved with the game.
 \elist
 
 %.lp "Here are some examples:"
@@ -5866,7 +5863,7 @@ can only be bound to a single key.
 %.lp
 \item[{\bb{count}}]
 Prefix key to start a count, to repeat a command this many times.
-With {\it number\verb+_+pad\/} only. Default is~`{\tt n}'.
+With {\it number\textunderscore pad\/} only. Default is~`{\tt n}'.
 %.lp
 \item[{\bb{getdir.help}}]
 When asked for a direction, the key to show the help. Default is~`{\tt ?}'.
@@ -5879,7 +5876,7 @@ the getpos.pick.once key (default `{\tt ,}')
 or the getpos.pick key (default `{\tt .}')
 to finish as if performing a left or right click.
 Only useful when using the {\tt \#therecmdmenu} command.
-Default is~`{\tt \verb+_+}'.
+Default is~`{\tt \textunderscore }'.
 %.lp
 \item[{\bb{getdir.self}}]
 When asked for a direction, the key to target yourself. Default is~`{\tt .}'.
@@ -6111,7 +6108,7 @@ a menu line will be used for the line.
 %.pg
 Note that if you intend to have one or more color specifications match
 ``~uncursed~'', you will probably want to turn the
-{\it implicit\verb+_+uncursed\/}
+{\it implicit\textunderscore uncursed\/}
 option off so that all items known to be uncursed are actually
 displayed with the ``uncursed'' description.
 
@@ -6389,190 +6386,190 @@ character.
 Default                      & Symbol Name                & Description\\
 \hline \hline
 \endhead
-\verb@ @ & S\verb+_+air                     &	(air)\\
-\_ & S\verb+_+altar                   &	(altar)\\
-\verb@"@ & S\verb+_+amulet                  &	(amulet)\\
-\verb@A@ & S\verb+_+angel                   &	(angelic being)\\
-\verb@a@ & S\verb+_+ant                     &	(ant or other insect)\\
-\verb@^@ & S\verb+_+anti\verb+_+magic\verb+_+trap       &	(anti-magic field)\\
-\verb@[@ & S\verb+_+armor                   &	(suit or piece of armor)\\
-\verb@[@ & S\verb+_+armour                  &	(suit or piece of armor)\\
-\verb@^@ & S\verb+_+arrow\verb+_+trap             &	(arrow trap)\\
-\verb@0@ & S\verb+_+ball                    &	(iron ball)\\
-\# & S\verb+_+bars                    &	(iron bars)\\
-\verb@B@ & S\verb+_+bat                     &	(bat or bird)\\
-\verb@^@ & S\verb+_+bear\verb+_+trap              &	(bear trap)\\
-\verb@-@ & S\verb+_+blcorn                  &	(bottom left corner)\\
-\verb@b@ & S\verb+_+blob                    &	(blob)\\
-\verb@+@ & S\verb+_+book                    &	(spellbook)\\
-\verb@)@ & S\verb+_+boomleft                &	(boomerang open left)\\
-\verb@(@ & S\verb+_+boomright               &	(boomerang open right)\\
-\verb@`@ & S\verb+_+boulder                 &	(boulder)\\
-\verb@-@ & S\verb+_+brcorn                  &	(bottom right corner)\\
-\verb@>@ & S\verb+_+brdnladder              &	(branch ladder down)\\
-\verb@>@ & S\verb+_+brdnstair               &	(branch staircase down)\\
-\verb@<@ & S\verb+_+brupladder              &	(branch ladder up)\\
-\verb@<@ & S\verb+_+brupstair               &	(branch staircase up)\\
-\verb@C@ & S\verb+_+centaur                 &	(centaur)\\
-\verb@_@ & S\verb+_+chain                   &	(iron chain)\\
-\# & S\verb+_+cloud                   &	(cloud)\\
-\verb@c@ & S\verb+_+cockatrice              &	(cockatrice)\\
-\$ & S\verb+_+coin                    &	(pile of coins)\\
-\# & S\verb+_+corr                    &	(corridor)\\
-\verb@-@ & S\verb+_+crwall                  &	(wall)\\
-\verb@-@ & S\verb+_+darkroom                &	(dark room)\\
-\verb@^@ & S\verb+_+dart\verb+_+trap              &	(dart trap)\\
-\verb@&@ & S\verb+_+demon                   &	(major demon)\\
-\verb@*@ & S\verb+_+digbeam                 &	(dig beam)\\
-\verb@>@ & S\verb+_+dnladder                &	(ladder down)\\
-\verb@>@ & S\verb+_+dnstair                 &	(staircase down)\\
-\verb@d@ & S\verb+_+dog                     &	(dog or other canine)\\
-\verb@D@ & S\verb+_+dragon                  &	(dragon)\\
-\verb@;@ & S\verb+_+eel                     &	(sea monster)\\
-\verb@E@ & S\verb+_+elemental               &	(elemental)\\
-\# & S\verb+_+engrcorr                      &	(engraving in a corridor)\\
-\verb@`@ & S\verb+_+engroom                 &	(engraving in a room)\\
-\verb@/@ & S\verb+_+expl\verb+_+tl          &	(explosion top left)\\
-\verb@-@ & S\verb+_+expl\verb+_+tc          &	(explosion top center)\\
-\verb@\@ & S\verb+_+expl\verb+_+tr          &	(explosion top right)\\
-\verb@|@ & S\verb+_+expl\verb+_+ml          &	(explosion middle left)\\
-\verb@ @ & S\verb+_+expl\verb+_+mc          &	(explosion middle center)\\
-\verb@|@ & S\verb+_+expl\verb+_+mr          &	(explosion middle right)\\
-\verb@\@ & S\verb+_+expl\verb+_+bl          &	(explosion bottom left)\\
-\verb@-@ & S\verb+_+expl\verb+_+bc          &	(explosion bottom center)\\
-\verb@/@ & S\verb+_+expl\verb+_+br          &	(explosion bottom right)\\
-\verb@e@ & S\verb+_+eye                     &	(eye or sphere)\\
-\verb@^@ & S\verb+_+falling\verb+_+rock\verb+_+trap     &	(falling rock trap)\\
-\verb@f@ & S\verb+_+feline                  &	(cat or other feline)\\
-\verb@^@ & S\verb+_+fire\verb+_+trap              &	(fire trap)\\
-\verb@!@ & S\verb+_+flashbeam               &	(flash beam)\\
-\% & S\verb+_+food                    &	(piece of food)\\
-\{ & S\verb+_+fountain                &	(fountain)\\
-\verb@F@ & S\verb+_+fungus                  &	(fungus or mold)\\
-\verb@*@ & S\verb+_+gem                     &	(gem or rock)\\
-\verb@ @ & S\verb+_+ghost                   &	(ghost)\\
-\verb@H@ & S\verb+_+giant                   &	(giant humanoid)\\
-\verb@G@ & S\verb+_+gnome                   &	(gnome)\\
-\verb@'@ & S\verb+_+golem                   &	(golem)\\
-\verb@|@ & S\verb+_+grave                   &	(grave)\\
-\verb@g@ & S\verb+_+gremlin                 &	(gremlin)\\
-\verb@-@ & S\verb+_+hbeam                   &	(wall)\\
-\# & S\verb+_+hcdbridge               &	(horizontal raised drawbridge)\\
-\verb@+@ & S\verb+_+hcdoor                  &	(closed door)\\
-\verb@.@ & S\verb+_+hodbridge               &	(horizontal lowered drawbridge)\\
-\verb@|@ & S\verb+_+hodoor                  &	(open door)\\
-\verb\^\ & S\verb+_+hole                    &	(hole)\\
-\verb~@~ & S\verb+_+human                   &	(human or elf)\\
-\verb@h@ & S\verb+_+humanoid                &	(humanoid)\\
-\verb@-@ & S\verb+_+hwall                   &	(horizontal wall)\\
-\verb@.@ & S\verb+_+ice                     &	(ice)\\
-\verb@i@ & S\verb+_+imp                     &	(imp or minor demon)\\
-\verb@I@ & S\verb+_+invisible               &	(invisible monster)\\
-\verb@J@ & S\verb+_+jabberwock              &	(jabberwock)\\
-\verb@j@ & S\verb+_+jelly                   &	(jelly)\\
-\verb@k@ & S\verb+_+kobold                  &	(kobold)\\
-\verb@K@ & S\verb+_+kop                     &	(Keystone Kop)\\
-\verb@^@ & S\verb+_+land\verb+_+mine              &	(land mine)\\
-\verb@}@ & S\verb+_+lava                    &	(molten lava)\\
-\verb@}@ & S\verb+_+lavawall                &	(wall of lava)\\
-\verb@l@ & S\verb+_+leprechaun              &	(leprechaun)\\
-\verb@^@ & S\verb+_+level\verb+_+teleporter       &	(level teleporter)\\
-\verb@L@ & S\verb+_+lich                    &	(lich)\\
-\verb@y@ & S\verb+_+light                   &	(light)\\
-\# & S\verb+_+litcorr                 &	(lit corridor)\\
-\verb@:@ & S\verb+_+lizard                  &	(lizard)\\
-\verb@\@ & S\verb+_+lslant                  &	(wall)\\
-\verb@^@ & S\verb+_+magic\verb+_+portal           &	(magic portal)\\
-\verb@^@ & S\verb+_+magic\verb+_+trap             &	(magic trap)\\
-\verb@m@ & S\verb+_+mimic                   &	(mimic)\\
-\verb@]@ & S\verb+_+mimic\verb+_+def              &	(mimic)\\
-\verb@M@ & S\verb+_+mummy                   &	(mummy)\\
-\verb@N@ & S\verb+_+naga                    &	(naga)\\
-\verb@.@ & S\verb+_+ndoor                   &	(doorway)\\
-\verb@n@ & S\verb+_+nymph                   &	(nymph)\\
-\verb@O@ & S\verb+_+ogre                    &	(ogre)\\
-\verb@o@ & S\verb+_+orc                     &	(orc)\\
-\verb@p@ & S\verb+_+piercer                 &	(piercer)\\
-\verb@^@ & S\verb+_+pit                     &	(pit)\\
-\# & S\verb+_+poisoncloud             &	(poison cloud)\\
-\verb@^@ & S\verb+_+polymorph\verb+_+trap         &	(polymorph trap)\\
-\verb@}@ & S\verb+_+pool                    &	(water)\\
-\verb@!@ & S\verb+_+potion                  &	(potion)\\
-\verb@P@ & S\verb+_+pudding                 &	(pudding or ooze)\\
-\verb@q@ & S\verb+_+quadruped               &	(quadruped)\\
-\verb@Q@ & S\verb+_+quantmech               &	(quantum mechanic)\\
-\verb@=@ & S\verb+_+ring                    &	(ring)\\
-\verb@`@ & S\verb+_+rock                    &	(boulder or statue)\\
-\verb@r@ & S\verb+_+rodent                  &	(rodent)\\
-\verb@^@ & S\verb+_+rolling\verb+_+boulder\verb+_+trap  &	(rolling boulder trap)\\
-\verb@.@ & S\verb+_+room                    &	(floor of a room)\\
-\verb@/@ & S\verb+_+rslant                  &	(wall)\\
-\verb@^@ & S\verb+_+rust\verb+_+trap              &	(rust trap)\\
-\verb@R@ & S\verb+_+rustmonst               &	(rust monster or disenchanter)\\
-\verb@?@ & S\verb+_+scroll                  &	(scroll)\\
-\# & S\verb+_+sink                    &	(sink)\\
-\verb@^@ & S\verb+_+sleeping\verb+_+gas\verb+_+trap     &	(sleeping gas trap)\\
-\verb@S@ & S\verb+_+snake                   &	(snake)\\
-\verb@s@ & S\verb+_+spider                  &	(arachnid or centipede)\\
-\verb@^@ & S\verb+_+spiked\verb+_+pit             &	(spiked pit)\\
-\verb@^@ & S\verb+_+squeaky\verb+_+board          &	(squeaky board)\\
-\verb@0@ & S\verb+_+ss1                     &	(magic shield 1 of 4)\\
-\# & S\verb+_+ss2                     &	(magic shield 2 of 4)\\
-\verb+@+ & S\verb+_+ss3                     &	(magic shield 3 of 4)\\
-\verb@*@ & S\verb+_+ss4                     &	(magic shield 4 of 4)\\
-\verb@^@ & S\verb+_+statue\verb+_+trap            &	(statue trap)\\
-\verb@ @ & S\verb+_+stone                   &	(solid rock)\\
-\verb@]@ & S\verb+_+strange\verb+_+obj      &	(strange object)\\
-\verb@-@ & S\verb+_+sw\verb+_+bc                  &	(swallow bottom center)\\
-\verb@\@ & S\verb+_+sw\verb+_+bl                  &	(swallow bottom left)\\
-\verb@/@ & S\verb+_+sw\verb+_+br                  &	(swallow bottom right	)\\
-\verb@|@ & S\verb+_+sw\verb+_+ml                  &	(swallow middle left)\\
-\verb@|@ & S\verb+_+sw\verb+_+mr                  &	(swallow middle right)\\
-\verb@-@ & S\verb+_+sw\verb+_+tc                  &	(swallow top center)\\
-\verb@/@ & S\verb+_+sw\verb+_+tl                  &	(swallow top left)\\
-\verb@\@ & S\verb+_+sw\verb+_+tr                  &	(swallow top right)\\
-\verb@-@ & S\verb+_+tdwall                  &	(wall)\\
-\verb@^@ & S\verb+_+teleportation\verb+_+trap     &	(teleportation trap)\\
-\verb@\@ & S\verb+_+throne                  &	(opulent throne)\\
-\verb@-@ & S\verb+_+tlcorn                  &	(top left corner)\\
-\verb@|@ & S\verb+_+tlwall                  &	(wall)\\
-\verb@(@ & S\verb+_+tool                    &	(useful item (pick-axe, key, lamp...))\\
-\verb@^@ & S\verb+_+trap\verb+_+door              &	(trap door)\\
-\verb@t@ & S\verb+_+trapper                 &	(trapper or lurker above)\\
-\verb@-@ & S\verb+_+trcorn                  &	(top right corner)\\
-\# & S\verb+_+tree                    &	(tree)\\
-\verb@T@ & S\verb+_+troll                   &	(troll)\\
-\verb@|@ & S\verb+_+trwall                  &	(wall)\\
-\verb@-@ & S\verb+_+tuwall                  &	(wall)\\
-\verb@U@ & S\verb+_+umber                   &	(umber hulk)\\
-\verb@ @ & S\verb+_+unexplored              &	(unexplored terrain)\\
-\verb@u@ & S\verb+_+unicorn                 &	(unicorn or horse)\\
-\verb@<@ & S\verb+_+upladder                &	(ladder up)\\
-\verb@<@ & S\verb+_+upstair                 &	(staircase up)\\
-\verb@V@ & S\verb+_+vampire                 &	(vampire)\\
-\verb@|@ & S\verb+_+vbeam                   &	(wall)\\
-\# & S\verb+_+vcdbridge               &	(vertical raised drawbridge)\\
-\verb@+@ & S\verb+_+vcdoor                  &	(closed door)\\
-\verb@.@ & S\verb+_+venom                   &	(splash of venom)\\
-\verb@^@ & S\verb+_+vibrating\verb+_+square       &	(vibrating square)\\
-\verb@.@ & S\verb+_+vodbridge               &	(vertical lowered drawbridge)\\
-\verb@-@ & S\verb+_+vodoor                  &	(open door)\\
-\verb@v@ & S\verb+_+vortex                  &	(vortex)\\
-\verb@|@ & S\verb+_+vwall                   &	(vertical wall)\\
-\verb@/@ & S\verb+_+wand                    &	(wand)\\
-\verb@}@ & S\verb+_+water                   &	(water)\\
-\verb@)@ & S\verb+_+weapon                  &	(weapon)\\
-\verb@"@ & S\verb+_+web                     &	(web)\\
-\verb@w@ & S\verb+_+worm                    &	(worm)\\
-\verb@~@ & S\verb+_+worm\verb+_+tail              &	(long worm tail)\\
-\verb@W@ & S\verb+_+wraith                  &	(wraith)\\
-\verb@x@ & S\verb+_+xan                     &	(xan or other extraordinary insect)\\
-\verb@X@ & S\verb+_+xorn                    &	(xorn)\\
-\verb@Y@ & S\verb+_+yeti                    &	(apelike creature)\\
-\verb@Z@ & S\verb+_+zombie                  &	(zombie)\\
-\verb@z@ & S\verb+_+zruty                   &	(zruty)\\
-\verb@ @ & S\verb+_+pet\verb+_+override     &	(any pet if ACCESSIBILITY=1 is set)\\
-\verb@ @ & S\verb+_+hero\verb+_+override    &	(hero if ACCESSIBILITY=1 is set)
+\verb@ @ & S\textunderscore air                     &	(air)\\
+\_ & S\textunderscore altar                   &	(altar)\\
+\verb@"@ & S\textunderscore amulet                  &	(amulet)\\
+\verb@A@ & S\textunderscore angel                   &	(angelic being)\\
+\verb@a@ & S\textunderscore ant                     &	(ant or other insect)\\
+\verb@^@ & S\textunderscore anti\textunderscore magic\textunderscore trap       &	(anti-magic field)\\
+\verb@[@ & S\textunderscore armor                   &	(suit or piece of armor)\\
+\verb@[@ & S\textunderscore armour                  &	(suit or piece of armor)\\
+\verb@^@ & S\textunderscore arrow\textunderscore trap             &	(arrow trap)\\
+\verb@0@ & S\textunderscore ball                    &	(iron ball)\\
+\# & S\textunderscore bars                    &	(iron bars)\\
+\verb@B@ & S\textunderscore bat                     &	(bat or bird)\\
+\verb@^@ & S\textunderscore bear\textunderscore trap              &	(bear trap)\\
+\verb@-@ & S\textunderscore blcorn                  &	(bottom left corner)\\
+\verb@b@ & S\textunderscore blob                    &	(blob)\\
+\verb@+@ & S\textunderscore book                    &	(spellbook)\\
+\verb@)@ & S\textunderscore boomleft                &	(boomerang open left)\\
+\verb@(@ & S\textunderscore boomright               &	(boomerang open right)\\
+\verb@`@ & S\textunderscore boulder                 &	(boulder)\\
+\verb@-@ & S\textunderscore brcorn                  &	(bottom right corner)\\
+\verb@>@ & S\textunderscore brdnladder              &	(branch ladder down)\\
+\verb@>@ & S\textunderscore brdnstair               &	(branch staircase down)\\
+\verb@<@ & S\textunderscore brupladder              &	(branch ladder up)\\
+\verb@<@ & S\textunderscore brupstair               &	(branch staircase up)\\
+\verb@C@ & S\textunderscore centaur                 &	(centaur)\\
+\verb@_@ & S\textunderscore chain                   &	(iron chain)\\
+\# & S\textunderscore cloud                   &	(cloud)\\
+\verb@c@ & S\textunderscore cockatrice              &	(cockatrice)\\
+\$ & S\textunderscore coin                    &	(pile of coins)\\
+\# & S\textunderscore corr                    &	(corridor)\\
+\verb@-@ & S\textunderscore crwall                  &	(wall)\\
+\verb@-@ & S\textunderscore darkroom                &	(dark room)\\
+\verb@^@ & S\textunderscore dart\textunderscore trap              &	(dart trap)\\
+\verb@&@ & S\textunderscore demon                   &	(major demon)\\
+\verb@*@ & S\textunderscore digbeam                 &	(dig beam)\\
+\verb@>@ & S\textunderscore dnladder                &	(ladder down)\\
+\verb@>@ & S\textunderscore dnstair                 &	(staircase down)\\
+\verb@d@ & S\textunderscore dog                     &	(dog or other canine)\\
+\verb@D@ & S\textunderscore dragon                  &	(dragon)\\
+\verb@;@ & S\textunderscore eel                     &	(sea monster)\\
+\verb@E@ & S\textunderscore elemental               &	(elemental)\\
+\# & S\textunderscore engrcorr                      &	(engraving in a corridor)\\
+\verb@`@ & S\textunderscore engroom                 &	(engraving in a room)\\
+\verb@/@ & S\textunderscore expl\textunderscore tl          &	(explosion top left)\\
+\verb@-@ & S\textunderscore expl\textunderscore tc          &	(explosion top center)\\
+\verb@\@ & S\textunderscore expl\textunderscore tr          &	(explosion top right)\\
+\verb@|@ & S\textunderscore expl\textunderscore ml          &	(explosion middle left)\\
+\verb@ @ & S\textunderscore expl\textunderscore mc          &	(explosion middle center)\\
+\verb@|@ & S\textunderscore expl\textunderscore mr          &	(explosion middle right)\\
+\verb@\@ & S\textunderscore expl\textunderscore bl          &	(explosion bottom left)\\
+\verb@-@ & S\textunderscore expl\textunderscore bc          &	(explosion bottom center)\\
+\verb@/@ & S\textunderscore expl\textunderscore br          &	(explosion bottom right)\\
+\verb@e@ & S\textunderscore eye                     &	(eye or sphere)\\
+\verb@^@ & S\textunderscore falling\textunderscore rock\textunderscore trap     &	(falling rock trap)\\
+\verb@f@ & S\textunderscore feline                  &	(cat or other feline)\\
+\verb@^@ & S\textunderscore fire\textunderscore trap              &	(fire trap)\\
+\verb@!@ & S\textunderscore flashbeam               &	(flash beam)\\
+\% & S\textunderscore food                    &	(piece of food)\\
+\{ & S\textunderscore fountain                &	(fountain)\\
+\verb@F@ & S\textunderscore fungus                  &	(fungus or mold)\\
+\verb@*@ & S\textunderscore gem                     &	(gem or rock)\\
+\verb@ @ & S\textunderscore ghost                   &	(ghost)\\
+\verb@H@ & S\textunderscore giant                   &	(giant humanoid)\\
+\verb@G@ & S\textunderscore gnome                   &	(gnome)\\
+\verb@'@ & S\textunderscore golem                   &	(golem)\\
+\verb@|@ & S\textunderscore grave                   &	(grave)\\
+\verb@g@ & S\textunderscore gremlin                 &	(gremlin)\\
+\verb@-@ & S\textunderscore hbeam                   &	(wall)\\
+\# & S\textunderscore hcdbridge               &	(horizontal raised drawbridge)\\
+\verb@+@ & S\textunderscore hcdoor                  &	(closed door)\\
+\verb@.@ & S\textunderscore hodbridge               &	(horizontal lowered drawbridge)\\
+\verb@|@ & S\textunderscore hodoor                  &	(open door)\\
+\verb\^\ & S\textunderscore hole                    &	(hole)\\
+\verb~@~ & S\textunderscore human                   &	(human or elf)\\
+\verb@h@ & S\textunderscore humanoid                &	(humanoid)\\
+\verb@-@ & S\textunderscore hwall                   &	(horizontal wall)\\
+\verb@.@ & S\textunderscore ice                     &	(ice)\\
+\verb@i@ & S\textunderscore imp                     &	(imp or minor demon)\\
+\verb@I@ & S\textunderscore invisible               &	(invisible monster)\\
+\verb@J@ & S\textunderscore jabberwock              &	(jabberwock)\\
+\verb@j@ & S\textunderscore jelly                   &	(jelly)\\
+\verb@k@ & S\textunderscore kobold                  &	(kobold)\\
+\verb@K@ & S\textunderscore kop                     &	(Keystone Kop)\\
+\verb@^@ & S\textunderscore land\textunderscore mine              &	(land mine)\\
+\verb@}@ & S\textunderscore lava                    &	(molten lava)\\
+\verb@}@ & S\textunderscore lavawall                &	(wall of lava)\\
+\verb@l@ & S\textunderscore leprechaun              &	(leprechaun)\\
+\verb@^@ & S\textunderscore level\textunderscore teleporter       &	(level teleporter)\\
+\verb@L@ & S\textunderscore lich                    &	(lich)\\
+\verb@y@ & S\textunderscore light                   &	(light)\\
+\# & S\textunderscore litcorr                 &	(lit corridor)\\
+\verb@:@ & S\textunderscore lizard                  &	(lizard)\\
+\verb@\@ & S\textunderscore lslant                  &	(wall)\\
+\verb@^@ & S\textunderscore magic\textunderscore portal           &	(magic portal)\\
+\verb@^@ & S\textunderscore magic\textunderscore trap             &	(magic trap)\\
+\verb@m@ & S\textunderscore mimic                   &	(mimic)\\
+\verb@]@ & S\textunderscore mimic\textunderscore def              &	(mimic)\\
+\verb@M@ & S\textunderscore mummy                   &	(mummy)\\
+\verb@N@ & S\textunderscore naga                    &	(naga)\\
+\verb@.@ & S\textunderscore ndoor                   &	(doorway)\\
+\verb@n@ & S\textunderscore nymph                   &	(nymph)\\
+\verb@O@ & S\textunderscore ogre                    &	(ogre)\\
+\verb@o@ & S\textunderscore orc                     &	(orc)\\
+\verb@p@ & S\textunderscore piercer                 &	(piercer)\\
+\verb@^@ & S\textunderscore pit                     &	(pit)\\
+\# & S\textunderscore poisoncloud             &	(poison cloud)\\
+\verb@^@ & S\textunderscore polymorph\textunderscore trap         &	(polymorph trap)\\
+\verb@}@ & S\textunderscore pool                    &	(water)\\
+\verb@!@ & S\textunderscore potion                  &	(potion)\\
+\verb@P@ & S\textunderscore pudding                 &	(pudding or ooze)\\
+\verb@q@ & S\textunderscore quadruped               &	(quadruped)\\
+\verb@Q@ & S\textunderscore quantmech               &	(quantum mechanic)\\
+\verb@=@ & S\textunderscore ring                    &	(ring)\\
+\verb@`@ & S\textunderscore rock                    &	(boulder or statue)\\
+\verb@r@ & S\textunderscore rodent                  &	(rodent)\\
+\verb@^@ & S\textunderscore rolling\textunderscore boulder\textunderscore trap  &	(rolling boulder trap)\\
+\verb@.@ & S\textunderscore room                    &	(floor of a room)\\
+\verb@/@ & S\textunderscore rslant                  &	(wall)\\
+\verb@^@ & S\textunderscore rust\textunderscore trap              &	(rust trap)\\
+\verb@R@ & S\textunderscore rustmonst               &	(rust monster or disenchanter)\\
+\verb@?@ & S\textunderscore scroll                  &	(scroll)\\
+\# & S\textunderscore sink                    &	(sink)\\
+\verb@^@ & S\textunderscore sleeping\textunderscore gas\textunderscore trap     &	(sleeping gas trap)\\
+\verb@S@ & S\textunderscore snake                   &	(snake)\\
+\verb@s@ & S\textunderscore spider                  &	(arachnid or centipede)\\
+\verb@^@ & S\textunderscore spiked\textunderscore pit             &	(spiked pit)\\
+\verb@^@ & S\textunderscore squeaky\textunderscore board          &	(squeaky board)\\
+\verb@0@ & S\textunderscore ss1                     &	(magic shield 1 of 4)\\
+\# & S\textunderscore ss2                     &	(magic shield 2 of 4)\\
+\verb+@+ & S\textunderscore ss3                     &	(magic shield 3 of 4)\\
+\verb@*@ & S\textunderscore ss4                     &	(magic shield 4 of 4)\\
+\verb@^@ & S\textunderscore statue\textunderscore trap            &	(statue trap)\\
+\verb@ @ & S\textunderscore stone                   &	(solid rock)\\
+\verb@]@ & S\textunderscore strange\textunderscore obj      &	(strange object)\\
+\verb@-@ & S\textunderscore sw\textunderscore bc                  &	(swallow bottom center)\\
+\verb@\@ & S\textunderscore sw\textunderscore bl                  &	(swallow bottom left)\\
+\verb@/@ & S\textunderscore sw\textunderscore br                  &	(swallow bottom right	)\\
+\verb@|@ & S\textunderscore sw\textunderscore ml                  &	(swallow middle left)\\
+\verb@|@ & S\textunderscore sw\textunderscore mr                  &	(swallow middle right)\\
+\verb@-@ & S\textunderscore sw\textunderscore tc                  &	(swallow top center)\\
+\verb@/@ & S\textunderscore sw\textunderscore tl                  &	(swallow top left)\\
+\verb@\@ & S\textunderscore sw\textunderscore tr                  &	(swallow top right)\\
+\verb@-@ & S\textunderscore tdwall                  &	(wall)\\
+\verb@^@ & S\textunderscore teleportation\textunderscore trap     &	(teleportation trap)\\
+\verb@\@ & S\textunderscore throne                  &	(opulent throne)\\
+\verb@-@ & S\textunderscore tlcorn                  &	(top left corner)\\
+\verb@|@ & S\textunderscore tlwall                  &	(wall)\\
+\verb@(@ & S\textunderscore tool                    &	(useful item (pick-axe, key, lamp...))\\
+\verb@^@ & S\textunderscore trap\textunderscore door              &	(trap door)\\
+\verb@t@ & S\textunderscore trapper                 &	(trapper or lurker above)\\
+\verb@-@ & S\textunderscore trcorn                  &	(top right corner)\\
+\# & S\textunderscore tree                    &	(tree)\\
+\verb@T@ & S\textunderscore troll                   &	(troll)\\
+\verb@|@ & S\textunderscore trwall                  &	(wall)\\
+\verb@-@ & S\textunderscore tuwall                  &	(wall)\\
+\verb@U@ & S\textunderscore umber                   &	(umber hulk)\\
+\verb@ @ & S\textunderscore unexplored              &	(unexplored terrain)\\
+\verb@u@ & S\textunderscore unicorn                 &	(unicorn or horse)\\
+\verb@<@ & S\textunderscore upladder                &	(ladder up)\\
+\verb@<@ & S\textunderscore upstair                 &	(staircase up)\\
+\verb@V@ & S\textunderscore vampire                 &	(vampire)\\
+\verb@|@ & S\textunderscore vbeam                   &	(wall)\\
+\# & S\textunderscore vcdbridge               &	(vertical raised drawbridge)\\
+\verb@+@ & S\textunderscore vcdoor                  &	(closed door)\\
+\verb@.@ & S\textunderscore venom                   &	(splash of venom)\\
+\verb@^@ & S\textunderscore vibrating\textunderscore square       &	(vibrating square)\\
+\verb@.@ & S\textunderscore vodbridge               &	(vertical lowered drawbridge)\\
+\verb@-@ & S\textunderscore vodoor                  &	(open door)\\
+\verb@v@ & S\textunderscore vortex                  &	(vortex)\\
+\verb@|@ & S\textunderscore vwall                   &	(vertical wall)\\
+\verb@/@ & S\textunderscore wand                    &	(wand)\\
+\verb@}@ & S\textunderscore water                   &	(water)\\
+\verb@)@ & S\textunderscore weapon                  &	(weapon)\\
+\verb@"@ & S\textunderscore web                     &	(web)\\
+\verb@w@ & S\textunderscore worm                    &	(worm)\\
+\verb@~@ & S\textunderscore worm\textunderscore tail              &	(long worm tail)\\
+\verb@W@ & S\textunderscore wraith                  &	(wraith)\\
+\verb@x@ & S\textunderscore xan                     &	(xan or other extraordinary insect)\\
+\verb@X@ & S\textunderscore xorn                    &	(xorn)\\
+\verb@Y@ & S\textunderscore yeti                    &	(apelike creature)\\
+\verb@Z@ & S\textunderscore zombie                  &	(zombie)\\
+\verb@z@ & S\textunderscore zruty                   &	(zruty)\\
+\verb@ @ & S\textunderscore pet\textunderscore override     &	(any pet if ACCESSIBILITY=1 is set)\\
+\verb@ @ & S\textunderscore hero\textunderscore override    &	(hero if ACCESSIBILITY=1 is set)
 \end{longtable}%
 }
 
@@ -6582,16 +6579,16 @@ Notes:
 
 %.lp "*"
 Several symbols in this table appear to be blank.
-They are the space character, except for S\verb+_+pet\verb+_+override
-and S\verb+_+hero\verb+_+override which don't have any default value
+They are the space character, except for S\textunderscore pet\textunderscore override
+and S\textunderscore hero\textunderscore override which don't have any default value
 and can only be used if enabled in the ``sysconf'' file.
 
 %.lp "*"
-S\verb+_+rock is misleadingly named; rocks and stones use S\verb+_+gem.
+S\textunderscore rock is misleadingly named; rocks and stones use S\textunderscore gem.
 Statues and boulders are the rock being referred to, but since
 version 3.6.0, statues are displayed as the monster they depict.
-So S\verb+_+rock is only used for boulders and not used at all if
-overridden by the more specific S\verb+_+boulder.
+So S\textunderscore rock is only used for boulders and not used at all if
+overridden by the more specific S\textunderscore boulder.
 
 %.lp
 %.hn 2
@@ -6615,7 +6612,7 @@ character sequences and explicit 24-bit red-green-blue colors in order for the g
 representation to be visible as specified.
 
 For example, the following line in your configuration file will cause
-the glyph representation for glyphid G\verb+_+pool to use Unicode codepoint
+the glyph representation for glyphid G\textunderscore pool to use Unicode codepoint
 U+224B and the color represented by R-G-B value 0-0-160:\\
 \begin{verbatim}
 OPTIONS=glyph:G_pool/U+224B/0-0-160
@@ -6625,8 +6622,8 @@ The list of acceptable glyphid's can be produced by
 \begin{verbatim}
     nethack --glyphids
 \end{verbatim}
-Individual NetHack glyphs can be specified using the G\verb+_+ prefix,
-or you can use an S\verb+_+ symbol for a glyphid and store the custom
+Individual NetHack glyphs can be specified using the G\textunderscore prefix,
+or you can use an S\textunderscore symbol for a glyphid and store the custom
 representation for all NetHack glyphs that would map to that
 particular symbol.
 
@@ -6678,50 +6675,50 @@ Load a symbol set appropriate for use by blind players.
 \item[\ib{menustyle:traditional}]
 This will assist in the interface to speech synthesizers.
 %.lp
-\item[\ib{nomenu\verb+_+overlay}]
+\item[\ib{nomenu\textunderscore overlay}]
 Show menus on a cleared screen and aligned to the left edge.
 %.lp
-\item[\ib{number\verb+_+pad}]
+\item[\ib{number\textunderscore pad}]
 A lot of speech access programs use the number-pad to review the screen.
-If this is the case, disable the number\verb+_+pad option and use the
+If this is the case, disable the number\textunderscore pad option and use the
 traditional Rogue-like commands.
 %.lp
-\item[\ib{paranoid\verb+_+confirmation:swim}]
+\item[\ib{paranoid\textunderscore confirmation:swim}]
 Prevent walking into water or lava.
 %.lp
 \item[\ib{accessiblemsg}]
 Adds direction or location information to messages.
 %.lp
-\item[\ib{spot\verb+_+monsters}]
+\item[\ib{spot\textunderscore monsters}]
 Shows a message when hero notices a monster; combine with accessiblemsg.
 %.lp
-\item[\ib{mon\verb+_+movement}]
+\item[\ib{mon\textunderscore movement}]
 Shows a message when hero notices a monster movement;
-combine with spot\verb+_+monsters and accessiblemsg.
+combine with spot\textunderscore monsters and accessiblemsg.
 %.lp
 \item[\ib{autodescribe}]
 Automatically describe the terrain under the cursor when targeting.
 %.lp
-\item[\ib{mention\verb+_+map}]
+\item[\ib{mention\textunderscore map}]
 Give feedback messages when interesting map locations change.
 %.lp
-\item[\ib{mention\verb+_+walls}]
+\item[\ib{mention\textunderscore walls}]
 Give feedback messages when walking towards a wall or when travel command
 was interrupted.
 %.lp
-\item[\ib{whatis\verb+_+coord:compass}]
+\item[\ib{whatis\textunderscore coord:compass}]
 When targeting with cursor, describe the cursor position with coordinates
 relative to your character.
 %.lp
-\item[\ib{whatis\verb+_+filter:area}]
+\item[\ib{whatis\textunderscore filter:area}]
 When targeting with cursor, filter possible locations so only those in
 the same area (eg. same room, or same corridor) are considered.
 %.lp
-\item[\ib{whatis\verb+_+moveskip}]
+\item[\ib{whatis\textunderscore moveskip}]
 When targeting with cursor and using fast-move, skip the same glyphs instead
 of moving 8 units at a time.
 %.lp
-\item[\ib{nostatus\verb+_+updates}]
+\item[\ib{nostatus\textunderscore updates}]
 Prevent updates to the status lines at the bottom of the screen, if
 your screen-reader reads those lines. The same information can be
 seen via the {\tt \#attributes} command.
@@ -6779,11 +6776,11 @@ A string explaining how to recover a game on this system (no default value).
 0 or 1 to disable or enable, respectively, the SEDUCE option.
 When disabled, incubi and succubi behave like nymphs.
 %.lp
-\item[\ib{CHECK\verb+_+PLNAME}]
+\item[\ib{CHECK\textunderscore PLNAME}]
 Setting this to 1 will make the EXPLORERS, WIZARDS, and SHELLERS check
 for the player name instead of the user's login name.
 %.lp
-\item[\ib{CHECK\verb+_+SAVE\verb+_+UID}]
+\item[\ib{CHECK\textunderscore SAVE\textunderscore UID}]
 0 or 1 to disable or enable, respectively, the UID
 (used identification number) checking for save files (to verify that the
 user who is restoring is the same one who saved).
@@ -6803,7 +6800,7 @@ Maximum number of entries in the score file.
 \item[\ib{POINTSMIN}]
 Minimum number of points to get an entry in the score file.
 %.lp
-\item[\ib{PERS\verb+_+IS\verb+_+UID}]
+\item[\ib{PERS\textunderscore IS\textunderscore UID}]
 0 or 1 to use user names or numeric userids, respectively, to identify
 unique people for the score file.
 %.lp
@@ -6811,16 +6808,16 @@ unique people for the score file.
 0 or 1 to control whether the help menu entry for command
 line usage is shown or suppressed.
 %.lp
-\item[\ib{MAX\verb+_+STATUENAME\verb+_+RANK}]
+\item[\ib{MAX\textunderscore STATUENAME\textunderscore RANK}]
 Maximum number of score file entries to use for
 random statue names (default is 10).
 %.lp
 \item[\ib{ACCESSIBILITY}]
 0 or 1 to disable or enable, respectively, the ability for players
-to set S\verb+_+pet\verb+_+override and S\verb+_+hero\verb+_+override 
+to set S\textunderscore pet\textunderscore override and S\textunderscore hero\textunderscore override 
 symbols in their configuration file.
 %.lp
-\item[\ib{PORTABLE\verb+_+DEVICE\verb+_+PATHS}]
+\item[\ib{PORTABLE\textunderscore DEVICE\textunderscore PATHS}]
 0 or 1 Windows OS only, the game will look for all of its external
 files, and write to all of its output files in one place 
 rather than at the standard locations.
