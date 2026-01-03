@@ -2,21 +2,16 @@
 \documentclass[titlepage]{article}
 \usepackage{hyperref}
 \usepackage{longtable}
+\usepackage{enumitem}
 \usepackage[a4paper, text={160mm, 220mm}, centering]{geometry}
+
+\setlist[description]{leftmargin=30mm, topsep=2mm, partopsep=0mm, parsep=0mm, itemsep=1mm, labelwidth=28mm, labelsep=2mm}
 
 \newcommand{\nd}{\noindent}
 
 \newcommand{\tb}[1]{\tt #1 \hfill}
 \newcommand{\bb}[1]{\bf #1 \hfill}
 \newcommand{\ib}[1]{\it #1 \hfill}
-
-\newcommand{\blist}[1]
-{\begin{list}{$\bullet$}
-    {\leftmargin 30mm \topsep 2mm \partopsep 0mm \parsep 0mm \itemsep 1mm
-     \labelwidth 28mm \labelsep 2mm
-     #1}}
-
-\newcommand{\elist}{\end{list}}
 
 \hyphenation{CRASHREPORTURL}
 
@@ -104,24 +99,24 @@ will vary with your background and training:
 
 %.pg
 %
-\blist{}
-\item[\bb{Archeologists}]%
+\begin{description}
+\item[Archeologists]
 understand dungeons pretty well; this enables them
 to move quickly and sneak up on the local nasties.  They start equipped
 with the tools for a proper scientific expedition.
 %.pg
 %
-\item[\bb{Barbarians}]%
+\item[Barbarians]
 are warriors out of the hinterland, hardened to battle.
 They begin their quests with naught but uncommon strength, a trusty hauberk,
 and a great two-handed sword.
 %.pg
 %
-\item[\bb{Cavemen {\rm and} Cavewomen}]
+\item[Cavemen \textrm{and} Cavewomen]
 start with exceptional strength, but unfortunately, neolithic weapons.
 %.pg
 %
-\item[\bb{Healers}]%
+\item[Healers]
 are wise in medicine and apothecary.  They know the
 herbs and simples that can restore vitality, ease pain, anesthetize,
 and neutralize
@@ -130,61 +125,61 @@ of health or sickness.  Their medical practice earns them quite reasonable
 amounts of money, with which they enter the dungeon.
 %.pg
 %
-\item[\bb{Knights}]%
+\item[Knights]
 are distinguished from the common skirmisher by their
 devotion to the ideals of chivalry and by the surpassing excellence of
 their armor.
 %.pg
 %
-\item[\bb{Monks}]%
+\item[Monks]
 are ascetics, who by rigorous practice of physical and mental
 disciplines have become capable of fighting as effectively without weapons
 as with.  They wear no armor but make up for it with increased mobility.
 %.pg
 %
-\item[\bb{Priests {\rm and} Priestesses}]%
+\item[Priests \textrm{and} Priestesses]
 are clerics militant, crusaders
 advancing the cause of righteousness with arms, armor, and arts
 thaumaturgic.  Their ability to commune with deities via prayer
 occasionally extricates them from peril, but can also put them in it.
 %.pg
 %
-\item[\bb{Rangers}]%
+\item[Rangers]
 are most at home in the woods, and some say slightly out
 of place in a dungeon.  They are, however, experts in archery as well
 as tracking and stealthy movement.
 %.pg
 %
-\item[\bb{Rogues}]%
+\item[Rogues]
 are agile and stealthy thieves, with knowledge of locks,
 traps, and poisons.  Their advantage lies in surprise, which they employ
 to great advantage.
 %.pg
 %
-\item[\bb{Samurai}]%
+\item[Samurai]
 are the elite warriors of feudal Nippon.  They are lightly
 armored and quick, and wear the %
 {\it dai-sho}, two swords of the deadliest
 keenness.
 %.pg
 %
-\item[\bb{Tourists}]%
+\item[Tourists]
 start out with lots of gold (suitable for shopping with),
 a credit card, lots of food, some maps, and an expensive camera.  Most
 monsters don't like being photographed.
 %.pg
 %
-\item[\bb{Valkyries}]%
+\item[Valkyries]
 are hardy warrior women.  Their upbringing in the harsh
 Northlands makes them strong, inures them to extremes of cold, and instills
 in them stealth and cunning.
 %.pg
 %
-\item[\bb{Wizards}]%
+\item[Wizards]
 start out with a knowledge of magic, a selection of magical
 items, and a particular affinity for dweomercraft.  Although seemingly weak
 and easy to overcome at first sight, an experienced Wizard is a deadly foe.
-\elist
+\end{description}
 
 %.pg
 You may also choose the race of your character (within limits; most
@@ -192,39 +187,39 @@ roles have restrictions on which races are eligible for them):
 
 %.pg
 %
-\blist{}
-\item[\bb{Dwarves}]%
+\begin{description}
+\item[Dwarves]
 are smaller than humans or elves, but are stocky and solid
 individuals.  Dwarves' most notable trait is their great expertise in mining
 and metalwork.  Dwarvish armor is said to be second in quality not even to the
 mithril armor of the Elves.
 %.pg
 %
-\item[\bb{Elves}]%
+\item[Elves]
 are agile, quick, and perceptive; very little of what goes
 on will escape an Elf.  The quality of Elven craftsmanship often gives
 them an advantage in arms and armor.
 %.pg
 %
-\item[\bb{Gnomes}]%
+\item[Gnomes]
 are smaller than but generally similar to dwarves.  Gnomes are
 known to be expert miners, and it is known that a secret underground mine
 complex built by this race exists within the Mazes of Menace, filled with
 both riches and danger.
 %.pg
 %
-\item[\bb{Humans}]%
+\item[Humans]
 are by far the most common race of the surface world, and
 are thus the norm to which other races are often compared.  Although
 they have no special abilities, they can succeed in any role.
 %.pg
 %
-\item[\bb{Orcs}]%
+\item[Orcs]
 are a cruel and barbaric race that hate every living thing
 (including other orcs).  Above all others, Orcs hate Elves with a passion
 unequalled, and will go out of their way to kill one at any opportunity.
 The armor and weapons fashioned by the Orcs are typically of inferior quality.
-\elist
+\end{description}
 
 %.hn 1
 \section{What do all those things on the screen mean?}
@@ -339,12 +334,12 @@ the third line.
 Here are explanations of what the various status items mean:
 
 %.lp
-\blist{}
-\item[\bb{Title}]
+\begin{description}
+\item[Title]
 Your character's name and professional ranking (based on role and
 {\it experience level\/}, see below).
 %.lp
-\item[\bb{Strength}]
+\item[Strength]
 A measure of your character's strength; one of your six basic
 attributes.  A human character's attributes can range from 3 to 18 inclusive;
 non-humans may exceed these limits
@@ -354,29 +349,29 @@ higher your strength, the stronger you are.  Strength affects how
 successfully you perform physical tasks, how much damage you do in
 combat, and how much loot you can carry.
 %.lp
-\item[\bb{Dexterity}]
+\item[Dexterity]
 Dexterity affects your chances to hit in combat, to avoid traps, and
 do other tasks requiring agility or manipulation of objects.
 %.lp
-\item[\bb{Constitution}]
+\item[Constitution]
 Constitution affects your ability to recover from injuries and other
 strains on your stamina.
 When strength is low or modest, constitution also affects how much you
 can carry.  With sufficiently high strength, the contribution to
 carrying capacity from your constitution no longer matters.
 %.lp
-\item[\bb{Intelligence}]
+\item[Intelligence]
 Intelligence affects your ability to cast spells and read spellbooks.
 %.lp
-\item[\bb{Wisdom}]
+\item[Wisdom]
 Wisdom comes from your practical experience (especially when dealing with
 magic).  It affects your magical energy.
 %.lp
-\item[\bb{Charisma}]
+\item[Charisma]
 Charisma affects how certain creatures react toward you.  In
 particular, it can affect the prices shopkeepers offer you.
 %.lp
-\item[\bb{Alignment}]
+\item[Alignment]
 %
 {\it Lawful}, {\it Neutral\/} or {\it Chaotic}.  Often, Lawful is
 taken as good and Chaotic as evil, but legal and ethical do not always
@@ -385,35 +380,35 @@ monsters react toward you.  Monsters of a like alignment are more likely
 to be non-aggressive, while those of an opposing alignment are more likely
 to be seriously offended at your presence.
 %.lp
-\item[\bb{Dungeon Level}]
+\item[Dungeon Level]
 How deep you are in the dungeon.  You start at level one and the number
 increases as you go deeper into the dungeon.  Some levels are special,
 and are identified by a name and not a number.  The Amulet of Yendor is
 reputed to be somewhere beneath the twentieth level.
 %.lp
-\item[\bb{Gold}]
+\item[Gold]
 The number of gold pieces you are openly carrying.  Gold which you have
 concealed in containers is not counted.
 %.lp
-\item[\bb{Hit Points}]
+\item[Hit Points]
 Your current and maximum hit points.  Hit points indicate how much
 damage you can take before you die.  The more you get hit in a fight,
 the lower they get.  You can regain hit points by resting, or by using
 certain magical items or spells.  The number in parentheses is the maximum
 number your hit points can reach.
 %.lp
-\item[\bb{Power}]
+\item[Power]
 Spell points.  This tells you how much mystic energy ({\it mana\/})
 you have available for spell casting.  Again, resting will regenerate the
 amount available.
 %.lp
-\item[\bb{Armor Class}]
+\item[Armor Class]
 A measure of how effectively your armor stops blows from unfriendly
 creatures.  The lower this number is, the more effective the armor; it
 is quite possible to have negative armor class.
 See the {\it Armor\/} subsection of {\it Objects\/} for more information.
 %.lp
-\item[\bb{Experience}]
+\item[Experience]
 Your current experience level.
 If the {\it showexp\/}
 option is set, it will be followed by a slash and experience points.
@@ -426,11 +421,11 @@ the points with it has dropped significantly.
 You can use the `{\tt O}' command to turn {\it showexp\/}
 off to avoid using up the limited status line space.)
 %.lp
-\item[\bb{Time}]
+\item[Time]
 The number of turns elapsed so far, displayed if you have the
 {\it time\/} option set.
 %.lp
-\item[\bb{Status}]
+\item[Status]
 Hunger:
 your current hunger status.
 Values are {\it Satiated}, {\it Not~Hungry\/} (or {\it Normal\/}),
@@ -472,7 +467,7 @@ all current status information in unabbreviated format.
 It also shows other information which might be included on the status
 lines if those had more room.
 
-\elist
+\end{description}
 
 %.hn 2
 \subsection*{The message line (top)}
@@ -501,88 +496,88 @@ options to change some of the symbols the game uses; otherwise, the
 game will use default symbols.  Here is a list of what the default
 symbols mean:
 
-\blist{}
-\item[\tb{-}]
+\begin{description}[font=\ttfamily]
+\item[-]
 The horizontal or corner walls of a room, or an open east/west door.
-\item[\tb{|}]
+\item[|]
 The vertical walls of a room, or an open north/south door, or a grave.
-\item[\tb{.}]
+\item[.]
 The floor of a room, or ice, or a doorless doorway, or the span of an
 open drawbridge.
-\item[\tb{\#}]
+\item[\#]
 A corridor, or iron bars, or a tree, or the portcullis of a closed
 drawbridge.\\
 %.lp ""
 Note: engravings in corridors also appear as \# but are shown in
 a different color from normal corridor locations.
-\item[\tb{>}]
+\item[>]
 Stairs down: a way to the next level.
-\item[\tb{<}]
+\item[<]
 Stairs up: a way to the previous level.
-\item[\tb{+}]
+\item[+]
 A closed door, or a spellbook containing a spell you may be able to learn.
-\item[\tb{@}]
+\item[@]
 Your character or a human or an elf.
-\item[\tb{\$}]
+\item[\textdollar]
 A pile of gold.
-\item[\tb{\^}]
+\item[\textasciicircum]
 A trap (once you have detected it).
-\item[\tb{)}]
+\item[)]
 A weapon.
-\item[\tb{[}]
+\item[{[}]
 A suit or piece of armor.
-\item[\tb{\%}]
+\item[\%]
 Something edible (not necessarily healthy).
-\item[\tb{?}]
+\item[?]
 A scroll.
-\item[\tb{/}]
+\item[/]
 A wand.
-\item[\tb{=}]
+\item[=]
 A ring.
-\item[\tb{!}]
+\item[!]
 A potion.
-\item[\tb{(}]
+\item[(]
 A useful item (pick-axe, key, lamp \ldots).
-\item[\tb{"}]
+\item["]
 An amulet or a spider web.
-\item[\tb{*}]
+\item[*]
 A gem or rock (possibly valuable, possibly worthless).
-\item[\tb{\`}]
+\item[\textasciigrave]
 A boulder or statue or an engraving on the floor of a room.\\
 %.lp ""
 Note: statues are displayed as if they were the monsters they depict
 so won't appear as a {\it grave accent\/} (aka {\it back-tick}).
-\item[\tb{0}]
+\item[0]
 An iron ball.
-\item[\tb{\textunderscore}]
+\item[\textunderscore]
 An altar, or an iron chain.
-\item[\tb{\{}]
+\item[\textbraceleft]
 A fountain or a sink.
-\item[\tb{\}}]
+\item[\textbraceright]
 A pool of water or moat or a wall of water
 or a pool of lava or a wall of lava.
-\item[\tb{$\backslash$}]
+\item[\textbackslash]
 An opulent throne.
-\item[\tb{a-z}] {\normalfont and}]
-\item[\tb{A-HJ-Z}] {\normalfont and}]
-%should probably change \item[\tb{@\&\textquotesingle:;}] to \item[\tb{\verb+@&':;+}]
-\item[\tb{@\&\textquotesingle:;}]
+\item[a-z \textrm{\textmd{and}}]
+\item[A-HJ-Z \textrm{\textmd{and}}]
+%should probably change \item[@\&\textquotesingle:;] to \item[\verb+@&':;+]
+\item[@\&\textquotesingle :;]
 Letters and certain other symbols represent the various inhabitants
 of the Mazes of Menace.
 Watch out, they can be nasty and vicious.
 Sometimes, however, they can be helpful.
-\item[\tb{I}]
+\item[I]
 Rather than a specific type of monster, this marks the last known
 location of an invisible or otherwise unseen monster.
 Note that the monster could have moved.
 The `{\tt s}', `{\tt F}', and `{\tt m}' commands may be useful here.
-\item[\tb{1-5}]
+\item[1-5]
 The digits 1 through 5 may be displayed, marking unseen monsters sensed
 via the {\it Warning\/} attribute.
 Less dangerous monsters are indicated by lower values, more dangerous by
 higher values.
 
-\elist
+\end{description}
 %.pg
 You need not memorize all these symbols; you can ask the game what any
 symbol represents with the `{\tt /}' command (see the next section for
@@ -632,12 +627,12 @@ The list of commands is rather long, but it can be read at any time
 during the game through the `{\tt ?}' command, which accesses a menu of
 helpful texts.  Here are the default key bindings for your reference:
 
-\blist{}
+\begin{description}[font=\ttfamily]
 %.lp
-\item[\tb{?}]
+\item[?]
 Help menu:  display one of several help texts available.
 %.lp
-\item[\tb{/}]
+\item[/]
 The {\tt whatis} command, to
 tell what a symbol represents.  You may choose to specify a location
 or type a symbol (or even a whole word) to explain.
@@ -677,16 +672,16 @@ The
 option controls which format of map coordinate is included with their
 descriptions.
 %.lp
-\item[\tb{\&}]
+\item[\&]
 Tell what a command does.
 %.lp
-\item[\tb{<}]
+\item[<]
 Go up to the previous level (if you are on a staircase or ladder).
 %.lp
-\item[\tb{>}]
+\item[>]
 Go down to the next level (if you are on a staircase or ladder).
 %.lp
-\item[\tb{[yuhjklbn]}]
+\item[{[yuhjklbn]}]
 Go one step in the direction indicated (see Figure 3).  If you sense
 or remember
 a monster there, you will fight the monster instead.  Only these
@@ -708,10 +703,10 @@ one-step movement commands cause you to fight monsters; the others
 Figure 3
 \end{center}
 %.lp
-\item[\tb{[YUHJKLBN]}]
+\item[{[YUHJKLBN]}]
 Go in that direction until you hit a wall or run into something.
 %.lp
-\item[\tb{m[yuhjklbn]}]
+\item[m{[yuhjklbn]}]
 Prefix:  move without picking up objects or fighting (even if you remember
 a monster there).\\
 %.lp ""
@@ -746,13 +741,13 @@ skip containers and go straight to adjacent monsters.
 In debug mode (aka ``wizard mode''), the `{\tt m}' prefix may also be
 used with the ``{\tt \#teleport}'' and ``{\tt \#wizlevelport}'' commands.
 %.lp
-\item[\tb{F[yuhjklbn]}]
+\item[F{[yuhjklbn]}]
 Prefix:  fight a monster (even if you only guess one is there).
 %.lp
-\item[\tb{g[yuhjklbn]}]
+\item[g{[yuhjklbn]}]
 Prefix:  Move until something interesting is found.
 %.lp
-\item[\tb{G[yuhjklbn] {\rm or} <Control>+[yuhjklbn]}]
+\item[G{[yuhjklbn]} \textrm{\textmd{or}} <Control>+{[yuhjklbn]}]
 Prefix:  Similar to `{\tt g}', but forking of corridors is not considered
 interesting.
 \\
@@ -762,7 +757,7 @@ Note:  {\tt <Control>+<key>} means holding the {\tt <Control>} or
 shorthand elsewhere in the Guidebook to mean the same thing.  Control
 characters are case-insensitive so {\tt \^{}x} and {\tt \^{}X} are the same.
 %.lp
-\item[\tb{M[yuhjklbn]}]
+\item[M{[yuhjklbn]}]
 Old versions supported `{\tt M}' as a movement prefix which
 combined the effect of `{\tt m}' with {\tt <Control>+<direction>}.
 That is no longer supported as a prefix but similar effect can be achieved
@@ -770,7 +765,7 @@ by using {\tt m} and {\tt G<direction>} in combination.
 {\tt m} can also be used in combination with {\tt g<direction>},
 {\tt <Control>+<direction>}, or {\tt <Shift>+<direction>}.
 %.lp
-\item[\tb{\tt \textunderscore }]
+\item[\textunderscore]
 Travel to a map location via a shortest-path algorithm.\\
 %.lp ""
 The shortest path
@@ -784,45 +779,45 @@ For ports with mouse
 support, the command is also invoked when a mouse-click takes place on a
 location other than the current position.
 %.lp
-\item[\tb{.}]
+\item[.]
 Wait or rest, do nothing for one turn.
 Precede with the `{\tt m}' prefix
 to wait for a turn even next to a hostile monster, if {\it safe\textunderscore wait\/}
 is on.
 %.lp
-\item[\tb{a}]
+\item[a]
 Apply (use) a tool (pick-axe, key, lamp \ldots).\\
 %.lp ""
 If used on a wand, that wand will be broken, releasing its magic in the
 process.
 Confirmation is required.
 %.lp
-\item[\tb{A}]
+\item[A]
 Remove one or more worn items, such as armor.\\
 %.lp ""
 Use `{\tt T}' (take off) to take off only one piece of armor
 or `{\tt R}' (remove) to take off only one accessory.
 %.lp
-\item[\tb{\^{}A}]
+\item[\textasciicircum A]
 Repeat the previous command.
 %.lp
-\item[\tb{c}]
+\item[c]
 Close a door.
 %.lp
-\item[\tb{C}]
+\item[C]
 Call (name) a monster, an individual object, or a type of object.\\
 %.lp ""
 Same as extended command ``{\tt \#name}''.
 %.lp
-\item[\tb{\^{}C}]
+\item[\textasciicircum C]
 Panic button.  Quit the game.
 %.lp
-\item[\tb{d}]
+\item[d]
 Drop something.\\
 For example {\tt d7a} --- drop seven items of object
 {\it a}.
 %.lp
-\item[\tb{D}]
+\item[D]
 Drop several things.\\
 %.lp ""
 In answer to the question\\
@@ -866,10 +861,10 @@ Lastly, you may specify multiple values within multiple categories:
 blessed or uncursed.
 (In versions prior to 3.6, filter combinations behaved differently.)
 %.lp
-\item[\tb{\^{}D}]
+\item[\textasciicircum D]
 Kick something (usually a door).
 %.lp
-\item[\tb{e}]
+\item[e]
 Eat food.\\
 %.lp ""
 Normally checks for edible item(s) on the floor, then if none are found
@@ -888,7 +883,7 @@ option to require a response of ``{\tt yes}'' instead of just `{\tt y}'.
 % (Only specified here to parallel Guidebook.mn; use of \tt font implicitly
 % prevents automatic hyphenation in TeX and LaTeX.)
 \hyphenation{Elbereth}		%override the deduced syllable breaks
-\item[\tb{E}]
+\item[E]
 Engrave a message on the floor.\\
 %.sd
 %.si
@@ -900,7 +895,7 @@ Engraving the word ``{\tt Elbereth}'' will cause most monsters to not attack
 you hand-to-hand (but if you attack, you will rub it out); this is
 often useful to give yourself a breather.
 %.lp
-\item[\tb{f}]
+\item[f]
 Fire (shoot or throw) one of the objects placed in your quiver (or
 quiver sack, or that you have at the ready).
 You may select ammunition with a previous `{\tt Q}' command, or let the
@@ -917,10 +912,10 @@ Remember to swap back to your main melee weapon afterwards.
 \\
 See also `{\tt t}' (throw) for more general throwing and shooting.
 %.lp
-\item[\tb{i}]
+\item[i]
 List your inventory (everything you're carrying).
 %.lp
-\item[\tb{I}]
+\item[I]
 List selected parts of your inventory, usually be specifying the character
 for a particular set of objects, like `{\tt [}' for armor or `{\tt !}'
 for potions.\\
@@ -938,10 +933,10 @@ for potions.\\
 %.ei
 %.ed
 %.lp
-\item[\tb{o}]
+\item[o]
 Open a door.
 %.lp
-\item[\tb{O}]
+\item[O]
 Set options.\\
 %.lp ""
 A menu showing the current option values will be
@@ -954,7 +949,7 @@ are listed later in this Guidebook.  Options are usually set before the
 game rather than with the `{\tt O}' command; see the section on options below.
 Precede {\tt O} with the {\tt m} prefix to show advanced options.
 %.lp
-\item[\tb{\^{}O}]
+\item[\textasciicircum O]
 Show overview.\\
 %.lp ""
 Shortcut for ``{\tt \#overview}'':
@@ -964,10 +959,10 @@ list interesting dungeon levels visited.\\
 the placement of all special levels.
 Use ``{\tt \#wizwhere}'' to run that command.)
 %.lp
-\item[\tb{p}]
+\item[p]
 Pay your shopping bill.
 %.lp
-\item[\tb{P}]
+\item[P]
 Put on an accessory (ring, amulet, or blindfold).\\
 %.lp ""
 This command may also be used to wear armor.  The prompt for
@@ -976,14 +971,14 @@ an unlisted item of armor will attempt to wear it.
 (See the `{\tt W}' command below.  It lists armor as the inventory
 choices but will accept an accessory and attempt to put that on.)
 %.lp
-\item[\tb{\^{}P}]
+\item[\textasciicircum P]
 Repeat previous message.\\
 %.lp ""
 Subsequent {\tt \^{}P}'s repeat earlier messages.
 For some interfaces, the behavior can be varied via the
 {\it msg\textunderscore window\/} option.
 %.lp
-\item[\tb{q}]
+\item[q]
 Quaff (drink) something (potion, water, etc).\\
 %.lp ""
 When there is a fountain or sink present, it asks whether to drink
@@ -993,15 +988,15 @@ inventory.
 Precede {\tt q} with the {\tt m} prefix to skip asking about
 drinking from a fountain or sink.
 %.lp
-\item[\tb{Q}]
+\item[Q]
 Select an object for your quiver, quiver sack, or just generally at
 the ready (only one of these is available at a time).  You can then throw
 this (or one of these) using the `{\tt f}' command.
 %.lp
-\item[\tb{r}]
+\item[r]
 Read a scroll or spellbook.
 %.lp
-\item[\tb{R}]
+\item[R]
 Remove a worn accessory (ring, amulet, or blindfold).\\
 %.lp ""
 If you're wearing more than one, you'll be prompted for which one to
@@ -1016,10 +1011,10 @@ worn armor can be chosen.
 (See the `{\tt T}' command below.  It lists armor as the inventory
 choices but will accept an accessory and attempt to remove it.)
 %.lp
-\item[\tb{\^{}R}]
+\item[\textasciicircum R]
 Redraw the screen.
 %.lp
-\item[\tb{s}]
+\item[s]
 Search for secret doors and traps around you.
 It usually takes several tries to find something.
 Precede with the `{\tt m}' prefix to wait for a turn
@@ -1029,7 +1024,7 @@ is on.\\
 Can also be used to figure out whether there is still a monster at
 an adjacent ``remembered, unseen monster'' marker.
 %.lp
-\item[\tb{S}]
+\item[S]
 Save the game (which suspends play and exits the program).
 The saved game will be restored automatically the next time you play
 using the same character name.\\
@@ -1044,7 +1039,7 @@ without saving and later restore again.\\
 There is no ``save current game state and keep playing'' command, not
 even in explore mode where saved game files can be kept and re-used.
 %.lp
-\item[\tb{t}]
+\item[t]
 Throw an object or shoot a projectile.\\
 %.lp ""
 There's no separate ``shoot'' command.
@@ -1056,7 +1051,7 @@ it by hand and it will generally be less effective than when shot.\\
 See also `{\tt f}' (fire) for throwing or shooting an item pre-selected
 via the `{\tt Q}' (quiver) command, with some extra assistance.
 %.lp
-\item[\tb{T}]
+\item[T]
 Take off armor.\\
 %.lp ""
 If you're wearing more than one piece, you'll be prompted for which
@@ -1074,16 +1069,16 @@ accessory can be chosen.
 (See the `{\tt R}' command above.  It lists accessories as the inventory
 choices but will accept an item of armor and attempt to take it off.)
 %.lp
-\item[\tb{\^{}T}]
+\item[\textasciicircum T]
 Teleport, if you have the ability.
 %.lp
-\item[\tb{v}]
+\item[v]
 Display version number.
 %.lp
-\item[\tb{V}]
+\item[V]
 Display the game history.
 %.lp
-\item[\tb{w}]
+\item[w]
 Wield weapon.\\
 %.sd
 %.si
@@ -1093,7 +1088,7 @@ Wield weapon.\\
 Some characters can wield two weapons at once; use the `{\tt X}' command
 (or the ``{\tt \#twoweapon}'' extended command) to do so.
 %.lp
-\item[\tb{W}]
+\item[W]
 Wear armor.\\
 %.lp ""
 This command may also be used to put on an accessory (ring, amulet, or
@@ -1102,14 +1097,14 @@ armor, but choosing an unlisted accessory will attempt to put it on.
 (See the `{\tt P}' command above.  It lists accessories as the inventory
 choices but will accept an item of armor and attempt to wear it.)
 %.lp
-\item[\tb{x}]
+\item[x]
 Exchange your wielded weapon with the item in your alternate weapon slot.\\
 %.lp ""
 The latter is used as your secondary weapon when engaging in
 two-weapon combat.  Note that if one of these slots is empty,
 the exchange still takes place.
 %.lp
-\item[\tb{X}]
+\item[X]
 Toggle two-weapon combat, if your character can do it.  Also available
 via the ``{\tt \#twoweapon}'' extended command.\\
 %.lp ""
@@ -1117,7 +1112,7 @@ via the ``{\tt \#twoweapon}'' extended command.\\
 play to ``explore mode'', also known as ``discovery mode'', which has now
 been moved to ``{\tt \#exploremode}'' and {\tt M-X}.)
 %.lp
-\item[\tb{\^{}X}]
+\item[\textasciicircum X]
 Display basic information about your character.\\
 %.lp ""
 Displays name, role, race, gender (unless role name makes that
@@ -1131,7 +1126,7 @@ In normal play, that's all that `{\tt \^{}X}' displays.
 In explore mode, the role and status feedback is augmented by the
 information provided by {\it enlightenment\/} magic.
 %.lp
-\item[\tb{z}]
+\item[z]
 Zap a wand.\\
 %.sd
 %.si
@@ -1139,7 +1134,7 @@ Zap a wand.\\
 %.ei
 %.ed
 %.lp
-\item[\tb{Z}]
+\item[Z]
 Zap (cast) a spell.\\
 %.sd
 %.si
@@ -1147,52 +1142,52 @@ Zap (cast) a spell.\\
 %.ei
 %.ed
 %.lp
-\item[\tb{\^{}Z}]
+\item[\textasciicircum Z]
 Suspend the game (UNIX versions with job control only).
 See ``\#suspend'' below for more details.
 %.lp
-\item[\tb{:}]
+\item[:]
 Look at what is here.
 %.lp
-\item[\tb{;}]
+\item[;]
 Show what type of thing a visible symbol corresponds to.
 %.lp
-\item[\tb{,}]
+\item[,]
 Pick up some things from the floor beneath you.\\
 %.lp ""
 May be preceded by `{\tt m}' to force a selection menu.
 %.lp
-\item[\tb{@}]
+\item[@]
 Toggle the {\it autopickup\/} option on and off.
 %.lp
-\item[\tb{\^{}}]
+\item[\textasciicircum]
 Ask for the type of an adjacent trap you found earlier.
 %.lp
-\item[\tb{)}]
+\item[)]
 Tell what weapon you are wielding.
 %.lp
-\item[\tb{[}]
+\item[{]}]
 Tell what armor you are wearing.
 %.lp
-\item[\tb{=}]
+\item[=]
 Tell what rings you are wearing.
 %.lp
-\item[\tb{"}]
+\item["]
 Tell what amulet you are wearing.
 %.lp
-\item[\tb{(}]
+\item[(]
 Tell what tools you are using.
 %.lp
-\item[\tb{*}]
+\item[*]
 Tell what equipment you are using.\\
 %.lp ""
 Combines the preceding five type-specific
 commands into one.
 %.lp
-\item[\tb{\$}]
+\item[\$]
 Report the gold you're carrying, possibly shop credit and/or debt too.
 %.lp
-\item[\tb{+}]
+\item[+]
 List the spells you know.\\
 %.lp ""
 Using this command, you can also rearrange
@@ -1206,20 +1201,20 @@ pick ``reassign casting letters''.  (Any spells learned after that will
 be added to the end of the list rather than be inserted into the sorted
 ordering.)
 %.lp
-\item[\tb{$\backslash$}]
+\item[\textbackslash]
 Show what types of objects have been discovered.
 \\
 %.lp ""
 May be preceded by `{\tt m}' to select preferred display order.
 %.lp
-\item[\tb{\`}]
+\item[\textasciigrave]
 Show discovered types for one class of objects.
 \\
-.lp ""
+%.lp ""
 May be preceded by `{\tt m}' to select preferred display order.
 
 %.lp
-\item[\tb{|}]
+\item[|]
 If persistent inventory display is supported and enabled (with the
 {\it perm\textunderscore invent\/}
 option), interact with it instead of with the map.
@@ -1235,11 +1230,11 @@ Use the {\it Return\/} (aka {\it Enter\/}) or {\it Escape\/} key to
 resume play.
 
 %.lp
-\item[\tb{!}]
+\item[!]
 Escape to a shell.
 See ``\#shell'' below for more details.
 %.lp
-\item[\tb{Del}]
+\item[Del]
 Show map without obstructions.
 You can view the explored portion of the current level's map without
 monsters; without monsters and objects; or without monsters, objects,
@@ -1254,7 +1249,7 @@ Many terminals have an option to swap the {\tt <delete>} and {\tt <backspace>}
 keys, so typing the {\tt <del>} key might not execute this command.
 If that happens, you can use the extended command ``{\tt \#terrain}'' instead.
 %.lp
-\item[\tb{\#}]
+\item[\#]
 Perform an extended command.\\
 %.lp ""
 As you can see, the authors of {\it NetHack\/}
@@ -1263,7 +1258,7 @@ used commands.
 What extended commands are available depends on what features
 the game was compiled with.
 %.lp
-\item[\tb{\#adjust}]
+\item[\#adjust]
 Adjust inventory letters (most useful when the
 {\it fixinv\/}
 option is ``on''). Autocompletes. Default key is `{\tt M-a}'.\\
@@ -1292,14 +1287,14 @@ name when the other doesn't and give that name to the result, while
 splitting (count given) will ignore the source stack's name when
 deciding whether to merge with the destination stack.
 %.lp
-\item[\tb{\#annotate}]
+\item[\#annotate]
 Allows you to specify one line of text to associate with the current
 dungeon level.  All levels with annotations are displayed by the
 ``{\tt \#overview}'' command. Autocompletes.
 Default key is `{\tt M-A}',
 and also `{\tt \^{}N}' if {\it number\textunderscore pad\/} is on.
 %.lp
-\item[\tb{\#apply}]
+\item[\#apply]
 Apply (use) a tool such as a pick-axe, a key, or a lamp.
 Default key is `{\tt a}'.\\
 %.lp ""
@@ -1309,72 +1304,72 @@ skips those items.\\
 If used on a wand, that wand will be broken, releasing its magic in the
 process.  Confirmation is required.
 %.lp
-\item[\tb{\#attributes}]
+\item[\#attributes]
 Show your attributes. Default key is `{\tt \^{}X}'.
 %.lp
-\item[\tb{\#autopickup}]
+\item[\#autopickup]
 Toggle the {\it autopickup\/} option. Default key is `{\tt @}'.
 %.lp
-\item[\tb{\#bugreport}]
+\item[\#bugreport]
 Bring up a browser window to submit a report to the {\it NetHack Development
 Team}.
 Can be disabled at the time the program is built; when enabled,
 CRASHREPORTURL must be set in the system configuration file.
 %.lp
-\item[\tb{\#call}]
+\item[\#call]
 Call (name) a monster, or an object in inventory, on the floor,
 or in the discoveries list, or add an annotation for the
 current level (same as ``{\tt \#annotate}''). Default key is `{\tt C}'.
 %.lp
-\item[\tb{\#cast}]
+\item[\#cast]
 Cast a spell. Default key is `{\tt Z}'.
 %.lp
-\item[\tb{\#chat}]
+\item[\#chat]
 Talk to someone. Default key is `{\tt M-c}'.
 %.lp
-\item[\tb{\#chronicle}]
+\item[\#chronicle]
 Show a list of important game events.
 %.lp
-\item[\tb{\#close}]
+\item[\#close]
 Close a door. Default key is `{\tt c}'.
 %.lp
-\item[\tb{\#conduct}]
+\item[\#conduct]
 List voluntary challenges you have maintained. Autocompletes.
 Default key is `{\tt M-C}'.\\
 %.lp ""
 See the section below entitled ``Conduct'' for details.
 %.lp
-\item[\tb{\#debugfuzzer}]
+\item[\#debugfuzzer]
 Start the fuzz tester.
 Debug mode only.
 %.lp
-\item[\tb{\#dip}]
+\item[\#dip]
 Dip an object into something. Autocompletes. Default key is `{\tt M-d}'.\\
 %.lp ""
 The {\tt m} prefix skips dipping into a fountain or pool if there
 is one at your location.
 %.lp
-\item[\tb{\#down}]
+\item[\#down]
 Go down a staircase. Default key is `{\tt >}'.
 %.lp
-\item[\tb{\#drop}]
+\item[\#drop]
 Drop an item. Default key is `{\tt d}'.
 %.lp
-\item[\tb{\#droptype}]
+\item[\#droptype]
 Drop specific item types. Default key is `{\tt D}'.
 %.lp
-\item[\tb{\#eat}]
+\item[\#eat]
 Eat something. Default key is `{\tt e}'.
 The `{\tt m}' prefix skips eating items on the floor.
 %.lp
-\item[\tb{\#engrave}]
+\item[\#engrave]
 Engrave writing on the floor. Default key is `{\tt E}'.
 %.lp
-\item[\tb{\#enhance}]
+\item[\#enhance]
 Advance or check weapon and spell skills. Autocompletes.
 Default key is `{\tt M-e}'.
 %.lp
-\item[\tb{\#exploremode}]
+\item[\#exploremode]
 Switch from normal play to non-scoring explore mode.
 Default key is `{\tt M-X}'.\\
 %.lp ""
@@ -1384,21 +1379,21 @@ You can set the
 {\it paranoid\textunderscore confirmation:quit\/}
 option to require a response of ``{\tt yes}'' instead.
 %.lp
-\item[\tb{\#fight}]
+\item[\#fight]
 Prefix key to force fight a direction, even if you see nothing
 to fight there.
 Default key is `{\tt F}', or `{\tt -}' with
 {\it number\textunderscore pad\/}
 %.lp
-\item[\tb{\#fire}]
+\item[\#fire]
 Fire ammunition from quiver, possibly autowielding a launcher,
 or hit with a wielded polearm.
 Default key is `{\tt f}'.
 %.lp
-\item[\tb{\#force}]
+\item[\#force]
 Force a lock. Autocompletes. Default key is `{\tt M-f}'.
 %.lp
-\item[\tb{\#genocided}]
+\item[\#genocided]
 List any monster types which have been genocided.
 In explore mode and debug mode it also shows types which have become
 extinct.
@@ -1418,15 +1413,15 @@ The menu omits those two choices when used for {\tt \#genocide}.
 Autocompletes.
 Default key is `{\tt M-g}'.
 %.lp
-\item[\tb{\#glance}]
+\item[\#glance]
 Show what type of thing a map symbol corresponds to. Default key is `{\tt ;}'.
 %.lp
-\item[\tb{\#help}]
+\item[\#help]
 Show the help menu.
 Default key is `{\tt ?}',
 and also `{\tt h}' if {\it number\textunderscore pad\/} is on.
 %.lp
-\item[\tb{\#herecmdmenu}]
+\item[\#herecmdmenu]
 Show a menu of possible actions directed at your current location.
 The menu is limited to a subset of the likeliest actions, not an
 exhaustive set of all possibilities.
@@ -1436,29 +1431,29 @@ If mouse support is enabled and the {\it herecmd\textunderscore menu\/}
 option is On, clicking on the hero (or steed when mounted) will
 execute this command.
 %.lp
-\item[\tb{\#history}]
+\item[\#history]
 Show long version and game history. Default key is `{\tt V}'.
 %.lp
-\item[\tb{\#inventory}]
+\item[\#inventory]
 Show your inventory. Default key is `{\tt i}'.
 %.lp
-\item[\tb{\#inventtype}]
+\item[\#inventtype]
 Inventory specific item types. Default key is `{\tt I}'.
 %.lp
-\item[\tb{\#invoke}]
+\item[\#invoke]
 Invoke an object's special powers. Autocompletes. Default key is `{\tt M-i}'.
 %.lp
-\item[\tb{\#jump}]
+\item[\#jump]
 Jump to another location. Autocompletes.
 Default key is `{\tt M-j}',
 and also `{\tt j}' if {\it number\textunderscore pad\/} is on.
 %.lp
-\item[\tb{\#kick}]
+\item[\#kick]
 Kick something.
 Default key is `{\tt \^{}D}',
 and also `{\tt k}' if {\it number\textunderscore pad\/} is on.
 %.lp
-\item[\tb{\#known}]
+\item[\#known]
 Show what object types have been discovered.
 Default key is `{\tt $\backslash$}'.
 \\
@@ -1467,30 +1462,30 @@ The `{\tt m}' prefix allows assigning a new value to the
 {\it sortdiscoveries\/}
 option to control the order in which the discoveries are displayed.
 %.lp
-\item[\tb{\#knownclass}]
+\item[\#knownclass]
 Show discovered types for one class of objects.
 Default key is `{\tt `}'.
 \\
 %.lp ""
 The `{\tt m}' prefix operates the same as for {\tt \#known}.
 %.lp
-\item[\tb{\#levelchange}]
+\item[\#levelchange]
 Change your experience level.
 Autocompletes.
 Debug mode only.
 %.lp
-\item[\tb{\#lightsources}]
+\item[\#lightsources]
 Show mobile light sources.
 Autocompletes.
 Debug mode only.
 %.lp
-\item[\tb{\#look}]
+\item[\#look]
 Look at what is here, under you. Default key is `{\tt :}'.
 %.lp
-\item[\tb{\#lookaround}]
+\item[\#lookaround]
 Describe what you can see, or remember, of your surroundings.
 %.lp
-\item[\tb{\#loot}]
+\item[\#loot]
 Loot a box or bag on the floor beneath you, or the saddle
 from a steed standing next to you. Autocompletes.
 Precede with the `{\tt m}' prefix to skip containers at your location
@@ -1498,17 +1493,17 @@ and go directly to removing a saddle.
 Default key is `{\tt M-l}',
 and also `{\tt l}' if {\it number\textunderscore pad\/} is on.
 %.lp
-\item[\tb{\#monster}]
+\item[\#monster]
 Use a monster's special ability (when polymorphed into monster form).
 Autocompletes. Default key is `{\tt M-m}'.
 %.lp
-\item[\tb{\#name}]
+\item[\#name]
 Name a monster, an individual object, or a type of object.
 Same as ``{\tt \#call}''.
 Autocompletes.
 Default keys are `{\tt N}', `{\tt M-n}', and `{\tt M-N}'.
 %.lp
-\item[\tb{\#offer}]
+\item[\#offer]
 Offer a sacrifice to the gods. Autocompletes. Default key is `{\tt M-o}'.\\
 %.lp ""
 You'll need to find an altar to have any chance at success.
@@ -1516,21 +1511,21 @@ Corpses of recently killed monsters are the fodder of choice.
 %.lp ""
 The `{\tt m}' prefix skips offering any items which are on the altar.\\
 %.lp
-\item[\tb{\#open}]
+\item[\#open]
 Open a door. Default key is `{\tt o}'.
 %.lp
-\item[\tb{\#options}]
+\item[\#options]
 Show and change option settings. Default key is `{\tt O}'.
 Precede with the {\tt m} prefix to show advanced options.
 %.lp
-\item[\tb{\#optionsfull}]
+\item[\#optionsfull]
 Show advanced game option settings.
 No default key.
 Precede with the `{\tt m}' prefix to execute the simpler options command.
 (Mainly useful if you use {\tt BINDING=O:optionsfull} to switch
 `{\tt O}' from simple options back to traditional advanced options.)
 %.lp
-\item[\tb{\#overview}]
+\item[\#overview]
 Display information you've discovered about the dungeon.
 Any visited level
 % [note: amnesia no longer causes levels to be forgotten so exclude this]
@@ -1553,7 +1548,7 @@ Autocompletes.
 Default keys are `{\tt \^{}O}', and `{\tt M-O}'.
 % DON'T PANIC!
 %.lp
-\item[\tb{\#panic}]
+\item[\#panic]
 Test the panic routine.
 Terminates the current game.
 Autocompletes.
@@ -1565,10 +1560,10 @@ You can set the
 {\it paranoid\textunderscore confirmation:quit\/}
 option to require a response of ``{\tt yes}'' instead.
 %.lp
-\item[\tb{\#pay}]
+\item[\#pay]
 Pay your shopping bill. Default key is `{\tt p}'.
 %.lp
-\item[\tb{\#perminv}]
+\item[\#perminv]
 If persistent inventory display is supported and enabled (with the
 {\it perm\textunderscore invent\/} option), interact with it instead of with the map.
 You'll be prompted for menu scrolling keystrokes such
@@ -1576,16 +1571,16 @@ as `{\tt \verb+>+}' and `{\tt \verb+<+}'.
 Press {\tt Return} or {\tt Escape} to resume normal play.
 Default key is {\tt \verb+|+}.
 %.lp
-\item[\tb{\#pickup}]
+\item[\#pickup]
 Pick up things at the current location. Default key is `{\tt ,}'.
 The `{\tt m}' prefix forces use of a menu.
 %.lp
-\item[\tb{\#polyself}]
+\item[\#polyself]
 Polymorph self.
 Autocompletes.
 Debug mode only.
 %.lp
-\item[\tb{\#pray}]
+\item[\#pray]
 Pray to the gods for help. Autocompletes. Default key is `{\tt M-p}'.\\
 %.lp ""
 Praying too soon after receiving prior help is a bad idea.
@@ -1597,19 +1592,19 @@ by default, and you can reset the
 {\it paranoid\textunderscore confirmation\/}
 option to disable it.
 %.lp
-\item[\tb{\#prevmsg}]
+\item[\#prevmsg]
 Show previously displayed game messages. Default key is `{\tt \^{}P}'.
 %.lp
-\item[\tb{\#puton}]
+\item[\#puton]
 Put on an accessory (ring, amulet, etc). Default key is `{\tt P}'.
 %.lp
-\item[\tb{\#quaff}]
+\item[\#quaff]
 Quaff (drink) something. Default key is `{\tt q}'.\\
 %.lp ""
 The {\tt m} prefix skips drinking from a fountain or sink if there
 is one at your location.
 %.lp
-\item[\tb{\#quit}]
+\item[\#quit]
 Quit the program without saving your game. Autocompletes.\\
 %.lp ""
 Since using this command by accident would throw away the current game,
@@ -1620,42 +1615,42 @@ You can set the
 {\it paranoid\textunderscore confirmation:quit\/}
 option to require a response of ``{\tt yes}'' instead.
 %.lp
-\item[\tb{\#quiver}]
+\item[\#quiver]
 Select ammunition for quiver. Default key is `{\tt Q}'.
 %.lp
-\item[\tb{\#read}]
+\item[\#read]
 Read a scroll, a spellbook, or something else. Default key is `{\tt r}'.
 %.lp
-\item[\tb{\#redraw}]
+\item[\#redraw]
 Redraw the screen.
 Default key is `{\tt \^{}R}',
 and also `{\tt \^{}L}' if {\it number\textunderscore pad\/} is on.
 %.lp
-\item[\tb{\#remove}]
+\item[\#remove]
 Remove an accessory (ring, amulet, etc). Default key is `{\tt R}'.
 %.lp
-\item[{\tb{\#repeat}}]
+\item[\#repeat]
 Repeat the previous command.
 Default key is~`{\tt \^{}A}'.
 %.lp
-\item[\tb{\#reqmenu}]
+\item[\#reqmenu]
 Prefix key to modify the behavior or request menu from some commands.
 Prevents autopickup when used with movement commands.
 Default key is `{\tt m}'.
 %.lp
-\item[\tb{\#retravel}]
+\item[\#retravel]
 Travel to a previously selected travel destination.
 Default key is `{\tt C-\textunderscore }'.
 See also {\tt \#travel}.
 %.lp
-\item[\tb{\#ride}]
+\item[\#ride]
 Ride (or stop riding) a saddled creature. Autocompletes.
 Default key is `{\tt M-R}'.
 %.lp
-\item[\tb{\#rub}]
+\item[\#rub]
 Rub a lamp or a stone. Autocompletes. Default key is `{\tt M-r}'.
 %.lp
-\item[\tb{\#run}]
+\item[\#run]
 Prefix key to run towards a direction.
 Default key is `{\tt G}' when
 {\it number\textunderscore pad\/}
@@ -1665,7 +1660,7 @@ is off,
 is set to 1~or~3,
 otherwise `{\tt M-5}' when it is set to 2~or~4.
 %.lp
-\item[\tb{\#rush}]
+\item[\#rush]
 Prefix key to rush towards a direction.
 Default key is `{\tt g}' when
 {\it number\textunderscore pad\/}
@@ -1675,45 +1670,45 @@ is off,
 is set to 1~or~3,
 otherwise `{\tt 5}' when it is set to 2~or~4.
 %.lp
-\item[\tb{\#save}]
+\item[\#save]
 Save the game and exit the program.
 Default key is `{\tt S}'.
 %.lp
-\item[\tb{\#saveoptions}]
+\item[\#saveoptions]
 Save configuration options to the config file.
 This will overwrite the file, removing all comments, so if you have
 manually edited the config file, don't use this.
 %.lp
-\item[\tb{\#search}]
+\item[\#search]
 Search for traps and secret doors around you. Default key is `{\tt s}'.
 %.lp
-\item[\tb{\#seeall}]
+\item[\#seeall]
 Show all equipment in use. Default key is `{\tt *}'.
 %.lp ""
 \\
 Will display in-use items in a menu even when there is only one.
 %.lp
-\item[\tb{\#seeamulet}]
+\item[\#seeamulet]
 Show the amulet currently worn. Default key is `{\tt "}'.
 %.lp ""
 \\
 Using the `{\tt m}' prefix will force the display of a worn
 amulet in a menu rather than with just a message.
 %.lp
-\item[\tb{\#seearmor}]
+\item[\#seearmor]
 Show the armor currently worn. Default key is `{\tt [}'.
 %.lp ""
 \\
 Will display worn armor in a menu even when there is only thing worn.
 %.lp
-\item[\tb{\#seerings}]
+\item[\#seerings]
 Show the ring(s) currently worn. Default key is `{\tt =}'.
 %.lp ""
 Will display worn rings in a menu if there are two (or there is
 just one and is a meat ring rather than a ``real'' ring).
 Use the `{\tt m}' prefix to force a menu for one ring.
 %.lp
-\item[\tb{\#seetools}]
+\item[\#seetools]
 Show the tools currently in use. Default key is `{\tt (}'.
 %.lp ""
 Will display the result in a message if there is one tool in use (worn
@@ -1722,7 +1717,7 @@ attached to pets).
 Will display a menu if there are more than one or if the command is
 preceded by the `{\tt m}' prefix.
 %.lp
-\item[\tb{\#seeweapon}]
+\item[\#seeweapon]
 Show the weapon currently wielded. Default key is `{\tt )}'.
 %.lp ""
 If dual-wielding, a separate message about the secondary weapon will be
@@ -1731,7 +1726,7 @@ Using the `{\tt m}' prefix will force a menu and it will include
 primary weapon, alternate weapon even when not dual-wielding, and also
 whatever is currently assigned to the quiver slot.
 %.lp
-\item[\tb{\#shell}]
+\item[\#shell]
 Do a shell escape, switching from NetHack to a subprocess.
 Can be disabled at the time the program is built.
 When enabled, access for specific users can be controlled by the system
@@ -1739,17 +1734,17 @@ configuration file.
 Use the shell command `{\tt exit}' to return to the game.
 Default key is `{\tt !}'.
 %.lp
-\item[\tb{\#showgold}]
+\item[\#showgold]
 Report the gold in your inventory, including gold you know about in
 containers you're carrying.  If you are inside a shop, report any credit
 or debt you have in that shop.
 Default key is `{\tt \$}'.
 %.lp
-\item[\tb{\#showspells}]
+\item[\#showspells]
 List and reorder known spells.
 Default key is `{\tt +}'.
 %.lp
-\item[\tb{\#showtrap}]
+\item[\#showtrap]
 Describe an adjacent trap, possibly covered by objects or a monster.
 To be eligible, the trap must already be discovered.
 (The ``{\tt \#terrain}'' command can display your map with all objects and
@@ -1757,15 +1752,15 @@ monsters temporarily removed, making it possible to see all discovered
 traps.)
 Default key is `{\tt \^{}}'.
 %.lp
-\item[\tb{\#sit}]
+\item[\#sit]
 Sit down. Autocompletes. Default key is `{\tt M-s}'.
 %.lp
-\item[\tb{\#stats}]
+\item[\#stats]
 Show memory usage statistics.
 Autocompletes.
 Debug mode only.
 %.lp
-\item[\tb{\#suspend}]
+\item[\#suspend]
 Suspend the game, switching from NetHack to the terminal it was started
 from without performing save-and-exit.
 Can be disabled at the time the program is built.
@@ -1775,19 +1770,19 @@ UNIX.
 Use the shell command `{\tt fg}' to return to the game.
 Default key is `{\tt \^{}Z}'.
 %.lp
-\item[\tb{\#swap}]
+\item[\#swap]
 Swap wielded and secondary weapons. Default key is `{\tt x}'.
 %.lp
-\item[\tb{\#takeoff}]
+\item[\#takeoff]
 Take off one piece of armor. Default key is `{\tt T}'.
 %.lp
-\item[\tb{\#takeoffall}]
+\item[\#takeoffall]
 Remove all armor. Default key is `{\tt A}'.
 %.lp
-\item[\tb{\#teleport}]
+\item[\#teleport]
 Teleport around the level. Default key is `{\tt \^{}T}'.
 %.lp
-\item[\tb{\#terrain}]
+\item[\#terrain]
 Show map without obstructions.
 In normal play you can view the explored portion of the current level's
 map without monsters; without monsters and objects; or without monsters,
@@ -1803,7 +1798,7 @@ In debug mode there are additional choices.\\
 Autocompletes.
 Default key is `{\tt <del>}' or `{\tt <delete>}' (see {\it Del\/} above).
 %.lp
-\item[\tb{\#therecmdmenu}]
+\item[\#therecmdmenu]
 Show a menu of possible actions directed at a location next to you.
 The menu is limited to a subset of the likeliest actions, not an
 exhaustive set of all possibilities.
@@ -1814,15 +1809,15 @@ Autocompletes.
 %% If mouse support is enabled and the {\it herecmd\textunderscore menu\/}
 %% option is On, clicking on an adjacent location will execute this command.
 %.lp
-\item[\tb{\#throw}]
+\item[\#throw]
 Throw something. Default key is `{\tt t}'.
 %.lp
-\item[\tb{\#timeout}]
+\item[\#timeout]
 Look at the timeout queue.
 Autocompletes.
 Debug mode only.
 %.lp
-\item[\tb{\#tip}]
+\item[\#tip]
 Tip over a container (bag or box) to pour out its contents.
 When there are containers on the floor, the game will prompt to pick one
 of them or ``tip something being carried''.
@@ -1839,7 +1834,7 @@ floor container menu.
 %.lp ""
 Autocompletes. Default key is `{\tt M-T}'.
 %.lp
-\item[\tb{\#travel}]
+\item[\#travel]
 Travel to a specific location on the map.
 Default key is `{\tt \textunderscore }'.
 Using the ``request menu'' prefix shows a menu of interesting targets in sight
@@ -1849,10 +1844,10 @@ option is on, the top line will show ``(no travel path)'' if
 your character does not know of a path to that location.
 See also {\tt \#retravel}.
 %.lp
-\item[\tb{\#turn}]
+\item[\#turn]
 Turn undead away. Autocompletes. Default key is `{\tt M-t}'.
 %.lp
-\item[\tb{\#twoweapon}]
+\item[\#twoweapon]
 Toggle two-weapon combat on or off. Autocompletes.
 Default key is `{\tt X}',
 and also `{\tt M-2}' if {\it number\textunderscore pad\/} is off.\\
@@ -1861,16 +1856,16 @@ Note that you must
 use suitable weapons for this type of combat, or it will
 be automatically turned off.
 %.lp
-\item[\tb{\#untrap}]
+\item[\#untrap]
 Untrap something (trap, door, or chest).
 Default key is `{\tt M-u}', and `{\tt u}' if {\it number\textunderscore pad\/} is on.\\
 %.lp ""
 In some circumstances it can also be used to rescue trapped monsters.
 %.lp
-\item[\tb{\#up}]
+\item[\#up]
 Go up a staircase. Default key is `{\tt <}'.
 %.lp
-\item[\tb{\#vanquished}]
+\item[\#vanquished]
 List vanquished monsters by type and count.
 \\
 %.lp ""
@@ -1896,7 +1891,7 @@ monsters answering `{\tt a}' will let you choose from the sort menu.
 Autocompletes.
 Default key is `{\tt M-V}'.
 %.lp
-\item[\tb{\#version}]
+\item[\#version]
 Print compile time options for this version of {\it NetHack\/}.
 
 %.lp
@@ -1907,50 +1902,50 @@ option in your run-time configuration file to select the one you want.
 %.lp
 Autocompletes. Default key is `{\tt M-v}'.
 %.lp
-\item[\tb{\#versionshort}]
+\item[\#versionshort]
 Show the program's version number, plus the date and time that the
 running copy was built from sources (not the version's release date).
 Default key is `{\tt v}'.
 %.lp
-\item[\tb{\#vision}]
+\item[\#vision]
 Show vision array.
 Autocompletes.
 Debug mode only.
 %.lp
-\item[\tb{\#wait}]
+\item[\#wait]
 Rest one move while doing nothing.
 Default key is `{\tt .}', and also `{\tt{ }}' if
 {\it rest\textunderscore on\textunderscore space\/} is on.
 %.lp
-\item[\tb{\#wear}]
+\item[\#wear]
 Wear a piece of armor. Default key is `{\tt W}'.
 %.lp
-\item[\tb{\#whatdoes}]
+\item[\#whatdoes]
 Tell what a key does. Default key is `{\tt \&}'.
 %.lp
-\item[\tb{\#whatis}]
+\item[\#whatis]
 Show what type of thing a symbol corresponds to. Default key is `{\tt /}'.
 %.lp
-\item[\tb{\#wield}]
+\item[\#wield]
 Wield a weapon. Default key is `{\tt w}'.
 %.lp
-\item[\tb{\#wipe}]
+\item[\#wipe]
 Wipe off your face. Autocompletes. Default key is `{\tt M-w}'.
 %.lp
-\item[\tb{\#wizborn}]
+\item[\#wizborn]
 Show monster birth, death, genocide, and extinct statistics.
 Debug mode only.
 %.lp
-\item[\tb{\#wizbury}]
+\item[\#wizbury]
 Bury objects under and around you.
 Autocompletes.
 Debug mode only.
 %.lp
-\item[\tb{\#wizcast}]
+\item[\#wizcast]
 Cast any spell.
 Debug mode only.
 %.lp
-\item[\tb{\#wizdetect}]
+\item[\#wizdetect]
 Reveal hidden things (secret doors or traps or unseen monsters)
 within a modest radius.
 No time elapses.
@@ -1958,44 +1953,44 @@ Autocompletes.
 Debug mode only.
 Default key is `{\tt \^{}E}'.
 %.lp
-\item[\tb{\#wizgenesis}]
+\item[\#wizgenesis]
 Create a monster.
 May be prefixed by a count to create more than one.
 Autocompletes.
 Debug mode only.
 Default key is `{\tt \^{}G}'.
 %.lp
-\item[\tb{\#wizidentify}]
+\item[\#wizidentify]
 Identify all items in inventory.
 Autocompletes.
 Debug mode only.
 Default key is `{\tt \^{}I}'.
 %.lp
-\item[\tb{\#wizintrinsic}]
+\item[\#wizintrinsic]
 Set one or more intrinsic attributes.
 Autocompletes.
 Debug mode only.
 %.lp
-\item[\tb{\#wizkill}]
+\item[\#wizkill]
 Remove monsters from play by just pointing at them.
 By default the hero gets credit or blame for killing the targets.
 Precede this command with the `{\tt m}' prefix to override that.
 Autocompletes.
 Debug mode only.
 %.lp
-\item[\tb{\#wizlevelport}]
+\item[\#wizlevelport]
 Teleport to another level.
 Autocompletes.
 Debug mode only.
 Default key is `{\tt \^{}V}'.
 %.lp
-\item[\tb{\#wizmap}]
+\item[\#wizmap]
 Map the level.
 Autocompletes.
 Debug mode only.
 Default key is `{\tt \^{}F}'.
 %.lp
-\item[\tb{\#wizrumorcheck}]
+\item[\#wizrumorcheck]
 Verify rumor boundaries by displaying first and last true rumors and
 first and last false rumors.\\
 %.lp ""
@@ -2005,38 +2000,38 @@ and hallucinatory monsters.\\
 Autocompletes.
 Debug mode only.
 %.lp
-\item[\tb{\#wizseenv}]
+\item[\#wizseenv]
 Show map locations' seen vectors.
 Autocompletes.
 Debug mode only.
 %.lp
-\item[\tb{\#wizsmell}]
+\item[\#wizsmell]
 Smell monster.
 Autocompletes.
 Debug mode only.
 %.lp
-\item[\tb{\#wizwhere}]
+\item[\#wizwhere]
 Show locations of special levels.
 Autocompletes.
 Debug mode only.
 %.lp
-\item[\tb{\#wizwish}]
+\item[\#wizwish]
 Wish for something.
 Autocompletes.
 Debug mode only.
 Default key is `{\tt \^{}W}'.
 %.lp
-\item[\tb{\#wmode}]
+\item[\#wmode]
 Show wall modes.
 Autocompletes.
 Debug mode only.
 %.lp
-\item[\tb{\#zap}]
+\item[\#zap]
 Zap a wand. Default key is `{\tt z}'.
 %.lp
-\item[\tb{\#?}]
+\item[\#?]
 Help menu:  get the list of available extended commands.
-\elist
+\end{description}
 
 %.pg
 \nd If your keyboard has a meta key (which, when pressed in combination
@@ -2063,116 +2058,116 @@ equivalent is used for another command, so the three key combination
 {\tt meta+Shift+letter} is needed.
 
 %.BR 1
-\blist{}
+\begin{description}[font=\ttfamily]
 %.lp
-\item[\tb{M-?}]
+\item[M-?]
 {\tt\#?} (not supported by all platforms)
 %.lp
-\item[\tb{M-2}]
+\item[M-2]
 {\tt\#twoweapon} (unless the {\it number\textunderscore pad\/} option is enabled)
 %.lp
-\item[\tb{M-a}]
+\item[M-a]
 {\tt\#adjust}
 %.lp
-\item[\tb{M-A}]
+\item[M-A]
 {\tt\#annotate}
 %.lp
-\item[\tb{M-c}]
+\item[M-c]
 {\tt\#chat}
 %.lp
-\item[\tb{M-C}]
+\item[M-C]
 {\tt\#conduct}
 %.lp
-\item[\tb{M-d}]
+\item[M-d]
 {\tt\#dip}
 %.lp
-\item[\tb{M-e}]
+\item[M-e]
 {\tt\#enhance}
 %.lp
-\item[\tb{M-f}]
+\item[M-f]
 {\tt\#force}
 %.lp
-\item[\tb{M-g}]
+\item[M-g]
 {\tt\#genocided}
 %.lp
-\item[\tb{M-i}]
+\item[M-i]
 {\tt\#invoke}
 %.lp
-\item[\tb{M-j}]
+\item[M-j]
 {\tt\#jump}
 %.lp
-\item[\tb{M-l}]
+\item[M-l]
 {\tt\#loot}
 %.lp
-\item[\tb{M-m}]
+\item[M-m]
 {\tt\#monster}
 %.lp
-\item[\tb{M-n}]
+\item[M-n]
 {\tt\#name}
 %.lp
-\item[\tb{M-o}]
+\item[M-o]
 {\tt\#offer}
 %.lp
-\item[\tb{M-O}]
+\item[M-O]
 {\tt\#overview}
 %.lp
-\item[\tb{M-p}]
+\item[M-p]
 {\tt\#pray}
 %.Ip
-\item[\tb{M-r}]
+\item[M-r]
 {\tt\#rub}
 %.lp
-\item[\tb{M-R}]
+\item[M-R]
 {\tt\#ride}
 %.lp
-\item[\tb{M-s}]
+\item[M-s]
 {\tt\#sit}
 %.lp
-\item[\tb{M-t}]
+\item[M-t]
 {\tt\#turn}
 %.lp
-\item[\tb{M-T}]
+\item[M-T]
 {\tt\#tip}
 %.lp
-\item[\tb{M-u}]
+\item[M-u]
 {\tt\#untrap}
 %.lp
-\item[\tb{M-v}]
+\item[M-v]
 {\tt\#version}
 %.lp
-\item[\tb{M-V}]
+\item[M-V]
 {\tt\#vanquished}
 %.lp
-\item[\tb{M-w}]
+\item[M-w]
 {\tt\#wipe}
 %.lp
-\item[\tb{M-X}]
+\item[M-X]
 {\tt\#exploremode}
-\elist
+\end{description}
 
 %.pg
 \nd If the {\it number\textunderscore pad\/} option is on, some additional letter commands
 are available:
-\blist{}
+\begin{description}[font=\ttfamily]
 %.lp
-\item[\tb{h}]
+\item[h]
 {\tt\#help}
 %.lp
-\item[\tb{j}]
+\item[j]
 {\tt\#jump}
 %.lp
-\item[\tb{k}]
+\item[k]
 {\tt\#kick}
 %.lp
-\item[\tb{l}]
+\item[l]
 {\tt\#loot}
 %.lp
-\item[\tb{N}]
+\item[N]
 {\tt\#name}
 %.lp
-\item[\tb{u}]
+\item[u]
 {\tt\#untrap}
-\elist
+\end{description}
 
 %.BR 1 \"blank line for extra separation; plain text output looks better
 
@@ -2429,21 +2424,21 @@ Several aspects of shop behavior might be unexpected.
 \begin{itemize}
 % note: a bullet is the default item label so we could omit [$\bullet$] here
 %.lp \(bu 2
-\item[$\bullet$]
+\item
 The price of a given item can vary due to a variety of factors.
 %.lp \(bu 2
-\item[$\bullet$]
+\item
 A shopkeeper treats the spot immediately inside the door as if it were
 outside the shop.
 %.lp \(bu 2
-\item[$\bullet$]
+\item
 While the shopkeeper watches you like a hawk, he or she will generally ignore
 any other customers.
 %.lp \(bu 2
-\item[$\bullet$]
+\item
 If a shop is ``closed for inventory,'' it will not open of its own accord.
 %.lp \(bu 2
-\item[$\bullet$]
+\item
 Shops do not get restocked with new items, regardless of inventory depletion.
 \end{itemize}
 
@@ -3678,62 +3673,62 @@ in which you might accomplish them.
 %.PS "Mines'\~End\~"
 \settowidth{\achwidth}{\tt Mines'~End~}
 \addtolength{\achwidth}{\labelsep}
-\blist{\leftmargin \achwidth \topsep 1mm \itemsep 0mm}
+\begin{description}[leftmargin=\achwidth, topsep=1mm, itemsep=0mm, labelwidth=*, font=\ttfamily, align=right]
 %.PL Shop
-\item[{\tt <Rank>}]
+\item[<Rank>]
 Attained rank title {\it Rank}.
-\item[{\tt Shop}]
+\item[Shop]
 Entered a shop.
-\item[{\tt Temple}]
+\item[Temple]
 Entered a temple.
-\item[{\tt Mines}]
+\item[Mines]
 Entered the Gnomish Mines.
-\item[{\tt Town}]
+\item[Town]
 Entered Mine Town.
-\item[{\tt Oracle}]
+\item[Oracle]
 Consulted the Oracle of Delphi.
-\item[{\tt Novel}]
+\item[Novel]
 Read a passage from a Discworld Novel.
-\item[{\tt Sokoban}]
+\item[Sokoban]
 Entered Sokoban.
-\item[{\tt "Big~Room"}]
+\item["Big~Room"]
 Entered the Big Room.
-\item[{\tt "Soko-Prize"}]
+\item["Soko-Prize"]
 Explored to the top of Sokoban and found a special item there.
-\item[{\tt Mines'~End}]
+\item[Mines'~End]
 Explored to the bottom of the Gnomish Mines and found a special item there.
-\item[{\tt Medusa}]
+\item[Medusa]
 Defeated Medusa.
-\item[{\tt Tune}]
+\item[Tune]
 Discovered the tune that can be used to open and close the drawbridge on
 the Castle level.
-\item[{\tt Bell}]
+\item[Bell]
 Acquired the Bell of Opening.
-\item[{\tt Gehennom}]
+\item[Gehennom]
 Entered Gehennom.
-\item[{\tt Candle}]
+\item[Candle]
 Acquired the Candelabrum of Invocation.
-\item[{\tt Book}]
+\item[Book]
 Acquired the Book of the Dead.
-\item[{\tt Invocation}]
+\item[Invocation]
 Gained access to the bottommost level of Gehennom.
-\item[{\tt Amulet}]
+\item[Amulet]
 Acquired the fabled Amulet of Yendor.
-\item[{\tt Endgame}]
+\item[Endgame]
 Reached the Elemental Planes.
-\item[{\tt Astral}]
+\item[Astral]
 Reached the Astral Plane level.
-\item[{\tt Blind}]
+\item[Blind]
 Blind from birth.
-\item[{\tt Deaf}]
+\item[Deaf]
 Deaf from birth.
-\item[{\tt Nudist}]
+\item[Nudist]
 Never wore any armor.
-\item[{\tt Pauper}]
+\item[Pauper]
 Started out with no possessions.
-\item[{\tt Ascended}]
+\item[Ascended]
 Delivered the Amulet to its final destination.
-\elist
+\end{description}
 %.PE
 %.ED
 
@@ -3860,8 +3855,8 @@ settings particular to that directive.
 Here is a list of allowed directives:
 
 %.lp
-\blist{}
-\item[\bb{OPTIONS}]
+\begin{description}
+\item[OPTIONS]
 There are two types of options, boolean and compound options.
 Boolean options toggle a setting on or off, while compound options
 take more diverse values.
@@ -3882,35 +3877,35 @@ Example:
 %.ed
 
 %.lp
-\item[\bb{HACKDIR}]
+\item[HACKDIR]
 Default location of files {\it NetHack\/} needs. On Windows HACKDIR
 defaults to the location of the {\it NetHack.exe\/} or {\it NetHackw.exe\/} file
 so setting HACKDIR to override that is not usually necessary or recommended.
 %.lp
-\item[\bb{LEVELDIR}]
+\item[LEVELDIR]
 The location that in-progress level files are stored. Defaults to HACKDIR,
 must be writable.
 %.lp
-\item[\bb{SAVEDIR}]
+\item[SAVEDIR]
 The location where saved games are kept. Defaults to HACKDIR, must be
 writable.
 %.lp
-\item[\bb{BONESDIR}]
+\item[BONESDIR]
 The location that bones files are kept. Defaults to HACKDIR, must be
 writable.
 %.lp
-\item[\bb{LOCKDIR}]
+\item[LOCKDIR]
 The location that file synchronization locks are stored. Defaults to
 HACKDIR, must be writable.
 %.lp
-\item[\bb{TROUBLEDIR}]
+\item[TROUBLEDIR]
 The location that a record of game aborts and self-diagnosed game problems
 is kept. Defaults to HACKDIR, must be writable.
 %
 % config file entries beyond this point are shown alphabetically
 %
 %.lp
-\item[\bb{AUTOCOMPLETE}]
+\item[AUTOCOMPLETE]
 Enable or disable an extended command autocompletion.
 Autocompletion has no effect for the X11 windowport.
 You can specify multiple autocompletions. To enable
@@ -3927,11 +3922,11 @@ Example:
 %.ed
 
 %.lp
-\item[\bb{AUTOPICKUP\textunderscore EXCEPTION}]
+\item[AUTOPICKUP\textunderscore EXCEPTION]
 Set exceptions to the {{\it pickup\textunderscore types\/}}
 option. See the ``Configuring Autopickup Exceptions'' section.
 %.lp
-\item[\bb{BINDINGS}]
+\item[BINDINGS]
 Change the key bindings of some special keys, menu accelerators,
 extended commands, or mouse buttons. You can specify multiple bindings.
 Format is key followed by the command, separated by a colon.
@@ -3946,7 +3941,7 @@ Example:
 %.ed
 
 %.lp
-\item[\bb{CHOOSE}]
+\item[CHOOSE]
 Chooses at random one of the comma-separated parameters as an active
 section name.
 Lines in other sections are ignored.
@@ -3972,27 +3967,27 @@ section begins; whatever follows will be common to all sections.
 Otherwise the last section extends to the end of the options file.
 
 %.lp
-\item[\bb{MENUCOLOR}]
+\item[MENUCOLOR]
 Highlight menu lines with different colors.
 See the ``Configuring Menu Colors`` section.
 %.lp
-\item[\bb{MSGTYPE}]
+\item[MSGTYPE]
 Change the way messages are shown in the top status line.
 See the ``Configuring Message Types`` section.
 %.lp
-\item[\bb{ROGUESYMBOLS}]
+\item[ROGUESYMBOLS]
 Custom symbols for the rogue level's symbol set.
 See {\it SYMBOLS} below.
 %.lp
-\item[\bb{SOUND}]
+\item[SOUND]
 Define a sound mapping.
 See the ``Configuring User Sounds'' section.
 %.lp
-\item[\bb{SOUNDDIR}]
+\item[SOUNDDIR]
 Define the directory that contains the sound files.
 See the ``Configuring User Sounds'' section.
 %.lp
-\item[\bb{SYMBOLS}]
+\item[SYMBOLS]
 Override one or more symbols in the symbol set used for all dungeon
 levels except for the special rogue level.
 See the ``Modifying {\it NetHack\/} Symbols'' section.
@@ -4008,7 +4003,7 @@ Example:
 %.ed
 
 %.lp
-\item[\bb{WIZKIT}]
+\item[WIZKIT]
 Debug mode only:  extra items to add to initial inventory.
 Value is the name of a text file containing a list of item names,
 one per line, up to a maximum of 128 lines.
@@ -4021,7 +4016,7 @@ Example:
    WIZKIT=~/wizkit.txt
 \end{verbatim}
 %.ed
-\elist
+\end{description}
 
 %.lp ""
 %.pg
@@ -4115,17 +4110,17 @@ Some options are persistent, and are saved and reloaded along with
 the game.  Changing a persistent option in the configuration file
 applies only to new games.
 
-\blist{}
+\begin{description}[font=\itshape]
 %.lp
-\item[\ib{accessiblemsg}]
+\item[accessiblemsg]
 Add location or direction information to messages (default is off).
 %.lp
-\item[\ib{acoustics}]
+\item[acoustics]
 Enable messages about what your character hears (default on).
 Note that this has nothing to do with your computer's audio capabilities.
 Persistent.
 %.lp
-\item[\ib{alignment}]
+\item[alignment]
 Your starting alignment ({\tt align:lawful}, {\tt align:neutral},
 or {\tt align:chaotic}).
 You may specify just the first letter.
@@ -4138,21 +4133,21 @@ If {\tt align} is not specified, there is no default value;
 player will be prompted unless role and/or race forces a choice for alignment.
 Cannot be set with the `{\tt O}' command.  Persistent.
 %.lp
-\item[\ib{autodescribe}]
+\item[autodescribe]
 Automatically describe the terrain under cursor when asked to get a location
 on the map (default true).
 The {\it whatis\textunderscore coord\/}
 option controls whether the description includes map coordinates.
 %.lp
-\item[\ib{autodig}]
+\item[autodig]
 Automatically dig if you are wielding a digging tool and moving into a place
 that can be dug (default false).  Persistent.
 %.lp
-\item[\ib{autoopen}]
+\item[autoopen]
 Walking into a closed door attempts to open it (default true).
 Persistent.
 %.lp
-\item[\ib{autopickup}]
+\item[autopickup]
 Automatically pick up things onto which you move (default off).
 Persistent.
 \\
@@ -4163,7 +4158,7 @@ See ``{\it pickup\textunderscore types\/}'' and also
 %.lp ""
 Note: prior to version 3.7.0, the default for {\it autopickup\/} was {\it on}.
 %.lp
-\item[\ib{autoquiver}]
+\item[autoquiver]
 This option controls what happens when you attempt the `{\tt f}' (fire)
 command when nothing is quivered or readied (default false).
 When true, the computer will fill
@@ -4176,7 +4171,7 @@ with the `{\tt Q}' command instead.
 If no weapon is found or the option is
 false, the `{\tt t}' (throw) command is executed instead.  Persistent.
 %.lp
-\item[\ib{autounlock}]
+\item[autounlock]
 %\hyphenation{apply\-key}%this needs to be tested...
 Controls what action to take when attempting to walk into a locked door
 or to loot a locked container.
@@ -4187,32 +4182,32 @@ Takes a plus-sign separated list of values:
 %.PS Apply-Key
 \settowidth{\auwidth}{\tt Apply-Key}
 \addtolength{\auwidth}{\labelsep}
-\blist{\leftmargin \auwidth \topsep 1mm \itemsep 0mm}
+\begin{description}[leftmargin=\auwidth, topsep=1mm, itemsep=0mm, labelwidth=*, font=\ttfamily, align=right]
 %.PL Untrap
-\item[{\tt Untrap}]
+\item[Untrap]
 prompt about whether to attempt to find a trap;
 it might fail to find one even when present; if it does find one, it
 will ask whether you want to try to disarm the trap; if you decline,
 your character will forget that the door or box is trapped;
 %.PL Apply-Key
-\item[{\tt Apply-Key}]
+\item[Apply-Key]
 if carrying a key or other unlocking tool, prompt about using it;
 %.PL Kick
-\item[{\tt Kick}]
+\item[Kick]
 kick the door (if you omit untrap or decline to attempt untrap and
 you omit apply-key or you lack a key or you decline to use the key;
 has no effect on containers);
 %.PL Force
-\item[{\tt Force}]
+\item[Force]
 try to force a container's lid with your currently
 wielded weapon (if you omit untrap or decline to attempt untrap and
 you omit apply-key or you lack a key or you decline to use the key;
 has no effect on doors);
 %.PL None
-\item[{\tt None}]
+\item[None]
 none of the above; can't be combined with the other choices.
 %.PE
-\elist
+\end{description}
 Omitting the value is treated as if {\tt autounlock:apply-key}.
 Preceding {\tt autounlock} with `{\tt !}' or ``{\tt no}'' is treated as
 {\tt autounlock:none}.
@@ -4227,49 +4222,49 @@ destroy some of its contents or damage your weapon or both.
 The default is Apply-Key.
 Persistent.
 %.lp
-\item[\ib{blind}]
+\item[blind]
 Start the character permanently blind (default false).  Persistent.
 %.lp
-\item[\ib{bones}]
+\item[bones]
 Allow saving and loading bones files (default true).  Persistent.
 %.lp
-\item[\ib{boulder}]
+\item[boulder]
 Set the character used to display boulders (default is the ``large rock''
 class symbol, `{\tt `}').
 %.lp
-\item[\ib{catname}]
+\item[catname]
 Name your starting cat (for example, ``{\tt catname:Morris}'').
 Cannot be set with the `{\tt O}' command.
 %.lp character
-\item[\ib{character}]
+\item[character]
 Synonym for ``{\tt role}'' to pick the type of your character
 (for example ``{\tt character:Monk}'').  See {\it role\/} for more details.
 %.lp
-\item[\ib{checkpoint}]
+\item[checkpoint]
 Save game state after each level change, for possible recovery after
 program crash (default on).  Persistent.
 %.lp
-\item[\ib{cmdassist}]
+\item[cmdassist]
 Have the game provide some additional command assistance for new
 players if it detects some anticipated mistakes (default on).
 %.lp
-\item[\ib{confirm}]
+\item[confirm]
 Have user confirm attacks on pets, shopkeepers, and other
 peaceable creatures (default on).  Persistent.
 %.lp
-\item[\ib{dark\textunderscore room}]
+\item[dark\textunderscore room]
 Show out-of-sight areas of lit rooms (default on).  Persistent.
 %.lp
-\item[\ib{deaf}]
+\item[deaf]
 Start the character permanently deaf (default false).  Persistent.
 %.lp
-\item[\ib{dropped\textunderscore nopick}]
+\item[dropped\textunderscore nopick]
 If this option is on, items you dropped will not be automatically picked up,
 even if ``{\it autopickup\/}'' is also on and they are in
 ``{\it pickup\textunderscore types\/}'' or match a positive autopickup exception
 (default on).  Persistent.
 %.lp
-\item[\ib{disclose}]
+\item[disclose]
 Controls what information the program reveals when the game ends.
 Value is a space separated list of prompting/category pairs
 (default is `{\tt ni na nv ng nc no}',
@@ -4339,11 +4334,11 @@ traps and each other as well as by you.
 And the dungeon overview shows all levels you had visited but does not
 reveal things about them that you hadn't discovered.
 %.lp
-\item[\ib{dogname}]
+\item[dogname]
 Name your starting dog (for example, ``{\tt dogname:Fang}'').
 Cannot be set with the `{\tt O}' command.
 %.lp
-\item[\ib{extmenu}]
+\item[extmenu]
 Changes the extended commands interface to pop-up a menu of available commands.
 It is keystroke compatible with the traditional interface except that it does
 not require that you hit Enter.
@@ -4354,32 +4349,32 @@ command, it controls whether the menu shows all available commands (on)
 or just the subset of commands which have traditionally been considered
 extended ones (off).
 %.lp
-\item[\ib{female}]
+\item[female]
 An obsolete synonym for ``{\tt gender:female}''.  Cannot be set with the
 `{\tt O}' command.
 %.lp
-\item[\ib{fireassist}]
+\item[fireassist]
 This option controls what happens when you attempt the `{\tt f}' (fire)
 and don't have an appropriate launcher, such as a bow or a sling, wielded.
 If on, you will automatically wield the launcher. Default is on.
 %.lp
-\item[\ib{fixinv}]
+\item[fixinv]
 An object's inventory letter sticks to it when it's dropped (default on).
 If this is off, dropping an object shifts all the remaining inventory letters.
 Persistent.
 %.lp
-\item[\ib{force\textunderscore invmenu}]
+\item[force\textunderscore invmenu]
 Commands asking for an inventory item show a menu instead of
 a text query with possible menu letters. Default is off.
 %.lp
-\item[\ib{fruit}]
+\item[fruit]
 Name a fruit after something you enjoy eating (for example, ``{\tt fruit:mango}'')
 (default ``{\tt slime mold}''). Basically a nostalgic whimsy that
 {\it NetHack\/} uses from time to time.  You should set this to something you
 find more appetizing than slime mold.  Apples, oranges, pears, bananas, and
 melons already exist in {\it NetHack\/}, so don't use those.
 %.lp
-\item[\ib{gender}]
+\item[gender]
 Your starting gender ({\tt gender:male} or {\tt gender:female}).
 You may specify just the first letter.
 Although you can
@@ -4394,26 +4389,26 @@ If {\tt gender} is not specified, there is no default value;
 player will be prompted unless role and/or race forces a choice for gender.
 Cannot be set with the `{\tt O}' command.  Persistent.
 %.lp
-\item[\ib{goldX}]
+\item[goldX]
 When filtering objects based on bless/curse state (BUCX), whether to
 treat gold pieces as {\tt X} (unknown bless/curse state, when `on')
 or {\tt U} (known to be uncursed, when `off', the default).
 Gold is never blessed or cursed, but it is not described as ``uncursed''
 even when the {\it implicit\textunderscore uncursed\/} option is `off'.
 %.lp
-\item[\ib{help}]
+\item[help]
 If more information is available for an object looked at
 with the `{\tt /}' command, ask if you want to see it (default on).
 Turning help off makes just looking at things faster, since you aren't
 interrupted with the ``{\tt More info?}'' prompt, but it also means that you
 might miss some interesting and/or important information.  Persistent.
 %.lp
-\item[\ib{herecmd\textunderscore menu}]
+\item[herecmd\textunderscore menu]
 When using a windowport that supports mouse and clicking on yourself or
 next to you, show a menu of possible actions for the location.
 Same as ``{\tt \#herecmdmenu}'' and ``{\tt \#therecmdmenu}'' commands.
 %.lp
-\item[\ib{hilite\textunderscore pet}]
+\item[hilite\textunderscore pet]
 Visually distinguish pets from similar animals (default off).
 The behavior of this option depends on the type of windowing you use.
 In text windowing, text highlighting or inverse video is often used;
@@ -4424,14 +4419,14 @@ With the tty or curses interface, the {\it petattr\/}
 option controls how to highlight pets and setting it will turn the
 {\it hilite\textunderscore pet\/} option on or off as warranted.
 %.lp
-\item[\ib{hilite\textunderscore pile}]
+\item[hilite\textunderscore pile]
 Visually distinguish piles of objects from individual objects (default off).
 The behavior of this option depends on the type of windowing you use.
 In text windowing, text highlighting or inverse video is often used;
 with tiles, generally displays a small plus-symbol beside the object
 on the top of the pile.
 %.lp
-\item[\ib{hitpointbar}]
+\item[hitpointbar]
 Show a hit point bar graph behind your name and title in the status
 display (default off).
 \\
@@ -4458,14 +4453,14 @@ To resize that, use the {\tt \#optionsfull} command to toggle the
 {\it hitpointbar\/} option off, perform the resize while it's off, then
 use the same command to toggle it back on.)
 %.lp
-\item[\ib{horsename}]
+\item[horsename]
 Name your starting horse (for example, ``{\tt horsename:Trigger}'').
 Cannot be set with the `{\tt O}' command.
 %.lp
-\item[\ib{ignintr}]
+\item[ignintr]
 Ignore interrupt signals, including breaks (default off).  Persistent.
 %.lp
-\item[\ib{implicit\textunderscore uncursed}]
+\item[implicit\textunderscore uncursed]
 Omit ``uncursed'' from object descriptions when it can be deduced from
 other aspects of the description (default on).
 Persistent.
@@ -4473,43 +4468,43 @@ Persistent.
 %.lp ""
 If you use menu coloring, you may want to turn this off.
 %.lp
-\item[\ib{legacy}]
+\item[legacy]
 Display an introductory message when starting the game (default on).
 Persistent.
 %.lp
-\item[\ib{lit\textunderscore corridor}]
+\item[lit\textunderscore corridor]
 Show corridor squares seen by night vision or a light source held by your
 character as lit (default off).  Persistent.
 %.lp
-\item[\ib{lootabc}]
+\item[lootabc]
 When using a menu to interact with a container,
 use the old `{\tt a}', `{\tt b}', and `{\tt c}' keyboard shortcuts
 rather than the mnemonics `{\tt o}', `{\tt i}', and `{\tt b}' (default off).
 Persistent.
 %.lp
-\item[\ib{mail}]
+\item[mail]
 Enable mail delivery during the game (default on).  Persistent.
 %.lp
-\item[\ib{male}]
+\item[male]
 An obsolete synonym for ``{\tt gender:male}''.  Cannot be set with the
 `{\tt O}' command.
 %.lp
-\item[\ib{mention\textunderscore decor}]
+\item[mention\textunderscore decor]
 Give feedback when walking onto various dungeon features such as stairs,
 fountains, or altars which are ordinarily only described when covered
 by one or more objects (default off).  Persistent.
 %.lp
-\item[\ib{mention\textunderscore map}]
+\item[mention\textunderscore map]
 Give feedback when interesting map locations change (default off).
 %.lp
-\item[\ib{mention\textunderscore walls}]
+\item[mention\textunderscore walls]
 Give feedback when walking against a wall (default off).  Persistent.
 %.lp
-\item[\ib{menucolors}]
+\item[menucolors]
 Enable coloring menu lines (default off).
 See ``{\it Configuring Menu Colors\/}'' on how to configure the colors.
 %.lp
-\item[\ib{menustyle}]
+\item[menustyle]
 Controls the method used when you need to choose various objects (in
 response to the {\tt Drop} (aka {\tt droptype}) command, for instance).
 The value specified should be the first letter of one of the following:
@@ -4533,40 +4528,40 @@ To avoid choosing that by accident,
 set {\it paranoid\textunderscore confirm:AutoAll\/} to require confirmation.)
 Partial skips the object class filtering and
 immediately displays a menu of all objects.
-\item[\ib{menu\textunderscore deselect\textunderscore all}]
+\item[menu\textunderscore deselect\textunderscore all]
 Key to deselect all items in a menu.
 Implemented by the Amiga, Gem, X11 and tty ports.
 Default `-'.
-\item[\ib{menu\textunderscore deselect\textunderscore page}]
+\item[menu\textunderscore deselect\textunderscore page]
 Key to deselect all items on this page of a menu.
 Implemented by the Amiga, Gem and tty ports.
 Default `\verb+\+'.
-\item[\ib{menu\textunderscore first\textunderscore page}]
+\item[menu\textunderscore first\textunderscore page]
 Key to jump to the first page in a menu.
 Implemented by the Amiga, Gem and tty ports.
 Default `\verb+^+'.
-\item[\ib{menu\textunderscore headings}]
+\item[menu\textunderscore headings]
 Controls how the headings in a menu are highlighted.
 Takes a text attribute, or text color and attribute separated by ampersand.
 For allowed attributes and colors, see ``{\it Configuring Menu Colors\/}``.
 Not all ports can actually display all types.
-\item[\ib{menu\textunderscore invert\textunderscore all}]
+\item[menu\textunderscore invert\textunderscore all]
 Key to invert all items in a menu.
 Implemented by the Amiga, Gem, X11 and tty ports.
 Default `@'.
-\item[\ib{menu\textunderscore invert\textunderscore page}]
+\item[menu\textunderscore invert\textunderscore page]
 Key to invert all items on this page of a menu.
 Implemented by the Amiga, Gem and tty ports.
 Default `\verb+~+'.
-\item[\ib{menu\textunderscore last\textunderscore page}]
+\item[menu\textunderscore last\textunderscore page]
 Key to jump to the last page in a menu.
 Implemented by the Amiga, Gem and tty ports.
 Default `\verb+|+'.
-\item[\ib{menu\textunderscore next\textunderscore page}]
+\item[menu\textunderscore next\textunderscore page]
 Key to go to the next menu page.
 Implemented by the Amiga, Gem and tty ports.
 Default `\verb+>+'.
-\item[\ib{menu\textunderscore objsyms}]
+\item[menu\textunderscore objsyms]
 % [originally menu_objsyms was a boolean]
 % Show object symbols in menu headings in menus where
 % the object symbols act as menu accelerators (default off).
@@ -4601,57 +4596,57 @@ objects among classes.
 Supported by tty and curses.
 When setting the value, it can be specified by digit or keyword.
 The default value is {\tt Conditional} (4).
-\item[\ib{menu\textunderscore overlay}]
+\item[menu\textunderscore overlay]
 Do not clear the screen before drawing menus, and align
 menus to the right edge of the screen. Only for the tty port.
 (default on)
-\item[\ib{menu\textunderscore previous\textunderscore page}]
+\item[menu\textunderscore previous\textunderscore page]
 Key to go to the previous menu page.
 Implemented by the Amiga, Gem and tty ports.
 Default `\verb+<+'.
-\item[\ib{menu\textunderscore search}]
+\item[menu\textunderscore search]
 Key to search for some text and toggle selection state of matching menu items.
 Default `:'.
-\item[\ib{menu\textunderscore select\textunderscore all}]
+\item[menu\textunderscore select\textunderscore all]
 Key to select all items in a menu.
 Implemented by the Amiga, Gem, X11 and tty ports.
 Default `.'.
-\item[\ib{menu\textunderscore select\textunderscore page}]
+\item[menu\textunderscore select\textunderscore page]
 Key to select all items on this page of a menu.
 Implemented by the Amiga, Gem and tty ports.
 Default `,'.
 
 %.lp
-\item[\ib{menu\textunderscore shift\textunderscore left}]
+\item[menu\textunderscore shift\textunderscore left]
 Key to scroll a menu---one which has been
 scrolled right---back to the left.
 Implemented for {\it perm\textunderscore invent\/} only by curses and X11.
 Default `{\tt \verb+{+}'.
 
 %.lp
-\item[\ib{menu\textunderscore shift\textunderscore right}]
+\item[menu\textunderscore shift\textunderscore right]
 Key to scroll a menu which has text beyond the
 right edge to the right.
 Implemented for {\it perm\textunderscore invent\/} only by curses by X11.
 Default `{\tt \verb+}+}'.
 % %.lp
-% \item[\ib{menu\textunderscore tab\textunderscore sep}]
+% \item[menu\textunderscore tab\textunderscore sep]
 % Format menu entries using TAB to separate columns (default off).
 % Only applicable to some menus, and only useful to some interfaces.
 % Debug mode only.
 %.lp
-\item[\ib{mon\textunderscore movement}]
+\item[mon\textunderscore movement]
 Show a message when hero notices a monster movement (default is off).
 %.lp
-\item[\ib{monpolycontrol}]
+\item[monpolycontrol]
 Prompt for new form whenever any monster changes shape (default off).
 Debug mode only.
 %.lp
-\item[\ib{montelecontrol}]
+\item[montelecontrol]
 Prompt for destination whenever any monster gets teleported (default off).
 Debug mode only.
 %.lp
-\item[\ib{mouse\textunderscore support}]
+\item[mouse\textunderscore support]
 Allow use of the mouse for input and travel.
 Valid settings are:
 
@@ -4668,12 +4663,12 @@ and negating
 {\it mouse\textunderscore support\/}
 is the same as specifying {\tt 0}.
 %.lp
-\item[\ib{msghistory}]
+\item[msghistory]
 The number of top line messages to save (and be able to recall
 with `{\tt \^{}P}') (default 20).
 Cannot be set with the `{\tt O}' command.
 %.lp
-\item[\ib{msg\textunderscore window}]
+\item[msg\textunderscore window]
 Allows you to change the way recalled messages are displayed.
 Currently it is only supported for tty (all four choices) and for curses
 (`{\tt f}' and `{\tt r}' choices, default `{\tt r}').
@@ -4692,7 +4687,7 @@ For backward compatibility, no value needs to be specified (which
 defaults to {\it full\/}), or it can be negated (which defaults
 to {\it single\/}).
 %.lp
-\item[\ib{name}]
+\item[name]
 Set your character's name (defaults to your user name).  You can also
 set your character's role by appending a dash and one or more letters of
 the role (that is, by suffixing one of
@@ -4707,18 +4702,18 @@ The former can made to behave like the latter by specifying a generic name
 such as ``player''.
 Cannot be set with the `{\tt O}' command.
 %.lp
-\item[\ib{news}]
+\item[news]
 Read the {\it NetHack\/} news file, if present (default on).
 Since the news is shown at the beginning of the game, there's no point
 in setting this with the `{\tt O}' command.
 %.lp
-\item[\ib{nudist}]
+\item[nudist]
 Start the character with no armor (default false).  Persistent.
 %.lp
-\item[\ib{null}]
+\item[null]
 Send padding nulls to the terminal (default on).  Persistent.
 %.lp
-\item[\ib{number\textunderscore pad}]
+\item[number\textunderscore pad]
 Use digit keys instead of letters to move (default 0 or off).\\
 Valid settings are:
 
@@ -4749,13 +4744,13 @@ When moving by numbers, to enter a count prefix for those commands
 which accept one (such as ``{\tt 12s}'' to search twelve times), precede it
 with the letter `{\tt n}' (``{\tt n12s}'').
 %.lp
-\item[\ib{packorder}]
+\item[packorder]
 Specify the order to list object types in (default
 ``\verb&")[%?+!=/(*`0_&''). The value of this option should be a string
 containing the symbols for the various object types.  Any omitted types
 are filled in at the end from the previous order.
 %.lp
-\item[\ib{paranoid\textunderscore confirmation}]
+\item[paranoid\textunderscore confirmation]
 A space separated list of specific situations where alternate
 prompting is desired.
 The default is ``{\it paranoid\textunderscore confirmation:pray swim trap}''.
@@ -4764,57 +4759,57 @@ The default is ``{\it paranoid\textunderscore confirmation:pray swim trap}''.
 \newlength{\pcwidth}
 \settowidth{\pcwidth}{\tt Were-change}
 \addtolength{\pcwidth}{\labelsep}
-\blist{\leftmargin \pcwidth \topsep 1mm \itemsep 0mm}
-\item[{\tt Confirm}]
+\begin{description}[leftmargin=\pcwidth, topsep=1mm, itemsep=0mm, labelwidth=*, font=\ttfamily, align=right]
+\item[Confirm]
 for any prompts which are set to require ``yes'' rather than `y',
 also require ``no'' to reject instead of accepting any non-yes response
 as no; changes pray and AutoAll to require ``yes'' or ``no'' too;
-\item[{\tt quit~~~}]
+\item[quit]
 require ``{\tt yes}'' rather than `{\tt y}' to confirm quitting
 the game or switching into non-scoring explore mode;
-\item[{\tt die~~~~}]
+\item[die]
 require ``{\tt yes}'' rather than `{\tt y}' to confirm dying (not
 useful in normal play; applies to explore mode);
-\item[{\tt bones~~}]
+\item[bones]
 require ``{\tt yes}'' rather than `{\tt y}' to confirm saving
 bones data when dying in debug mode
-\item[{\tt attack~}]
+\item[attack]
 require ``{\tt yes}'' rather than `{\tt y}' to confirm attacking
 a peaceful monster;
-\item[{\tt wand-break}]
+\item[wand-break]
 require ``{\tt yes}'' rather than `{\tt y}' to confirm breaking
 a wand with the {\it apply} command;
-\item[{\tt eating~}]
+\item[eating]
 require ``{\tt yes}'' rather than `{\tt y}' to confirm whether to
 continue eating;
-\item[{\tt Were-change}]
+\item[Were-change]
 require ``{\tt yes}'' rather than `{\tt y}' to confirm changing form due
 to lycanthropy when hero has polymorph control;
-\item[{\tt pray~~~}]
+\item[pray]
 require `{\tt y}' to confirm an attempt to pray rather
 than immediately praying; on by default;
 (to require ``yes'' rather than just `y', set Confirm too);
-\item[{\tt trap~~~}]
+\item[trap]
 require `{\tt y}' to confirm an attempt to move into or onto a known trap,
 unless doing so is considered to be harmless;
 when enabled, this confirmation is also used for moving into visible
 gas cloud regions;
 (to require ``yes'' rather than just `y', set Confirm too);
 confirmation can be skipped by using the `{\tt m}' movement prefix;
-\item[{\tt swim~~~}]
+\item[swim]
 prevent walking into water or lava; on by default; (to deliberately step
 onto/into such terrain when this is set, use the `{\tt m}'
 movement prefix when adjacent);
-\item[{\tt AutoAll}]
+\item[AutoAll]
 require confirmation when the `A' (Autoselect-All) choice is selected
 in object class filtering menus for {\it menustyle:Full};
 (to require ``yes'' rather than just `y', set Confirm too);
-\item[{\tt Remove~}]
+\item[Remove]
 require selection from inventory for `{\tt R}' and `{\tt T}'
 commands even when wearing just one applicable item;
-\item[{\tt all~~~~}]
+\item[all]
 turn on all of the above.
-\elist
+\end{description}
 %.ei
 %.ed
 By default, the pray, swim, and trap choices are enabled, the others disabled.
@@ -4835,10 +4830,10 @@ and entries to be removed by `{\tt !}' and name.
 The positive (no `!') and negative (with `!') entries
 can be intermixed.
 %.lp
-\item[\ib{pauper}]
+\item[pauper]
 Start the character with no possessions (default false).  Persistent.
 %.lp
-\item[\ib{perm\textunderscore invent}]
+\item[perm\textunderscore invent]
 If true, always display your current inventory in a window (default is false).
 %.lp ""
 \\
@@ -4851,7 +4846,7 @@ for {\it perm\textunderscore invent\/}.
 Setting that to a value other than {\it none\/}
 while {\it perm\textunderscore invent\/} is false will change it to true.
 %.lp
-\item[\ib{perminv\textunderscore mode}]
+\item[perminv\textunderscore mode]
 Augments the
 {\tt perm\textunderscore invent}
 option.
@@ -4859,7 +4854,7 @@ Value is one of
 %.PS "\f(CRin-use\fP"
 \settowidth{\pcwidth}{\tt in-use}  %reuse the paranoid_confirm width
 \addtolength{\pcwidth}{\labelsep}
-\blist{\leftmargin \pcwidth \topsep 1mm \itemsep 0mm}
+\begin{description}[leftmargin=\pcwidth, topsep=1mm, itemsep=0mm, labelwidth=*, font=\mdseries, align=right]
 %.PL
 \item[{\tt none}]
 behave as if {\it perm\textunderscore invent\/} is false;
@@ -4870,7 +4865,7 @@ show full inventory including gold;
 \item[{in-use}]
 only show items which are in use (worn, wielded, lit lamp).
 %.PE
-\elist
+\end{description}
 Default is {\it none\/} but if {\it perm\textunderscore invent\/} gets set to true
 while it is {\it none\/} it will be changed to {\it all\/}.
 %.lp ""
@@ -4879,7 +4874,7 @@ Note: if gold has been equipped in quiver/ammo-pouch then it will be
 included for {\it all\/} despite that mode normally omitting gold.
 %.lp
 %.\" petattr is a wincap option but we'll document it here...
-\item[\ib{petattr}]
+\item[petattr]
 Specifies one or more text highlighting attributes to use when showing
 pets on the map.
 Effectively a superset of the {\it hilite\textunderscore pet\/} boolean option.
@@ -4889,7 +4884,7 @@ Some of those choices might not work,
 depending upon terminal hardware or terminal emulation software.
 
 %.lp
-\item[\ib{pettype}]
+\item[pettype]
 Specify the type of your initial pet, if you are playing a character class
 that uses multiple types of pets; or choose to have no initial pet at all.
 Possible values are ``{\tt cat}'', ``{\tt dog}'', ``{\tt horse}''
@@ -4899,13 +4894,13 @@ it will be silently ignored.  For example, ``{\tt horse}'' will only be
 honored when playing a knight.
 Cannot be set with the `{\tt O}' command.
 %.lp
-\item[\ib{pickup\textunderscore burden}]
+\item[pickup\textunderscore burden]
 When you pick up an item that would exceed this encumbrance
 level (Unencumbered, Burdened, streSsed, straiNed, overTaxed,
 or overLoaded), you will be asked if you want to continue.
 (Default `S').  Persistent.
 %.lp
-\item[\ib{pickup\textunderscore stolen}]
+\item[pickup\textunderscore stolen]
 If this option is on and ``{\it autopickup\/}'' is also on, try to pick up
 things that a monster stole from you, even if they aren't in
 ``{\it pickup\textunderscore types\/}'' or
@@ -4913,7 +4908,7 @@ match an autopickup exception.
 Default is on.
 Persistent.
 %.lp
-\item[\ib{pickup\textunderscore thrown}]
+\item[pickup\textunderscore thrown]
 If this option is on and ``{\it autopickup\/}'' is also on, try to pick up
 things that you threw, even if they aren't in
 ``{\it pickup\textunderscore types\/}'' or
@@ -4921,7 +4916,7 @@ match an autopickup exception.
 Default is on.
 Persistent.
 %.lp
-\item[\ib{pickup\textunderscore types}]
+\item[pickup\textunderscore types]
 Specify the object types to be picked up when ``{\it autopickup\/}''
 is on.
 Default is all types.
@@ -4944,7 +4939,7 @@ up, you can set {\it pickup\textunderscore types\/} to `{\tt .}'.
 That is the type symbol for {\it venom\/} and you won't come across
 any venom items so won't unintentionally pick such up.
 %.lp
-\item[\ib{pile\textunderscore limit}]
+\item[pile\textunderscore limit]
 When walking across a pile of objects on the floor, threshold at which
 the message ``there are few/several/many objects here'' is given instead
 of showing a popup list of those objects.  A value of 0 means ``no limit''
@@ -4952,7 +4947,7 @@ of showing a popup list of those objects.  A value of 0 means ``no limit''
 the objects'' since the pile size will always be at least that big;
 default value is 5.  Persistent.
 %.lp
-\item[\ib{playmode}]
+\item[playmode]
 Values are {\it normal\/}, {\it explore\/}, or {\it debug\/}.
 Allows selection of explore mode (also known as discovery mode) or debug
 mode (also known as wizard mode) instead of normal play.
@@ -4962,16 +4957,16 @@ name (on single-user systems) or it might be disabled entirely.  Requesting
 it when not allowed or not possible results in explore mode instead.
 Default is normal play.
 %.lp
-\item[\ib{pushweapon}]
+\item[pushweapon]
 Using the `{\tt w}' (wield) command when already wielding
 something pushes the old item into your alternate weapon slot (default off).
 Likewise for the `{\tt a}' (apply) command if it causes the applied item to
 become wielded.  Persistent.
 %.lp
-\item[\ib{query\textunderscore menu}]
+\item[query\textunderscore menu]
 Use a menu when asked specific yes/no queries, instead of a prompt.
 %.lp
-\item[\ib{quick\textunderscore farsight}]
+\item[quick\textunderscore farsight]
 When set, usually prevents the ``you sense your surroundings'' message
 where play pauses to allow you to browse the map whenever clairvoyance
 randomly activates.
@@ -4980,7 +4975,7 @@ It does not affect the clairvoyance spell where pausing to examine revealed
 objects or monsters is less intrusive.
 Default is off.  Persistent.
 %.lp
-\item[\ib{race}]
+\item[race]
 Choices are {\tt human}, {\tt dwarf}, {\tt elf}, {\tt gnome}, and
 {\tt orc} but most roles restrict which of the non-human races are allowed.
 See {\it role\/}
@@ -4992,11 +4987,11 @@ player will be prompted unless role forces a choice for race.
 unless role forces a choice for race.
 Cannot be set with the `{\tt O}' command.  Persistent.
 %.lp
-\item[\ib{rest\textunderscore on\textunderscore space}]
+\item[rest\textunderscore on\textunderscore space]
 Make the space bar a synonym for the `{\tt .}' (\#wait) command (default off).
 Persistent.
 %.lp
-\item[\ib{role}]
+\item[role]
 Pick your type of character (for example, ``{\tt role:Samurai}'');
 synonym for ``{\it character\/}''.
 See ``{\it name\/}'' for an alternate method of specifying your role.
@@ -5028,17 +5023,17 @@ If {\tt role} is not specified, there is no default value;
 player will be prompted.
 Cannot be set with the `{\tt O}' command.  Persistent.
 %.lp
-\item[\ib{roguesymset}]
+\item[roguesymset]
 This option may be used to select one of the named symbol sets found within
 {\tt symbols} to alter the symbols displayed on the screen on the
 rogue level.
 %.lp
-\item[\ib{rlecomp}]
+\item[rlecomp]
 When writing out a save file, perform run length compression of the map.
 Not all ports support run length compression. It has no
 effect on reading an existing save file.
 %.lp
-\item[\ib{runmode}]
+\item[runmode]
 Controls the amount of screen updating for the map window when engaged
 in multi-turn movement (running via {\tt shift}+direction
 or {\tt control}+direction
@@ -5059,43 +5054,43 @@ results of moving.  The default is {\it run\/}; versions prior to 3.4.1
 used {\it teleport\/} only.  Whether or not the effect is noticeable will
 depend upon the window port used or on the type of terminal.  Persistent.
 %.lp
-\item[\ib{safe\textunderscore pet}]
+\item[safe\textunderscore pet]
 Prevent you from (knowingly) attacking your pets (default on).  Persistent.
 %.lp
-\item[\ib{safe\textunderscore wait}]
+\item[safe\textunderscore wait]
 Prevents you from waiting or searching when next to a hostile monster
 (default on).  Persistent.
 %.lp
-\item[\ib{sanity\textunderscore check}]
+\item[sanity\textunderscore check]
 Evaluate monsters, objects, and map prior to each turn (default off).
 Debug mode only.
 %.lp
-\item[\ib{scores}]
+\item[scores]
 Control what parts of the score list you are shown at the end (for example,
 ``{\tt scores:5top scores/4around my score/own scores}'').  Only the first
 letter of each category (`{\tt t}', `{\tt a}' or `{\tt o}') is necessary.
 Persistent.
 %.lp
-\item[\ib{showdamage}]
+\item[showdamage]
 Whenever your character takes damage, show a message of the damage taken,
 and the amount of hit points left.
 %.lp
-\item[\ib{showexp}]
+\item[showexp]
 Show your accumulated experience points on bottom line (default off).
 Persistent.
 %.lp
-\item[\ib{showrace}]
+\item[showrace]
 Display yourself as the glyph for your race, rather than the glyph
 for your role (default off).  Note that this setting affects only
 the appearance of the display, not the way the game treats you.
 Persistent.
 %.lp
-\item[\ib{showscore}]
+\item[showscore]
 Show your approximate accumulated score on bottom line (default off).
 By default, this feature is suppressed when building the program.
 Persistent.
 %.lp
-\item[\ib{showvers}]
+\item[showvers]
 Include the game's version number on the status lines (default off).
 Potentially useful if you switch between different versions or variants,
 or you are making screenshots or streaming video.
@@ -5106,10 +5101,10 @@ status information, unless you're using nethack's {\it Qt\/} interface
 or your terminal emulator window displays fewer than 25 lines.
 Persistent.
 %.lp
-\item[\ib{silent}]
+\item[silent]
 Suppress terminal beeps (default on).  Persistent.
 %.lp
-\item[\ib{sortdiscoveries}]
+\item[sortdiscoveries]
 Controls the sorting behavior for the output of the `{\tt $\backslash$}'
 and `{\tt \`{}}' commands.
 Persistent.
@@ -5134,7 +5129,7 @@ Can be interactively set via the `{\tt O}' command or via using
 the `{\tt m}' prefix before the `{\tt $\backslash$}'
 or `{\tt \`{}}' command.
 %.lp
-\item[\ib{sortloot}]
+\item[sortloot]
 Controls the sorting behavior of pickup lists for inventory
 and \#loot commands and some others.  Persistent.
 \\
@@ -5149,11 +5144,11 @@ The possible values are:
 %.ei
 %.ed
 %.lp
-\item[\ib{sortpack}]
+\item[sortpack]
 Sort the pack contents by type when displaying inventory (default on).
 Persistent.
 %.lp
-\item[\tb{sortvanquished}]
+\item[sortvanquished]
 Controls the sorting behavior for the output of the {\tt \#vanquished} command
 and also for the {\tt \#genocided} command.
 Persistent.
@@ -5194,60 +5189,60 @@ Can be interactively set via the `{\tt m O}' command or via using
 the `{\tt m}' prefix before either the {\tt \#vanquished} command
 or the {\tt \#genocided} command.
 %.lp
-\item[\ib{sounds}]
+\item[sounds]
 Allow sounds to be emitted from an integrated sound library (default on).
 %.lp
-\item[\ib{sparkle}]
+\item[sparkle]
 Display a sparkly effect when a monster (including yourself) is hit by an
 attack to which it is resistant (default on).  Persistent.
 %.lp
-\item[\ib{spot\textunderscore monsters}]
+\item[spot\textunderscore monsters]
 Show a message when hero notices a monster (default is off).
 %.lp
-\item[\ib{standout}]
+\item[standout]
 Boldface monsters and ``{\tt --More--}'' (default off).  Persistent.
 %.lp
-\item[\ib{statushilites}]
+\item[statushilites]
 Controls how many turns status hilite behaviors highlight
 the field. If negated or set to zero, disables status hiliting.
 See ``{\it Configuring Status Hilites\/}'' for further information.
 %.lp
-\item[\ib{status\textunderscore updates}]
+\item[status\textunderscore updates]
 Allow updates to the status lines at the bottom of the screen (default true).
 %.lp
-\item[\ib{suppress\textunderscore alert}]
+\item[suppress\textunderscore alert]
 This option may be set to a {\it NetHack\/} version level to suppress
 alert notification messages about feature changes for that
 and prior versions (for example, ``{\tt suppress\textunderscore alert:3.3.1}'')
 %.lp
-\item[\ib{symset}]
+\item[symset]
 This option may be used to select one of the named symbol sets found within
 {\tt symbols} to alter the symbols displayed on the screen.
 Use ``{\tt symset:default}'' to explicitly select the default symbols.
 %.lp
-\item[\ib{time}]
+\item[time]
 Show the elapsed game time in turns on bottom line (default off).  Persistent.
 %.lp
-\item[\ib{timed\textunderscore delay}]
+\item[timed\textunderscore delay]
 When pausing momentarily for display effect, such as with explosions and
 moving objects, use a timer rather than sending extra characters to the
 screen.  (Applies to ``tty'' and ``curses'' interfaces only; ``X11'' interface always
 uses a timer-based delay.  The default is on if configured into the
 program.)  Persistent.
 %.lp
-\item[\ib{tips}]
+\item[tips]
 Show some helpful tips during gameplay (default on).  Persistent.
 %.lp
-\item[\ib{tombstone}]
+\item[tombstone]
 Draw a tombstone graphic upon your death (default on).  Persistent.
 %.lp
-\item[\ib{toptenwin}]
+\item[toptenwin]
 Put the ending display in a {\it NetHack\/} window instead of on stdout (default off).
 Setting this option makes the score list visible when a windowing version
 of {\it NetHack\/} is started without a parent window, but it no longer leaves
 the score list around after game end on a terminal or emulating window.
 %.lp
-\item[\ib{travel}]
+\item[travel]
 Allow the travel command via mouse click (default on).
 Turning this option off will prevent the game from attempting unintended
 moves if you make inadvertent mouse clicks on the map window.
@@ -5258,14 +5253,14 @@ command.  Persistent.
 % Display intended path during each step of travel (default off).
 % Debug mode only.
 %.lp
-\item[\ib{tutorial}]
+\item[tutorial]
 Play a tutorial level at the start of the game.
 Setting this option on or off in the config file will skip the query.
 %.lp
-\item[\ib{verbose}]
+\item[verbose]
 Provide more commentary during the game (default on).  Persistent.
 %.lp
-\item[\ib{whatis\textunderscore coord}]
+\item[whatis\textunderscore coord]
 When using the `{\tt /}' or `{\tt ;}' commands to look around on the map with
 ``{\tt autodescribe}''
 on, display coordinates after the description.
@@ -5292,7 +5287,7 @@ the `{\tt /m}', `{\tt /M}', `{\tt /o}', and `{\tt /O}' sub-commands
 of `{\tt /}',
 where the `{\it none\/}' setting is overridden with `{\it map}'.
 %.lp
-\item[\ib{whatis\textunderscore filter}]
+\item[whatis\textunderscore filter]
 When getting a location on the map, and using the keys to cycle through
 next and previous targets, allows filtering the possible targets.
 (default none)\\
@@ -5315,18 +5310,18 @@ the door you were last moving towards.\\
 Filtering can also be changed when getting a location with
 the ``getpos.filter'' key.
 %.lp
-\item[\ib{whatis\textunderscore menu}]
+\item[whatis\textunderscore menu]
 When getting a location on the map, and using a key to cycle through
 next and previous targets, use a menu instead to pick a target.
 (default off)
 %.lp
-\item[\ib{whatis\textunderscore moveskip}]
+\item[whatis\textunderscore moveskip]
 When getting a location on the map, and using shifted movement keys or
 meta-digit keys to fast-move, instead of moving 8 units at a time,
 move by skipping the same glyphs.
 (default off)
 %.lp
-\item[\ib{windowtype}]
+\item[windowtype]
 When the program has been built to support multiple interfaces,
 select whichone to use, such as ``{\tt tty}'' or ``{\tt X11}''
 (default depends on build-time settings; use ``{\tt \#version}'' to check).
@@ -5340,15 +5335,15 @@ non-comment line.
 For a comma-separated list in NETHACKOPTIONS or an OPTIONS line in a
 configuration file, that would be the {\it rightmost\/} option in the list.
 %.lp
-\item[\ib{wizweight}]
+\item[wizweight]
 Augment object descriptions with their objects' weight (default off).
 Debug mode only.
 %.lp
-\item[\ib{zerocomp}]
+\item[zerocomp]
 When writing out a save file, perform zero-comp compression of the
 contents. Not all ports support zero-comp compression. It has no effect
 on reading an existing save file.
-\elist
+\end{description}
 
 %.hn 2
 \subsection*{Window Port Customization options}
@@ -5368,15 +5363,15 @@ using by checking to see if it shows up in the Options list.
 Some options are dynamic and can be specified during the game
 with the `{\tt O}' command.
 
-\blist{}
+\begin{description}[font=\itshape]
 %.lp
-\item[\ib{align\textunderscore message}]
+\item[align\textunderscore message]
  Where to align or place the message window (top, bottom, left, or right)
 %.lp
-\item[\ib{align\textunderscore status}]
+\item[align\textunderscore status]
  Where to align or place the status window (top, bottom, left, or right).
 %.lp
-\item[\ib{ascii\textunderscore map}]
+\item[ascii\textunderscore map]
 %.hw DECgraphics IBMgraphics \% don't hyphenate these
 \hyphenation{DECgraphics IBMgraphics}
 If {\it NetHack\/} can, it should display the map using simple
@@ -5388,94 +5383,94 @@ or {\it IBMgraphics\/} if your display supports them.
 Setting {\tt ascii\textunderscore map} to {\it True\/} forces
 {\tt tiled\textunderscore map} to be {\it False}.
 %.lp
-\item[\ib{color}]
+\item[color]
 If {\it NetHack\/} can, it should display color for different monsters,
 objects, and dungeon features (default on).
 %.lp
-\item[\ib{eight\textunderscore bit\textunderscore tty}]
+\item[eight\textunderscore bit\textunderscore tty]
 If {\it NetHack\/} can, it should pass eight-bit character values (for example, specified with the
 {\it traps \/} option) straight through to your terminal (default off).
 %.lp
-\item[\ib{font\textunderscore map}]
+\item[font\textunderscore map]
 If {\it NetHack\/} can, it should use a font by the chosen name for the
 map window.
 %.lp
-\item[\ib{font\textunderscore menu}]
+\item[font\textunderscore menu]
 If {\it NetHack\/} can, it should use a font by the chosen name for menu
 windows.
 %.lp
-\item[\ib{font\textunderscore message}]
+\item[font\textunderscore message]
 If {\it NetHack\/} can, it should use a font by the chosen name for the message window.
 %.lp
-\item[\ib{font\textunderscore status}]
+\item[font\textunderscore status]
 If {\it NetHack\/} can, it should use a font by the chosen name for the status window.
 %.lp
-\item[\ib{font\textunderscore text}]
+\item[font\textunderscore text]
 If {\it NetHack\/} can, it should use a font by the chosen name for text windows.
 %.lp
-\item[\ib{font\textunderscore size\textunderscore map}]
+\item[font\textunderscore size\textunderscore map]
 If {\it NetHack\/} can, it should use this size font for the map window.
 %.lp
-\item[\ib{font\textunderscore size\textunderscore menu}]
+\item[font\textunderscore size\textunderscore menu]
 If {\it NetHack\/} can, it  should use this size font for menu windows.
 %.lp
-\item[\ib{font\textunderscore size\textunderscore message}]
+\item[font\textunderscore size\textunderscore message]
 If {\it NetHack\/} can, it should use this size font for the message window.
 %.lp
-\item[\ib{font\textunderscore size\textunderscore status}]
+\item[font\textunderscore size\textunderscore status]
 If {\it NetHack\/} can, it should use this size font for the status window.
 %.lp
-\item[\ib{font\textunderscore size\textunderscore text}]
+\item[font\textunderscore size\textunderscore text]
 If {\it NetHack\/} can, it should use this size font for text windows.
 %.lp
-\item[\ib{fullscreen}]
+\item[fullscreen]
 If {\it NetHack\/} can, it should try to display on the entire screen rather than in a window.
 %.lp
-\item[\ib{guicolor}]
+\item[guicolor]
 Use color text and/or highlighting attributes when displaying some
 non-map data (such as menu selector letters).
 Curses interface only; default is on.
 %.lp
-\item[\ib{large\textunderscore font}]
+\item[large\textunderscore font]
 If {\it NetHack\/} can, it should use a large font.
 %.lp
-\item[\ib{map\textunderscore mode}]
+\item[map\textunderscore mode]
 If {\it NetHack\/} can, it should display the map in the manner specified.
 %.lp
-\item[\ib{player\textunderscore selection}]
+\item[player\textunderscore selection]
 If {\it NetHack\/} can, it should pop up dialog boxes or use prompts for character selection.
 %.lp
-\item[\ib{popup\textunderscore dialog}]
+\item[popup\textunderscore dialog]
 If {\it NetHack\/} can, it should pop up dialog boxes for input.
 %.lp
-\item[\ib{preload\textunderscore tiles}]
+\item[preload\textunderscore tiles]
 If {\it NetHack\/} can, it should preload tiles into memory.
 For example, in the protected mode MS-DOS version, control whether tiles
 get pre-loaded into RAM at the start of the game.  Doing so
 enhances performance of the tile graphics, but uses more memory. (default on).
 Cannot be set with the `{\tt O}' command.
 %.lp
-\item[\ib{scroll\textunderscore amount}]
+\item[scroll\textunderscore amount]
 If {\it NetHack\/} can, it should scroll the display by this number of cells
 when the hero reaches the scroll\textunderscore margin.
 %.lp
-\item[\ib{scroll\textunderscore margin}]
+\item[scroll\textunderscore margin]
 If {\it NetHack\/} can, it should scroll the display when the hero or cursor
 is this number of cells away from the edge of the window.
 %.lp
-\item[\ib{selectsaved}]
+\item[selectsaved]
 If {\it NetHack\/} can, it should display a menu of existing saved games for the player to
 choose from at game startup, if it can. Not all ports support this option.
 %.lp
-\item[\ib{softkeyboard}]
+\item[softkeyboard]
 If {\it NetHack\/} can, it should display an onscreen keyboard.
 Handhelds are most likely to support this option.
 %.lp
-\item[\ib{splash\textunderscore screen}]
+\item[splash\textunderscore screen]
 If {\it NetHack\/} can, it should display an opening splash screen when
 it starts up (default yes).
 %.lp
-\item[\ib{statuslines}]
+\item[statuslines]
 Number of lines for traditional below-the-map status display.
 Acceptable values are {\tt 2} and {\tt 3} (default is {\tt 2}).
 
@@ -5509,16 +5504,16 @@ older than {\tt qt-5.9},
 can only be set in the run-time configuration file or via NETHACKOPTIONS,
 not during play with the `{\tt O}' command.)
 %.lp
-\item[\ib{term\textunderscore cols} {\normalfont and}]
+\item[term\textunderscore cols \textrm{and}]
 %.lp
-\item[\ib{term\textunderscore rows}]
+\item[term\textunderscore rows]
 Curses interface only.
 Number of columns and rows to use for the display.
 Curses will attempt to resize to the values specified but will settle
 for smaller sizes if they are too big.
 Default is the current window size.
 %.lp
-\item[\ib{tile\textunderscore file}]
+\item[tile\textunderscore file]
 Specify the name of an alternative tile file to override the default.
 \\
 %.lp ""
@@ -5526,34 +5521,34 @@ Note: the X11 interface uses X resources rather than NetHack's options
 to select an alternate tile file.
 See {\tt NetHack.ad}, the sample X ``application defaults'' file.
 %.lp
-\item[\ib{tile\textunderscore height}]
+\item[tile\textunderscore height]
 Specify the preferred height of each tile in a tile capable port.
 %.lp
-\item[\ib{tile\textunderscore width}]
+\item[tile\textunderscore width]
 Specify the preferred width of each tile in a tile capable port
 %.lp
-\item[\ib{tiled\textunderscore map}]
+\item[tiled\textunderscore map]
 If {\it NetHack\/} can, it should display the map using {\it tiles} graphics
 rather than simple characters (letters and punctuation, possibly
 augmented by line-drawing symbols).
 Setting {\tt tiled\textunderscore map} to {\it True\/} forces
 {\tt ascii\textunderscore map} to be {\it False}.
 %.lp
-\item[\ib{use\textunderscore darkgray}]
+\item[use\textunderscore darkgray]
 Use bold black instead of blue for black glyphs (TTY only).
 %.lp
-\item[\ib{use\textunderscore inverse}]
+\item[use\textunderscore inverse]
 If {\it NetHack\/} can, it should display inverse when the game specifies it.
 %.lp
-\item[\ib{use\textunderscore menu\textunderscore glyphs}]
+\item[use\textunderscore menu\textunderscore glyphs]
 If {\it NetHack\/} can, it should display glyphs next to objects in the
 inventory.
 %.lp
-\item[\ib{vary\textunderscore msgcount}]
+\item[vary\textunderscore msgcount]
 If {\it NetHack\/} can, it should display this number of messages at a time
 in the message window.
 %.lp
-\item[\ib{windowborders}]
+\item[windowborders]
 Whether to draw boxes around the map, status area, message area, and
 persistent inventory window if enabled.
 Curses interface only.
@@ -5585,7 +5580,7 @@ setting the value to 3 or 4 instead will keep borders for the map, message,
 and status windows but have room for two additional lines of inventory
 plus widen each inventory line by two columns.
 %.lp
-\item[\ib{windowcolors}]
+\item[windowcolors]
 If {\it NetHack\/} can, it should display all windows of a particular style
 with the specified foreground and background colors.
 Windows GUI and curses windowport only.
@@ -5610,10 +5605,10 @@ or (for Windows only) one of Windows UI colors ({\it trueblack},
 {\it windowtext}).
 
 %.lp
-\item[\ib{wraptext}]
+\item[wraptext]
 If {\it NetHack\/} can, it should wrap long lines of text if they don't fit
 in the visible area of the window.
-\elist
+\end{description}
 
 %.hn 2
 \subsection*{Crash Report Options}
@@ -5622,21 +5617,21 @@ in the visible area of the window.
 Please note that NetHack does not send {\textbf any} information off your
 computer unless you manually click submit on a form.
 %.si
-\blist{}
+\begin{description}
 %.lp
 \item[OPTION=crash\textunderscore email:{\it email\textunderscore address}]
 %.lp
 \item[OPTION=crash\textunderscore name:{\it your\textunderscore name}]
 %.ei
-\elist
+\end{description}
 These options are used only to save you some typing on the crash
 report and \#bugreport forms.  
 %.si
-\blist{}
+\begin{description}
 %.lp
 \item[OPTION=crash\textunderscore urlmax:{\it bytes}]
 %.ei
-\elist
+\end{description}
 This option is used to limit the length of the URLs generated and is only
 needed if your browser cannot handle arbitrarily long URLs.
 
@@ -5647,16 +5642,16 @@ needed if your browser cannot handle arbitrarily long URLs.
 Here are explanations of options that are used by specific platforms
 or ports to customize and change the port behavior.
 
-\blist{}
+\begin{description}[font=\itshape]
 %.lp
-\item[\ib{altkeyhandling}]
+\item[altkeyhandling]
 Select an alternate way to handle keystrokes ({\it Win32 tty\/ NetHack\/} only).
 The name of the handling type is one of {\it default}, {\it ray}, {\it 340}
-%.\" \item[\ib{altmeta}]
+%.\" \item[altmeta]
 %.\" On Amiga, this option controls whether typing ``Alt'' plus another key
 %.\" functions as a meta-shift for that key (default on).
 %.lp
-\item[\ib{altmeta}]
+\item[altmeta]
 %.\" On other (non-Amiga) systems where this option is available, it can be
 On systems where this option is available, it can be
 set to tell {\it NetHack\/} to convert a two character sequence beginning with
@@ -5673,19 +5668,19 @@ character to complete the two character sequence.
 Type a second ESC to finish cancelling such a count.
 At other prompts a single ESC suffices.
 %.lp
-\item[\ib{BIOS}]
+\item[BIOS]
 Use BIOS calls to update the screen display quickly and to read the keyboard
 (allowing the use of arrow keys to move) on machines with an IBM PC
 compatible BIOS ROM (default off, {\it OS/2, PC\/ {\rm and} ST NetHack\/} only).
 %.lp
-\item[\ib{rawio}]
+\item[rawio]
 Force raw (non-cbreak) mode for faster output and more
 bulletproof input (MS-DOS sometimes treats `{\tt \^{}P}' as a printer toggle
 without it) (default off, {\it OS/2, PC\/ {\rm and} ST NetHack\/} only).
 Note:  DEC Rainbows hang if this is turned on.
 Cannot be set with the `{\tt O}' command.
 %.lp
-\item[\ib{subkeyvalue}]
+\item[subkeyvalue]
 ({\it Win32 tty NetHack \/} only).
 May be used to alter the value of keystrokes that the operating system
 returns to {\it NetHack\/} to help compensate for international keyboard
@@ -5696,7 +5691,7 @@ You can use multiple subkeyvalue assignments in the configuration file
 if needed.
 Cannot be set with the `{\tt O}' command.
 %.lp
-\item[\ib{video}]
+\item[video]
 Set the video mode used ({\it PC\/ NetHack\/} only).
 Values are {\it autodetect\/}, {\it default\/}, {\it vga\/}, or {\it vesa\/}.
 Setting {\it vesa\/} will cause the game to display tiles, using the full
@@ -5708,13 +5703,13 @@ Setting {\it autodetect\/} attempts {\it vesa\/}, then {\it vga\/}, and
 finally sets {\it default\/} if neither of those modes works.
 Cannot be set with the `{\tt O}' command.
 %.lp
-\item[\ib{video\textunderscore height}]
+\item[video\textunderscore height]
 Set the VGA mode resolution height (MS-DOS only, with video:vesa)
 %.lp
-\item[\ib{video\textunderscore width}]
+\item[video\textunderscore width]
 Set the VGA mode resolution width (MS-DOS only, with video:vesa)
 %.lp
-\item[\ib{videocolors}]
+\item[videocolors]
 \begin{sloppypar}
 Set the color palette for PC systems using NO\textunderscore TERMS
 (default 4-2-6-1-5-3-15-12-10-14-9-13-11, {\it PC\/ NetHack\/} only).
@@ -5724,13 +5719,13 @@ bright.magenta, and bright.cyan.
 Cannot be set with the `{\tt O}' command.
 \end{sloppypar}
 %.lp
-\item[\ib{videoshades}]
+\item[videoshades]
 Set the intensity level of the three gray scales available
 (default dark normal light, {\it PC\/ NetHack\/} only).
 If the game display is difficult to read, try adjusting these scales;
 if this does not correct the problem, try {\tt !color}.
 Cannot be set with the `{\tt O}' command.
-\elist
+\end{description}
 
 %.hn 2
 \subsection*{Regular Expressions}
@@ -5757,9 +5752,9 @@ By placing ``{\tt autopickup\textunderscore exception}'' lines in your configura
 file, you can define patterns to be checked when the game is about to
 autopickup something.
 
-\blist{}
+\begin{description}
 %.lp
-\item[\ib{autopickup\textunderscore exception}]
+\item[autopickup\textunderscore exception]
 Sets an exception to the ``{\it pickup\textunderscore types}'' option.
 The {\it autopickup\textunderscore exception\/} option should be followed by a regular
 expression to be used as a pattern to match against the singular form of the
@@ -5784,7 +5779,7 @@ Exceptions can be set with the `{\tt O}' command, but because they are not
 included in your configuration file, they won't be in effect if you save
 and then restore your game.
 {\it autopickup\textunderscore exception\/} rules are not saved with the game.
-\elist
+\end{description}
 
 %.lp "Here are some examples:"
 Here are some examples:
@@ -5822,35 +5817,35 @@ For example:
     BIND=v:loot
 \end{verbatim}
 
-\blist{}
+\begin{description}[font=\ttfamily]
 %.lp "Extended command keys"
-\item[\tb{Extended command keys}]
+\item[Extended command keys]
 You can bind multiple keys to the same extended command. Unbind a key by
 using ``{\tt nothing}'' as the extended command to bind to. You can also bind
 the ``{\tt <esc>}'', ``{\tt <enter>}'', and ``{\tt <space>}'' keys.
 
 %.lp "Menu accelerator keys"
-\item[\tb{Menu accelerator keys}]
+\item[Menu accelerator keys]
 The menu control or accelerator keys can also be rebound via OPTIONS lines
 in the configuration file.
 You cannot bind object symbols or selection letters into menu accelerators.
 Some interfaces only support some of the menu accelerators.
 
 %.lp "Mouse buttons"
-\item[\tb{Mouse buttons}]
+\item[Mouse buttons]
 You can bind ``mouse1'' or ``mouse2'' to ``{\tt nothing}'',
 ``{\tt therecmdmenu}'', ``{\tt clicklook}'', or ``{\tt mouseaction}''.
 
 %.lp "Special command keys"
-\item[\tb{Special command keys}]
+\item[Special command keys]
 Below are the special commands you can rebind. Some of them can be bound to
 same keys with no problems, others are in the same ``context'', and if bound
 to same keys, only one of those commands will be available. Special command
 can only be bound to a single key.
-\elist
+\end{description}
 
 %.pg
-\blist{\itemindent 10mm \labelwidth 15mm \rightmargin 15mm}
+\begin{description}[itemindent=10mm, labelwidth=15mm, rightmargin=15mm]
 %.lp
 \item[{\bb{count}}]
 Prefix key to start a count, to repeat a command this many times.
@@ -5975,7 +5970,7 @@ Default is~`{\tt z}'.
 \item[{\bb{getpos.valid.prev}}]
 When asked for a location, the key to go to previous closest valid location.
 Default is~`{\tt Z}'.
-\elist
+\end{description}
 
 
 %.hn 2
@@ -5991,9 +5986,9 @@ look like this:
 \begin{verbatim}
     MSGTYPE=type "pattern"
 \end{verbatim}
-\blist{}
+\begin{description}[font=\itshape]
 %.lp
-\item[\ib{type}]
+\item[type]
 how the message should be shown:
 %.sd
 %.si
@@ -6006,9 +6001,9 @@ shown in between.
 %.ei
 %.ed
 %.lp
-\item[\ib{pattern}]
+\item[pattern]
 the pattern to match. The pattern should be a regular expression.
-\elist
+\end{description}
 
 %.lp ""
 Here's an example of message types using {\it NetHack's\/} internal
@@ -6046,19 +6041,19 @@ look like this:
     MENUCOLOR="pattern"=color&attribute
 \end{verbatim}
 
-\blist{}
+\begin{description}[font=\itshape]
 %.lp
-\item[\ib{pattern}]
+\item[pattern]
 the pattern to match;
 %.lp
-\item[\ib{color}]
+\item[color]
 the color to use for lines matching the pattern;
 %.lp
-\item[\ib{attribute}]
+\item[attribute]
 the attribute to use for lines matching the pattern. The attribute is
 optional, and if left out, you must also leave out the preceding ampersand.
 If no attribute is defined, no attribute is used.
-\elist
+\end{description}
 
 %.lp ""
 The pattern should be a regular expression.
@@ -6117,12 +6112,12 @@ use of user sounds.
 The following configuration file entries are relevant to mapping user sounds
 to messages:
 
-\blist{}
+\begin{description}[font=\itshape]
 %.lp
-\item[\ib{SOUNDDIR}]
+\item[SOUNDDIR]
 The directory that houses the sound files to be played.
 %.lp
-\item[\ib{SOUND}]
+\item[SOUND]
 An entry that maps a sound file to a user-specified message pattern.
 Each SOUND entry is broken down into the following parts:
 
@@ -6136,7 +6131,7 @@ Each SOUND entry is broken down into the following parts:
 {\tt sound index} --- optional; the index corresponding to a sound file.
 %.ei
 %.ed
-\elist
+\end{description}
 
 %.lp ""
 The pattern should be a regular expression.
@@ -6248,7 +6243,7 @@ It overrides other behavior rules if
 hit points are at or below the {\it major problem\/} threshold
 (which varies depending upon maximum hit points and experience level).
 
-\blist{}
+\begin{description}
 %.lp "*"
 \item[{\tt always}] will set the default attributes for that field.
 %.lp "*"
@@ -6313,7 +6308,7 @@ and ``{\it title\/}''.
 For title, only the role's rank title
 is tested; the character's name is ignored.
 %.ei
-\elist
+\end{description}
 
 The in-game options menu can help you determine the correct syntax for a
 configuration file.
@@ -6345,17 +6340,17 @@ Example hilites:
 The options that are used to select a particular symbol set from the
 symbol file are:
 
-\blist{}
+\begin{description}[font=\itshape]
 %.lp
-\item[\ib{symset}]
+\item[symset]
 Set the name of the symbol set that you want to load.
 {\it symbols\/}.
 
 %.lp
-\item[\ib{roguesymset}]
+\item[roguesymset]
 Set the name of the symbol set that you want to load for display
 on the rogue level.
-\elist
+\end{description}
 
 You can also override one or more symbols using the {\it SYMBOLS\/} and
 {\it ROGUESYMBOLS\/} configuration file options.
@@ -6658,65 +6653,65 @@ only parameter.
 
 The most crucial settings to make the game more accessible are:
 %.pg
-\blist{}
+\begin{description}[font=\itshape]
 %.lp
-\item[\ib{symset:plain}]
+\item[symset:plain]
 Load a symbol set appropriate for use by blind players.
 %.lp
-\item[\ib{menustyle:traditional}]
+\item[menustyle:traditional]
 This will assist in the interface to speech synthesizers.
 %.lp
-\item[\ib{nomenu\textunderscore overlay}]
+\item[nomenu\textunderscore overlay]
 Show menus on a cleared screen and aligned to the left edge.
 %.lp
-\item[\ib{number\textunderscore pad}]
+\item[number\textunderscore pad]
 A lot of speech access programs use the number-pad to review the screen.
 If this is the case, disable the number\textunderscore pad option and use the
 traditional Rogue-like commands.
 %.lp
-\item[\ib{paranoid\textunderscore confirmation:swim}]
+\item[paranoid\textunderscore confirmation:swim]
 Prevent walking into water or lava.
 %.lp
-\item[\ib{accessiblemsg}]
+\item[accessiblemsg]
 Adds direction or location information to messages.
 %.lp
-\item[\ib{spot\textunderscore monsters}]
+\item[spot\textunderscore monsters]
 Shows a message when hero notices a monster; combine with accessiblemsg.
 %.lp
-\item[\ib{mon\textunderscore movement}]
+\item[mon\textunderscore movement]
 Shows a message when hero notices a monster movement;
 combine with spot\textunderscore monsters and accessiblemsg.
 %.lp
-\item[\ib{autodescribe}]
+\item[autodescribe]
 Automatically describe the terrain under the cursor when targeting.
 %.lp
-\item[\ib{mention\textunderscore map}]
+\item[mention\textunderscore map]
 Give feedback messages when interesting map locations change.
 %.lp
-\item[\ib{mention\textunderscore walls}]
+\item[mention\textunderscore walls]
 Give feedback messages when walking towards a wall or when travel command
 was interrupted.
 %.lp
-\item[\ib{whatis\textunderscore coord:compass}]
+\item[whatis\textunderscore coord:compass]
 When targeting with cursor, describe the cursor position with coordinates
 relative to your character.
 %.lp
-\item[\ib{whatis\textunderscore filter:area}]
+\item[whatis\textunderscore filter:area]
 When targeting with cursor, filter possible locations so only those in
 the same area (eg. same room, or same corridor) are considered.
 %.lp
-\item[\ib{whatis\textunderscore moveskip}]
+\item[whatis\textunderscore moveskip]
 When targeting with cursor and using fast-move, skip the same glyphs instead
 of moving 8 units at a time.
 %.lp
-\item[\ib{nostatus\textunderscore updates}]
+\item[nostatus\textunderscore updates]
 Prevent updates to the status lines at the bottom of the screen, if
 your screen-reader reads those lines. The same information can be
 seen via the {\tt \#attributes} command.
 %.lp
-\item[\ib{showdamage}]
+\item[showdamage]
 Give a message of damage taken and how many hit points are left.
-\elist
+\end{description}
 
 %.hn2
 \subsection*{Global Configuration for System Administrators}
@@ -6733,87 +6728,87 @@ set uses a compiled-in default (which may not be appropriate for your
 system).
 
 %.pg
-\blist{}
+\begin{description}[font=\itshape]
 %.lp
-\item[\ib{WIZARDS}]
+\item[WIZARDS]
 A space-separated list of user name who are allowed to
 play in debug mode (commonly referred to as wizard mode).
 A value of a single
 asterisk (*) allows anyone to start a game in debug mode.
 %.lp
-\item[\ib{SHELLERS}]
+\item[SHELLERS]
 A list of users who are allowed to use the shell escape command (`{\tt !}').
 The syntax is the same as WIZARDS.
 %.lp
-\item[\ib{EXPLORERS}]
+\item[EXPLORERS]
 A list of users who are allowed to use the explore mode.
 The syntax is the same as WIZARDS.
 %.lp
-\item[\ib{MSGHANDLER}]
+\item[MSGHANDLER]
 A path and filename of executable.  Whenever a message-window
 message is shown, NetHack runs this program.  The program will get
 the message as the only parameter.
 %.lp
-\item[\ib{MAXPLAYERS}]
+\item[MAXPLAYERS]
 Limit the maximum number of games that can be running at the same time.
 %.lp
-\item[\ib{SUPPORT}]
+\item[SUPPORT]
 A string explaining how to get local support (no default value).
 %.lp
-\item[\ib{RECOVER}]
+\item[RECOVER]
 A string explaining how to recover a game on this system (no default value).
 %.lp
-\item[\ib{SEDUCE}]
+\item[SEDUCE]
 0 or 1 to disable or enable, respectively, the SEDUCE option.
 When disabled, incubi and succubi behave like nymphs.
 %.lp
-\item[\ib{CHECK\textunderscore PLNAME}]
+\item[CHECK\textunderscore PLNAME]
 Setting this to 1 will make the EXPLORERS, WIZARDS, and SHELLERS check
 for the player name instead of the user's login name.
 %.lp
-\item[\ib{CHECK\textunderscore SAVE\textunderscore UID}]
+\item[CHECK\textunderscore SAVE\textunderscore UID]
 0 or 1 to disable or enable, respectively, the UID
 (used identification number) checking for save files (to verify that the
 user who is restoring is the same one who saved).
-\elist
+\end{description}
 
 %.pg
 The following four options affect the score file:
-\blist {}
+\begin{description}[font=\itshape]
 %.pg
 %.lp
-\item[\ib{PERSMAX}]
+\item[PERSMAX]
 Maximum number of entries for one person.
 %.lp
-\item[\ib{ENTRYMAX}]
+\item[ENTRYMAX]
 Maximum number of entries in the score file.
 %.lp
-\item[\ib{POINTSMIN}]
+\item[POINTSMIN]
 Minimum number of points to get an entry in the score file.
 %.lp
-\item[\ib{PERS\textunderscore IS\textunderscore UID}]
+\item[PERS\textunderscore IS\textunderscore UID]
 0 or 1 to use user names or numeric userids, respectively, to identify
 unique people for the score file.
 %.lp
-\item[\ib{HIDEUSAGE}]
+\item[HIDEUSAGE]
 0 or 1 to control whether the help menu entry for command
 line usage is shown or suppressed.
 %.lp
-\item[\ib{MAX\textunderscore STATUENAME\textunderscore RANK}]
+\item[MAX\textunderscore STATUENAME\textunderscore RANK]
 Maximum number of score file entries to use for
 random statue names (default is 10).
 %.lp
-\item[\ib{ACCESSIBILITY}]
+\item[ACCESSIBILITY]
 0 or 1 to disable or enable, respectively, the ability for players
 to set S\textunderscore pet\textunderscore override and S\textunderscore hero\textunderscore override 
 symbols in their configuration file.
 %.lp
-\item[\ib{PORTABLE\textunderscore DEVICE\textunderscore PATHS}]
+\item[PORTABLE\textunderscore DEVICE\textunderscore PATHS]
 0 or 1 Windows OS only, the game will look for all of its external
 files, and write to all of its output files in one place 
 rather than at the standard locations.
 %.lp
-\item[\ib{DUMPLOGFILE}]
+\item[DUMPLOGFILE]
 A filename where the end-of-game dumplog is saved.
 Not defining this will prevent dumplog from being created.
 Only available if your game is compiled with DUMPLOG.
@@ -6829,7 +6824,7 @@ Allows the following placeholders:
 {\tt \%n}  --- player name\\
 {\tt \%N}  --- first character of player name
 %.lp
-\item[\ib{LIVELOG}]
+\item[LIVELOG]
 A bit-mask of types of events that should be written to
 the {\it livelog\/} file if one is present.
 The sample {\it sysconf\/} file accompanying the program contains a
@@ -6842,14 +6837,14 @@ When available, it should be left commented out on single player
 installations because over time the file could grow to be extremely
 large unless it is actively maintained.
 %.lp
-\item[\ib{CRASHREPORTURL}]
+\item[CRASHREPORTURL]
 If set to
 {\tt https://www.nethack.org/links/cr-37BETA.html}
 and support is compiled in, brings up a browser window populated with
 the information needed to report a problem if the game panics or ends
 up in an internally inconsistent state, or if the \#bugreport command is
 invoked.
-\elist
+\end{description}
 
 %.hn 1
 \section{Scoring}
