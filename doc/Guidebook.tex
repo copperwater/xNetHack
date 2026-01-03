@@ -25,10 +25,6 @@
 
 \hyphenation{CRASHREPORTURL}
 
-% this will make \tt underscores look better, but requires that
-% math subscripts will never be used in this document
-\catcode`\_=12
-
 \begin{document}
 %
 % input file: guidebook.mn
@@ -3936,8 +3932,8 @@ Example:
 %.ed
 
 %.lp
-\item[\bb{AUTOPICKUP\_EXCEPTION}]
-Set exceptions to the {{\it pickup\_types\/}}
+\item[\bb{AUTOPICKUP\textunderscore EXCEPTION}]
+Set exceptions to the {{\it pickup\textunderscore types\/}}
 option. See the ``Configuring Autopickup Exceptions'' section.
 %.lp
 \item[\bb{BINDINGS}]
@@ -4377,7 +4373,7 @@ An object's inventory letter sticks to it when it's dropped (default on).
 If this is off, dropping an object shifts all the remaining inventory letters.
 Persistent.
 %.lp
-\item[\ib{force\_invmenu}]
+\item[\ib{force\textunderscore invmenu}]
 Commands asking for an inventory item show a menu instead of
 a text query with possible menu letters. Default is off.
 %.lp
@@ -5583,7 +5579,7 @@ Acceptable values are
 (The 26x82 size threshold for `2' refers to number of rows and
 columns of the display.
 A width of at least 110 columns (\verb&80+2+26+2&) is needed for
-{\it align_status\/}
+{\it align\textunderscore status\/}
 set to {\tt left} or {\tt right}.)
 
 %.lp ""
@@ -5633,9 +5629,9 @@ computer unless you manually click submit on a form.
 %.si
 \blist{}
 %.lp
-\item[OPTION=crash_email:{\it email_address}]
+\item[OPTION=crash\textunderscore email:{\it email\textunderscore address}]
 %.lp
-\item[OPTION=crash_name:{\it your_name}]
+\item[OPTION=crash\textunderscore name:{\it your\textunderscore name}]
 %.ei
 \elist
 These options are used only to save you some typing on the crash
@@ -5643,7 +5639,7 @@ report and \#bugreport forms.
 %.si
 \blist{}
 %.lp
-\item[OPTION=crash_urlmax:{\it bytes}]
+\item[OPTION=crash\textunderscore urlmax:{\it bytes}]
 %.ei
 \elist
 This option is used to limit the length of the URLs generated and is only
@@ -6244,8 +6240,8 @@ Instead of a behavior, `condition' takes the following condition flags:
 {\it stone}, {\it slime}, {\it strngl}, {\it foodpois}, {\it termill},
 {\it blind}, {\it deaf}, {\it stun}, {\it conf}, {\it hallu},
 {\it lev}, {\it fly}, and {\it ride}.
-You can use `major\_troubles' as an alias
-for stone through termill, `minor\_troubles' for blind through hallu,
+You can use `major\textunderscore troubles' as an alias
+for stone through termill, `minor\textunderscore troubles' for blind through hallu,
 `movement' for lev, fly, and ride, and `all' for every condition.
 
 %.lp ""
@@ -6387,7 +6383,7 @@ Default                      & Symbol Name                & Description\\
 \hline \hline
 \endhead
 \verb@ @ & S\textunderscore air                     &	(air)\\
-\_ & S\textunderscore altar                   &	(altar)\\
+\textunderscore  & S\textunderscore altar                   &	(altar)\\
 \verb@"@ & S\textunderscore amulet                  &	(amulet)\\
 \verb@A@ & S\textunderscore angel                   &	(angelic being)\\
 \verb@a@ & S\textunderscore ant                     &	(ant or other insect)\\
@@ -6660,7 +6656,7 @@ has been compiled with the capability. When compiling {\it NetHack\/}
 from source
 on Linux and other POSIX systems, define {\tt MSGHANDLER\/} to enable it.
 To use
-the capability, set the environment variable {\tt NETHACK\_MSGHANDLER\/} to
+the capability, set the environment variable {\tt NETHACK\textunderscore MSGHANDLER\/} to
 an executable, which will be executed with the game message as the program's
 only parameter.
 %.pg
