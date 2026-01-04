@@ -46,8 +46,7 @@ move_special(struct monst *mtmp, boolean in_his_shop, schar appr,
     coordxy nx, ny, nix, niy;
     schar i;
     schar chcnt, cnt;
-    coord poss[9];
-    long info[9];
+    struct mfndposdata mfp;
     long ninfo = 0;
     long allowflags;
 #if 0 /* dead code; see below */
@@ -64,11 +63,11 @@ move_special(struct monst *mtmp, boolean in_his_shop, schar appr,
     nix = omx;
     niy = omy;
     allowflags = mon_allowflags(mtmp);
-    cnt = mfndpos(mtmp, poss, info, allowflags);
+    cnt = mfndpos(mtmp, &mfp, allowflags);
 
     if (mtmp->isshk && avoid && uondoor) { /* perhaps we cannot avoid him */
         for (i = 0; i < cnt; i++)
-            if (!(info[i] & NOTONL))
+            if (!(mfp.info[i] & NOTONL))
                 goto pick_move;
         avoid = FALSE;
     }
@@ -77,18 +76,18 @@ move_special(struct monst *mtmp, boolean in_his_shop, schar appr,
  pick_move:
     chcnt = 0;
     for (i = 0; i < cnt; i++) {
-        nx = poss[i].x;
-        ny = poss[i].y;
+        nx = mfp.poss[i].x;
+        ny = mfp.poss[i].y;
         if (IS_ROOM(levl[nx][ny].typ)
             || (mtmp->isshk && (!in_his_shop || ESHK(mtmp)->following))) {
-            if (avoid && (info[i] & NOTONL) && !(info[i] & ALLOW_M))
+            if (avoid && (mfp.info[i] & NOTONL) && !(mfp.info[i] & ALLOW_M))
                 continue;
             if ((!appr && !rn2(++chcnt))
                 || (appr && GDIST(nx, ny) < GDIST(nix, niy))
-                || (info[i] & ALLOW_M)) {
+                || (mfp.info[i] & ALLOW_M)) {
                 nix = nx;
                 niy = ny;
-                ninfo = info[i];
+                ninfo = mfp.info[i];
             }
         }
     }

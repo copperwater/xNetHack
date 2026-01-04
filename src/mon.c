@@ -2111,8 +2111,7 @@ m_in_air(struct monst *mtmp)
 int
 mfndpos(
     struct monst *mon,
-    coord *poss, /* coord poss[9] */
-    long *info,  /* long info[9] */
+    struct mfndposdata *data,
     long flag)
 {
     struct permonst *mdat = mon->data;
@@ -2131,6 +2130,8 @@ mfndpos(
     x = mon->mx;
     y = mon->my;
     nowtyp = levl[x][y].typ;
+
+    (void)memset((genericptr_t) data, 0, sizeof(struct mfndposdata));
 
     nodiag = NODIAG(mdat - mons);
     wantpool = (mdat->mlet == S_EEL);
@@ -2247,11 +2248,11 @@ mfndpos(
                     dispy = ny;
                 }
 
-                info[cnt] = 0;
+                data->info[cnt] = 0;
                 if (onscary(dispx, dispy, mon)) {
                     if (!(flag & ALLOW_SSM))
                         continue;
-                    info[cnt] |= ALLOW_SSM;
+                    data->info[cnt] |= ALLOW_SSM;
                 }
                 if (u_at(nx, ny)
                     || (nx == mon->mux && ny == mon->muy)) {
@@ -2267,25 +2268,25 @@ mfndpos(
                     }
                     if (!(flag & ALLOW_U))
                         continue;
-                    info[cnt] |= ALLOW_U;
+                    data->info[cnt] |= ALLOW_U;
                 } else {
                     if (MON_AT(nx, ny)) {
                         struct monst *mtmp2 = m_at(nx, ny);
                         long mmflag = flag | mm_aggression(mon, mtmp2);
 
                         if (mmflag & ALLOW_M) {
-                            info[cnt] |= ALLOW_M;
+                            data->info[cnt] |= ALLOW_M;
                             if (mtmp2->mtame) {
                                 if (!(mmflag & ALLOW_TM))
                                     continue;
-                                info[cnt] |= ALLOW_TM;
+                                data->info[cnt] |= ALLOW_TM;
                             }
                         } else {
                             flag &= ~ALLOW_MDISP; /* depends upon defender */
                             mmflag = flag | mm_displacement(mon, mtmp2);
                             if (!(mmflag & ALLOW_MDISP))
                                 continue;
-                            info[cnt] |= ALLOW_MDISP;
+                            data->info[cnt] |= ALLOW_MDISP;
                         }
                     }
                     /* Note: ALLOW_SANCT only prevents movement, not
@@ -2296,23 +2297,23 @@ mfndpos(
                         && in_your_sanctuary((struct monst *) 0, nx, ny)) {
                         if (!(flag & ALLOW_SANCT))
                             continue;
-                        info[cnt] |= ALLOW_SANCT;
+                        data->info[cnt] |= ALLOW_SANCT;
                     }
                 }
                 if (checkobj && sobj_at(CLOVE_OF_GARLIC, nx, ny)) {
                     if (flag & NOGARLIC)
                         continue;
-                    info[cnt] |= NOGARLIC;
+                    data->info[cnt] |= NOGARLIC;
                 }
                 if (checkobj && sobj_at(BOULDER, nx, ny)) {
                     if (!(flag & ALLOW_ROCK))
                         continue;
-                    info[cnt] |= ALLOW_ROCK;
+                    data->info[cnt] |= ALLOW_ROCK;
                 }
                 if (monseeu && monlineu(mon, nx, ny)) {
                     if (flag & NOTONL)
                         continue;
-                    info[cnt] |= NOTONL;
+                    data->info[cnt] |= NOTONL;
                 }
                 /* check for diagonal tight squeeze */
                 if (nx != x && ny != y && bad_rock(mdat, x, ny)
@@ -2332,17 +2333,17 @@ mfndpos(
                     }
                     /* fixed-destination teleport trap, was used by hero */
                     if (fixed_tele_trap(ttmp) && hastrack(nx, ny))
-                        info[cnt] |= ALLOW_TRAPS;
+                        data->info[cnt] |= ALLOW_TRAPS;
                     else if (!m_harmless_trap(mon, ttmp)) {
                         if (!(flag & ALLOW_TRAPS)) {
                             if (mon_knows_traps(mon, ttmp->ttyp))
                                 continue;
                         }
-                        info[cnt] |= ALLOW_TRAPS;
+                        data->info[cnt] |= ALLOW_TRAPS;
                     }
                 }
-                poss[cnt].x = nx;
-                poss[cnt].y = ny;
+                data->poss[cnt].x = nx;
+                data->poss[cnt].y = ny;
                 cnt++;
             }
         }
@@ -2350,6 +2351,7 @@ mfndpos(
         wantpool = FALSE;
         goto nexttry;
     }
+    data->cnt = cnt;
     return cnt;
 }
 

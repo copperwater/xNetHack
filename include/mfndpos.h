@@ -30,4 +30,10 @@
 #endif
 /* clang-format on */
 
+struct mfndposdata {
+    int cnt;
+    coord poss[9];
+    long info[9];
+};
+
 #endif /* MFNDPOS_H */
