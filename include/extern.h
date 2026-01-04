@@ -1922,7 +1922,7 @@ extern boolean accessible(coordxy, coordxy);
 extern void set_apparxy(struct monst *) NONNULLARG1;
 extern boolean can_ooze(struct monst *) NONNULLARG1;
 extern boolean can_fog(struct monst *) NONNULLARG1;
-extern boolean should_displace(struct monst *, struct mfndposdata, coordxy,
+extern boolean should_displace(struct monst *, struct mfndposdata *, coordxy,
                                coordxy) NONNULLPTRS;
 extern boolean undesirable_disp(struct monst *, coordxy, coordxy) NONNULLARG1;
 extern boolean can_hide_under_obj(struct obj *);

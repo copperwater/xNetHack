@@ -1069,7 +1069,7 @@ itsstuck(struct monst *mtmp)
 boolean
 should_displace(
     struct monst *mtmp,
-    struct mfndposdata data,
+    struct mfndposdata *data,
     coordxy ggx,
     coordxy ggy)
 {
@@ -1079,11 +1079,11 @@ should_displace(
     int i, nx, ny;
     int ndist;
 
-    for (i = 0; i < data.cnt; i++) {
-        nx = data.poss[i].x;
-        ny = data.poss[i].y;
+    for (i = 0; i < data->cnt; i++) {
+        nx = data->poss[i].x;
+        ny = data->poss[i].y;
         ndist = dist2(nx, ny, ggx, ggy);
-        if (MON_AT(nx, ny) && (data.info[i] & ALLOW_MDISP) && !(data.info[i] & ALLOW_M)
+        if (MON_AT(nx, ny) && (data->info[i] & ALLOW_MDISP) && !(data->info[i] & ALLOW_M)
             && !undesirable_disp(mtmp, nx, ny)) {
             if (shortest_with_displacing == -1
                 || (ndist < shortest_with_displacing))
@@ -1942,7 +1942,7 @@ m_move(struct monst *mtmp, int after)
                     avoid = TRUE;
         }
         better_with_displacing =
-            should_displace(mtmp, mfp, ggx, ggy);
+            should_displace(mtmp, &mfp, ggx, ggy);
         for (i = 0; i < cnt; i++) {
             if (avoid && (mfp.info[i] & NOTONL))
                 continue;
