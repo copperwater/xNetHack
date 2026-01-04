@@ -502,7 +502,7 @@ TARGET_HACKLIB = $(TARGETPFX)hacklib.a
 MAKEDEFS = ../util/makedefs
 
 # -lm required by lua
-LUA_VERSION ?=5.4.6
+LUA_VERSION ?=5.4.8
 LUABASE = liblua-$(LUA_VERSION).a
 LUALIB = ../lib/lua/$(LUABASE)
 LUALIBS = $(LUALIB) -lm $(DLLIB)

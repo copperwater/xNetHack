@@ -28,9 +28,9 @@ $ !	  one, use "" in the earlier one's position, such as
 $ !	$ @[-.sys.vms]vmsbuild "" "" "" "" "TTY+CURSES"
 $ !
 $ ! Lua Version
-$ luaver = "546"
-$ luadotver = "5.4.6"
-$ luaunderver = "5_4_6"
+$ luaver = "548"
+$ luadotver = "5.4.8"
+$ luaunderver = "5_4_8"
 $
 $	  decc_dflt = f$trnlnm("DECC$CC_DEFAULT")
 $	  j = (decc_dflt.nes."") .and. 1

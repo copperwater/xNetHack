@@ -56,7 +56,7 @@ endif
 # Location of LUA
 #
 # Original source needs to be obtained from: 
-#    http://www.lua.org/ftp/lua-5.4.6.tar.gz
+#    http://www.lua.org/ftp/lua-5.4.8.tar.gz
 #
 #    This build assumes that the LUA sources are located
 #    at the specified location. If they are actually elsewhere
@@ -324,7 +324,7 @@ ALLOBJ = $(VOBJ) $(SOBJ) $(TILOBJ) $(TILOBJ2) $(VVOBJ)
 
 #===============-=================================================
 # LUA library
-# Source from http://www.lua.org/ftp/lua-5.4.6.tar.gz
+# Source from http://www.lua.org/ftp/lua-5.4.8.tar.gz
 #=================================================================
 
 LUASRC   = $(LUATOP)/src

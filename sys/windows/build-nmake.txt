@@ -43,7 +43,7 @@ You can use one of the following build environments:
                +----------+          +------+      +----+     +----+
                |          |          |      |      |    |     |    |
                |          |          |      |      |    |     |    |
-           lua-5.4.6  pdcursesmod  share windows  tty  win32 lua pdcursesmod
+           lua-5.4.8  pdcursesmod  share windows  tty  win32 lua pdcursesmod
                                                   |
                                                   vs
                                                   |
