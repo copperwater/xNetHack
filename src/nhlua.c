@@ -2216,7 +2216,11 @@ nhl_init(nhl_sandbox_info *sbi)
     /* It would be nice to import EXPECTED from each build system. XXX */
     /* And it would be nice to do it only once, but it's cheap. */
 #ifndef NHL_VERSION_EXPECTED
+#if LUA_VERSION_NUM >= 505
+#define NHL_VERSION_EXPECTED 50500
+#else
 #define NHL_VERSION_EXPECTED 50406
+#endif
 #endif
 
 #ifdef NHL_SANDBOX
@@ -2978,7 +2982,11 @@ nhlL_newstate(nhl_sandbox_info *sbi, const char *name)
         nud->sid = ++gl.lua_sid;
     }
 
-    lua_State *L = lua_newstate(nhl_alloc, nud);
+    lua_State *L = lua_newstate(nhl_alloc, nud
+#if LUA_VERSION_NUM >= 505
+                               , 0
+#endif
+                               );
     if (!L)
         panic("NULL lua_newstate");
 
