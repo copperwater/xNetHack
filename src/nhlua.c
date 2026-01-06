@@ -2219,7 +2219,7 @@ nhl_init(nhl_sandbox_info *sbi)
 #if LUA_VERSION_NUM >= 505
 #define NHL_VERSION_EXPECTED 50500
 #else
-#define NHL_VERSION_EXPECTED 50406
+#define NHL_VERSION_EXPECTED 50408
 #endif
 #endif
 
