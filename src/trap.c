@@ -6400,7 +6400,7 @@ chest_trap(
         bot(); /* to get immediate botl re-display */
     }
 
-    otmp->tknown = 1; /* hero knows chest is no longer trapped */
+    obj->tknown = 1; /* hero knows chest is no longer trapped */
     return FALSE;
 }
 
