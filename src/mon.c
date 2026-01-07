@@ -2951,7 +2951,7 @@ vamprises(struct monst *mtmp)
             set_msg_xy(0, 0); /* in case none of the messages was delivered */
 
             door->doormask = D_NODOOR;
-            unblock_point(x, y);
+            recalc_block_point(x, y);
             if (trapped) {
                 boolean trap_killed, save_verbose = flags.verbose;
 
