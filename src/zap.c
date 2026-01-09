@@ -6208,7 +6208,8 @@ makewish(void)
     getlin(promptbuf, buf);
 
     if (iflags.term_gone) {
-        svc.context.resume_wish = 1;
+        if (!iflags.debug_fuzzer)
+            svc.context.resume_wish = 1;
         return;
     }
 
