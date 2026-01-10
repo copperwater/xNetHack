@@ -1186,7 +1186,8 @@ add_erosion_words(struct obj *obj, char *prefix)
                          : is_corrodeable(obj) ? "corrodeproof "
                            : is_flammable(obj) ? "fireproof "
                              : is_crackable(obj) ? "tempered " /* hardened */
-                               : "");
+                               : is_rottable(obj) ? "rotproof "
+                                 : "");
 }
 
 /* used to prevent rust on items where rust makes no difference */
