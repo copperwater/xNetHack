@@ -202,6 +202,8 @@ you_were(void)
                 an(mons[u.ulycn].pmnames[NEUTRAL] + 4));
         if (!paranoid_query(ParanoidWerechange, qbuf))
             return;
+    } else if (monster_nearby()) {
+        return;
     }
     gw.were_changes++;
     (void) polymon(u.ulycn);
@@ -217,6 +219,7 @@ you_unwere(boolean purify)
         set_ulycn(NON_PM); /* cure lycanthropy */
     }
     if (!Unchanging && is_were(gy.youmonst.data)
+        && !monster_nearby()
         && (!controllable_poly
             || !paranoid_query(ParanoidWerechange, "Remain in beast form?")))
         rehumanize();
