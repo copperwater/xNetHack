@@ -21,8 +21,6 @@ staticfn void forget(int);
 staticfn int maybe_tame(struct monst *, struct obj *);
 staticfn boolean can_center_cloud(coordxy, coordxy);
 staticfn void display_stinking_cloud_positions(boolean);
-staticfn boolean is_special_armor_enchant(struct obj *);
-staticfn int armor_enchant_limit(struct obj *);
 staticfn void seffect_enchant_armor(struct obj **);
 staticfn void seffect_destroy_armor(struct obj **);
 staticfn void seffect_confuse_monster(struct obj **);
@@ -1112,37 +1110,12 @@ display_stinking_cloud_positions(boolean on_off)
     }
 }
 
-/* some armor vibrates warningly when enchanted beyond a limit,
-   or can be enchanted higher than usual */
-staticfn boolean
-is_special_armor_enchant(struct obj *otmp)
-{
-    return is_elven_armor(otmp)
-        || (Role_if(PM_WIZARD) && otmp->otyp == CORNUTHAUM);
-}
-
-/* return the safe enchantment limit for an armor */
-staticfn int
-armor_enchant_limit(struct obj *otmp)
-{
-    int limit = 3; /* default safe armor enchantment limit */
-
-    /* some armor can take a higher enchantment */
-    if (is_special_armor_enchant(otmp))
-        limit += 2;
-    /* object's internal magic interferes */
-    if (objects[otmp->otyp].oc_magic)
-        limit--;
-
-    return limit;
-}
-
 staticfn void
 seffect_enchant_armor(struct obj **sobjp)
 {
     struct obj *sobj = *sobjp;
     schar s;
-    int safe_spe_limit;
+    boolean special_armor;
     boolean same_color;
     struct obj *otmp = some_armor(&gy.youmonst);
     boolean sblessed = sobj->blessed;
@@ -1187,6 +1160,9 @@ seffect_enchant_armor(struct obj **sobjp)
         otmp->oerodeproof = new_erodeproof ? 1 : 0;
         return;
     }
+    /* elven armor vibrates warningly when enchanted beyond a limit */
+    special_armor = is_elven_armor(otmp)
+        || (Role_if(PM_WIZARD) && otmp->otyp == CORNUTHAUM);
     if (scursed)
         same_color = (otmp->otyp == BLACK_DRAGON_SCALE_MAIL
                       || otmp->otyp == BLACK_DRAGON_SCALES);
@@ -1197,11 +1173,9 @@ seffect_enchant_armor(struct obj **sobjp)
     if (Blind)
         same_color = FALSE;
 
-    safe_spe_limit = armor_enchant_limit(otmp);
-
     /* KMH -- catch underflow */
     s = scursed ? -otmp->spe : otmp->spe;
-    if (s > safe_spe_limit && rn2(s)) {
+    if (s > (special_armor ? 5 : 3) && rn2(s)) {
         otmp->in_use = TRUE;
         pline("%s violently %s%s%s for a while, then %s.", Yname2(otmp),
               otense(otmp, Blind ? "vibrate" : "glow"),
@@ -1213,12 +1187,33 @@ seffect_enchant_armor(struct obj **sobjp)
         useup(otmp);
         return;
     }
-    s = scursed ? -1
-        : (otmp->spe >= 9)
-        ? (rn2(otmp->spe) == 0)
-        : sblessed
-        ? rnd(3 - otmp->spe / 3)
-        : 1;
+    if (s < -100) s = -100; /* avoid integer overflow with very negative armor */
+
+    /* Base power of the enchantment:
+
+       2 for -1 to +0 armor;
+       1 for +1 to +2 armor;
+       0 for +3 to +4 armor, etc.
+
+       When disenchanting, everything is done with reversed signs. */
+    s = (4 - s) / 2;
+
+    /* Elven/artifact and nonmagical armor is easier to enchant;
+       blessed scrolls are more effective. */
+    if (special_armor) ++s;
+    if (!objects[otmp->otyp].oc_magic) ++s;
+    if (sblessed) ++s;
+
+    if (s <= 0) {
+        s = 0;
+        if (otmp->spe > 0 && !rn2(otmp->spe)) s = 1;
+    } else {
+        s = rnd(s);
+    }
+    if (s > 11) s = 11;    /* unlikely but possible: avoids an overflow later */
+
+    if (scursed) s = -s;
+
     if (s >= 0 && Is_dragon_scales(otmp)) {
         unsigned was_lit = otmp->lamplit;
         int old_light = artifact_light(otmp) ? arti_light_radius(otmp) : 0;
@@ -1280,8 +1275,8 @@ seffect_enchant_armor(struct obj **sobjp)
             alter_cost(otmp, 0L);
     }
 
-    if ((otmp->spe > safe_spe_limit)
-        && (is_special_armor_enchant(otmp) || !rn2(7)))
+    if ((otmp->spe > (special_armor ? 5 : 3))
+        && (special_armor || !rn2(7)))
         pline("%s %s.", Yobjnam2(otmp, "suddenly vibrate"),
               Blind ? "again" : "unexpectedly");
 }

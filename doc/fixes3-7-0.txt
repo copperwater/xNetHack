@@ -1557,10 +1557,12 @@ praying will not restore monster-form HP while polymorphed, unless you
 winter wolf cub was missing for monster to lycanthrope conversion
 monster elves shooting arrows weren't getting intended small to-hit and damage
 	bonuses
-safe armor enchantment limit is lowered by one for magical armor
 luck has a reduced effect on to-hit chance
 monsters use wand of teleportation to move hero away from item pile
 lycanthrope instincts keep hero from changing shape while next to hostiles
+scroll of enchant armor formula has changed (in particular, magical armor now
+        gains less enchantment when enchanted than nonmagical armor and
+        uncursed scrolls can sometimes enchant by more than one point)
 
 
 Fixes to 3.7.0-x General Problems Exposed Via git Repository
@@ -2927,7 +2929,7 @@ Unix: support --nethackrc=filename on the command line; same effect as
 	NETHACKOPTIONS='@filename' but leaves NETHACKOPTIONS available for
 	specifying options; --no-nethackrc is same as --nethackrc=/dev/null
 Windows: implement MSGHANDLER (pr #749 by argrath)
-Windows: Add configuration to support Curses on WinGUI (pr #1028 by chasonr) 
+Windows: Add configuration to support Curses on WinGUI (pr #1028 by chasonr)
 X11: implement 'selectsaved', restore via menu of saved games
 X11: echo getline prompt and response (wishes, applying names) to message
 	window and dumplog message history
@@ -3200,4 +3202,3 @@ relocate general-purpose function choose_classes_menu(), from
 	options.c to windows.c
 remove register from variable declarations
 make glyph_to_cmap() a function instead of a macro
-
