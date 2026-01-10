@@ -1607,8 +1607,13 @@ throwit(
                     range = BOLT_LIM;
                 else
                     range++;
-            } else if (obj->oclass != GEM_CLASS)
+            } else if (obj->oclass != GEM_CLASS) {
                 range /= 2;
+                pline("You aren't wielding %s, so you throw your %s by %s.",
+                      an(skill_name(weapon_type(obj))),
+                      weapon_descr(obj),
+                      body_part(HAND));
+            }
         }
 
         if (Is_airlevel(&u.uz) || Levitation) {

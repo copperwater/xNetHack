@@ -1564,6 +1564,7 @@ scroll of enchant armor formula has changed (in particular, magical armor now
         gains less enchantment when enchanted than nonmagical armor and
         uncursed scrolls can sometimes enchant by more than one point)
 dragonhide can rot
+throwing ammo without a launcher produces a message
 
 
 Fixes to 3.7.0-x General Problems Exposed Via git Repository
