@@ -35,11 +35,22 @@ local pillar = [[
 ---]];
 
 filters = {
+   -- 1: all pillars
    function(x, y) return true; end,
+   -- 2: 3 vertical lines
    function(x, y) return (x%2 == 1); end,
+   -- 3: checkerboard
    function(x, y) return (((x+y)%2) == 0); end,
+   -- 4: center row
    function(x, y) return (y%2 == 1); end,
+   -- 5: top and bottom rows
    function(x, y) return (y%2 == 0); end,
+   -- 6: random 50%
+   function(x, y) return (math.random(0,1) == 0); end,
+   -- 7: corners and center
+   function(x, y) return ((x/3)%2 == y%2); end,
+   -- 8: slanted
+   function(x, y) return ((x+1)//3 == y); end,
 };
 
 idx = math.random(1, #filters);
