@@ -781,7 +781,7 @@ struct selectionvar {
 
 /* structure for 'program_state'; not saved and restored */
 struct sinfo {
-    int gameover;               /* self explanatory? */
+    int gameover;               /* self-explanatory? */
     int stopprint;              /* inhibit further end of game disclosure */
 #ifdef HANGUPHANDLING
     volatile int done_hup;      /* SIGHUP or moral equivalent received
@@ -1350,7 +1350,7 @@ typedef uint32_t mmflags_nht;     /* makemon MM_ flags */
 
 /* Macros for launching objects */
 #define ROLL 0x01          /* the object is rolling */
-#define FLING 0x02         /* the object is flying thru the air */
+#define FLING 0x02         /* the object is flying through the air */
 #define LAUNCH_UNSEEN 0x40 /* hero neither caused nor saw it */
 #define LAUNCH_KNOWN 0x80  /* the hero caused this by explicit action */
 

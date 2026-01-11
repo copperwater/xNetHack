@@ -711,7 +711,7 @@ online2(coordxy x0, coordxy y0, coordxy x1, coordxy y1)
 }
 
 #ifndef STRNCMPI
-/* case insensitive counted string comparison */
+/* case-insensitive counted string comparison */
 /*{ aka strncasecmp }*/
 int
 strncmpi(
@@ -735,7 +735,7 @@ strncmpi(
 #endif /* STRNCMPI */
 
 #ifndef STRSTRI
-/* case insensitive substring search */
+/* case-insensitive substring search */
 char *
 strstri(const char *str, const char *sub)
 {

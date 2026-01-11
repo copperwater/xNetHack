@@ -53,7 +53,7 @@
 #define AD_BLND 11  /* blinds (yellow light) */
 #define AD_STUN 12  /* stuns */
 #define AD_SLOW 13  /* slows */
-#define AD_PLYS 14  /* paralyses */
+#define AD_PLYS 14  /* paralyzes */
 #define AD_DRLI 15  /* drains life levels (Vampire) */
 #define AD_DREN 16  /* drains magic energy */
 #define AD_LEGS 17  /* damages legs (xan) */
@@ -101,7 +101,7 @@ struct mhitm_data {
 };
 
 /*
- *  Monster to monster attacks.  When a monster attacks another (mattackm),
+ *  Monster-to-monster attacks.  When a monster attacks another (mattackm),
  *  any or all of the following can be returned.  See mattackm() for more
  *  details.
  */

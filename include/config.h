@@ -149,10 +149,11 @@
 
 #ifdef X11_GRAPHICS
 /*
- * There are two ways that X11 tiles may be defined.  (1) using a custom
- * format loaded by NetHack code, or (2) using the XPM format loaded by
- * the free XPM library.  The second option allows you to then use other
- * programs to generate tiles files.  For example, the PBMPlus tools
+ * There are two ways that X11 tiles may be defined:
+ * (1) using a custom format loaded by NetHack code.
+ * (2) using the XPM format loaded by the free XPM library.
+ * The second option allows you to then use other programs to
+ * generate tiles files.  For example, the PBMPlus tools
  * would allow:
  *  xpmtoppm <x11tiles.xpm | pnmscale 1.25 | ppmquant 90 | \
  *      ppmtoxpm >x11tiles_big.xpm

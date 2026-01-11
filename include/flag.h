@@ -482,7 +482,7 @@ struct instance_flags {
 };
 
 /*
- * Old deprecated names
+ * Old, deprecated names
  */
 #ifdef TTY_GRAPHICS
 #define eight_bit_tty wc_eight_bit_input

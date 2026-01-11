@@ -14,7 +14,7 @@ struct q_score {              /* Quest "scorecard" */
     Bitfield(killed_leader, 1); /* killed the quest leader */
 
     Bitfield(first_locate, 1); /* only set the first time */
-    Bitfield(met_intermed, 1); /* used if the locate is a person. */
+    Bitfield(met_intermed, 1); /* used if the locate is a person */
     Bitfield(got_final, 1);    /* got the final quest assignment */
 
     Bitfield(made_goal, 3);      /* # of times on goal level */
