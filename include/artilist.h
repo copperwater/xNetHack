@@ -197,7 +197,7 @@ static NEARDATA struct artifact artilist[] = {
      *              or the shriek that shrieked he,
      *      As I gnashed my teeth, and from my sheath
      *              I drew my Snickersnee!
-     *                      --Koko, Lord high executioner of Titipu
+     *                      --Ko-Ko, Lord high executioner of Titipu
      *                        (From Sir W.S. Gilbert's "The Mikado")
      */
     A("Snickersnee", KATANA, SPFX_RESTR, 0, 0, PHYS(0, 8), NO_DFNS, NO_CARY,
