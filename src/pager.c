@@ -1721,7 +1721,7 @@ do_look(int mode, coord *click_cc)
              * introduced.
              *
              * When lootabc is set, abandon the 'y'|'n' compatibility in
-             * favor of newer '/' and '?' compatobility instead.
+             * favor of newer '/' and '?' compatibility instead.
              */
 
             any.a_char = '/';

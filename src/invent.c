@@ -3305,9 +3305,16 @@ itemactions(struct obj *otmp)
         Sprintf(buf, "%s the candelabrum", light);
         ia_addmenu(win, IA_APPLY_OBJ, 'a', buf);
     } else if (otmp->otyp == WAX_CANDLE || otmp->otyp == TALLOW_CANDLE) {
-        Sprintf(buf, "%s %s %s", light,
-                is_plural(otmp) ? "these" : "this",
-                simpleonames(otmp));
+        boolean multiple = (otmp->quan == 1L) ? FALSE : TRUE;
+        const char *s = multiple ? "these" : "this";
+        struct obj *o = carrying(CANDELABRUM_OF_INVOCATION);
+
+        if (o && o->spe < 7)
+            Sprintf(buf, "Attach %s to your candelabrum, or %s %s", s,
+                    !otmp->lamplit ? "light" : "extinguish", /* [lowercase] */
+                    multiple ? "them" : "it");
+        else
+            Sprintf(buf, "%s %s %s", light, s, simpleonames(otmp));
         ia_addmenu(win, IA_APPLY_OBJ, 'a', buf);
     } else if (otmp->otyp == OIL_LAMP || otmp->otyp == MAGIC_LAMP
                || otmp->otyp == BRASS_LANTERN) {
