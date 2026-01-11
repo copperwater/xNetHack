@@ -1565,6 +1565,7 @@ scroll of enchant armor formula has changed (in particular, magical armor now
         uncursed scrolls can sometimes enchant by more than one point)
 dragonhide can rot
 throwing ammo without a launcher produces a message
+polymorphing into a large polyform unequips rather than destroying cloaks
 
 
 Fixes to 3.7.0-x General Problems Exposed Via git Repository

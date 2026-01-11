@@ -1172,15 +1172,9 @@ break_armor(void)
         if ((otmp = uarmc) != 0
             /* mummy wrapping adapts to small and very big sizes */
             && (otmp->otyp != MUMMY_WRAPPING || !WrappingAllowed(uptr))) {
-            if (otmp->oartifact) {
-                Your("%s falls off!", cloak_simple_name(otmp));
-                (void) Cloak_off();
-                dropp(otmp);
-            } else {
-                Your("%s tears apart!", cloak_simple_name(otmp));
-                (void) Cloak_off();
-                useup(otmp);
-            }
+            pline_The("clasp on your %s breaks open!", cloak_simple_name(otmp));
+            (void) Cloak_off();
+            dropp(otmp);
         }
         if (uarmu) {
             Your("shirt rips to shreds!");
