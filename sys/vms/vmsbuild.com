@@ -425,7 +425,7 @@ $ c_list = "allmain,apply,artifact,attrib,ball,bones,botl,calendar,cmd" -
 	+ ",do_wear,dog,dogmove,dokick,dungeon,eat,end,engrave,exper,explode" -
 	+ ",extralev,files,fountain,getpos,glyphs"
 $ gosub compile_list
-$ c_list = "hack,hacklib,insight,invent,light,lock,mail,makemon" -
+$ c_list = "hack,hacklib,iactions,insight,invent,light,lock,mail,makemon" -
 	+ ",mcastu,mdlib,mhitm,mhitu,minion,mklev,mkmap,mkmaze" -
 	+ ",mkobj,mkroom,mon,mondata,monmove,mplayer,mthrowu,muse" -
 	+ ",music"

@@ -571,6 +571,11 @@ enum hunger_state_types {
     STARVED    = 6
 };
 
+/* fake inventory letters, not 'a'..'z' or 'A'..'Z' */
+#define NOINVSYM '#'      /* overflow because all 52 letters are in use */
+#define CONTAINED_SYM '>' /* designator for inside a container */
+#define HANDS_SYM '-'     /* hands|fingers|self depending on context */
+
 /* inventory counts (slots in tty parlance)
  * a...zA..Z    invlet_basic (52)
  * $a...zA..Z#  2 special additions

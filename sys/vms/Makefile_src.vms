@@ -130,7 +130,7 @@ HACKFILES := allmain alloc apply artifact attrib ball bones botl \
 	   sp_lev spell stairs steal steed strutil symbols sys teleport \
 	   timeout topten track trap u_init utf8map \
 	   uhitm vault version vision weapon were wield \
-	   windows wizard wizcmds worm worn write zap
+	   windows wizard wizcmds worm worn write zap iactions
 
 # the date file
 DATEFILES = date
@@ -735,6 +735,7 @@ $(TARGETPFX)getpos.obj: getpos.c $(HACK_H)
 $(TARGETPFX)glyphs.obj: glyphs.c $(HACK_H)
 $(TARGETPFX)hack.obj: hack.c $(HACK_H)
 $(TARGETPFX)hacklib.obj: hacklib.c $(HACK_H)
+$(TARGETPFX)iactions.obj: iactions.c $(HACK_H)
 $(TARGETPFX)insight.obj: insight.c $(HACK_H)
 $(TARGETPFX)invent.obj: invent.c $(HACK_H)
 $(TARGETPFX)isaac64.obj: isaac64.c $(CONFIG_H) $(INCL)isaac64.h

@@ -519,7 +519,7 @@ HACKCSRC = allmain.c alloc.c apply.c artifact.c attrib.c ball.c bones.c \
 	   dlb.c do.c do_name.c do_wear.c dog.c dogmove.c dokick.c dothrow.c \
 	   drawing.c dungeon.c eat.c end.c engrave.c exper.c explode.c \
 	   extralev.c files.c fountain.c hack.c hacklib.c \
-	   getpos.c glyphs.c insight.c invent.c isaac64.c light.c \
+	   getpos.c glyphs.c iactions.c insight.c invent.c isaac64.c light.c \
 	   lock.c mail.c makemon.c mcastu.c mdlib.c mhitm.c \
 	   mhitu.c minion.c mklev.c mkmap.c mkmaze.c mkobj.c mkroom.c mon.c \
 	   mondata.c monmove.c monst.c mplayer.c mthrowu.c muse.c music.c \
@@ -601,6 +601,7 @@ HOBJ = $(TARGETPFX)allmain.o $(TARGETPFX)alloc.o \
 	$(TARGETPFX)engrave.o $(TARGETPFX)exper.o $(TARGETPFX)explode.o \
 	$(TARGETPFX)extralev.o $(TARGETPFX)files.o $(TARGETPFX)fountain.o \
 	$(TARGETPFX)getpos.o $(TARGETPFX)glyphs.o $(TARGETPFX)hack.o \
+	$(TARGETPFX)iactions.o \
 	$(TARGETPFX)insight.o $(TARGETPFX)invent.o $(TARGETPFX)isaac64.o \
 	$(TARGETPFX)light.o $(TARGETPFX)lock.o $(TARGETPFX)mail.o \
 	$(TARGETPFX)makemon.o $(TARGETPFX)mcastu.o $(TARGETPFX)mdlib.o \
@@ -1176,6 +1177,7 @@ $(TARGETPFX)getpos.o: getpos.c $(HACK_H)
 $(TARGETPFX)glyphs.o: glyphs.c $(HACK_H)
 $(TARGETPFX)hack.o: hack.c $(HACK_H)
 $(TARGETPFX)hacklib.o: hacklib.c $(HACK_H)
+$(TARGETPFX)iactions.o: iactions.c $(HACK_H)
 $(TARGETPFX)insight.o: insight.c $(HACK_H)
 $(TARGETPFX)invent.o: invent.c $(HACK_H)
 $(TARGETPFX)isaac64.o: isaac64.c $(CONFIG_H) ../include/isaac64.h
