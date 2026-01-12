@@ -3073,6 +3073,9 @@ split making pits on do_earthquake() into a separate function and
 update the WASM cross-compile to work with the current
 	code (pr #1331 by guillaumebrunerie)
 add silver maces (pr #1405 by disperse)
+applied several source comment spelling or grammar fixes that were linked
+	to an old rec.games.roguelike.nethack post from May 2006
+	by Arthur J. O'Dwyer
 
 
 Code Cleanup and Reorganization
