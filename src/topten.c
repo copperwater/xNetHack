@@ -16,7 +16,7 @@
 
 /*
  * Updating in place can leave junk at the end of the file in some
- * circumstances (if it shrinks and the O.S. doesn't have a straightforward
+ * circumstances (if it shrinks and the OS doesn't have a straightforward
  * way to truncate it).  The trailing junk is harmless and the code
  * which reads the scores will ignore it.
  */

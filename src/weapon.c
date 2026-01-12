@@ -155,7 +155,7 @@ hitval(struct obj *otmp, struct monst *mon)
     if (Is_weapon)
         tmp += otmp->spe;
 
-    /* Put weapon specific "to hit" bonuses in below: */
+    /* Put weapon-specific "to hit" bonuses in below: */
     tmp += objects[otmp->otyp].oc_hitbon;
 
     /* Put weapon vs. monster type "to hit" bonuses in below: */
@@ -302,7 +302,7 @@ dmgval(struct obj *otmp, struct monst *mon)
     }
 
     if (objects[otyp].oc_material <= LEATHER && thick_skinned(ptr))
-        /* thick skinned/scaled creatures don't feel it */
+        /* thick-skinned or scaled creatures don't feel it */
         tmp = 0;
     if (ptr == &mons[PM_SHADE] && !shade_glare(otmp))
         tmp = 0;
@@ -1387,7 +1387,7 @@ enhance_weapon_skill(void)
             n = selected[0].item.a_int - 1; /* get item selected */
             free((genericptr_t) selected);
             skill_advance(n);
-            /* check for more skills able to advance, if so then .. */
+            /* check for more skills able to advance; if so, then... */
             for (n = i = 0; i < P_NUM_SKILLS; i++) {
                 if (can_advance(i, speedy)) {
                     if (!speedy)

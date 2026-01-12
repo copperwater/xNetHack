@@ -198,7 +198,7 @@ attack_checks(
         return FALSE;
 
     if (svc.context.forcefight) {
-        /* Do this in the caller, after we checked that the monster
+        /* Do this in the caller, after we have checked that the monster
          * didn't die from the blow.  Reason: putting the 'I' there
          * causes the hero to forget the square's contents since
          * both 'I' and remembered contents are stored in .glyph.
@@ -1027,7 +1027,7 @@ hmon_hitmon_weapon_melee(
         && (is_ammo(obj) || is_missile(obj))) {
         if (ammo_and_launcher(obj, uwep)) {
             /* elves and samurai do extra damage using their own
-               bows with own arrows; they're highly trained */
+               bows with their own arrows; they're highly trained */
             if (Role_if(PM_SAMURAI) && obj->otyp == YA
                 && uwep->otyp == YUMI)
                 hmd->dmg++;
@@ -1823,7 +1823,7 @@ hmon_hitmon(
         mon->mhp -= hmd.dmg;
     }
     /* adjustments might have made tmp become less than what
-       a level draining artifact has already done to max HP */
+       a level-draining artifact has already done to max HP */
     if (mon->mhp > mon->mhpmax)
         mon->mhp = mon->mhpmax;
     if (mon->mx == 0) {

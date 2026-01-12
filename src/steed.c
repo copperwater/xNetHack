@@ -213,8 +213,8 @@ mount_steed(
         pline("Maybe you should find a designated driver.");
         return (FALSE);
     }
-    /* While riding Wounded_legs refers to the steed's,
-     * not the hero's legs.
+    /* While riding, Wounded_legs refers to the steed's
+     * legs, not the hero's legs.
      * That opens up a potential abuse where the player
      * can mount a steed, then dismount immediately to
      * heal leg damage, because leg damage is always

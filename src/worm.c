@@ -31,7 +31,7 @@ staticfn struct wseg *create_worm_tail(int); /* may return NULL */
  *  If wormno == 0 this does not mean that the monster is not a worm,
  *  it just means that the monster does not have a long worm tail.
  *
- *  The actual segments of a worm are not full blown monst structs.
+ *  The actual segments of a worm are not full0blown monst structs.
  *  They are small wseg structs, and their position in the levels.monsters[][]
  *  array is held by the monst struct of the head of the worm.  This makes
  *  things like probing and hit point bookkeeping much easier.
@@ -46,7 +46,7 @@ staticfn struct wseg *create_worm_tail(int); /* may return NULL */
  *  wheads:     The last (end) of a linked list of segments.  This points to
  *              the segment that is at the same position as the real monster
  *              (the head).  Note that the segment that wheads[wormno] points
- *              to, is not displayed.  It is simply there to keep track of
+ *              to is not displayed.  It is simply there to keep track of
  *              where the head came from, so that worm movement and display
  *              are simplified later.
  *              Keeping the head segment of the worm at the end of the list
@@ -113,8 +113,8 @@ get_wormno(void)
  *  Initialize the worm entry.  This will set up the worm grow time, and
  *  create and initialize the dummy segment for wheads[] and wtails[].
  *
- *  If the worm has no tail (ie get_wormno() fails) then this function need
- *  not be called.
+ *  If the worm has no tail (ie get_wormno() fails) then this function
+ *  need not be called.
  */
 void
 initworm(struct monst *worm, int wseg_count)
@@ -282,7 +282,7 @@ worm_move(struct monst *worm)
  *
  *  Check for mon->wormno before calling this function!
  *
- *  The worm don't move so it should shrink.
+ *  The worm doesn't move, so it should shrink.
  */
 void
 worm_nomove(struct monst *worm)
@@ -379,7 +379,7 @@ cutworm(struct monst *worm, coordxy x, coordxy y,
     int cut_chance, new_wnum;
 
     if (!wnum)
-        return; /* bullet proofing */
+        return; /* bullet-proofing */
 
     if (x == worm->mx && y == worm->my)
         return; /* hit on head */
@@ -420,7 +420,7 @@ cutworm(struct monst *worm, coordxy x, coordxy y,
 
     /*
      *  At this point, the old worm is correct.  Any new worm will have
-     *  it's head at "curr" and its tail at "new_tail".  The old worm
+     *  its head at "curr" and its tail at "new_tail".  The old worm
      *  must be at least level 3 in order to produce a new worm.
      */
     new_worm = 0;
@@ -804,7 +804,7 @@ random_dir(int x, int y, int *nx, int *ny)
 {
     *nx = x + (x > 1                /* extreme left ? */
                ? (x < COLNO - 1     /* extreme right ? */
-                  ? (rn2(3) - 1)    /* neither so +1, 0, or -1 */
+                  ? (rn2(3) - 1)    /* neither, so +1, 0, or -1 */
                   : -rn2(2))        /* right edge, use -1 or 0 */
                : rn2(2));           /* left edge, use 0 or 1 */
     if (*nx != x) /* if x has changed, do same thing with y */

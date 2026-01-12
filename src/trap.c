@@ -548,7 +548,7 @@ maketrap(coordxy x, coordxy y, int typ)
 
         /*
          * some cases which can happen when digging
-         * down while phazing thru solid areas
+         * down while phasing thru solid areas
          */
         } else if (lev->typ == STONE || lev->typ == SCORR) {
             (void) set_levltyp(x, y, CORR);
@@ -2125,7 +2125,7 @@ trapeffect_web(
         /* time will be adjusted below */
         set_utrap(1, TT_WEB);
 
-        /* Time stuck in the web depends on your/steed strength. */
+        /* Time stuck in the web depends on your/steed's strength. */
         {
             int tim, str = ACURR(A_STR);
 
@@ -2491,8 +2491,8 @@ trapeffect_landmine(
                   already_seen ? " land mine" : "it");
         } else {
             /* prevent landmine from killing steed, throwing you to
-             * the ground, and you being affected again by the same
-             * mine because it hasn't been deleted yet
+             * the ground, and then that same landmine affecting you
+	     * again because it hasn't been deleted yet
              */
             static boolean recursive_mine = FALSE;
 
@@ -3228,7 +3228,8 @@ launch_obj(
     newsym(x1, y1);
     /* in case you're using a pick-axe to chop the boulder that's being
        launched (perhaps a monster triggered it), destroy context so that
-       next dig attempt never thinks you're resuming previous effort */
+       the next dig attempt never thinks that you're resuming
+       the previous effort */
     if ((otyp == BOULDER || otyp == STATUE)
         && singleobj->ox == svc.context.digging.pos.x
         && singleobj->oy == svc.context.digging.pos.y)

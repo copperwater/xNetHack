@@ -8,7 +8,7 @@ staticfn int write_ok(struct obj *) NO_NNARGS;
 staticfn char *new_book_description(int, char *) NONNULL NONNULLPTRS;
 
 /*
- * returns basecost of a scroll or a spellbook
+ * returns base cost of a scroll or a spellbook
  */
 staticfn int
 cost(struct obj *otmp)
@@ -351,7 +351,7 @@ dowrite(struct obj *pen)
         return ECMD_TIME;
     }
 
-    /* useup old scroll / spellbook */
+    /* use up old scroll / spellbook */
     useup(paper);
 
     /* success */

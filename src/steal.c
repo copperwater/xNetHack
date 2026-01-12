@@ -643,7 +643,7 @@ mpickobj(struct monst *mtmp, struct obj *otmp)
     }
     /* don't want hidden light source inside the monster; assumes that
        engulfers won't have external inventories; whirly monsters cause
-       the light to be extinguished rather than letting it shine thru */
+       the light to be extinguished rather than letting it shine through */
     if (obj_sheds_light(otmp) && attacktype(mtmp->data, AT_ENGL)) {
         /* this is probably a burning object that you dropped or threw */
         if (engulfing_u(mtmp) && !Blind)

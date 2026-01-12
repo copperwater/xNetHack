@@ -100,7 +100,7 @@ staticfn void propagate_chain_lightning(struct chain_lightning_queue *,
  *      Fighters find body armour & shield a little less limiting.
  *      Headgear, Gauntlets and Footwear are not role-specific (but
  *      still have an effect, except helm of brilliance, which is designed
- *      to permit magic-use).
+ *      to permit magic use).
  */
 
 #define uarmhbon 4 /* Metal helmets interfere with the mind */
@@ -191,7 +191,7 @@ confused_book(struct obj *spellbook)
     boolean gone = FALSE;
 
     if (!rn2(3) && spellbook->otyp != SPE_BOOK_OF_THE_DEAD) {
-        spellbook->in_use = TRUE; /* in case called from learn */
+        spellbook->in_use = TRUE; /* in case called from learn() */
         pline(
          "Being confused you have difficulties in controlling your actions.");
         display_nhwindow(WIN_MESSAGE, FALSE);
@@ -225,7 +225,7 @@ deadbook_pacify_undead(struct monst *mtmp)
     }
 }
 
-/* special effects for The Book of the Dead; reading it while blind is
+/* special effects for the Book of the Dead; reading it while blind is
    allowed so that needs to be taken into account too */
 staticfn void
 deadbook(struct obj *book2)
@@ -2084,8 +2084,8 @@ dospellmenu(
      * The correct spacing of the columns when not using
      * tab separation depends on the following:
      * (1) that the font is monospaced, and
-     * (2) that selection letters are pre-pended to the
-     * given string and are of the form "a - ".
+     * (2) that selection letters are prepended to the
+     *     given string and are of the form "a - ".
      * For SPELLMENU_DUMP, (2) is untrue, so four spaces
      * need to be subtracted.
      */
@@ -2163,7 +2163,7 @@ staticfn int
 percent_success(int spell)
 {
     /* Intrinsic and learned ability are combined to calculate
-     * the probability of player's success at cast a given spell.
+     * the probability of player's success at casting a given spell.
      */
     int chance, splcaster, special, statused;
     int difficulty;
@@ -2214,13 +2214,13 @@ percent_success(int spell)
 
     /* Calculate learned ability */
 
-    /* Players basic likelihood of being able to cast any spell
+    /* The player's basic likelihood of being able to cast any spell
      * is based of their `magic' statistic. (Int or Wis)
      */
     chance = 11 * statused / 2;
 
     /*
-     * High level spells are harder.  Easier for higher level casters.
+     * High-level spells are harder.  Easier for higher-level casters.
      * The difficulty is based on the hero's level and their skill level
      * in that spell type.
      */

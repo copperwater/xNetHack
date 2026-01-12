@@ -1078,7 +1078,7 @@ hatch_egg(anything *arg, long timeout)
          * mind are:
          * + Create the hatched monster then place it on the migrating
          *   mons list.  This is tough because all makemon() is made
-         *   to place the monster as well.  Makemon() also doesn't lend
+         *   to place the monster as well. Makemon() also doesn't lend
          *   itself well to splitting off a "not yet placed" subroutine.
          * + Mark the egg as hatched, then place the monster when we
          *   place the migrating objects.
@@ -1232,7 +1232,7 @@ slip_or_trip(void)
     if (otmp && on_foot) { /* trip over something in particular */
         /*
           If there is only one item, it will have just been named
-          during the move, so refer to by via pronoun; otherwise,
+          during the move, so refer to it by pronoun; otherwise,
           if the top item has been or can be seen, refer to it by
           name; if not, look for rocks to trip over; trip over
           anonymous "something" if there aren't any rocks.
@@ -1532,7 +1532,7 @@ burn_object(anything *arg, long timeout)
         default:
             /*
              * Someone added fuel to the lamp while it was
-             * lit.  Just fall through and let begin burn
+             * lit. Just fall through and let begin_burn()
              * handle the new age.
              */
             break;
@@ -1659,7 +1659,7 @@ burn_object(anything *arg, long timeout)
         default:
             /*
              * Someone added fuel (candles) to the menorah while
-             * it was lit.  Just fall through and let begin burn
+             * it was lit. Just fall through and let begin_burn()
              * handle the new age.
              */
             break;
@@ -1875,7 +1875,7 @@ do_storms(void)
     }
 
     if (levl[u.ux][u.uy].typ == CLOUD) {
-        /* Inside a cloud during a thunder storm is deafening. */
+        /* Inside a cloud during a thunderstorm is deafening. */
         /* Even if already deaf, we sense the thunder's vibrations. */
         Soundeffect(se_kaboom_boom_boom, 80);
         pline("Kaboom!!!  Boom!!  Boom!!");
@@ -1925,7 +1925,7 @@ do_storms(void)
  *      Save all timers of range 'range'.  Range is either global
  *      or local.  Global timers follow game play, local timers
  *      are saved with a level.  Object and monster timers are
- *      saved using their respective id's instead of pointers.
+ *      saved using their respective ids instead of pointers.
  *
  *  void restore_timers(NHFILE *, int range, long adjust)
  *      Restore timers of range 'range'.  If from a ghost pile,
@@ -2217,7 +2217,7 @@ run_timers(void)
 
     /*
      * Always use the first element.  Elements may be added or deleted at
-     * any time.  The list is ordered, we are done when the first element
+     * any time.  The list is ordered; we are done when the first element
      * is in the future.
      */
     while (gt.timer_base && gt.timer_base->timeout <= svm.moves) {
@@ -2653,7 +2653,7 @@ maybe_write_timer(NHFILE *nhfp, int range, boolean write_it)
  *      + timeouts that follow obj & monst that are migrating
  *
  * Level range:
- *      + timeouts that are level specific (e.g. storms)
+ *      + timeouts that are level-specific (e.g. storms)
  *      + timeouts that stay with the level (obj & monst)
  */
 void

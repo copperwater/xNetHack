@@ -1012,7 +1012,7 @@ u_init_misc(void)
 
     /*
      *  For now, everyone starts out with a night vision range of 1 and
-     *  their xray range disabled.
+     *  their xray_range disabled.
      */
     u.nv_range = 1;
     u.xray_range = -1;
@@ -1314,8 +1314,8 @@ ini_inv(const struct trobj *trop)
         } else { /* UNDEF_TYP */
             obj = ini_inv_mkobj_filter(trop->trclass, got_sp1);
             otyp = obj->otyp;
-            /* Heavily relies on the fact that 1) we create wands
-             * before rings, 2) that we create rings before
+            /* Heavily relies on the facts that 1) we create wands
+             * before rings, that 2) we create rings before
              * spellbooks, and that 3) not more than 1 object of a
              * particular symbol is to be prohibited.  (For more
              * objects, we need more nocreate variables...)

@@ -631,7 +631,7 @@ nasty(struct monst *summoner)
              * randomized so it won't always do so.
              */
             for (j = 0; j < 20; j++) {
-                /* Don't create more spellcasters of the monsters' level or
+                /* Don't create more spellcasters of the monster's level or
                  * higher--avoids chain summoners filling up the level.
                  */
                 trylimit = 10 + 1; /* 10 tries */
@@ -704,7 +704,7 @@ nasty(struct monst *summoner)
     return count;
 }
 
-/* Let's resurrect the wizard, for some unexpected fun. */
+/* Let's resurrect the Wizard, for some unexpected fun. */
 void
 resurrect(void)
 {
@@ -744,7 +744,7 @@ resurrect(void)
                     if (!mtmp->mx)
                         mtmp = 0;
                     /* note: there might be a second Wizard; if so,
-                       he'll have to wait til the next resurrection */
+                       he'll have to wait until the next resurrection */
                     break;
                 }
             }

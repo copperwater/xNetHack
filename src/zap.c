@@ -1643,7 +1643,7 @@ do_osshock(struct obj *obj)
     go.obj_zapped = TRUE;
 
     if (gp.poly_zapped < 0) {
-        /* some may metamorphosize */
+        /* some may metamorphose */
         for (i = obj->quan; i; i--)
             if (!rn2(Luck + 45)) {
                 gp.poly_zapped = objects[obj->otyp].oc_material;
@@ -1714,7 +1714,7 @@ poly_obj(struct obj *obj, int id)
         if (obj->otyp == UNICORN_HORN && obj->degraded_horn)
             magic_obj = 0;
         /* Try up to 3 times to make the magic-or-not status of
-           the new item be the same as it was for the old one. */
+           the new item the same as the old item. */
         otmp = (struct obj *) 0;
         do {
             if (otmp)
@@ -1736,7 +1736,7 @@ poly_obj(struct obj *obj, int id)
 
     /* preserve quantity */
     otmp->quan = obj->quan;
-    /* preserve the shopkeepers (lack of) interest */
+    /* preserve the shopkeeper's (lack of) interest */
     otmp->no_charge = obj->no_charge;
     /* preserve inventory letter if in inventory */
     if (obj_location == OBJ_INVENT)
@@ -2005,7 +2005,7 @@ stone_to_flesh_obj(struct obj *obj) /* nonnull */
         return 0;
 
     (void) get_obj_location(obj, &oox, &ooy, 0);
-    /* add more if stone objects are added.. */
+    /* add more if stone objects are added... */
     switch (objects[obj->otyp].oc_class) {
     case ROCK_CLASS: /* boulders and statues */
     case TOOL_CLASS: /* figurines */
@@ -3490,7 +3490,7 @@ spell_damage_bonus(
 }
 
 /*
- * Generate the to hit bonus for a spell.  Based on the hero's skill in
+ * Generate the to-hit bonus for a spell.  Based on the hero's skill in
  * spell class and dexterity.
  */
 staticfn int
@@ -3986,7 +3986,7 @@ bhit(
                    through instead of stop so we call flash_hits_mon()
                    directly rather than returning mtmp back to caller.
                    That allows the flash to keep on going.  Note that we
-                   use mtmp->minvis not canspotmon() because it makes no
+                   use mtmp->minvis, not canspotmon(), because it makes no
                    difference whether hero can see the monster or not. */
                 if (mtmp->minvis) {
                     obj->ox = u.ux, obj->oy = u.uy;
@@ -4731,7 +4731,7 @@ dobuzz(
     int spell_type;
     int hdmgtype = Hallucination ? rn2(6) : damgtype;
 
-    /* if it's a Hero Spell then get its SPE_TYPE */
+    /* if it's a hero spell then get its SPE_TYPE */
     spell_type = is_hero_spell(type) ? SPE_MAGIC_MISSILE + damgtype : 0;
 
     if (u.uswallow) {
