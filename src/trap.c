@@ -2492,7 +2492,7 @@ trapeffect_landmine(
         } else {
             /* prevent landmine from killing steed, throwing you to
              * the ground, and then that same landmine affecting you
-	     * again because it hasn't been deleted yet
+             * again because it hasn't been deleted yet
              */
             static boolean recursive_mine = FALSE;
 
