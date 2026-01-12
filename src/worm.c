@@ -31,7 +31,7 @@ staticfn struct wseg *create_worm_tail(int); /* may return NULL */
  *  If wormno == 0 this does not mean that the monster is not a worm,
  *  it just means that the monster does not have a long worm tail.
  *
- *  The actual segments of a worm are not full0blown monst structs.
+ *  The actual segments of a worm are not full-blown monst structs.
  *  They are small wseg structs, and their position in the levels.monsters[][]
  *  array is held by the monst struct of the head of the worm.  This makes
  *  things like probing and hit point bookkeeping much easier.
