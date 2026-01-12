@@ -827,6 +827,10 @@ peffect_invisibility(struct obj *otmp)
     if (otmp->cursed) {
         pline("For some reason, you feel your presence is known.");
         aggravate();
+
+        /* doing this gives temporary invisibility, but removes permanent
+           invisibility */
+        HInvis &= ~FROMOUTSIDE;
     }
 }
 

@@ -1567,6 +1567,7 @@ dragonhide can rot
 throwing ammo without a launcher produces a message
 polymorphing into a large polyform unequips rather than destroying cloaks
 clarify in the #quit message that it doesn't save the game
+cursed potion of invisibility removes intrinsic invisibility
 
 
 Fixes to 3.7.0-x General Problems Exposed Via git Repository
