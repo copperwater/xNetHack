@@ -2190,6 +2190,10 @@ naming a type of item, unnaming it (with name of <space>), naming it again
 	impossible: "named object not in disco"
 throwing entire quiver and then picking the stack back up was not putting it
 	back into quiver
+when reading a T-shirt or apron, add trailing period to the slogan unless
+	 already present in the quoted text
+when reading an engraving, suppress the addition of a trailing period if the
+	text already has one
 
 
 Fixes to 3.7.0-x Platform and/or Interface Problems Exposed Via git Repository
