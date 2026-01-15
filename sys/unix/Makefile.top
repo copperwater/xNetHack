@@ -440,6 +440,8 @@ update: $(PRECHECK) $(GAME) recover $(VARDAT) spec_levs sys/unix/sysconf
 	touch $(VARDIR)/perm $(VARDIR)/record
 # sysconf, but only if it does not exist
 	true; $(SYSCONFENSURE)
+# other steps from hints file
+	true; $(POSTUPDATE)
 # and a reminder
 	@echo You may also want to install the man pages via the doc Makefile.
 
