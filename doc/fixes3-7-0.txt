@@ -1570,6 +1570,8 @@ clarify in the #quit message that it doesn't save the game
 cursed potion of invisibility removes intrinsic invisibility
 fix bug which caused engulf damage from air elementals and fog clouds to
         ignore damage reduction from armor class
+elementals do double damage on their home plane
+water elementals move slightly more slowly
 
 
 Fixes to 3.7.0-x General Problems Exposed Via git Repository
