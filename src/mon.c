@@ -667,7 +667,9 @@ make_corpse(struct monst *mtmp, unsigned int corpseflags)
     case PM_ROPE_GOLEM:
         num = rn2(3);
         while (num-- > 0) {
-            obj = mksobj_at(rn2(2) ? LEASH : BULLWHIP, x, y, TRUE, FALSE);
+            obj = mksobj_at(rn2(2) ? LEASH
+                            : rn2(3) ? BULLWHIP : GRAPPLING_HOOK,
+                            x, y, TRUE, FALSE);
         }
         free_mgivenname(mtmp);
         break;

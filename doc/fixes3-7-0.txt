@@ -837,7 +837,7 @@ if a lit potion of oil on the floor was launched by an explosion and it hit
 	it could trigger an "obj_is_local" panic when end of game cleanup
 	tried to extinguish it as a light source
 place_object() validated coordinates after using them to index level.objects
-killed rope golem may drop leashes and bullwhips
+killed rope golem may drop leashes, bullwhips, and grappling hooks
 using magic portals stuns hero for a few turns
 using level teleporters confuses hero without teleport control for a few turns
 clear obj->bypass for buried objects [a giant on ice triggers a fire trap,
