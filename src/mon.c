@@ -676,7 +676,9 @@ make_corpse(struct monst *mtmp, unsigned int corpseflags)
     case PM_LEATHER_GOLEM:
         num = d(2, 4);
         while (num--)
-            obj = mksobj_at(LEATHER_ARMOR, x, y, TRUE, FALSE);
+            obj = mksobj_at(rn2(4) ? LEATHER_ARMOR
+                            : rn2(3) ? LEATHER_CLOAK : SADDLE,
+                            x, y, TRUE, FALSE);
         free_mgivenname(mtmp);
         break;
     case PM_GOLD_GOLEM:

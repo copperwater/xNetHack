@@ -838,6 +838,7 @@ if a lit potion of oil on the floor was launched by an explosion and it hit
 	tried to extinguish it as a light source
 place_object() validated coordinates after using them to index level.objects
 killed rope golem may drop leashes, bullwhips, and grappling hooks
+killed leather golem may drop leather cloaks, and saddles
 using magic portals stuns hero for a few turns
 using level teleporters confuses hero without teleport control for a few turns
 clear obj->bypass for buried objects [a giant on ice triggers a fire trap,
