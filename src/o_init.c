@@ -451,6 +451,9 @@ discover_object(
     boolean mark_as_encountered,
     boolean credit_hero)
 {
+    if (oindx < FIRST_OBJECT) /* don't discover generic objects */
+        return;
+
     if ((!objects[oindx].oc_name_known && mark_as_known)
         || (!objects[oindx].oc_encountered && mark_as_encountered)
         || (Role_if(PM_SAMURAI)
