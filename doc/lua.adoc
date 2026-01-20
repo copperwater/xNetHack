@@ -120,6 +120,15 @@ Example:
  local k = nh.eckey("help");
 
 
+=== flip_level
+
+Flip the level horizontally or vertically.
+
+Example:
+
+ nh.flip_level(1);
+
+
 === getlin
 
 Asks the player for a text to enter, and returns the entered string.

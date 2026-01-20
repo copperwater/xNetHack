@@ -35,6 +35,7 @@ staticfn int nhl_stairways(lua_State *);
 staticfn int nhl_pushkey(lua_State *);
 staticfn int nhl_doturn(lua_State *);
 staticfn int nhl_debug_flags(lua_State *);
+staticfn int nhl_flip_level(lua_State *);
 staticfn int nhl_timer_has_at(lua_State *);
 staticfn int nhl_timer_peek_at(lua_State *);
 staticfn int nhl_timer_stop_at(lua_State *);
@@ -1446,6 +1447,22 @@ nhl_debug_flags(lua_State *L)
     return 0;
 }
 
+/* flip level */
+/* nh.flip_level(n); */
+staticfn int
+nhl_flip_level(lua_State *L)
+{
+    int argc = lua_gettop(L);
+    int flp = 0;
+
+    if (argc == 1)
+        flp = lua_tointeger(L, 1);
+
+    flip_level(flp, !gi.in_mklev);
+
+    return 0;
+}
+
 DISABLE_WARNING_UNREACHABLE_CODE
 
 /* does location at x,y have timer? */
@@ -1821,6 +1838,7 @@ static const struct luaL_Reg nhl_functions[] = {
     { "pushkey", nhl_pushkey },
     { "doturn", nhl_doturn },
     { "debug_flags", nhl_debug_flags },
+    { "flip_level", nhl_flip_level },
     { NULL, NULL }
 };
 
