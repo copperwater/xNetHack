@@ -515,6 +515,15 @@ function test_levregion()
    des.levregion({ region={25,11,25,11}, type="portal", name="fakewiz1" });
 end
 
+function test_drawbridge()
+   des.terrain(05,08, "L");
+   des.terrain(06,08, "|");
+   des.drawbridge({ dir="east", state="closed", x=05,y=08 });
+   des.terrain(10,08, "L");
+   des.terrain(10,09, "-");
+   des.drawbridge({ dir="south", state="random", coord={10,08} })
+end
+
 function run_tests()
    test_level_init();
    test_message();
@@ -544,6 +553,7 @@ function run_tests()
    test_gas_cloud();
    test_exclusion();
    test_levregion();
+   test_drawbridge();
 
    des.reset_level();
    des.level_init();
