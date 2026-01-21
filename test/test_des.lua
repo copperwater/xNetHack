@@ -494,6 +494,27 @@ function test_corridor()
    des.corridor({ srcroom=0, srcwall="south", srcdoor=0, destroom=1, destwall="north", destdoor=0 });
 end
 
+function test_gas_cloud()
+   des.gas_cloud({ x = 5, y = 5 });
+   des.gas_cloud({ coord = {10,10} });
+   des.gas_cloud({ selection=selection.area(15,5, 17,7), damage = 5 });
+   des.gas_cloud({ selection=selection.area(20,5, 22,7), damage = 5, ttl = 10 });
+end
+
+function test_exclusion()
+   des.exclusion({ type = "teleport", region = { 0,0, 10,5 } });
+   des.exclusion({ type = "teleport-up", region = { 0,0, 10,5 } });
+   des.exclusion({ type = "teleport-down", region = { 0,0, 10,5 } });
+   des.exclusion({ type = "monster-generation", region = { 0,0, 10,5 } });
+end
+
+function test_levregion()
+   des.levregion({ type="stair-up", region={01,00,79,20}, region_islev=1, exclude={0,0,28,12} })
+   des.levregion({ type="stair-down", region={01,00,79,20}, region_islev=1, exclude={0,0,28,12} })
+   des.levregion({ type="branch", region={01,00,79,20}, region_islev=1, exclude={0,0,28,12} })
+   des.levregion({ region={25,11,25,11}, type="portal", name="fakewiz1" });
+end
+
 function run_tests()
    test_level_init();
    test_message();
@@ -520,6 +541,9 @@ function run_tests()
    test_terrain();
    test_replace_terrain();
    test_corridor();
+   test_gas_cloud();
+   test_exclusion();
+   test_levregion();
 
    des.reset_level();
    des.level_init();
