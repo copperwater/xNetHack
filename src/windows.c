@@ -1867,6 +1867,27 @@ void
 getlin(const char *query, char *bufp)
 {
     boolean old_bot_disabled = gb.bot_disabled;
+    char *obufp = bufp;
+    boolean got_cmdq = FALSE;
+    struct _cmd_queue *cmdq = NULL;
+
+    while ((cmdq = cmdq_pop()) != 0) {
+        if (cmdq->typ == CMDQ_KEY) {
+            got_cmdq = TRUE;
+            *bufp = (cmdq->key != '\n') ? cmdq->key : '\0';
+            bufp++;
+            if (cmdq->key == '\n')
+                break;
+        } else {
+            break;
+        }
+    }
+
+    if (got_cmdq) {
+        *bufp = '\0';
+        pline("%s %s", query, obufp);
+        return;
+    }
 
     program_state.in_getlin = 1;
     gb.bot_disabled = TRUE;
