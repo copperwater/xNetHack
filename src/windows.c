@@ -1881,7 +1881,11 @@ getlin(const char *query, char *bufp)
         } else {
             break;
         }
+        free(cmdq);
+        cmdq = NULL;
     }
+    if (cmdq)
+        free(cmdq);
 
     if (got_cmdq) {
         *bufp = '\0';
