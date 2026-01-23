@@ -88,6 +88,8 @@ function test_monster()
    des.monster();
    des.monster("gnome")
    des.monster("S")
+   des.monster(":", {12,07});
+   des.monster("K", 13,07);
    des.monster("giant eel",11,06);
    des.monster("hill giant", {08,06});
    des.monster({ id = "ogre" })
@@ -103,7 +105,7 @@ function test_monster()
    des.monster({ id = "chameleon", appear_as = "mon:bat" });
    des.monster({ class = "H", asleep = 1, female = 1, invisible = 1, cancelled = 1, revived = 1, avenge = 1, stunned = 1, confused = 1, fleeing = 20, blinded = 20, paralyzed = 20 })
    des.monster({ class = "H", asleep = true, female = true, invisible = true, cancelled = true, revived = true, avenge = true, stunned = true, confused = true });
-   des.monster({ id = "ogre", x = 10, y = 15, name = "Fred",
+   des.monster({ id = "ogre", x = 10, y = 15, name = "Fred", keep_default_invent = true,
                  inventory = function()
                    des.object();
                    des.object("[");
@@ -116,6 +118,9 @@ function test_monster()
    des.monster({ id = "lurker above", adjacentok = true });
    des.monster({ id = "gnome", ignorewater = true });
    des.monster({ id = "xan", countbirth = false });
+   des.monster({ id = "Angel", align = "law" });
+   des.monster({ id = "archeologist" });
+   des.monster({ id = "wizard", name = "Rincewind", peaceful = true });
    des.reset_level();
    des.level_init();
 end
@@ -125,6 +130,8 @@ function test_object()
    des.level_init();
    des.object()
    des.object("*")
+   des.object("*", 55, 12);
+   des.object("*", {55, 12});
    des.object({ class = "%" });
    des.object({ id = "statue", contents=0 })
    des.object("sack")
@@ -559,5 +566,5 @@ function run_tests()
    des.level_init();
 end
 
-nh.debug_flags({mongen = false, hunger = false, overwrite_stairs = true });
+nh.debug_flags({ hunger = false, overwrite_stairs = true });
 run_tests();

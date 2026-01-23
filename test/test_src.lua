@@ -130,4 +130,13 @@ function test_getlin()
    end
 end
 
+function test_abscoord()
+   local ax,ay = nh.abscoord(3, 8);
+   local pt = nh.abscoord({ x = 10, y = 5 });
+end
+
 test_getlin();
+test_abscoord();
+
+nh.flip_level(3);
+
