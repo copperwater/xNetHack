@@ -312,14 +312,17 @@ function test_trap()
    des.trap("level teleport", {42, 06});
    check_trap_at(42, 06, "level teleport");
 
-   des.trap({ type = "falling rock", x = 43, y = 06 });
+   des.trap({ type = "falling rock", x = 43, y = 06, victim = false });
    check_trap_at(43, 06, "falling rock");
 
-   des.trap({ type = "dart", coord = {44, 06} });
+   des.trap({ type = "dart", coord = {44, 06}, seen = true });
    check_trap_at(44, 06, "dart");
 
    des.trap();
    des.trap("rust");
+   des.trap({ type = "web", spider_on_web = false });
+   des.trap({ type = "rolling boulder", coord = {40,10}, launchfrom = {39,11} });
+   des.trap({ type = "teleport", teledest = {5,5} });
 end
 
 function test_wall_prop()
