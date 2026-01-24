@@ -241,10 +241,7 @@ steps:
   workingDirectory: $(Agent.BuildDirectory)/$(netHackPath)
   displayName: 'Building MSDOS build'
 - bash: |
-    sudo apt-get install texlive
-    tlmgr init-usertree
-    tlmgr install enumitem
-    texhash
+    sudo apt install texlive-guesswhich texlive-latex-extra
     make Guidebook
     make Guidebook.txt
     make Guidebook.pdf
