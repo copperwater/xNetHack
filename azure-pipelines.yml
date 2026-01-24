@@ -242,8 +242,8 @@ steps:
   displayName: 'Building MSDOS build'
 - bash: |
     sudo apt-get install texlive
-    sudo tlmgr install enumitem
-    sudo texhash
+    tlmgr install enumitem
+    texhash
     make Guidebook
     make Guidebook.txt
     make Guidebook.pdf
