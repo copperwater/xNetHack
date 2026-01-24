@@ -243,6 +243,7 @@ steps:
 - bash: |
     sudo apt-get install texlive
     sudo tlmgr install enumitem
+    sudo texhash
     make Guidebook
     make Guidebook.txt
     make Guidebook.pdf
