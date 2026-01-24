@@ -242,6 +242,7 @@ steps:
   displayName: 'Building MSDOS build'
 - bash: |
     sudo apt-get install texlive
+    tlmgr init-usertree
     tlmgr install enumitem
     texhash
     make Guidebook
