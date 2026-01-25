@@ -21,7 +21,10 @@ of adding new monsters to that class.
 Popular features of xNetHack have tended to be good candidates for feature
 suggestions to the DevTeam; a number of features in vanilla NetHack either
 originated in xNetHack or used its implementation of something that originated
-in another variant.
+in another variant. The "x" in xNetHack nominally stands for "experimental";
+while the original intention of combining different patches to experiment with
+and fully resetting for the next version didn't really happen, it has proved to
+be a good experimentation ground for features the DevTeam might want to pick up.
 
 xNetHack's public Git repository can be accessed at
 https://github.com/copperwater/xNetHack. Its changelogs (one per each version)
