@@ -324,9 +324,12 @@ mquaffmsg(struct monst *mtmp, struct obj *otmp)
 #define MUSE_UNICORN_HORN 17
 #define MUSE_POT_FULL_HEALING 18
 #define MUSE_LIZARD_CORPSE 19
-#define MUSE_MAGIC_FLUTE 20
-#define MUSE_WAN_UNDEAD_TURNING 21 /* also an offensive item */
-#define MUSE_POT_OIL 22
+#define MUSE_WAN_UNDEAD_TURNING 20 /* also an offensive item */
+/* since order and magnitude of these numbers does not matter, use higher numbers
+ * for xNetHack-added ones so they don't collide with new ones introduced in
+ * vanilla */
+#define MUSE_MAGIC_FLUTE 100
+#define MUSE_POT_OIL 101
 /*
 #define MUSE_INNATE_TPT 9999
  * We cannot use this.  Since monsters get unlimited teleportation, if they
@@ -1281,10 +1284,11 @@ rnd_defensive_item(struct monst *mtmp)
 #define MUSE_POT_SLEEPING 16
 #define MUSE_SCR_EARTH 17
 #define MUSE_CAMERA 18
-/* xNetHack ones: */
-#define MUSE_POT_HALLUCINATION 19
 /*#define MUSE_WAN_UNDEAD_TURNING 20*/ /* also a defensive item so don't
                                      * redefine; nonconsecutive value is ok */
+/* xNetHack ones: (as with the defensive defines, start at a much higher number
+ * to avoid collision with new ones added by vanilla) */
+#define MUSE_POT_HALLUCINATION 200
 
 staticfn boolean
 linedup_chk_corpse(coordxy x, coordxy y)
