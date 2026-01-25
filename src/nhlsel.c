@@ -956,11 +956,18 @@ staticfn int
 l_selection_size_description(lua_State *L)
 {
     int argc = lua_gettop(L);
-    struct selectionvar *sel = l_selection_check(L, 1);
-    char buf[BUFSZ];
 
-    lua_pushstring(L, selection_size_description(sel, buf));
-    return 1;
+    if (argc == 1) {
+        struct selectionvar *sel = l_selection_check(L, 1);
+        char buf[BUFSZ];
+
+        lua_pushstring(L, selection_size_description(sel, buf));
+        return 1;
+    } else {
+        nhl_error(L, "wrong parameters");
+        /*NOTREACHED*/
+    }
+    return 0;
 }
 
 static const struct luaL_Reg l_selection_methods[] = {
