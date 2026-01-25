@@ -102,7 +102,10 @@ function test_monster()
    des.monster({ class = "H", peaceful = 0 })
    des.monster({ id = "giant mimic", appear_as = "obj:boulder" });
    des.monster({ id = "giant mimic", appear_as = "ter:altar" });
+   des.monster({ id = "giant mimic", appear_as = "mon:giant mimic" });
    des.monster({ id = "chameleon", appear_as = "mon:bat" });
+   des.monster({ id = "chameleon", appear_as = "mon:yellow light" });
+   des.monster({ id = "chameleon", appear_as = "mon:random" });
    des.monster({ class = "H", asleep = 1, female = 1, invisible = 1, cancelled = 1, revived = 1, avenge = 1, stunned = 1, confused = 1, fleeing = 20, blinded = 20, paralyzed = 20 })
    des.monster({ class = "H", asleep = true, female = true, invisible = true, cancelled = true, revived = true, avenge = true, stunned = true, confused = true });
    des.monster({ id = "ogre", x = 10, y = 15, name = "Fred", keep_default_invent = true,
@@ -133,6 +136,7 @@ function test_object()
    des.object("*", 55, 12);
    des.object("*", {55, 12});
    des.object({ class = "%" });
+   des.object({ class = "$" });
    des.object({ id = "statue", contents=0 })
    des.object("sack")
    des.object({ x = 41, y = 03 })
@@ -142,6 +146,9 @@ function test_object()
    des.object("diamond", {68, 04})
    des.object({ id = "egg", x = 05, y = 04, montype = "yellow dragon" });
    des.object({ id = "egg", x = 06, y = 04, montype = "yellow dragon", laid_by_you = true });
+   des.object({ id = "tin", montype = "empty" });
+   des.object({ id = "tin", montype = "spinach" });
+   des.object({ id = "tin", montype = "floating eye" });
    des.object({ id = "corpse", montype = "valkyrie" })
    des.object({ id = "statue", montype = "C", historic = true, male = true });
    des.object({ id = "statue", montype = "C", historic = true, female = true });
@@ -158,6 +165,10 @@ function test_object()
    des.object({ id = "oil lamp", lit = 1 });
    des.object({ id = "silver dagger", spe = 127, buc = "cursed" });
    des.object({ id = "silver dagger", spe = -127, buc = "blessed" });
+   des.object({ class = "/", buc = "uncursed" });
+   des.object({ class = "(", buc = "not-cursed" });
+   des.object({ class = ")", buc = "not-uncursed" });
+   des.object({ class = "=", buc = "not-blessed" });
    des.object({ id = "bamboo arrow", quantity = 100 });
    des.object({ id = "leather armor", eroded = 1 });
    des.object({ id = "probing", recharged = 2, spe = 3 });
@@ -207,6 +218,7 @@ function test_altar()
    des.altar({ coord = {48, 20 }, type = "altar", align = "law" });
    des.altar({ coord = {50, 20 }, type = "shrine", align = "noalign" });
    des.altar({ coord = {52, 20 }, type = "sanctum", align = "coaligned" });
+   des.altar({ type = "altar", align = "noncoaligned" });
 end
 
 function test_map()
