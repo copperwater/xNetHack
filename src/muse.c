@@ -330,6 +330,7 @@ mquaffmsg(struct monst *mtmp, struct obj *otmp)
  * vanilla */
 #define MUSE_MAGIC_FLUTE 100
 #define MUSE_POT_OIL 101
+#define MUSE_POT_RESTORE_ABILITY 102
 /*
 #define MUSE_INNATE_TPT 9999
  * We cannot use this.  Since monsters get unlimited teleportation, if they
@@ -748,6 +749,12 @@ find_defensive(struct monst *mtmp, boolean tryescape)
         if (obj->otyp == SCR_CREATE_MONSTER) {
             gm.m.defensive = obj;
             gm.m.has_defense = MUSE_SCR_CREATE_MONSTER;
+        }
+        nomore(MUSE_POT_RESTORE_ABILITY);
+        if (obj->otyp == POT_RESTORE_ABILITY && !obj->cursed
+            && (!mtmp->mcansee || mtmp->mconf || mtmp->mstun || mtmp->mcan)) {
+            gm.m.defensive = obj;
+            gm.m.has_defense = MUSE_POT_RESTORE_ABILITY;
         }
     }
  botm:
@@ -1198,6 +1205,26 @@ use_defensive(struct monst *mtmp)
             makeknown(otmp->otyp);
         m_useup(mtmp, otmp);
         return 2;
+    case MUSE_POT_RESTORE_ABILITY: {
+        boolean wasconfstun = (mtmp->mconf || mtmp->mstun);
+        boolean wascan = !!(mtmp->mcan);
+        if (!otmp)
+            panic(MissingDefensiveItem, "potion of restore ability");
+        mquaffmsg(mtmp, otmp);
+        mcureblindness(mtmp, vismon);
+        mtmp->mconf = 0;
+        mtmp->mstun = 0;
+        mtmp->mcan = 0;
+        if (vismon && !is_bat(mtmp->data) && mtmp->data != &mons[PM_STALKER])
+            pline_mon(mtmp, "%s seems %s%s%s.", Monnam(mtmp),
+                      wascan ? "re-energized" : "",
+                      (wascan && wasconfstun) ? " and " : "",
+                      wasconfstun ? "steadier now" : "");
+        if (oseen)
+            trycall(otmp);
+        m_useup(mtmp, otmp);
+        return 2;
+    }
     case MUSE_LIZARD_CORPSE:
         if (!otmp)
             panic(MissingDefensiveItem, "lizard corpse");
