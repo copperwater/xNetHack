@@ -809,6 +809,9 @@ peffect_restore_ability(struct obj *otmp)
          * place. */
         if (Wounded_legs)
             heal_legs(0);
+        u.ucreamed = 0;
+        make_blinded(0L, TRUE);
+        make_deaf(0L, TRUE);
         make_confused(0L, TRUE);
         make_stunned(0L, TRUE);
         make_hallucinated(0L, TRUE, 0L);
