@@ -523,6 +523,23 @@ function test_sel_numpoints()
    end
 end
 
+function test_sel_room()
+   des.reset_level();
+   des.level_init({ style = "solidfill", fg = " " });
+   des.room({ w = 5, h = 3,
+              contents = function(rm)
+                 local sel = selection.room();
+                 sel_has_n_points(sel, 5*3, __func__);
+              end
+   });
+end
+
+function test_sel_gradient()
+   local sela = selection.gradient({ type = "radial", x = 3, y = 5, x2 = 10, y2 = 12, mindist = 4, maxdist = 10});
+   local selb = selection.gradient({ type = "square", x = 3, y = 5, x2 = 10, y2 = 12, mindist = 4, maxdist = 10});
+   local selc = selection.gradient({ x = 3, y = 5, x2 = 10, y2 = 12, maxdist = 10});
+end
+
 nh.debug_flags({mongen = false, hunger = false, overwrite_stairs = true });
 test_selection_params();
 test_sel_negate();
@@ -544,3 +561,5 @@ test_sel_iterate();
 test_sel_bounds();
 test_sel_map();
 test_sel_numpoints();
+test_sel_room();
+test_sel_gradient();
