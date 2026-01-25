@@ -124,6 +124,11 @@ function test_monster()
    des.monster({ id = "Angel", align = "law" });
    des.monster({ id = "archeologist" });
    des.monster({ id = "wizard", name = "Rincewind", peaceful = true });
+
+   for i = nhc.LOW_PM, nhc.HIGH_PM do
+      des.monster({ id = nh.int_to_pmname(i) });
+   end
+
    des.reset_level();
    des.level_init();
 end

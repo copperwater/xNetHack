@@ -31,6 +31,7 @@ struct e;
 staticfn int nhl_dump_fmtstr(lua_State *);
 #endif /* DUMPLOG */
 staticfn int nhl_dnum_name(lua_State *);
+staticfn int nhl_int_to_pm_name(lua_State *);
 staticfn int nhl_stairways(lua_State *);
 staticfn int nhl_pushkey(lua_State *);
 staticfn int nhl_doturn(lua_State *);
@@ -1164,6 +1165,26 @@ nhl_dnum_name(lua_State *L)
     return 1;
 }
 
+/* return gender-neutral monster type name by integer value,
+   or empty string if outside LOW_PM - HIGH_PM range */
+/* local montypename = int_to_pmname(12); */
+staticfn int
+nhl_int_to_pm_name(lua_State *L)
+{
+    int argc = lua_gettop(L);
+
+    if (argc == 1) {
+        lua_Integer i = luaL_checkinteger(L, 1);
+
+        if (i >= LOW_PM && i <= HIGH_PM)
+            lua_pushstring(L, mons[i].pmnames[NEUTRAL]);
+        else
+            lua_pushstring(L, "");
+    } else
+        nhl_error(L, "Expected an integer parameter");
+    return 1;
+}
+
 DISABLE_WARNING_UNREACHABLE_CODE
 /* because nhl_error() does not return */
 
@@ -1836,6 +1857,7 @@ static const struct luaL_Reg nhl_functions[] = {
     { "dump_fmtstr", nhl_dump_fmtstr },
 #endif /* DUMPLOG */
     { "dnum_name", nhl_dnum_name },
+    { "int_to_pmname", nhl_int_to_pm_name },
     { "variable", nhl_variable },
     { "stairways", nhl_stairways },
     { "pushkey", nhl_pushkey },
@@ -1851,6 +1873,9 @@ static const struct {
 } nhl_consts[] = {
     { "COLNO",  COLNO },
     { "ROWNO",  ROWNO },
+    { "NUMMONS", NUMMONS },
+    { "LOW_PM", LOW_PM },
+    { "HIGH_PM", HIGH_PM },
 #ifdef DLB
     { "DLB", 1 },
 #else

@@ -259,6 +259,15 @@ Example:
  local str = nh.ing_suffix("foo");
 
 
+=== int_to_pmname
+
+Convert integer value to monster type name.
+
+Example:
+
+ local pmname = nh.int_to_pmname(12);
+
+
 === is_genocided
 
 Is specific monster type genocided?  Returns a boolean value.
@@ -1564,6 +1573,9 @@ These constants are in the `nhc` table.
 |===
 | COLNO | Number of map columns
 | ROWNO | Number of map rows
+| NUMMONS | Number of different monster types
+| LOW_PM  | First monster type id. See <<_int_to_pmname>>.
+| HIGH_PM | Last monster type id. See <<_int_to_pmname>>.
 | DLB   | 1 or 0, depending if NetHack is compiled with DLB
 |===
 
