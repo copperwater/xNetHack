@@ -1145,6 +1145,16 @@ Example:
  local sel2 = selection.clone(sel);
 
 
+=== describe_size
+
+Return a text describing the size of the selection.
+
+Example:
+
+ local sel = selection.fillrect(1,1, 3,3);
+ local txt = sel:describe_size();
+
+
 === ellipse
 
 Example:
