@@ -910,6 +910,8 @@ l_selection_gradient(lua_State *L)
     return 1;
 }
 
+DISABLE_WARNING_UNREACHABLE_CODE
+
 /* sel:iterate(function(x,y) ... end);
  * The x, y coordinates passed to the function are map- or room-relative
  * rather than absolute, unless there has been no previous map or room
@@ -969,6 +971,8 @@ l_selection_size_description(lua_State *L)
     }
     return 0;
 }
+
+RESTORE_WARNING_UNREACHABLE_CODE
 
 static const struct luaL_Reg l_selection_methods[] = {
     { "new", l_selection_new },
