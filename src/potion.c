@@ -791,6 +791,36 @@ peffect_restore_ability(struct obj *otmp)
                 i = 0;
         }
 
+        /* allow the potion and not the spell to recover lost maximum HP and
+         * energy (without restoring any _actual_ HP or energy); difficult to
+         * ever get all of a large loss back, but you can get decently close
+         * with multiple potions.
+         * Does not work unless you are at your maximum experience level.
+         * Otherwise, this enables drain-for-gain shenanigans because peak HP
+         * and energy are not tracked per-level.
+         * Effectively, you get either level restoration (below) or max HP
+         * restoration, but not both at once. */
+        if (otmp->otyp == POT_RESTORE_ABILITY && u.ulevel == u.ulevelmax) {
+            int gain;
+            int oldhpmax = u.uhpmax;
+            int oldenmax = u.uenmax;
+            /* Half the difference rounding up, +1 extra if potion is blessed */
+            if (u.uhpmax < u.uhppeak) {
+                gain = (u.uhppeak - u.uhpmax + 1) / 2;
+                if (otmp->blessed)
+                    gain++;
+                u.uhpmax = min(u.uhpmax + gain, u.uhppeak);
+            }
+            if (u.uenmax < u.uenpeak) {
+                gain = (u.uenpeak - u.uenmax + 1) / 2;
+                if (otmp->blessed)
+                    gain++;
+                u.uenmax = min(u.uenmax + gain, u.uenpeak);
+            }
+            if (u.uhpmax != oldhpmax || u.uenmax != oldenmax)
+                disp.botl = TRUE;
+        }
+
         /* when using the potion (not the spell) also restore lost levels,
            to make the potion more worth keeping around for players with
            the spell or with a unihorn; this is better than full healing
