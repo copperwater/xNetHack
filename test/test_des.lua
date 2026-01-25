@@ -394,15 +394,24 @@ function test_room()
                  des.room({ x=4, y=3, w=3,h=3 });
               end
    });
-   des.room({ type="ordinary", coord={3, 3}, w=3, h=3 });
-   des.room();
+   des.room({ xalign="right", yalign="bottom",
+              contents = function(rm)
+                 des.room({ contents = function(rm)
+                               des.door({ state= "random", wall = "random" });
+                 end });
+              end
+   });
    des.room({ contents = function(rm)
                  des.object();
                  des.monster();
+                 des.trap();
                  des.terrain(0,0, "L");
+                 des.altar({ coord = {0,0} });
                  des.terrain(rm.width, rm.height, "T");
                          end
    });
+   des.room({ type="ordinary", coord={3, 3}, w=3, h=3 });
+   des.room();
    des.random_corridors();
 end
 
