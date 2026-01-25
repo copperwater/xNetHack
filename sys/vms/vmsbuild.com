@@ -453,7 +453,7 @@ $ gosub compile_list
 $ milestone "<linking...>"
 $ link /EXECUTABLE=nethack.exe vmsmain.obj,date.obj-
         +[-.src]nethack.olb/library -
-        +sys$disk:[-.lib.lua]lua546.olb/library
+        +sys$disk:[-.lib.lua]lua548.olb/library
 $ milestone "NetHack"
 $     if c_opt.eq.o_LINK then  goto done	!"LINK" only
 $special:

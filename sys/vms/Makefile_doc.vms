@@ -25,7 +25,7 @@ WINSHIM=[-.win.shim]
 WINCHAIN=[-.win.chain]
 
 # Lua location relative to src
-LUAVER=546
+LUAVER=548
 LUADOTVER=5.4.8
 LUAUNDERVER=5_4_8
 LUAINC=[-.lib.lua.lua$(LUAVER).src]
