@@ -201,12 +201,20 @@ themeroom_fills = {
    {
       name = "Statuary",
       contents = function(rm)
-         for i = 1, d(5,5) do
-            des.object({ id = "statue" });
+         -- the version of this fill in vanilla places 5d5 (expected value: 15)
+         -- statues and d3 (expected value: 2) statue traps, which could lead to
+         -- heavy cluttering if the room was small, which isn't very
+         -- statuary-like; instead, make it proportional to room size and
+         -- guarantee only 1 statue (or trap) per square, while preserving the
+         -- relative probability of a trap.
+         local make_statue = function(x, y)
+            if percent(50) then
+               des.object({ id = 'statue', coord={x, y} })
+            elseif percent(12) then -- actually 6% overall
+               des.trap('statue', x, y);
+            end
          end
-         for i = 1, d(3) do
-            des.trap("statue");
-         end
+         selection.room():iterate(make_statue)
       end,
    },
 
@@ -233,24 +241,34 @@ themeroom_fills = {
       contents = function(rm)
          local loc = selection.room():rndcoord(0);
          des.monster({ id = "ghost", asleep = true, waiting = true, coord = loc });
+         local mostly_cursed = function()
+            -- This replicates the behavior of curses in regular bones piles;
+            -- using buc = "not-blessed" means more items would end up uncursed
+            -- than should
+            if percent(80) then
+               return "cursed"
+            else
+               return "uncursed"
+            end
+         end
          if percent(65) then
-            des.object({ id = "dagger", coord = loc, buc = "not-blessed" });
+            des.object({ id = "dagger", coord = loc, buc = mostly_cursed() });
          end
          if percent(55) then
-            des.object({ class = ")", coord = loc, buc = "not-blessed" });
+            des.object({ class = ")", coord = loc, buc = mostly_cursed() });
          end
          if percent(45) then
-            des.object({ id = "bow", coord = loc, buc = "not-blessed" });
-            des.object({ id = "arrow", coord = loc, buc = "not-blessed" });
+            des.object({ id = "bow", coord = loc, buc = mostly_cursed() });
+            des.object({ id = "arrow", coord = loc, buc = mostly_cursed() });
          end
          if percent(65) then
-            des.object({ class = "[", coord = loc, buc = "not-blessed" });
+            des.object({ class = "[", coord = loc, buc = mostly_cursed() });
          end
          if percent(20) then
-            des.object({ class = "=", coord = loc, buc = "not-blessed" });
+            des.object({ class = "=", coord = loc, buc = mostly_cursed() });
          end
          if percent(20) then
-            des.object({ class = "?", coord = loc, buc = "not-blessed" });
+            des.object({ class = "?", coord = loc, buc = mostly_cursed() });
          end
       end,
    },
@@ -595,7 +613,7 @@ themerooms = {
    {
       name = 'Pillars',
       contents = function()
-         des.room({ type = "themed", w = 10, h = 10,
+         des.room({ type = "themed", filled = 1, w = 10, h = 10,
                   contents = function(rm)
                      local terr = { "-", "-", "-", "-", "L", "P", "T" };
                      shuffle(terr);
@@ -616,6 +634,7 @@ themerooms = {
       name = 'Mausoleum',
       contents = function()
          des.room({ type = "themed", w = 5 + nh.rn2(3)*2, h = 5 + nh.rn2(3)*2,
+                    filled = 1,
                   contents = function(rm)
                      des.room({ type = "themed",
                                  x = (rm.width - 1) / 2, y = (rm.height - 1) / 2,

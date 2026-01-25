@@ -43,6 +43,14 @@ changes:
 - Items with a base iron or metal type generate as silver less often (2% of the
   time instead of 5%), and as mithril less often (1% of the time instead of 3%).
   Their chance of generating as copper, wood, or iron is slightly increased.
+- Several vanilla themed rooms are tweaked:
+  - The "Pillars" and "Mausoleum" room can now be filled with ordinary room
+    contents (monsters, objects, etc) rather than being barren.
+  - The "Statuary" fill now generates a number of statues in proportion to its
+    area, and will never place 2 statues (or a statue combined with a statue
+    trap) on the same space.
+  - The "Ghost of an Adventurer" fill curses 80% of the items in its fake bones
+    pile, the same as normal bones piles.
 
 ### Interface changes
 
