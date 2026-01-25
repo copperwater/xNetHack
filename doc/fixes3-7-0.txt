@@ -1,4 +1,4 @@
-NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.1580 $ $NHDT-Date: 1764109066 2025/11/25 22:17:46 $
+NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.1614 $ $NHDT-Date: 1769342601 2026/01/25 04:03:21 $
 
 General Fixes and Modified Features
 -----------------------------------
@@ -2201,6 +2201,7 @@ when reading a T-shirt or apron, add trailing period to the slogan unless
 	 already present in the quoted text
 when reading an engraving, suppress the addition of a trailing period if the
 	text already has one
+cursed magic whistle could teleport hero on no-teleport levels
 
 
 Fixes to 3.7.0-x Platform and/or Interface Problems Exposed Via git Repository

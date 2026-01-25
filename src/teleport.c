@@ -1,4 +1,4 @@
-/* NetHack 3.7	teleport.c	$NHDT-Date: 1736129950 2025/01/05 18:19:10 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.235 $ */
+/* NetHack 3.7	teleport.c	$NHDT-Date: 1769342601 2026/01/25 04:03:21 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.239 $ */
 /* Copyright (c) Stichting Mathematisch Centrum, Amsterdam, 1985. */
 /*-Copyright (c) Robert Patrick Rankin, 2011. */
 /* NetHack may be freely redistributed.  See license for details. */
@@ -810,6 +810,12 @@ tele_to_rnd_pet(void)
 {
     struct monst *mtmp, *pet = (struct monst *) 0;
     int cnt = 0;
+
+    if (noteleport_level(&gy.youmonst)) {
+        impossible("%s", "attempt to teleport hero to be near a pet"
+                         " on no-teleport level");
+        return;
+    }
 
     for (mtmp = fmon; mtmp; mtmp = mtmp->nmon)
         if (!DEADMONSTER(mtmp) && mtmp->mtame && !mon_offmap(mtmp)) {
