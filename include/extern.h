@@ -3033,6 +3033,8 @@ extern int nhl_abs_coord(lua_State *) NONNULLARG1;
 extern void update_croom(void);
 extern const char *get_trapname_bytype(int);
 extern void l_register_des(lua_State *) NONNULLARG1;
+extern int get_table_objclass(lua_State *) NONNULLARG1;
+extern int get_table_objtype(lua_State *) NONNULLARG1;
 #endif /* !CROSSCOMPILE || CROSSCOMPILE_TARGET */
 
 /* ### spell.c ### */

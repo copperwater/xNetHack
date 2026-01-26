@@ -82,3 +82,22 @@ box:addcontent(o5);
 
 local o6 = obj.new("statue");
 o6:addcontent(obj.new("spellbook"));
+
+
+-- generate one of each object, check the name and class matches
+for i = nhc.FIRST_OBJECT, nhc.LAST_OBJECT do
+   local oid, oclass = nh.int_to_objname(i);
+   if (oid ~= "") then
+      local oi = obj.new({ id = oid, class = oclass });
+      local oi_t = oi:totable();
+
+      if (oi_t.otyp_name ~= oid) then
+         error("object name \"" .. oi_t.otyp_name .. "\" created, wanted \"" .. oid .. "\"");
+      end
+      if (oi_t.oclass ~= oclass) then
+         local str = string.format("object class \"%s\" created, wanted \"%s\" (%s)", oi_t.oclass, oclass, oid);
+         error(str);
+      end
+
+   end
+end

@@ -32,6 +32,7 @@ staticfn int nhl_dump_fmtstr(lua_State *);
 #endif /* DUMPLOG */
 staticfn int nhl_dnum_name(lua_State *);
 staticfn int nhl_int_to_pm_name(lua_State *);
+staticfn int nhl_int_to_obj_name(lua_State *);
 staticfn int nhl_stairways(lua_State *);
 staticfn int nhl_pushkey(lua_State *);
 staticfn int nhl_doturn(lua_State *);
@@ -1185,6 +1186,31 @@ nhl_int_to_pm_name(lua_State *L)
     return 1;
 }
 
+/* convert integer to object type name and class */
+/* local oname,oclass = int_to_objname(25); */
+staticfn int
+nhl_int_to_obj_name(lua_State *L)
+{
+    int argc = lua_gettop(L);
+
+    if (argc == 1) {
+        char buf[8];
+        lua_Integer i = luaL_checkinteger(L, 1);
+
+        if (i >= 0 && i < NUM_OBJECTS && OBJ_NAME(objects[i])) {
+            lua_pushstring(L, OBJ_NAME(objects[i]));
+            buf[0] = def_oc_syms[(int)objects[i].oc_class].sym;
+            buf[1] = '\0';
+            lua_pushstring(L, buf);
+        } else {
+            lua_pushstring(L, "");
+            lua_pushstring(L, "");
+        }
+    } else
+        nhl_error(L, "Expected an integer parameter");
+    return 2;
+}
+
 DISABLE_WARNING_UNREACHABLE_CODE
 /* because nhl_error() does not return */
 
@@ -1858,6 +1884,7 @@ static const struct luaL_Reg nhl_functions[] = {
 #endif /* DUMPLOG */
     { "dnum_name", nhl_dnum_name },
     { "int_to_pmname", nhl_int_to_pm_name },
+    { "int_to_objname", nhl_int_to_obj_name },
     { "variable", nhl_variable },
     { "stairways", nhl_stairways },
     { "pushkey", nhl_pushkey },
@@ -1876,6 +1903,8 @@ static const struct {
     { "NUMMONS", NUMMONS },
     { "LOW_PM", LOW_PM },
     { "HIGH_PM", HIGH_PM },
+    { "FIRST_OBJECT", FIRST_OBJECT },
+    { "LAST_OBJECT", NUM_OBJECTS-1 },
 #ifdef DLB
     { "DLB", 1 },
 #else

@@ -180,6 +180,27 @@ function test_object()
    des.object({ name = "Random object" });
    des.object({ class = "*", name = "Random stone" });
    des.object({ id ="broadsword", name = "Dragonbane" })
+
+   for i = nhc.FIRST_OBJECT, nhc.LAST_OBJECT do
+      local oid, oclass = nh.int_to_objname(i);
+      if (oid ~= "") then
+         local o = des.object({ id = oid, class = oclass });
+         local o_t = o:totable();
+
+         -- crysknife reverts to worm tooth on the floor
+         if not(oid == "crysknife" and o_t.otyp_name == "worm tooth") then
+            if (o_t.otyp_name ~= oid) then
+               error("object name \"" .. o_t.otyp_name .. "\" created, wanted \"" .. oid .. "\"");
+            end
+            if (o_t.oclass ~= oclass) then
+               local str = string.format("object class \"%s\" created, wanted \"%s\" (%s)", o_t.oclass, oclass, oid);
+               error(str);
+            end
+         end
+
+      end
+   end
+
    des.reset_level();
    des.level_init();
 end

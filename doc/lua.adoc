@@ -259,6 +259,17 @@ Example:
  local str = nh.ing_suffix("foo");
 
 
+=== int_to_objname
+
+Convert integer value to object name and class.
+Returns two strings, the object base name and the class character.
+The returned strings may be empty if an error occurred.
+
+Example:
+
+ local oname, oclass = nh.int_to_objname(45);
+
+
 === int_to_pmname
 
 Convert integer value to monster type name.
@@ -850,7 +861,7 @@ Example:
 
 === object
 
-Create an object. Returns the object as an <<Obj>> class.
+Create an object and place it somewhere on the map. Returns the object as an <<Obj>> class.
 The table parameter accepts the following:
 
 [options="header"]
@@ -874,8 +885,8 @@ The table parameter accepts the following:
 | greased     | boolean  | Is the object greased?
 | broken      | boolean  | Is the object broken?
 | achievement | boolean  | Is there an achievement attached to the object?
-| x, y        | int      | Coordinates on the level
-| coord       | table    | x,y coordinates in table format
+| x, y        | int      | Coordinates on the level; defaults to a random location.
+| coord       | table    | x,y coordinates in table format; defaults to a random location.
 | montype     | string   | Monster id or class
 | historic    | boolean  | Is statue historic?
 | male        | boolean  | Is statue male?
@@ -1380,11 +1391,13 @@ Handling objects via obj-class.
 
 === new
 
-Create a new object via wishing routine.
+Create a new object, either via wishing routine, or specifying object name and class.
+Unlike des.object, does not place the object anywhere.
 
 Example:
 
  local o = obj.new("rock");
+ local o = obj.new({ id = "invisibility", class = "!" });
 
 
 === isnull
@@ -1576,6 +1589,8 @@ These constants are in the `nhc` table.
 | NUMMONS | Number of different monster types
 | LOW_PM  | First monster type id. See <<_int_to_pmname>>.
 | HIGH_PM | Last monster type id. See <<_int_to_pmname>>.
+| FIRST_OBJECT | First object type id. See <<_int_to_objname>>.
+| LAST_OBJECT | Number of object type ids. See <<_int_to_objname>>.
 | DLB   | 1 or 0, depending if NetHack is compiled with DLB
 |===
 
