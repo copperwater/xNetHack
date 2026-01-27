@@ -795,12 +795,13 @@ peffect_restore_ability(struct obj *otmp)
          * energy (without restoring any _actual_ HP or energy); difficult to
          * ever get all of a large loss back, but you can get decently close
          * with multiple potions.
-         * Does not work unless you are at your maximum experience level.
+         * Does not work unless you are at the highest experience level you have
+         * reached in this game.
          * Otherwise, this enables drain-for-gain shenanigans because peak HP
          * and energy are not tracked per-level.
          * Effectively, you get either level restoration (below) or max HP
          * restoration, but not both at once. */
-        if (otmp->otyp == POT_RESTORE_ABILITY && u.ulevel == u.ulevelmax) {
+        if (otmp->otyp == POT_RESTORE_ABILITY && u.ulevel == u.ulevelpeak) {
             int gain;
             int oldhpmax = u.uhpmax;
             int oldenmax = u.uenmax;
@@ -826,10 +827,10 @@ peffect_restore_ability(struct obj *otmp)
            the spell or with a unihorn; this is better than full healing
            in that it can restore all of them, not just half, and a
            blessed potion restores them all at once */
-        if (otmp->otyp == POT_RESTORE_ABILITY && u.ulevel < u.ulevelmax) {
+        if (otmp->otyp == POT_RESTORE_ABILITY && u.ulevel < u.ulevelpeak) {
             do {
                 pluslvl(FALSE);
-            } while (u.ulevel < u.ulevelmax && otmp->blessed);
+            } while (u.ulevel < u.ulevelpeak && otmp->blessed);
         }
 
         /* also heal wounded legs and most status ailments ("restoring your

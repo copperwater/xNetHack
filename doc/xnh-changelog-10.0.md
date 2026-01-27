@@ -34,7 +34,11 @@ changes:
   temporary deafness, confusion, stunning, and temporary hallucination. If it's
   blessed, it will also cure illness. If your HP or energy maximum has been
   reduced below its highest ever value and you are not missing any experience
-  levels to restore, it will also restore half of that difference.
+  levels to restore, it will also restore half of that difference. If you *are*
+  missing experience levels, the potion will disregard any lowering of your
+  level cap caused by potions of full healing, and will restore you up to your
+  highest level reached (for a blessed potion; uncursed potions still restore
+  only one level each).
 - The spell of restore ability has the same effects, except for curing illness.
 - Monsters hit by a potion of restore ability get cured of any blindness,
   confusion, or stunning, instead of being healed to full HP.
