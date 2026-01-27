@@ -1970,6 +1970,10 @@ thiefstone_tele_mon(struct obj* stone, struct monst* mon)
     schar ledger = stone->keyed_ledger;
     boolean samelevel = (ledger == ledger_no(&u.uz));
     coord cc;
+    d_level newlev;
+    boolean fails_levelport_rules = FALSE;
+    boolean fails_teleport_rules = FALSE;
+
     if (!thiefstone_ledger_valid(stone)) {
         if (ledger != THIEFSTONE_LEDGER_CANCELLED) {
             impossible("thiefstone_tele_mon: bad ledger %d", ledger);
@@ -1989,6 +1993,18 @@ thiefstone_tele_mon(struct obj* stone, struct monst* mon)
 
     cc.x = keyed_x(stone);
     cc.y = keyed_y(stone);
+    newlev.dnum = ledger_to_dnum(ledger);
+    newlev.dlevel = ledger_to_dlev(ledger);
+    /* follow mostly same restrictions as levelportation: no traveling between
+     * levels in Gehennom unless you're in the Valley and traveling out of
+     * Gehennom
+     * unlike levelportation, within Sokoban, or into/out of it, is allowed
+     * because you can't obtain a thiefstone keyed to a spot in Sokoban that
+     * you haven't yet reached (though if random gems ever generate in Sokoban,
+     * this would theoretically become possible...) */
+    fails_levelport_rules = (!samelevel && Inhell
+                             && (!Is_valley(&u.uz) || In_hell(&newlev)));
+    fails_teleport_rules = (samelevel && noteleport_level(mon));
 
     if (mon == &gy.youmonst) {
         /* the thiefstone sees you as valuable treasure and steals you away! */
@@ -1999,14 +2015,30 @@ thiefstone_tele_mon(struct obj* stone, struct monst* mon)
             || (In_endgame(&u.uz) && !samelevel)) { /* level is gone */
             return FALSE;
         }
+        if (fails_levelport_rules || fails_teleport_rules) {
+            pline(
+          "%s attempts to steal you away, but a mysterious force prevents it!",
+                  Tobjnam(stone, "attempt"));
+            return FALSE;
+        }
+
         pline("%s you away!", Tobjnam(stone, "steal"));
         if (samelevel) {
             teleds(cc.x, cc.y, TELEDS_NO_FLAGS);
         } else {
-            d_level newlev;
-            newlev.dnum = ledger_to_dnum(ledger);
-            newlev.dlevel = ledger_to_dlev(ledger);
             goto_level(&newlev, FALSE, FALSE, FALSE);
+            /* FIXME: bug: you appear on a random spot on the level and then move
+             * here, possibly mapping an area of the level you shouldn't have
+             * actually visited.
+             * There are a few ways to solve this:
+             * 1. Refactor goto_level to take an additional boolean (or a set of
+             *    flags, adding a new thiefstone flag) which would require
+             *    changing all existing calls of it.
+             * 2. Use a new utotype flag, to be read in goto_level before it
+             *    gets cleared, and use u.tx and u.ty to send you to those
+             *    coordinates.
+             * 3. Add u.goto_x and u.goto_y fields to struct you, and make
+             *    goto_level respect those coordinates. (Savebreaking.) */
             teleds(cc.x, cc.y, TELEDS_NO_FLAGS);
         }
     }
@@ -2016,6 +2048,9 @@ thiefstone_tele_mon(struct obj* stone, struct monst* mon)
         }
         if (mon_has_amulet(mon)) {
             return FALSE; /* no skipping the ascension run */
+        }
+        if (fails_levelport_rules || fails_teleport_rules) {
+            return FALSE; /* don't give any special message */
         }
         boolean couldspot = canspotmon(mon);
         const char *reappears = "";

@@ -55,6 +55,9 @@ changes:
     trap) on the same space.
   - The "Ghost of an Adventurer" fill curses 80% of the items in its fake bones
     pile, the same as normal bones piles.
+- Thiefstones can no longer teleport you to a location on the same level if it's
+  a no-teleport level, and cannot levelport you if the levelport would normally
+  be blocked (like when within Gehennom).
 
 ### Interface changes
 
