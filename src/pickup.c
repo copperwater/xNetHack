@@ -1968,6 +1968,7 @@ boolean
 thiefstone_tele_mon(struct obj* stone, struct monst* mon)
 {
     schar ledger = stone->keyed_ledger;
+    boolean samelevel = (ledger == ledger_no(&u.uz));
     coord cc;
     if (!thiefstone_ledger_valid(stone)) {
         if (ledger != THIEFSTONE_LEDGER_CANCELLED) {
@@ -1991,14 +1992,15 @@ thiefstone_tele_mon(struct obj* stone, struct monst* mon)
 
     if (mon == &gy.youmonst) {
         /* the thiefstone sees you as valuable treasure and steals you away! */
-        if (ledger == ledger_no(&u.uz) && u.ux == cc.x && u.uy == cc.y) {
+        if (samelevel && u.ux == cc.x && u.uy == cc.y) {
             return FALSE; /* already on keyed location */
         }
-        if (u.uhave.amulet) {
-            return FALSE; /* no skipping the ascension run */
+        if (u.uhave.amulet /* no skipping the ascension run */
+            || (In_endgame(&u.uz) && !samelevel)) { /* level is gone */
+            return FALSE;
         }
         pline("%s you away!", Tobjnam(stone, "steal"));
-        if (ledger == ledger_no(&u.uz)) {
+        if (samelevel) {
             teleds(cc.x, cc.y, TELEDS_NO_FLAGS);
         } else {
             d_level newlev;
@@ -2009,7 +2011,7 @@ thiefstone_tele_mon(struct obj* stone, struct monst* mon)
         }
     }
     else {
-        if (ledger == ledger_no(&u.uz) && mon->mx == cc.x && mon->my == cc.y) {
+        if (samelevel && mon->mx == cc.x && mon->my == cc.y) {
             return FALSE; /* already on keyed location */
         }
         if (mon_has_amulet(mon)) {
@@ -2018,7 +2020,7 @@ thiefstone_tele_mon(struct obj* stone, struct monst* mon)
         boolean couldspot = canspotmon(mon);
         const char *reappears = "";
         char *saved_name = mon_nam(mon);
-        if (ledger == ledger_no(&u.uz)) {
+        if (samelevel) {
             /* same level, just do horizontal teleport */
             if (!goodpos(cc.x, cc.y, mon, 0)) {
                 enexto(&cc, cc.x, cc.y, mon->data);
