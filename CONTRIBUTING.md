@@ -54,3 +54,16 @@ accepted.
 
 Commit messages should be very descriptive, explaining in particular *why* the
 change is being made; xNetHack has a longstanding tradition of this.
+
+Make sure your change is aligned with the xNetHack design goals. Implementing an
+idea from the list of future plans linked above is a good way to do this. Random
+requests that don't follow this guideline, like adding a bunch of monsters from
+SLASH'EM, will probably be rejected. If you're not sure whether a change you
+want to do would be accepted, consulting with xNetHack contributors is
+recommended.
+
+Regarding LLM-generated contributions: while these will not necessarily be
+rejected out of hand just for being LLM-generated, they will be if they do not
+demonstrate that a human contributor has thoroughly reviewed and tested the
+change, with evidence of that testing provided. Special care should be taken to
+ensure the change is as small as it can be.
