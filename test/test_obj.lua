@@ -101,3 +101,46 @@ for i = nhc.FIRST_OBJECT, nhc.LAST_OBJECT do
 
    end
 end
+
+
+function test_use_item(action, itemname, otherkeys)
+   nh.debug_flags({ prevent_pline = true });
+   u.clear_inventory();
+   u.giveobj(obj.new(itemname));
+   local o = u.inventory;
+   local ot = o:totable();
+
+   nh.pushkey(action);
+   nh.pushkey(ot.invlet);
+
+   if (otherkeys ~= nil and type(otherkeys) == "string") then
+      nh.pushkey(otherkeys);
+   end
+
+   nh.doturn();
+   nh.debug_flags({ prevent_pline = false });
+end
+
+nh.parse_config("OPTIONS=number_pad:0");
+nh.parse_config("OPTIONS=!timed_delay");
+
+-- apply
+test_use_item("a", "uncursed tin whistle");
+test_use_item("a", "cursed tin whistle");
+test_use_item("a", "blessed magic whistle");
+
+test_use_item("a", "uncursed camera", "h");
+test_use_item("a", "uncursed camera", "j");
+test_use_item("a", "uncursed camera", "k");
+test_use_item("a", "blessed camera", ">");
+test_use_item("a", "+0 blessed camera", ">");
+
+test_use_item("a", "blessed stethoscope", "h");
+test_use_item("a", "blessed stethoscope", "j");
+test_use_item("a", "blessed stethoscope", ".");
+test_use_item("a", "blessed stethoscope", ">");
+test_use_item("a", "blessed stethoscope", "<");
+obj.new("corpse"):placeobj(u.ux, u.uy);
+test_use_item("a", "blessed stethoscope", ">");
+obj.new("statue"):placeobj(u.ux, u.uy);
+test_use_item("a", "blessed stethoscope", ">");

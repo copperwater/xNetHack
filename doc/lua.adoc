@@ -61,6 +61,7 @@ Set debugging flags.
 | mongen           | boolean | Do monsters generate
 | hunger           | boolean | Does hero's hunger-state increase
 | overwrite_stairs | boolean | Allow special-file commands overwrite the stairs
+| prevent_pline    | boolean | Prevent messages going out to the UI
 |===
 
 Example:

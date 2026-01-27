@@ -1494,6 +1494,12 @@ nhl_debug_flags(lua_State *L)
         iflags.debug_overwrite_stairs = (boolean) val;
     }
 
+    /* prevent pline going out to the UI */
+    val = get_table_boolean_opt(L, "prevent_pline", -1);
+    if (val != -1) {
+        iflags.debug_prevent_pline = (boolean) val;
+    }
+
     return 0;
 }
 

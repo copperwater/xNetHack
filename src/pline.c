@@ -66,6 +66,9 @@ putmesg(const char *line)
 {
     int attr = ATR_NONE;
 
+    if (iflags.debug_prevent_pline)
+        return;
+
     if ((gp.pline_flags & URGENT_MESSAGE) != 0
         && (windowprocs.wincap2 & WC2_URGENT_MESG) != 0)
         attr |= ATR_URGENT;

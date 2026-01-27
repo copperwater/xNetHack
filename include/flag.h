@@ -293,6 +293,7 @@ struct instance_flags {
     boolean debug_overwrite_stairs; /* debug: allow overwriting stairs */
     boolean debug_mongen;  /* debug: prevent monster generation */
     boolean debug_hunger;  /* debug: prevent hunger */
+    boolean debug_prevent_pline;  /* debug: prevent pline going to UI */
     boolean mon_polycontrol; /* debug: control monster polymorphs */
     boolean mon_telecontrol; /* debug: control monster teleports */
     boolean in_dumplog;    /* doing the dumplog right now? */
