@@ -2278,7 +2278,7 @@ revive_corpse(struct obj *corpse, boolean moldy)
             } else if (container_where == OBJ_INVENT) {
                 Strcpy(sackname, an(xname(container)));
                 pline("%s %s out of %s in your pack!", mnam,
-                      locomotion(mtmp->data, "writhes"), sackname);
+                      vtense(mnam, locomotion(mtmp->data, "writhe")), sackname);
             } else if (container_where == OBJ_FLOOR
                        && cansee(corpsex, corpsey)) {
                 Strcpy(sackname, an(xname(container)));
