@@ -5985,8 +5985,13 @@ lspo_reset_level(lua_State *L)
     boolean wtower = In_W_tower(u.ux, u.uy, &u.uz);
 
     iflags.lua_testing = TRUE;
-    if (L)
+    if (L) {
+        if (gc.coder) {
+            Free(gc.coder);
+            gc.coder = NULL;
+        }
         create_des_coder();
+    }
     makemap_prepost(TRUE, wtower);
     gi.in_mklev = TRUE;
     oinit(); /* assign level dependent obj probabilities */
