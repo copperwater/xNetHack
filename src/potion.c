@@ -3122,9 +3122,10 @@ potion_dip(struct obj *obj, struct obj *potion)
         }
         if (learn_it && potion->dknown)
             makeknown(POT_RESTORE_ABILITY);
-        if (did_something)
+        if (did_something) {
             poof(potion); /* includes trycall if dknown */
-        return ECMD_TIME;
+            return ECMD_TIME;
+        }
     }
  more_dips:
 
