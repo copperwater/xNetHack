@@ -24,26 +24,32 @@ changes:
 
 - The Ides of March (March 15th) is recognized as one of the in-game holidays,
   and slime molds will generate as "Caesar salads" on that day.
-- Items with negative enchantment or charges can be dipped in a noncursed potion
-  of restore ability to raise their enchantment, to 0 if the potion is blessed
-  or by 1 point if not. If the item is eroded, that will be fixed first and a
-  second potion will be required to address any negative enchantment.
-- Spellbooks can be dipped in a noncursed potion of restore ability to fully
-  refresh the ink on their pages.
-- Quaffing restore ability will heal wounded legs, temporary blindness,
-  temporary deafness, confusion, stunning, and temporary hallucination. If it's
-  blessed, it will also cure illness. If your HP or energy maximum has been
-  reduced below its highest ever value and you are not missing any experience
-  levels to restore, it will also restore half of that difference. If you *are*
-  missing experience levels, the potion will disregard any lowering of your
-  level cap caused by potions of full healing, and will restore you up to your
-  highest level reached (for a blessed potion; uncursed potions still restore
-  only one level each).
-- The spell of restore ability has the same effects, except for curing illness.
-- Monsters hit by a potion of restore ability get cured of any blindness,
-  confusion, or stunning, instead of being healed to full HP.
-- Monsters can also quaff potions of restore ability they happen to have to cure
-  blindness, confusion, stunning, and cancellation.
+- The potion of restore ability has received many buffs:
+  - Items with negative enchantment or charges can be dipped in a noncursed
+    potion of restore ability to raise their enchantment, to 0 if the potion is
+    blessed or by 1 point if not. If the item is eroded, that will be fixed
+    first and a second potion will be required to address any negative
+    enchantment.
+  - Spellbooks can be dipped in a noncursed potion of restore ability to fully
+    refresh the ink on their pages.
+  - Quaffing noncursed restore ability has the following effects in addition to
+    restoring lost ability scores:
+    - Heals wounded legs, temporary blindness, temporary deafness, confusion,
+      stunning, and temporary hallucination.
+    - A blessed potion will also cure illness.
+    - The existing level-restoring function of this potion now restores levels
+      up to your *peak* XL reached, meaning that if you reduced your *max* XL by
+      quaffing full healing, restore ability can still recover the rest.
+    - If you are not missing any experience levels and your HP or energy maximum has
+      been reduced below its highest ever value, it will also restore half of
+      the difference.
+  - Monsters can also quaff potions of restore ability they happen to have to
+    cure blindness, confusion, stunning, and cancellation.
+  - Monsters hit by a potion of restore ability get cured of any blindness,
+    confusion, or stunning, instead of being healed to full HP. (This will not
+    cure cancellation.)
+- The spell of restore ability can now also cure the same status ailments as the
+  potion, except for curing illness (since that has its own spell).
 - If the hero is hit with cancellation, they lose all their magic energy.
 - Throwing gems that are type-named but not fully identified at a coaligned
   unicorn no longer gives +2 luck; they are treated the same as non-type-named
