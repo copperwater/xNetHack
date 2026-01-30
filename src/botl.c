@@ -1,4 +1,4 @@
-/* NetHack 3.7	botl.c	$NHDT-Date: 1742207239 2025/03/17 02:27:19 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.274 $ */
+/* NetHack 3.7	botl.c	$NHDT-Date: 1769839231 2026/01/30 22:00:31 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.277 $ */
 /* Copyright (c) Stichting Mathematisch Centrum, Amsterdam, 1985. */
 /*-Copyright (c) Michael Allison, 2006. */
 /* NetHack may be freely redistributed.  See license for details. */
@@ -4301,7 +4301,9 @@ status_hilite_menu(void)
     countall = status_hilite_linestr_countfield(BL_FLUSH);
     status_hilite_linestr_done();
 
-    if (redo)
+    /* fuzzer is unlikely to pick something useful within nested menus;
+       limit it to one try */
+    if (redo && !iflags.debug_fuzzer)
         goto shlmenu_redo;
 
     /* hilite_delta=='statushilites' does double duty:  it is the
