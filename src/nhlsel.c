@@ -1,4 +1,4 @@
-/* NetHack 3.7	nhlua.c	$NHDT-Date: 1737545957 2025/01/22 03:39:17 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.64 $ */
+/* NetHack 3.7	nhlua.c	$NHDT-Date: 1769840272 2026/01/30 22:17:52 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.69 $ */
 /*      Copyright (c) 2018 by Pasi Kallinen */
 /* NetHack may be freely redistributed.  See license for details. */
 
@@ -709,6 +709,10 @@ l_selection_match(lua_State *L)
     for (y = 0; y <= sel->hei; y++)
         for (x = 1; x < sel->wid; x++)
             selection_setpoint(x, y, sel, mapfrag_match(mf, x,y) ? 1 : 0);
+
+    /* unless the (0, 1) coordinate is a match, this would wind up with a
+       selection with lx=COLNO, hx=0, etc, so fix the boundaries */
+    selection_recalc_bounds(sel);
 
     mapfrag_free(&mf);
 
