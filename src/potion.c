@@ -3416,7 +3416,7 @@ djinni_from_bottle(struct obj *obj)
             break;
         }
         FALLTHROUGH;
-        /* else FALLTHRU */
+        /* FALLTHRU */
     case 2:
         verbalize("You freed me!");
         mtmp->mpeaceful = TRUE;
