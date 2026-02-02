@@ -16,7 +16,7 @@
 
 /*
  * Updating in place can leave junk at the end of the file in some
- * circumstances (if it shrinks and the O.S. doesn't have a straightforward
+ * circumstances (if it shrinks and the OS doesn't have a straightforward
  * way to truncate it).  The trailing junk is harmless and the code
  * which reads the scores will ignore it.
  */
@@ -394,6 +394,7 @@ writexlentry(FILE *rfile, struct toptenentry *tt, int how)
     Fprintf(rfile, "%cwish_cnt=%ld", XLOG_SEP, u.uconduct.wishes);
     Fprintf(rfile, "%carti_wish_cnt=%ld", XLOG_SEP, u.uconduct.wisharti);
     Fprintf(rfile, "%cbones=%ld", XLOG_SEP, u.uroleplay.numbones);
+    Fprintf(rfile, "%crerolls=%ld", XLOG_SEP, u.uroleplay.numrerolls);
     Fprintf(rfile, "%cpolyinit=%s", XLOG_SEP,
             Polyinit_mode ? mons[u.umonnum].pmnames[NEUTRAL] : "none");
     Fprintf(rfile, "\n");
@@ -411,6 +412,8 @@ encodexlogflags(void)
         e |= 1L << 1;
     if (!u.uroleplay.numbones)
         e |= 1L << 2;
+    if (u.uroleplay.reroll)
+        e |= 1L << 3;
 
     /* Starting in xNetHack 6.0, xNetHack-specific flags start at the highest
      * bits and grow downward, while vanilla flags still start at the lowest bit
@@ -667,6 +670,7 @@ encode_extended_conducts(char *buf)
     add_achieveX(buf, "pauper",       u.uroleplay.pauper);
     add_achieveX(buf, "bonesless",    !u.uroleplay.numbones);
     add_achieveX(buf, "petless",      !u.uconduct.pets);
+    add_achieveX(buf, "unrerolled",   !u.uroleplay.reroll);
     add_achieveX(buf, "artifactless", !u.uconduct.artitouch);
     add_achieveX(buf, "permahallu",   u.uroleplay.hallu);
     add_achieveX(buf, "permadeaf",    u.uroleplay.deaf);

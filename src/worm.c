@@ -14,12 +14,15 @@ struct wseg {
     coordxy wx, wy; /* the segment's position */
 };
 
+#ifndef SFCTOOL
 staticfn void toss_wsegs(struct wseg *, boolean) NO_NNARGS;
 staticfn void shrink_worm(int);
+
 #if 0
 staticfn void random_dir(int, int, int *, int *);
 #endif
 staticfn struct wseg *create_worm_tail(int); /* may return NULL */
+#endif /* !SFCTOOL */
 
 /*  Description of long worm implementation.
  *
@@ -28,7 +31,7 @@ staticfn struct wseg *create_worm_tail(int); /* may return NULL */
  *  If wormno == 0 this does not mean that the monster is not a worm,
  *  it just means that the monster does not have a long worm tail.
  *
- *  The actual segments of a worm are not full blown monst structs.
+ *  The actual segments of a worm are not full-blown monst structs.
  *  They are small wseg structs, and their position in the levels.monsters[][]
  *  array is held by the monst struct of the head of the worm.  This makes
  *  things like probing and hit point bookkeeping much easier.
@@ -43,7 +46,7 @@ staticfn struct wseg *create_worm_tail(int); /* may return NULL */
  *  wheads:     The last (end) of a linked list of segments.  This points to
  *              the segment that is at the same position as the real monster
  *              (the head).  Note that the segment that wheads[wormno] points
- *              to, is not displayed.  It is simply there to keep track of
+ *              to is not displayed.  It is simply there to keep track of
  *              where the head came from, so that worm movement and display
  *              are simplified later.
  *              Keeping the head segment of the worm at the end of the list
@@ -75,6 +78,7 @@ static struct wseg *wheads[MAX_NUM_WORMS] = DUMMY,
                    *wtails[MAX_NUM_WORMS] = DUMMY;
 static long wgrowtime[MAX_NUM_WORMS] = DUMMY;
 
+#ifndef SFCTOOL
 /*
  *  get_wormno()
  *
@@ -109,8 +113,8 @@ get_wormno(void)
  *  Initialize the worm entry.  This will set up the worm grow time, and
  *  create and initialize the dummy segment for wheads[] and wtails[].
  *
- *  If the worm has no tail (ie get_wormno() fails) then this function need
- *  not be called.
+ *  If the worm has no tail (ie get_wormno() fails) then this function
+ *  need not be called.
  */
 void
 initworm(struct monst *worm, int wseg_count)
@@ -278,7 +282,7 @@ worm_move(struct monst *worm)
  *
  *  Check for mon->wormno before calling this function!
  *
- *  The worm don't move so it should shrink.
+ *  The worm doesn't move, so it should shrink.
  */
 void
 worm_nomove(struct monst *worm)
@@ -375,7 +379,7 @@ cutworm(struct monst *worm, coordxy x, coordxy y,
     int cut_chance, new_wnum;
 
     if (!wnum)
-        return; /* bullet proofing */
+        return; /* bullet-proofing */
 
     if (x == worm->mx && y == worm->my)
         return; /* hit on head */
@@ -416,7 +420,7 @@ cutworm(struct monst *worm, coordxy x, coordxy y,
 
     /*
      *  At this point, the old worm is correct.  Any new worm will have
-     *  it's head at "curr" and its tail at "new_tail".  The old worm
+     *  its head at "curr" and its tail at "new_tail".  The old worm
      *  must be at least level 3 in order to produce a new worm.
      */
     new_worm = 0;
@@ -529,28 +533,22 @@ save_worm(NHFILE *nhfp)
     int count;
     struct wseg *curr, *temp;
 
-    if (perform_bwrite(nhfp)) {
+    if (update_file(nhfp)) {
         for (i = 1; i < MAX_NUM_WORMS; i++) {
             for (count = 0, curr = wtails[i]; curr; curr = curr->nseg)
                 count++;
             /* Save number of segments */
-            if (nhfp->structlevel)
-                bwrite(nhfp->fd, (genericptr_t) &count, sizeof count);
+            Sfo_int(nhfp, &count, "worm-segment_count");
             /* Save segment locations of the monster. */
             if (count) {
                 for (curr = wtails[i]; curr; curr = curr->nseg) {
-                    if (nhfp->structlevel) {
-                        bwrite(nhfp->fd, (genericptr_t) &(curr->wx),
-                               sizeof curr->wx);
-                        bwrite(nhfp->fd, (genericptr_t) &(curr->wy),
-                               sizeof curr->wy);
-                    }
+                    Sfo_coordxy(nhfp, &(curr->wx), "worm-wx");
+                    Sfo_coordxy(nhfp, &(curr->wy), "worm-wy");
                 }
             }
         }
-        if (nhfp->structlevel) {
-            bwrite(nhfp->fd, (genericptr_t) wgrowtime, sizeof wgrowtime);
-        }
+        for (i = 0; i < MAX_NUM_WORMS; ++i)
+            Sfo_long(nhfp, &wgrowtime[i], "worm-wgrowtime");
     }
 
     if (release_data(nhfp)) {
@@ -570,6 +568,7 @@ save_worm(NHFILE *nhfp)
         }
     }
 }
+#endif /* !SFCTOOL */
 
 /*
  *  rest_worm()
@@ -579,21 +578,19 @@ save_worm(NHFILE *nhfp)
 void
 rest_worm(NHFILE *nhfp)
 {
-    int i, j, count = 0;
+    int i, j;
+    int count = 0;
     struct wseg *curr, *temp;
 
     for (i = 1; i < MAX_NUM_WORMS; i++) {
-        if (nhfp->structlevel)
-            mread(nhfp->fd, (genericptr_t) &count, sizeof count);
+        Sfi_int(nhfp, &count, "worm-segment_count");
 
         /* Get the segments. */
         for (curr = (struct wseg *) 0, j = 0; j < count; j++) {
             temp = newseg();
             temp->nseg = (struct wseg *) 0;
-            if (nhfp->structlevel) {
-                mread(nhfp->fd, (genericptr_t) &(temp->wx), sizeof temp->wx);
-                mread(nhfp->fd, (genericptr_t) &(temp->wy), sizeof temp->wy);
-            }
+            Sfi_coordxy(nhfp, &(temp->wx), "worm-wx");
+            Sfi_coordxy(nhfp, &(temp->wy), "worm-wy");
             if (curr)
                 curr->nseg = temp;
             else
@@ -602,11 +599,12 @@ rest_worm(NHFILE *nhfp)
         }
         wheads[i] = curr;
     }
-    if (nhfp->structlevel) {
-        mread(nhfp->fd, (genericptr_t) wgrowtime, sizeof wgrowtime);
+    for (i = 0; i < MAX_NUM_WORMS; ++i) {
+        Sfi_long(nhfp, &wgrowtime[i], "worm-wgrowtime");
     }
 }
 
+#ifndef SFCTOOL
 /*
  *  place_wsegs()
  *
@@ -808,7 +806,7 @@ random_dir(int x, int y, int *nx, int *ny)
 {
     *nx = x + (x > 1                /* extreme left ? */
                ? (x < COLNO - 1     /* extreme right ? */
-                  ? (rn2(3) - 1)    /* neither so +1, 0, or -1 */
+                  ? (rn2(3) - 1)    /* neither, so +1, 0, or -1 */
                   : -rn2(2))        /* right edge, use -1 or 0 */
                : rn2(2));           /* left edge, use 0 or 1 */
     if (*nx != x) /* if x has changed, do same thing with y */
@@ -1014,5 +1012,6 @@ redraw_worm(struct monst *worm)
         curr = curr->nseg;
     }
 }
+#endif /* !SFCTOOL */
 
 /*worm.c*/

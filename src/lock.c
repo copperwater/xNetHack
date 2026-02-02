@@ -1,4 +1,4 @@
-/* NetHack 3.7	lock.c	$NHDT-Date: 1718745135 2024/06/18 21:12:15 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.137 $ */
+/* NetHack 3.7	lock.c	$NHDT-Date: 1741793439 2025/03/12 07:30:39 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.145 $ */
 /* Copyright (c) Stichting Mathematisch Centrum, Amsterdam, 1985. */
 /*-Copyright (c) Robert Patrick Rankin, 2011. */
 /* NetHack may be freely redistributed.  See license for details. */
@@ -506,14 +506,6 @@ pick_lock(
         boolean it;
         int count;
 
-        /*
-         * FIXME:
-         *  (chest->otrapped && chest->tknown) is handled, to skip
-         *  checking for a trap and continue with asking about disarm;
-         *  (chest->tknown && !chest->otrapped) ignores tknown and will
-         *  ask about checking for non-existant trap.
-         */
-
         if (u.dz < 0 && !autounlock) { /* beware stale u.dz value */
             There("isn't any sort of lock up %s.",
                   Levitation ? "here" : "there");
@@ -552,7 +544,8 @@ pick_lock(
 
                 if (autounlock && (flags.autounlock & AUTOUNLOCK_UNTRAP) != 0
                     && could_untrap(FALSE, TRUE)
-                    && (c = ynq(safe_qbuf(qbuf, "Check ", " for a trap?",
+                    && (c = otmp->tknown ? (otmp->otrapped ? 'y' : 'n')
+                            : ynq(safe_qbuf(qbuf, "Check ", " for a trap?",
                                           otmp, yname, ysimple_name, "this")))
                        != 'n') {
                     if (c == 'q')
@@ -804,7 +797,7 @@ doforce(void)
         return ECMD_OK;
     }
     if (!can_reach_floor(TRUE)) {
-        cant_reach_floor(u.ux, u.uy, FALSE, TRUE);
+        cant_reach_floor(u.ux, u.uy, FALSE, TRUE, FALSE);
         return ECMD_OK;
     }
 

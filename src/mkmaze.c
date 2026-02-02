@@ -1,4 +1,4 @@
-/* NetHack 3.7	mkmaze.c	$NHDT-Date: 1737387068 2025/01/20 07:31:08 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.176 $ */
+/* NetHack 3.7	mkmaze.c	$NHDT-Date: 1745114235 2025/04/19 17:57:15 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.179 $ */
 /* Copyright (c) Stichting Mathematisch Centrum, Amsterdam, 1985. */
 /*-Copyright (c) Pasi Kallinen, 2018. */
 /* NetHack may be freely redistributed.  See license for details. */
@@ -6,6 +6,7 @@
 #include "hack.h"
 #include "sp_lev.h"
 
+#ifndef SFCTOOL
 staticfn int iswall(coordxy, coordxy);
 staticfn int iswall_or_stone(coordxy, coordxy);
 staticfn boolean is_solid(coordxy, coordxy);
@@ -79,8 +80,16 @@ boolean
 set_levltyp(coordxy x, coordxy y, schar newtyp)
 {
     if (isok(x, y) && newtyp >= STONE && newtyp < MAX_TYPE) {
-        if (CAN_OVERWRITE_TERRAIN(levl[x][y].typ)) {
-            schar oldtyp = levl[x][y].typ;
+        schar oldtyp = levl[x][y].typ;
+
+        /* hack for secret doors in garden theme rooms */
+        if (oldtyp == SDOOR && newtyp == AIR) {
+            /* levl[][].typ stays SDOOR rather than change to AIR */
+            levl[x][y].arboreal_sdoor = 1;
+            return TRUE;
+        }
+
+        if (CAN_OVERWRITE_TERRAIN(oldtyp)) {
             /* typ==ICE || (typ==DRAWBRIDGE_UP && drawbridgemask==DB_ICE) */
             boolean was_ice = is_ice(x, y);
 
@@ -1069,7 +1078,7 @@ makemaz(const char *s)
     /* leave an engraving */
     make_engr_at(30, 11,
                  "This level should not exist. Please report it as a bug.",
-                 0L, MARK);
+                 NULL, 0L, MARK);
 }
 
 #ifdef MICRO
@@ -1508,7 +1517,7 @@ movebubbles(void)
         for (x = 1; x <= (COLNO - 1); x++)
             for (y = 0; y <= (ROWNO - 1); y++) {
                 levl[x][y] = air_pos;
-                unblock_point(x, y);
+                recalc_block_point(x, y);
                 /* all air or all cloud around the perimeter of the Air
                    level tends to look strange; break up the pattern */
                 xedge = (boolean) (x < gbxmin || x > gbxmax);
@@ -1584,25 +1593,23 @@ save_waterlevel(NHFILE *nhfp)
     if (!svb.bbubbles)
         return;
 
-    if (perform_bwrite(nhfp)) {
+    if (update_file(nhfp)) {
         int n = 0;
         for (b = svb.bbubbles; b; b = b->next)
             ++n;
-        if (nhfp->structlevel) {
-            bwrite(nhfp->fd, (genericptr_t) &n, sizeof(int));
-            bwrite(nhfp->fd, (genericptr_t) &svx.xmin, sizeof(int));
-            bwrite(nhfp->fd, (genericptr_t) &svy.ymin, sizeof(int));
-            bwrite(nhfp->fd, (genericptr_t) &svx.xmax, sizeof(int));
-            bwrite(nhfp->fd, (genericptr_t) &svy.ymax, sizeof(int));
-        }
+        Sfo_int(nhfp, &n, "waterlevel-bubble_count");
+        Sfo_int(nhfp, &svx.xmin, "waterlevel-xmin");
+        Sfo_int(nhfp, &svy.ymin, "waterlevel-ymin");
+        Sfo_int(nhfp, &svx.xmax, "waterlevel-xmax");
+        Sfo_int(nhfp, &svy.ymax, "waterlevel-ymax");
         for (b = svb.bbubbles; b; b = b->next) {
-            if (nhfp->structlevel)
-                bwrite(nhfp->fd, (genericptr_t) b, sizeof(struct bubble));
+            Sfo_bubble(nhfp, b, "waterlevel-bubble");
         }
     }
     if (release_data(nhfp))
         unsetup_waterlevel();
 }
+#endif /* !SFCTOOL */
 
 /* restoring air bubbles on Plane of Water or clouds on Plane of Air */
 void
@@ -1611,20 +1618,20 @@ restore_waterlevel(NHFILE *nhfp)
     struct bubble *b = (struct bubble *) 0, *btmp;
     int i, n = 0;
 
+#ifdef SFCTOOL
     svb.bbubbles = (struct bubble *) 0;
-    set_wportal();
-    if (nhfp->structlevel) {
-        mread(nhfp->fd,(genericptr_t) &n, sizeof (int));
-        mread(nhfp->fd,(genericptr_t) &svx.xmin, sizeof (int));
-        mread(nhfp->fd,(genericptr_t) &svy.ymin, sizeof (int));
-        mread(nhfp->fd,(genericptr_t) &svx.xmax, sizeof (int));
-        mread(nhfp->fd,(genericptr_t) &svy.ymax, sizeof (int));
-    }
+    /* set_wportal(); */
+#endif
+
+    Sfi_int(nhfp, &n, "waterlevel-bubble_count");
+    Sfi_int(nhfp, &svx.xmin, "waterlevel-xmin");
+    Sfi_int(nhfp, &svy.ymin, "waterlevel-ymin");
+    Sfi_int(nhfp, &svx.xmax, "waterlevel-xmax");
+    Sfi_int(nhfp, &svy.ymax, "waterlevel-ymax");
     for (i = 0; i < n; i++) {
         btmp = b;
         b = (struct bubble *) alloc((unsigned) sizeof *b);
-        if (nhfp->structlevel)
-            mread(nhfp->fd, (genericptr_t) b, (unsigned) sizeof *b);
+        Sfi_bubble(nhfp, b, "waterlevel-bubble");
         if (btmp) {
             btmp->next = b;
             b->prev = btmp;
@@ -1632,8 +1639,11 @@ restore_waterlevel(NHFILE *nhfp)
             svb.bbubbles = b;
             b->prev = (struct bubble *) 0;
         }
+#ifndef SFCTOOL
         mv_bubble(b, 0, 0, TRUE);
+#endif
     }
+#ifndef SFCTOOL
     ge.ebubbles = b;
     if (b) {
         b->next = (struct bubble *) 0;
@@ -1650,8 +1660,10 @@ restore_waterlevel(NHFILE *nhfp)
                      : "air bubbles or clouds");
         program_state.something_worth_saving = 1;
     }
+#endif
 }
 
+#ifndef SFCTOOL
 /* Set the global variable wportal to point to the magic portal on the current
  * level. */
 staticfn void
@@ -1961,5 +1973,6 @@ mv_bubble(struct bubble *b, coordxy dx, coordxy dy, boolean ini)
         }
     }
 }
+#endif /* !SFCTOOL */
 
 /*mkmaze.c*/

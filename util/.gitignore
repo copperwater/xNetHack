@@ -11,6 +11,7 @@ lev_comp
 dlb
 dlb_main
 recover
+stripbs
 tilemap
 tileedit
 tile2x11
@@ -29,4 +30,8 @@ heaputil
 heaputil.c
 tilemappings.lst
 clang_rt.asan*.dll
-
+*.sln
+sf.tags
+sfdata.c
+sfctool
+sftags

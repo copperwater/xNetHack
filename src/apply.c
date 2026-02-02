@@ -1,4 +1,4 @@
-/* NetHack 3.7	apply.c	$NHDT-Date: 1737275719 2025/01/19 00:35:19 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.464 $ */
+/* NetHack 3.7	apply.c	$NHDT-Date: 1769342601 2026/01/25 04:03:21 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.475 $ */
 /* Copyright (c) Stichting Mathematisch Centrum, Amsterdam, 1985. */
 /*-Copyright (c) Robert Patrick Rankin, 2012. */
 /* NetHack may be freely redistributed.  See license for details. */
@@ -35,6 +35,7 @@ staticfn int use_stone(struct obj *);
 staticfn int set_trap(void); /* occupation callback */
 staticfn void display_polearm_positions(boolean);
 staticfn void calc_pole_range(int *, int *);
+staticfn boolean snickersnee_used_dist_attk(struct obj *);
 staticfn int use_cream_pie(struct obj *);
 staticfn int jelly_ok(struct obj *);
 staticfn int use_royal_jelly(struct obj **);
@@ -62,14 +63,14 @@ void
 do_blinding_ray(struct obj *obj)
 {
     struct monst *mtmp = bhit(u.dx, u.dy, COLNO, FLASHED_LIGHT,
-                    (int (*) (MONST_P, OBJ_P)) 0,
-                    (int (*) (OBJ_P, OBJ_P)) 0, &obj);
+                              (int (*) (MONST_P, OBJ_P)) 0,
+                              (int (*) (OBJ_P, OBJ_P)) 0, &obj);
 
     obj->ox = u.ux, obj->oy = u.uy; /* flash_hits_mon() wants this */
     if (mtmp) {
         (void) flash_hits_mon(mtmp, obj);
         if (obj->otyp == EXPENSIVE_CAMERA)
-            see_monster_closeup(mtmp);
+            see_monster_closeup(mtmp, TRUE); /* TRUE for photo */
     }
     /* normally bhit() would do this but for FLASHED_LIGHT we want it
        to be deferred until after flash_hits_mon() */
@@ -101,6 +102,7 @@ use_camera(struct obj *obj)
         You("take a picture of the %s.",
             (u.dz > 0) ? surface(u.ux, u.uy) : ceiling(u.ux, u.uy));
     } else if (!u.dx && !u.dy) {
+        /* TODO:  we ought to have a "selfie" joke here... */
         (void) zapyourself(obj, TRUE);
     } else {
         do_blinding_ray(obj);
@@ -386,7 +388,7 @@ use_stethoscope(struct obj *obj)
             Soundeffect(se_faint_splashing, 35);
             You_hear("faint splashing.");
         } else if (u.dz < 0 || !can_reach_floor(TRUE)) {
-            cant_reach_floor(u.ux, u.uy, (u.dz < 0), TRUE);
+            cant_reach_floor(u.ux, u.uy, (u.dz < 0), TRUE, FALSE);
 	} else if (its_dead(u.ux, u.uy, &res, obj)) {
             ; /* message already given */
         } else if (Is_stronghold(&u.uz)) {
@@ -528,6 +530,8 @@ use_magic_whistle(struct obj *obj)
             You("produce a %shigh-%s.", Underwater ? "very " : "",
                 Deaf ? "frequency vibration" : "pitched humming noise");
         wake_nearby(TRUE);
+        if (!rn2(2) && !noteleport_level(&gy.youmonst))
+            tele_to_rnd_pet();
     } else {
         /* it's magic!  it works underwater too (at a higher pitch) */
         You(Deaf ? alt_whistle_str : whistle_str,
@@ -2742,6 +2746,8 @@ grease_ok(struct obj *obj)
     if (!obj)
         return GETOBJ_SUGGEST;
 
+    /* note: if changing the list of ungreasable objects, also change
+       special_throne_effect in sit.c */
     if (obj->oclass == COIN_CLASS)
         return GETOBJ_EXCLUDE;
 
@@ -2895,7 +2901,7 @@ use_stone(struct obj *tstone)
     }
     /* in case it was acquired while blinded */
     if (!Blind)
-        tstone->dknown = 1;
+        observe_object(tstone);
 
     Sprintf(stonebuf, "rub on the stone%s", plur(tstone->quan));
     /* when the touchstone is fully known, don't bother listing extra
@@ -3721,6 +3727,16 @@ could_pole_mon(void)
     return FALSE;
 }
 
+/* was Snickersnee used to attack at distance this turn already? */
+staticfn boolean
+snickersnee_used_dist_attk(struct obj *obj)
+{
+    if (obj && obj == uwep && u_wield_art(ART_SNICKERSNEE)
+        && svc.context.snickersnee_turn == svm.moves)
+        return TRUE;
+    return FALSE;
+}
+
 /* Distance attacks by pole-weapons */
 int
 use_pole(struct obj *obj, boolean autohit)
@@ -3730,6 +3746,7 @@ use_pole(struct obj *obj, boolean autohit)
     coord cc;
     struct monst *mtmp;
     struct monst *hitm = svc.context.polearm.hitmon;
+    boolean freehit = FALSE;
 
     /* Are you allowed to use the pole? */
     if (u.uswallow) {
@@ -3798,8 +3815,25 @@ use_pole(struct obj *obj, boolean autohit)
         if (overexertion())
             return ECMD_TIME; /* burn nutrition; maybe pass out */
         svc.context.polearm.hitmon = mtmp;
+
+        if (snickersnee_used_dist_attk(obj)) {
+            pline_The("blade doesn't reach there!");
+            return ECMD_FAIL;
+        }
+
         check_caitiff(mtmp);
         gn.notonhead = (gb.bhitpos.x != mtmp->mx || gb.bhitpos.y != mtmp->my);
+
+        /* Snickersnee allows one free hit from a distance per turn */
+        if (obj == uwep && u_wield_art(ART_SNICKERSNEE)) {
+            freehit = (svm.moves != svc.context.snickersnee_turn);
+            svc.context.snickersnee_turn = svm.moves;
+            if (freehit && !Deaf) {
+                Soundeffect(se_sword_blade_rings, 100);
+                pline("Shkinng!"); /* /sha-kin!/ */
+            }
+        }
+
         (void) thitmonst(mtmp, uwep);
     } else if (glyph_is_statue(glyph) /* might be hallucinatory */
                && sobj_at(STATUE, gb.bhitpos.x, gb.bhitpos.y)) {
@@ -3841,7 +3875,7 @@ use_pole(struct obj *obj, boolean autohit)
         }
     }
     u_wipe_engr(2); /* same as for melee or throwing */
-    return ECMD_TIME;
+    return freehit ? ECMD_OK : ECMD_TIME;
 }
 
 #undef glyph_is_poleable
@@ -4349,6 +4383,8 @@ do_break_wand(struct obj *obj)
                     if (*in_rooms(x, y, SHOPBASE))
                         shop_damage = TRUE;
                 }
+                if (levl[x][y].typ == ICE)
+                    spot_stop_timers(x, y, MELT_ICE_AWAY);
                 /*
                  * Let liquid flow into the newly created pits.
                  * Adjust corresponding code in music.c for

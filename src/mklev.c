@@ -20,7 +20,10 @@ staticfn void mk_knox_portal(coordxy, coordxy);
 staticfn void makevtele(void);
 staticfn void fill_ordinary_room(struct mkroom *, boolean) NONNULLARG1;
 staticfn void themerooms_post_level_generate(void);
+staticfn boolean chk_okdoor(coordxy, coordxy);
+staticfn void mklev_sanity_check(void);
 staticfn void makelevel(void);
+staticfn boolean water_has_kelp(coordxy, coordxy, int, int);
 staticfn boolean bydoor(coordxy, coordxy);
 staticfn void mktrap_victim(struct trap *);
 staticfn int traptype_rnd(unsigned);
@@ -37,8 +40,10 @@ staticfn void do_room_or_subroom(struct mkroom *,
                                coordxy, coordxy, coordxy, coordxy,
                                boolean, schar, boolean, boolean);
 staticfn void makerooms(void);
-staticfn boolean door_into_nonjoined(coordxy, coordxy);
-staticfn boolean finddpos(coord *, coordxy, coordxy, coordxy, coordxy);
+staticfn boolean good_rm_wall_doorpos(coordxy, coordxy, int, struct mkroom *);
+staticfn boolean finddpos_shift(coordxy *, coordxy *, int, struct mkroom *);
+
+staticfn boolean finddpos(coord *, int, struct mkroom *);
 
 #define create_vault() create_room(-1, -1, 2, 2, -1, -1, VAULT, TRUE)
 #define init_vault() gv.vault_x = -1
@@ -60,67 +65,137 @@ mkroom_cmp(const genericptr vx, const genericptr vy)
     return (x->lx > y->lx);
 }
 
-/* Return TRUE if a door placed at (x, y) which otherwise passes okdoor()
- * checks would be connecting into an area that was declared as joined=false.
- * Checking for this in finddpos() enables us to have rooms with sub-areas
- * (such as shops) that will never randomly generate unwanted doors in order
- * to connect them up to other areas.
- */
+/* is x,y a good location for a door into room? */
 staticfn boolean
-door_into_nonjoined(coordxy x, coordxy y)
+good_rm_wall_doorpos(coordxy x, coordxy y, int dir, struct mkroom *room)
 {
-    coordxy tx, ty, i;
+    coordxy tx, ty;
+    int rmno;
 
-    for (i = 0; i < 4; i++) {
-        tx = x + xdir[dirs_ord[i]];
-        ty = y + ydir[dirs_ord[i]];
-        if (!isok(tx, ty) || IS_OBSTRUCTED(levl[tx][ty].typ))
-            continue;
+    if (!isok(x, y) || !room->needjoining)
+        return FALSE;
 
-        /* Is this connecting to a room that doesn't want joining? */
-        if (levl[tx][ty].roomno >= ROOMOFFSET
-            && !svr.rooms[levl[tx][ty].roomno - ROOMOFFSET].needjoining) {
-            return TRUE;
+    if (!(levl[x][y].typ == HWALL
+          || levl[x][y].typ == VWALL
+          || IS_DOOR(levl[x][y].typ)
+          || levl[x][y].typ == SDOOR))
+        return FALSE;
+
+    if (bydoor(x, y))
+        return FALSE;
+
+    tx = x + xdir[dir];
+    ty = y + ydir[dir];
+
+    if (!isok(tx,ty) || IS_OBSTRUCTED(levl[tx][ty].typ))
+        return FALSE;
+
+    rmno = (room - svr.rooms) + ROOMOFFSET;
+
+    if (rmno != (int) levl[tx][ty].roomno)
+        return FALSE;
+
+    return TRUE;
+}
+
+/* starting from x,y going towards dir, find a good location for a door */
+staticfn boolean
+finddpos_shift(coordxy *x, coordxy *y, int dir, struct mkroom *aroom)
+{
+    coordxy dx, dy;
+
+    dir = DIR_180(dir);
+
+    dx = xdir[dir];
+    dy = ydir[dir];
+
+    if (good_rm_wall_doorpos(*x, *y, dir, aroom))
+        return TRUE;
+
+    /* irregular rooms may have the room wall away from the room rectangular
+       area; go into the area until we encounter something */
+    if (aroom->irregular) {
+        coordxy rx = *x, ry = *y;
+        boolean fail = FALSE;
+
+        while (!fail && isok(rx, ry)
+               && (levl[rx][ry].typ == STONE || levl[rx][ry].typ == CORR)) {
+            rx += dx;
+            ry += dy;
+            if (good_rm_wall_doorpos(rx, ry, dir, aroom)) {
+                *x = rx;
+                *y = ry;
+                return TRUE;
+            }
+            if (!(levl[rx][ry].typ == STONE || levl[rx][ry].typ == CORR))
+                fail = TRUE;
+            if (rx < aroom->lx || rx > aroom->hx
+                || ry < aroom->ly || ry > aroom->hy)
+                fail = TRUE;
         }
     }
     return FALSE;
 }
 
-/* Find a valid position to place a door within the rectangle bounded by
- * (xl, yl, xh, yh), as defined by okdoor(). First, try to pick a single random
- * spot, then iterate over the entire area.
- * If it can't find any valid places it'll just default to an
- * existing door.
- */
+/* find a valid door position at room edge.
+   dir is the preferred edge of the room.
+   if found, returns TRUE and the coordinate in cc */
 staticfn boolean
-finddpos(
-    coord *cc,
-    coordxy xl, coordxy yl,
-    coordxy xh, coordxy yh)
+finddpos(coord *cc, int dir, struct mkroom *aroom)
 {
     coordxy x, y;
+    coordxy x1, y1, x2, y2;
+    int tryct = 0;
 
-    x = rn1(xh - xl + 1, xl);
-    y = rn1(yh - yl + 1, yl);
-    /* Avoid placing doors connecting to !needjoining areas. */
-    if (okdoor(x, y) && !door_into_nonjoined(x, y))
-        goto gotit;
+    switch (dir) {
+    case DIR_N:
+        x1 = aroom->lx;
+        x2 = aroom->hx;
+        y1 = aroom->ly - 1;
+        y2 = aroom->ly - 1;
+        break;
+    case DIR_S:
+        x1 = aroom->lx;
+        x2 = aroom->hx;
+        y1 = aroom->hy + 1;
+        y2 = aroom->hy + 1;
+        break;
+    case DIR_W:
+        x1 = aroom->lx - 1;
+        x2 = aroom->lx - 1;
+        y1 = aroom->ly;
+        y2 = aroom->hy;
+        break;
+    case DIR_E:
+        x1 = aroom->hx + 1;
+        x2 = aroom->hx + 1;
+        y1 = aroom->ly;
+        y2 = aroom->hy;
+        break;
+    default:
+        impossible("finddpos: illegal dir");
+        return FALSE;
+    }
 
-    for (x = xl; x <= xh; x++)
-        for (y = yl; y <= yh; y++)
-            if (okdoor(x, y) && !door_into_nonjoined(x, y))
+    /* try random points */
+    do {
+        x = (x2 - x1) ? rn1(x2 - x1 + 1, x1) : x1;
+        y = (y2 - y1) ? rn1(y2 - y1 + 1, y1) : y1;
+        if (finddpos_shift(&x, &y, dir, aroom))
+          goto gotit;
+    } while (++tryct < 20);
+
+    /* try all the points */
+    for (x = x1; x <= x2; x++)
+        for (y = y1; y <= y2; y++)
+            if (finddpos_shift(&x, &y, dir, aroom))
                 goto gotit;
 
-    for (x = xl; x <= xh; x++)
-        for (y = yl; y <= yh; y++)
-            if (IS_DOOR(levl[x][y].typ) || levl[x][y].typ == SDOOR)
-                goto gotit;
-
-    /* cannot find something reasonable -- strange. */
-    impossible("couldn't find an okdoor pos within (%d, %d, %d, %d)!",
-               xl, yl, xh, yh);
-    cc->x = xl;
-    cc->y = yh;
+    /* cannot find something reasonable -- strange */
+    impossible("couldn't find an door pos within (%d, %d, %d, %d)!",
+               x1, y1, x2, y2);
+    cc->x = x1;
+    cc->y = y1;
     return FALSE;
  gotit:
     cc->x = x;
@@ -396,6 +471,8 @@ join(int a, int b, boolean nxcor)
     coordxy tx, ty, xx, yy;
     struct mkroom *croom, *troom;
     int dx, dy;
+    int npoints;
+    boolean dig_result;
 
     croom = &svr.rooms[a];
     troom = &svr.rooms[b];
@@ -422,41 +499,33 @@ join(int a, int b, boolean nxcor)
         /* troom to the right of croom */
         dx = 1;
         dy = 0;
-        xx = croom->hx + 1;
-        tx = troom->lx - 1;
-        if (!finddpos(&cc, xx, croom->ly, xx, croom->hy))
+        if (!finddpos(&cc, DIR_E, croom))
             return;
-        if (!finddpos(&tt, tx, troom->ly, tx, troom->hy))
+        if (!finddpos(&tt, DIR_W, troom))
             return;
     } else if (troom->hy < croom->ly) {
         /* troom below croom */
         dy = -1;
         dx = 0;
-        yy = croom->ly - 1;
-        ty = troom->hy + 1;
-        if (!finddpos(&cc, croom->lx, yy, croom->hx, yy))
+        if (!finddpos(&cc, DIR_N, croom))
             return;
-        if (!finddpos(&tt, troom->lx, ty, troom->hx, ty))
+        if (!finddpos(&tt, DIR_S, troom))
             return;
     } else if (troom->hx < croom->lx) {
         /* troom to the left of croom */
         dx = -1;
         dy = 0;
-        xx = croom->lx - 1;
-        tx = troom->hx + 1;
-        if (!finddpos(&cc, xx, croom->ly, xx, croom->hy))
+        if (!finddpos(&cc, DIR_W, croom))
             return;
-        if (!finddpos(&tt, tx, troom->ly, tx, troom->hy))
+        if (!finddpos(&tt, DIR_E, troom))
             return;
     } else {
         /* otherwise troom must be below croom */
         dy = 1;
         dx = 0;
-        yy = croom->hy + 1;
-        ty = troom->ly - 1;
-        if (!finddpos(&cc, croom->lx, yy, croom->hx, yy))
+        if (!finddpos(&cc, DIR_S, croom))
             return;
-        if (!finddpos(&tt, troom->lx, ty, troom->hx, ty))
+        if (!finddpos(&tt, DIR_N, troom))
             return;
     }
     xx = cc.x;
@@ -469,18 +538,20 @@ join(int a, int b, boolean nxcor)
     if (nxcor && levl[xx + dx][yy + dy].typ != STONE)
         return;
 
-    /* If we can put a door in croom's wall or nxcor is FALSE, do so. */
-    if (okdoor(xx, yy) || !nxcor)
-        dodoor(xx, yy, croom);
-
     /* Attempt to dig the corridor. If it fails for some reason, abort. */
     org.x = xx + dx;
     org.y = yy + dy;
     dest.x = tx;
     dest.y = ty;
 
-    if (!dig_corridor(&org, &dest, nxcor,
-                      svl.level.flags.arboreal ? ROOM : CORR, STONE))
+    dig_result = dig_corridor(&org, &dest, &npoints, nxcor,
+                              svl.level.flags.arboreal ? ROOM : CORR, STONE);
+
+    /* we created at least 1 tile of corridor, even if it failed */
+    if ((npoints > 0) && (okdoor(xx, yy) || !nxcor))
+        dodoor(xx, yy, croom);
+
+    if (!dig_result)
         return;
 
     /* We succeeded in digging the corridor.
@@ -805,13 +876,11 @@ place_niche(
      * Look for a suitable spot on one of these walls to place a niche. */
     if (rn2(2)) {
         *dy = 1;
-        if (!finddpos(&dd, aroom->lx, aroom->hy + 1,
-                      aroom->hx, aroom->hy + 1))
+        if (!finddpos(&dd, DIR_S, aroom))
             return FALSE;
     } else {
         *dy = -1;
-        if (!finddpos(&dd, aroom->lx, aroom->ly - 1,
-                      aroom->hx, aroom->ly - 1))
+        if (!finddpos(&dd, DIR_N, aroom))
             return FALSE;
     }
     *xx = dd.x;
@@ -880,7 +949,7 @@ makeniche(int trap_type)
                     /* make the specified engraving in front of the door */
                     if (trap_engravings[trap_type]) {
                         make_engr_at(xx, yy - dy,
-                                     trap_engravings[trap_type], 0L,
+                                     trap_engravings[trap_type], NULL, 0L,
                                      DUST);
                         wipe_engr_at(xx, yy - dy, 5,
                                      FALSE); /* age it a little */
@@ -892,9 +961,9 @@ makeniche(int trap_type)
             rm->typ = CORR;
             /* 1/7 of these niches are generated inaccessible - no actual
              * connection to their corresponding room */
-            if (rn2(7))
+            if (rn2(7)) {
                 dosdoor(xx, yy, aroom, rn2(5) ? SDOOR : DOOR);
-            else {
+            } else {
                 /* inaccessible niches occasionally have iron bars */
                 if (!rn2(5) && IS_WALL(levl[xx][yy].typ)) {
                     (void) set_levltyp(xx, yy, IRONBARS);
@@ -1351,12 +1420,12 @@ fill_ordinary_room(
         char buf[BUFSZ];
         getrumor(1, buf, TRUE);
         if (find_okay_roompos(croom, &pos)) {
-            make_engr_at(pos.x, pos.y, buf, 0, MARK);
+            make_engr_at(pos.x, pos.y, buf, buf, 0, MARK);
         }
     }
     else if (!rn2(27 + 3 * abs(depth(&u.uz)))) {
-        char buf[BUFSZ];
-        const char *mesg = random_engraving(buf);
+        char buf[BUFSZ], pristinebuf[BUFSZ];
+        const char *mesg = random_engraving(buf, pristinebuf);
 
         if (mesg) {
             do {
@@ -1365,7 +1434,7 @@ fill_ordinary_room(
                 y = pos.y;
             } while (levl[x][y].typ != ROOM && !rn2(40));
             if (levl[x][y].typ == ROOM)
-                make_engr_at(x, y, mesg, 0L, MARK);
+                make_engr_at(x, y, mesg, pristinebuf, 0L, MARK);
         }
     }
 
@@ -1396,10 +1465,64 @@ themerooms_post_level_generate(void)
     iflags.in_lua = gi.in_mk_themerooms = FALSE;
 
     wallification(1, 0, COLNO - 1, ROWNO - 1);
-    free(gc.coder);
-    gc.coder = NULL;
+    if (gc.coder)
+        free(gc.coder), gc.coder = NULL;
     lua_gc(themes, LUA_GCCOLLECT);
 }
+
+/* if x,y is door, does it open into solid terrain */
+staticfn boolean
+chk_okdoor(coordxy x, coordxy y)
+{
+    if (IS_DOOR(levl[x][y].typ)) {
+        if (levl[x][y].horizontal) {
+            if ((isok(x, y-1) && (levl[x][y-1].typ > TREE))
+                && (isok(x, y+1) && (levl[x][y+1].typ <= TREE)))
+                return FALSE;
+            if ((isok(x, y-1) && (levl[x][y-1].typ <= TREE))
+                && (isok(x, y+1) && (levl[x][y+1].typ > TREE)))
+                return FALSE;
+        } else {
+            if ((isok(x-1, y) && (levl[x-1][y].typ > TREE))
+                && (isok(x+1, y) && (levl[x+1][y].typ <= TREE)))
+                return FALSE;
+            if ((isok(x-1, y) && (levl[x-1][y].typ <= TREE))
+                && (isok(x+1, y) && (levl[x+1][y].typ > TREE)))
+                return FALSE;
+        }
+        return TRUE;
+    }
+    return TRUE;
+}
+
+/* check mklev created level sanity */
+staticfn void
+mklev_sanity_check(void)
+{
+    coordxy x, y;
+    int i;
+    int rmno = -1;
+
+    if (!(iflags.sanity_check || iflags.debug_fuzzer))
+        return;
+
+    for (y = 0; y < ROWNO; y++) {
+        for (x = 1; x < COLNO; x++) {
+            if (!chk_okdoor(x,y))
+                impossible("levl[%i][%i] door not ok", x, y);
+        }
+    }
+
+    for (i = 0; i < svn.nroom; i++) {
+        if (!svr.rooms[i].needjoining)
+            continue;
+        if (rmno == -1)
+            rmno = gs.smeq[i];
+        if (rmno != -1 && gs.smeq[i] != rmno)
+            impossible("room %i not connected?", i);
+    }
+}
+
 
 /* Full initialization of all level structures, map, objects, etc.
  * Handles any level - special levels will load that special level, Gehennom
@@ -1467,6 +1590,8 @@ makelevel(void)
         branchp = Is_branchlev(&u.uz);    /* possible dungeon branch */
         makecorridors();
         make_niches();
+
+        mklev_sanity_check();
 
         /* Did makerooms place a 2x2 unconnected room to be a vault? If so, fill
          * it.
@@ -1570,6 +1695,18 @@ makelevel(void)
     }
 }
 
+/* return TRUE if water location at (x,y) should have kelp. */
+staticfn boolean
+water_has_kelp(coordxy x, coordxy y, int kelp_pool, int kelp_moat)
+{
+    if ((kelp_pool && (levl[x][y].typ == POOL
+                       || (levl[x][y].typ == WATER && !Is_waterlevel(&u.uz)))
+         && !rn2(kelp_pool))
+        || (kelp_moat && levl[x][y].typ == MOAT && !rn2(kelp_moat)))
+        return TRUE;
+    return FALSE;
+}
+
 /*
  *      Place deposits of minerals (gold and misc gems) in the stone
  *      surrounding the rooms on the map.
@@ -1601,8 +1738,7 @@ mineralize(int kelp_pool, int kelp_moat, int goldprob, int gemprob,
         return;
     for (x = 2; x < (COLNO - 2); x++)
         for (y = 1; y < (ROWNO - 1); y++)
-            if ((kelp_pool && levl[x][y].typ == POOL && !rn2(kelp_pool))
-                || (kelp_moat && levl[x][y].typ == MOAT && !rn2(kelp_moat)))
+            if (water_has_kelp(x, y, kelp_pool, kelp_moat))
                 (void) mksobj_at(KELP_FROND, x, y, TRUE, FALSE);
 
     /* determine if it is even allowed;
@@ -1971,8 +2107,7 @@ staticfn void
 mktrap_victim(struct trap *ttmp)
 {
     /* Object generated by the trap; initially NULL, stays NULL if
-       we fail to generate an object or if the trap doesn't
-       generate objects. */
+       the trap doesn't generate objects. */
     struct obj *otmp = NULL;
     int victim_mnum; /* race of the victim */
     unsigned lvl = level_difficulty();
@@ -2029,14 +2164,18 @@ mktrap_victim(struct trap *ttmp)
             break;
         }
 
-        otmp = mkobj(poss_class, FALSE);
         /* these items are always cursed, both for flavour (owned
            by a dead adventurer, bones-pile-style) and for balance
            (less useful to use, and encourage pets to avoid the trap) */
-        if (otmp) {
-            otmp->blessed = 0;
-            otmp->cursed = 1;
-            otmp->owt = weight(otmp);
+        otmp = mkobj(poss_class, FALSE);
+        curse(otmp);
+        /* for mktrap_victim(), PIT is actually an exploded LANDMINE */
+        if (ttmp->ttyp == PIT && breaktest(otmp)) {
+            /* landmine: if fragile object has been created, destroy it;
+               don't worry about non-empty containers--they aren't
+               breakable--nor about breakable contents of such */
+            dealloc_obj(otmp);
+        } else {
             place_object(otmp, x, y);
         }
 
@@ -2194,7 +2333,7 @@ mktrap(
     m.x = m.y = 0;
 
     /* no traps in pools */
-    if (tm && is_pool(tm->x, tm->y))
+    if (tm && is_pool_or_lava(tm->x, tm->y))
         return;
 
     if (num > NO_TRAP && num < TRAPNUM) {
@@ -2270,7 +2409,8 @@ mktrap(
        immediately lethal). Finally, pits are excluded because it's
        weird to see an item in a pit and yet not be able to identify
        that the pit is there. */
-    if (kind != NO_TRAP && !(mktrapflags & MKTRAP_NOVICTIM)
+    if (gi.in_mklev
+        && kind != NO_TRAP && !(mktrapflags & MKTRAP_NOVICTIM)
         && lvl <= (unsigned) rnd(4)
         && kind != SQKY_BOARD && kind != RUST_TRAP
         /* rolling boulder trap might not have a boulder if there was no
@@ -2279,8 +2419,15 @@ mktrap(
         && !(kind == ROLLING_BOULDER_TRAP
              && t->launch.x == t->tx && t->launch.y == t->ty)
         && !is_pit(kind) && (kind < HOLE || kind == MAGIC_TRAP)) {
+        if (kind == LANDMINE) {
+            /* if victim was killed by a land mine, we won't scatter objects;
+               treat it as exploded, converting it into an unconcealed pit */
+            t->ttyp = PIT;
+            t->tseen = 1;
+        }
         mktrap_victim(t);
     }
+    return;
 }
 
 /* Create stairs up or down at x,y.

@@ -376,6 +376,7 @@ dosounds(void)
                 You_hear("the chime of a cash register.");
             else
                 You_hear("%s cursing shoplifters.", name);
+            noisy_shop(sroom);
         }
         return;
     }

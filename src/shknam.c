@@ -1,4 +1,4 @@
-/* NetHack 3.7	shknam.c	$NHDT-Date: 1736530208 2025/01/10 09:30:08 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.82 $ */
+/* NetHack 3.7	shknam.c	$NHDT-Date: 1764109114 2025/11/25 22:18:34 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.86 $ */
 /* Copyright (c) Stichting Mathematisch Centrum, Amsterdam, 1985. */
 /*-Copyright (c) Robert Patrick Rankin, 2011. */
 /* NetHack may be freely redistributed.  See license for details. */
@@ -678,6 +678,10 @@ shkinit(const struct shclass *shp, struct mkroom *sroom)
     mkmonmoney(shk, 1000L + 30L * (long) rnd(100)); /* initial capital */
     if (shp->shknms == shkrings)
         (void) mongets(shk, TOUCHSTONE);
+    if (shp->shknms == shktools || shp->shknms == shkwands ||
+        (shp->shknms == shkrings && rn2(2)) ||
+        (shp->shknms == shkgeneral && rn2(5)))
+        (void) mongets(shk, SCR_CHARGING);
     nameshk(shk, shp->shknms);
 
     return sh;
@@ -754,7 +758,7 @@ stock_room(int shp_indx, struct mkroom *sroom)
         else if (inside_shop(sx, sy - 1))
             n++;
         Sprintf(buf, "Closed for inventory");
-        make_engr_at(m, n, buf, 0L, DUST);
+        make_engr_at(m, n, buf, NULL, 0L, DUST);
         if (levl[m][n].typ != CORR && levl[m][n].typ != ROOM)
             levl[m][n].typ = (Is_special(&u.uz)
                               || *in_rooms(m, n, 0)) ? ROOM : CORR;

@@ -18,6 +18,7 @@ initrack(void)
     (void) memset((genericptr_t) &utrack, 0, sizeof(utrack));
 }
 
+#ifndef SFCTOOL
 /* add to track */
 void
 settrack(void)
@@ -51,6 +52,7 @@ gettrack(coordxy x, coordxy y)
     }
     return (coord *) 0;
 }
+#endif /* !SFCTOOL */
 
 /* return TRUE if x,y has hero tracks on it */
 boolean
@@ -69,18 +71,13 @@ hastrack(coordxy x, coordxy y)
 void
 save_track(NHFILE *nhfp)
 {
-    if (perform_bwrite(nhfp)) {
-        if (nhfp->structlevel) {
-            int i;
+    if (update_file(nhfp)) {
+        int i;
 
-            bwrite(nhfp->fd, (genericptr_t) &utcnt, sizeof utcnt);
-            bwrite(nhfp->fd, (genericptr_t) &utpnt, sizeof utpnt);
-            for (i = 0; i < utcnt; i++) {
-                bwrite(nhfp->fd, (genericptr_t) &utrack[i].x,
-                       sizeof utrack[i].x);
-                bwrite(nhfp->fd, (genericptr_t) &utrack[i].y,
-                       sizeof utrack[i].y);
-            }
+        Sfo_int(nhfp, &utcnt, "track-utcnt");
+        Sfo_int(nhfp, &utpnt, "track-utpnt");
+        for (i = 0; i < utcnt; i++) {
+            Sfo_nhcoord(nhfp, &utrack[i], "utrack");
         }
     }
     if (release_data(nhfp))
@@ -91,17 +88,15 @@ save_track(NHFILE *nhfp)
 void
 rest_track(NHFILE *nhfp)
 {
-    if (nhfp->structlevel) {
-        int i;
+    int i;
 
-        mread(nhfp->fd, (genericptr_t) &utcnt, sizeof utcnt);
-        mread(nhfp->fd, (genericptr_t) &utpnt, sizeof utpnt);
-        if (utcnt > UTSZ || utpnt > UTSZ)
-            panic("rest_track: impossible pt counts");
-        for (i = 0; i < utcnt; i++) {
-            mread(nhfp->fd, (genericptr_t) &utrack[i].x, sizeof utrack[i].x);
-            mread(nhfp->fd, (genericptr_t) &utrack[i].y, sizeof utrack[i].y);
-        }
+    Sfi_int(nhfp, &utcnt, "track-utcnt");
+    Sfi_int(nhfp, &utpnt, "track-utpnt");
+
+    if (utcnt > UTSZ || utpnt > UTSZ)
+        panic("rest_track: impossible pt counts");
+    for (i = 0; i < utcnt; i++) {
+        Sfi_nhcoord(nhfp, &utrack[i], "utrack");
     }
 }
 

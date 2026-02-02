@@ -54,11 +54,7 @@ des.door("locked",08,07)
 des.door("locked",10,07)
 des.door({ state = "locked", x=03, y=06, iron=1 })
 -- treasures
-des.object({ id = "chest", coord = {07,05},
-             contents = function()
-                des.object({ class = "/", id = "wishing", spe = 1 })
-             end
-});
+des.object("chest", 07,05)
 
 des.object("chest",niches[6])
 des.object("chest",niches[1])

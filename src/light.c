@@ -42,6 +42,7 @@
 #define LSF_NEEDS_FIXUP 0x2     /* need oid fixup */
 #define LSF_IS_PROBLEMATIC 0x4  /* impossible situation encountered */
 
+#ifndef SFCTOOL
 staticfn light_source *new_light_core(coordxy, coordxy,
                                     int, int, anything *) NONNULLPTRS;
 staticfn void delete_ls(light_source *);
@@ -429,11 +430,9 @@ save_light_sources(NHFILE *nhfp, int range)
     discard_flashes();
     gv.vision_full_recalc = 0;
 
-    if (perform_bwrite(nhfp)) {
+    if (update_file(nhfp)) {
         count = maybe_write_ls(nhfp, range, FALSE);
-        if (nhfp->structlevel) {
-            bwrite(nhfp->fd, (genericptr_t) &count, sizeof count);
-        }
+        Sfo_int(nhfp, &count, "lightsource-count");
         actual = maybe_write_ls(nhfp, range, TRUE);
         if (actual != count)
             panic("counted %d light sources, wrote %d! [range=%d]", count,
@@ -470,6 +469,7 @@ save_light_sources(NHFILE *nhfp, int range)
         }
     }
 }
+#endif /* !SFCTOOL */
 
 /*
  * Pull in the structures from disk, but don't recalculate the object
@@ -482,17 +482,17 @@ restore_light_sources(NHFILE *nhfp)
     light_source *ls;
 
     /* restore elements */
-    if (nhfp->structlevel)
-        mread(nhfp->fd, (genericptr_t) &count, sizeof count);
+    Sfi_int(nhfp, &count, "lightsource-count");
 
     while (count-- > 0) {
         ls = (light_source *) alloc(sizeof(light_source));
-        if (nhfp->structlevel)
-            mread(nhfp->fd, (genericptr_t) ls, sizeof(light_source));
+        Sfi_ls_t(nhfp, ls, "lightsource");
         ls->next = gl.light_base;
         gl.light_base = ls;
     }
 }
+
+#ifndef SFCTOOL
 
 DISABLE_WARNING_FORMAT_NONLITERAL
 
@@ -639,8 +639,7 @@ write_ls(NHFILE *nhfp, light_source *ls)
 
     if (ls->type == LS_OBJECT || ls->type == LS_MONSTER) {
         if (ls->flags & LSF_NEEDS_FIXUP) {
-            if (nhfp->structlevel)
-                bwrite(nhfp->fd, (genericptr_t) ls, sizeof(light_source));
+            Sfo_ls_t(nhfp, ls, "lightsource");
         } else {
             /* replace object pointer with id for write, then put back */
             arg_save = ls->id;
@@ -692,8 +691,7 @@ write_ls(NHFILE *nhfp, light_source *ls)
                 /* TODO: cleanup this ls, or skip writing it */
             }
             ls->flags |= LSF_NEEDS_FIXUP;
-            if (nhfp->structlevel)
-                bwrite(nhfp->fd, (genericptr_t) ls, sizeof(light_source));
+            Sfo_ls_t(nhfp, ls, "lightsource");
             ls->id = arg_save;
             ls->flags &= ~LSF_NEEDS_FIXUP;
             ls->flags &= ~LSF_IS_PROBLEMATIC;
@@ -973,11 +971,10 @@ wiz_light_sources(void)
 
     return ECMD_OK;
 }
-
+#endif /* !SFCTOOL */
 /* for 'onefile' processing where end of this file isn't necessarily the
    end of the source code seen by the compiler */
 #undef LSF_SHOW
 #undef LSF_NEEDS_FIXUP
 #undef mon_is_local
-
 /*light.c*/

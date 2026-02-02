@@ -106,6 +106,9 @@ NHSROOT=..
 #CFLAGS = -O -I../include
 #LFLAGS =
 
+#fallback defaults if not set
+CFLAGS ?= -I../include
+
 # -lm required by lua
 LFLAGS += -lm
 
@@ -117,6 +120,12 @@ CPPFLAGS =
 LIBS =
 
 OBJDIR = ../src
+
+# This is the universal ctags utility which produces the tags in the
+# format that util/readtags requires. 
+# https://github.com/universal-ctags/ctags.git
+#CTAGSCMD = universal-ctags
+CTAGSCMD = ctags
 
 # if you change this to 1, feedback while building will omit -Dthis -Wthat
 # -Isomewhere so that each file being compiled is listed on one short line;
@@ -168,6 +177,7 @@ AT_V1 := @
 AT = $(AT_V$(QUIETCC))
 # Verbosity, end
 
+GAME=nethack
 # timestamps for primary header files, matching src/Makefile
 CONFIG_H = ../src/config.h-t
 HACK_H	 = ../src/hack.h-t
@@ -200,7 +210,7 @@ HACKLIBOBJ = $(OBJDIR)/hacklib.o panic.o
 MAKEOBJS = makedefs.o $(OMONOBJ) $(ODATE) $(OALLOC)
 
 # object files for recovery utility
-RECOVOBJS = recover.o
+RECOVOBJS = recover.o recover-version.o
 
 # object files for the data librarian
 DLBOBJS = dlb_main.o $(OBJDIR)/dlb.o $(OALLOC)
@@ -220,6 +230,7 @@ TARGET_CXX = $(CXX)
 TARGET_CXXFLAGS = $(CXXFLAGS)
 TARGET_AR = $(AR)
 
+#
 #	dependencies for makedefs
 #
 makedefs:	$(HACKLIB) $(MAKEOBJS) mdgrep.h
@@ -284,6 +295,170 @@ recover: $(RECOVOBJS) $(HACKLIB)
 recover.o: recover.c $(CONFIG_H)
 	$(CC) $(CFLAGS) $(CSTD) -c recover.c -o $@
 
+recover-version.o: ../src/version.c $(HACK_H)
+	$(CC) $(CFLAGS) $(CSTD) -DMINIMAL_FOR_RECOVER -c ../src/version.c -o $@
+#
+#       dependencies for optional sfctool
+#
+# object files for sfctool utility
+SFCTOOLOBJS = $(TARGETPFX)sfctool.o \
+	    $(TARGETPFX)sf-alloc.o $(TARGETPFX)sfdata.o \
+	    $(TARGETPFX)sfexpasc.o $(TARGETPFX)sf-cfgfiles.o \
+	    $(TARGETPFX)sf-date.o $(TARGETPFX)sf-artifact.o \
+	    $(TARGETPFX)sf-calendar.o $(TARGETPFX)sf-decl.o \
+	    $(TARGETPFX)sf-dungeon.o $(TARGETPFX)sf-end.o \
+	    $(TARGETPFX)sf-engrave.o $(TARGETPFX)sf-files.o \
+	    $(TARGETPFX)sf-light.o $(TARGETPFX)sf-mdlib.o \
+	    $(TARGETPFX)sf-mkmaze.o $(TARGETPFX)sf-mkroom.o \
+	    $(TARGETPFX)sf-monst.o $(TARGETPFX)sf-nhlua.o \
+	    $(TARGETPFX)sf-objects.o $(TARGETPFX)sf-o_init.o \
+	    $(TARGETPFX)panic.o $(TARGETPFX)sf-region.o \
+	    $(TARGETPFX)sf-restore.o $(TARGETPFX)sf-rumors.o \
+	    $(TARGETPFX)sfbase.o $(TARGETPFX)sf-struct.o \
+	    $(TARGETPFX)strutil.o $(TARGETPFX)sf-sys.o \
+	    $(TARGETPFX)sf-timeout.o $(TARGETPFX)sf-track.o \
+	    $(TARGETPFX)sf-version.o $(TARGETPFX)sf-worm.o
+
+SFCTOOLBIN = sfctool
+
+SFFLAGS=-DSFCTOOL -DNOPANICTRACE -DNOCRASHREPORT -DNO_CHRONICLE
+sfutil: $(SFCTOOLBIN)
+	@echo '$(SFCTOOLBIN) is up to date.'
+$(SFCTOOLBIN): $(SFCTOOLOBJS) $(HACKLIB)
+	$(TARGET_CLINK) $(TARGET_LFLAGS) -o $@ $(SFCTOOLOBJS) $(HACKLIB) $(TARGET_LIBS)
+$(TARGETPFX)sfctool.o: sfctool.c $(HACK_H) ../include/sfprocs.h
+	$(TARGET_CC) $(TARGET_CFLAGS) $(SFFLAGS) -o $@ -c sfctool.c
+$(TARGETPFX)sf-alloc.o: ../src/alloc.c $(HACK_H)
+	$(TARGET_CC) $(TARGET_CFLAGS) $(SFFLAGS) -o $@ -c ../src/alloc.c
+$(TARGETPFX)sf-calendar.o: ../src/calendar.c $(HACK_H)
+	$(TARGET_CC) $(TARGET_CFLAGS) $(SFFLAGS) -o $@ -c ../src/calendar.c
+$(TARGETPFX)sf-cfgfiles.o: ../src/cfgfiles.c $(HACK_H)
+	$(TARGET_CC) $(TARGET_CFLAGS) $(SFFLAGS) -o $@ -c ../src/cfgfiles.c
+$(TARGETPFX)sf-date.o: ../src/date.c $(HACK_H)
+	$(TARGET_CC) $(TARGET_CFLAGS) $(SFFLAGS) -o $@ -c ../src/date.c
+$(TARGETPFX)sf-decl.o: ../src/decl.c $(HACK_H)
+	$(TARGET_CC) $(TARGET_CFLAGS) $(SFFLAGS) -o $@ -c ../src/decl.c
+$(TARGETPFX)sf-monst.o: ../src/monst.c $(HACK_H)
+	$(TARGET_CC) $(TARGET_CFLAGS) $(SFFLAGS) -o $@ -c ../src/monst.c
+$(TARGETPFX)sf-objects.o: ../src/objects.c $(HACK_H)
+	$(TARGET_CC) $(TARGET_CFLAGS) $(SFFLAGS) -o $@ -c ../src/objects.c
+$(TARGETPFX)sf-panic.o: panic.c $(CONFIG_H)
+	$(TARGET_CC) $(TARGET_CFLAGS) $(SFFLAGS) -o $@ -c panic.c
+$(TARGETPFX)sf-artifact.o: ../src/artifact.c $(HACK_H)
+	$(TARGET_CC) $(TARGET_CFLAGS) $(SFFLAGS) -o $@ -c ../src/artifact.c
+$(TARGETPFX)sf-dungeon.o: ../src/dungeon.c $(HACK_H)
+	$(TARGET_CC) $(TARGET_CFLAGS)  $(SFFLAGS) -o $@ -c ../src/dungeon.c
+$(TARGETPFX)sf-end.o: ../src/end.c $(HACK_H)
+	$(TARGET_CC) $(TARGET_CFLAGS) $(SFFLAGS) -o $@ -c ../src/end.c
+$(TARGETPFX)sf-engrave.o: ../src/engrave.c $(HACK_H)
+	$(TARGET_CC) $(TARGET_CFLAGS) $(SFFLAGS) -o $@ -c ../src/engrave.c
+$(TARGETPFX)sf-files.o: ../src/files.c $(HACK_H)
+	$(TARGET_CC) $(TARGET_CFLAGS) $(SFFLAGS) -o $@ -c ../src/files.c
+$(TARGETPFX)sf-light.o: ../src/light.c $(HACK_H)
+	$(TARGET_CC) $(TARGET_CFLAGS) $(SFFLAGS) -o $@ -c ../src/light.c
+$(TARGETPFX)sf-mdlib.o: ../src/mdlib.c $(HACK_H)
+	$(TARGET_CC) $(TARGET_CFLAGS) $(SFFLAGS) -o $@ -c ../src/mdlib.c
+$(TARGETPFX)sf-mkmaze.o: ../src/mkmaze.c $(HACK_H)
+	$(TARGET_CC) $(TARGET_CFLAGS) $(SFFLAGS) -o $@ -c ../src/mkmaze.c
+$(TARGETPFX)sf-mkroom.o: ../src/mkroom.c $(HACK_H)
+	$(TARGET_CC) $(TARGET_CFLAGS) $(SFFLAGS) -o $@ -c ../src/mkroom.c
+$(TARGETPFX)sf-nhlua.o: ../src/nhlua.c $(HACK_H)
+	$(TARGET_CC) $(TARGET_CFLAGS) $(SFFLAGS) -o $@ -c ../src/nhlua.c
+$(TARGETPFX)sf-o_init.o: ../src/o_init.c $(HACK_H)
+	$(TARGET_CC) $(TARGET_CFLAGS) $(SFFLAGS) -o $@ -c ../src/o_init.c
+$(TARGETPFX)sf-region.o: ../src/region.c $(HACK_H)
+	$(TARGET_CC) $(TARGET_CFLAGS) $(SFFLAGS) -o $@ -c ../src/region.c
+$(TARGETPFX)sf-restore.o: ../src/restore.c $(HACK_H)
+	$(TARGET_CC) $(TARGET_CFLAGS) $(SFFLAGS) -o $@ -c ../src/restore.c
+$(TARGETPFX)sf-rumors.o: ../src/rumors.c $(HACK_H)
+	$(TARGET_CC) $(TARGET_CFLAGS) $(SFFLAGS) -o $@ -c ../src/rumors.c
+$(TARGETPFX)sfbase.o: ../src/sfbase.c $(HACK_H) ../include/sfmacros.h
+	$(TARGET_CC) $(TARGET_CFLAGS) $(SFFLAGS) -o $@ -c ../src/sfbase.c
+$(TARGETPFX)sfdata.o: sfdata.c $(HACK_H) ../include/sfprocs.h ../include/sfproto.h
+	$(TARGET_CC) $(TARGET_CFLAGS) $(SFFLAGS) -o $@ -c sfdata.c
+$(TARGETPFX)sfexpasc.o: sfexpasc.c $(HACK_H) ../include/sfprocs.h \
+	../include/sfproto.h ../include/sfmacros.h
+	$(TARGET_CC) $(TARGET_CFLAGS) $(SFFLAGS) -o $@ -c sfexpasc.c
+$(TARGETPFX)sf-struct.o: ../src/sfstruct.c $(HACK_H) ../include/sfmacros.h
+	$(TARGET_CC) $(TARGET_CFLAGS) $(SFFLAGS) -o $@ -c ../src/sfstruct.c
+$(TARGETPFX)strutil.o: ../src/strutil.c $(HACK_H)
+	$(TARGET_CC) $(TARGET_CFLAGS) $(SFFLAGS) -o $@ -c ../src/strutil.c
+$(TARGETPFX)sf-sys.o: ../src/sys.c $(HACK_H)
+	$(TARGET_CC) $(TARGET_CFLAGS) $(SFFLAGS) -o $@ -c ../src/sys.c
+$(TARGETPFX)sf-timeout.o: ../src/timeout.c $(HACK_H)
+	$(TARGET_CC) $(TARGET_CFLAGS) $(SFFLAGS) -o $@ -c ../src/timeout.c
+$(TARGETPFX)sf-track.o: ../src/track.c $(HACK_H)
+	$(TARGET_CC) $(TARGET_CFLAGS) $(SFFLAGS) -o $@ -c ../src/track.c
+$(TARGETPFX)sf-version.o: ../src/version.c $(HACK_H)
+	$(TARGET_CC) $(TARGET_CFLAGS) $(SFFLAGS) -o $@ -c ../src/version.c
+$(TARGETPFX)sf-worm.o: ../src/worm.c $(HACK_H)
+	$(TARGET_CC) $(TARGET_CFLAGS) $(SFFLAGS) -o $@ -c ../src/worm.c
+
+sftags: sftags.o $(HACKLIB)
+	$(CLINK) $(LFLAGS) -o $@ sftags.o $(HACKLIB) $(LIBS)
+sftags.o: sftags.c $(HACK_H)
+	$(CC) $(CFLAGS) -c sftags.c
+../include/sfproto.h: sf.tags sftags
+	./sftags
+sfdata.c: sf.tags sftags
+	./sftags
+#       dependencies for sftags
+#       #
+CTAGDEP = ../include/align.h  ../include/artifact.h ../include/artilist.h \
+	  ../include/attrib.h ../include/context.h  ../include/coord.h    \
+	  ../include/decl.h   ../include/dungeon.h  ../include/engrave.h  \
+	  ../include/flag.h   ../include/func_tab.h ../include/global.h   \
+	  ../include/hack.h   ../include/mextra.h   \
+	  ../include/mkroom.h ../include/monst.h    ../include/defsym.h   \
+	  ../include/obj.h    ../include/objclass.h ../include/prop.h     \
+	  ../include/quest.h  ../include/rect.h     ../include/region.h   \
+	  ../include/rm.h     ../include/skills.h   ../include/spell.h    \
+	  ../include/sys.h    ../include/timeout.h  ../include/trap.h     \
+	  ../include/you.h    ../include/onames.h   ../include/wintype.h
+#	  ../include/permonst.h
+CTAGSOPT = --language-force=c --sort=no -D"Bitfield(x,n)=unsigned x : n" --excmd=pattern
+#
+INCL=../include/
+SRC=../src/
+sf.tags: $(CTAGDEP)
+	$(CTAGSCMD) $(CTAGSOPT) -f $@ $(INCL)align.h
+	$(CTAGSCMD) $(CTAGSOPT) -a -f $@ $(INCL)artifact.h
+	$(CTAGSCMD) $(CTAGSOPT) -a -f $@ $(SRC)artifact.c
+	$(CTAGSCMD) $(CTAGSOPT) -a -f $@ $(INCL)artilist.h
+	$(CTAGSCMD) $(CTAGSOPT) -a -f $@ $(INCL)attrib.h
+	$(CTAGSCMD) $(CTAGSOPT) -a -f $@ $(SRC)bones.c
+	$(CTAGSCMD) $(CTAGSOPT) -a -f $@ $(INCL)context.h
+	$(CTAGSCMD) $(CTAGSOPT) -a -f $@ $(INCL)coord.h
+	$(CTAGSCMD) $(CTAGSOPT) -a -f $@ $(INCL)decl.h
+	$(CTAGSCMD) $(CTAGSOPT) -a -f $@ $(SRC)decl.c
+	$(CTAGSCMD) $(CTAGSOPT) -a -f $@ $(INCL)dungeon.h
+	$(CTAGSCMD) $(CTAGSOPT) -a -f $@ $(INCL)engrave.h
+	$(CTAGSCMD) $(CTAGSOPT) -a -f $@ $(SRC)engrave.c
+	$(CTAGSCMD) $(CTAGSOPT) -a -f $@ $(INCL)flag.h
+	$(CTAGSCMD) $(CTAGSOPT) -a -f $@ $(INCL)func_tab.h
+	$(CTAGSCMD) $(CTAGSOPT) -a -f $@ $(INCL)global.h
+	$(CTAGSCMD) $(CTAGSOPT) -a -f $@ $(INCL)hack.h
+	$(CTAGSCMD) $(CTAGSOPT) -a -f $@ $(INCL)mextra.h
+	$(CTAGSCMD) $(CTAGSOPT) -a -f $@ $(INCL)mkroom.h
+	$(CTAGSCMD) $(CTAGSOPT) -a -f $@ $(INCL)monst.h
+	$(CTAGSCMD) $(CTAGSOPT) -a -f $@ $(INCL)defsym.h
+	$(CTAGSCMD) $(CTAGSOPT) -a -f $@ $(INCL)obj.h
+	$(CTAGSCMD) $(CTAGSOPT) -a -f $@ $(INCL)objclass.h
+#	$(CTAGSCMD) $(CTAGSOPT) -a -f $@ $(INCL)permonst.h
+	$(CTAGSCMD) $(CTAGSOPT) -a -f $@ $(INCL)prop.h
+	$(CTAGSCMD) $(CTAGSOPT) -a -f $@ $(INCL)quest.h
+	$(CTAGSCMD) $(CTAGSOPT) -a -f $@ $(INCL)rect.h
+	$(CTAGSCMD) $(CTAGSOPT) -a -f $@ $(INCL)region.h
+	$(CTAGSCMD) $(CTAGSOPT) -a -f $@ $(INCL)rm.h
+	$(CTAGSCMD) $(CTAGSOPT) -a -f $@ $(INCL)skills.h
+	$(CTAGSCMD) $(CTAGSOPT) -a -f $@ $(INCL)spell.h
+	$(CTAGSCMD) $(CTAGSOPT) -a -f $@ $(INCL)stairs.h
+	$(CTAGSCMD) $(CTAGSOPT) -a -f $@ $(INCL)sys.h
+	$(CTAGSCMD) $(CTAGSOPT) -a -f $@ $(INCL)timeout.h
+	$(CTAGSCMD) $(CTAGSOPT) -a -f $@ $(INCL)trap.h
+	$(CTAGSCMD) $(CTAGSOPT) -a -f $@ $(INCL)you.h
+	$(CTAGSCMD) $(CTAGSOPT) -a -f $@ $(INCL)onames.h
+	$(CTAGSCMD) $(CTAGSOPT) -a -f $@ $(INCL)wintype.h
 
 #	dependencies for dlb
 #
@@ -293,6 +468,11 @@ dlb:	$(DLBOBJS) $(HACKLIB)
 dlb_main.o: dlb_main.c $(CONFIG_H) ../include/dlb.h
 	$(CC) $(CFLAGS) $(CSTD) -c dlb_main.c -o $@
 
+stripbs: stripbs.o
+	$(CC) $(LFLAGS) -o stripbs stripbs.o
+
+stripbs.o: stripbs.c
+	$(CC) $(CFLAGS) -c stripbs.c
 
 #	dependencies for tile utilities
 #

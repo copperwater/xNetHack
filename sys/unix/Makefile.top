@@ -84,7 +84,7 @@ VARDAT = $(VARDATD) $(VARDATND)
 #CHGRP = chgrp
 
 # Lua version
-LUA_VERSION = 5.4.6
+LUA_VERSION = 5.4.8
 
 #
 # end of configuration
@@ -296,6 +296,11 @@ package: $(GAME) recover $(VARDAT) spec_levs
 recover: $(GAME)
 	( cd util ; $(MAKE) $(RECOVERBIN) )
 
+# sfctool can be configured by the sysadmin to convert the savefile
+# content format as necessary.
+sfctool: $(GAME)
+	( cd util ; $(MAKE) sfctool )
+
 dofiles:
 	target=`sed -n					\
 		-e '/librarian/{' 			\
@@ -424,6 +429,12 @@ fetch-docs:
 	  shift; \
 	done
 
+makedefs:
+	( cd util ; $(MAKE) makedefs )
+
+stripbs:
+	( cd util ; $(MAKE) stripbs )
+
 # 'make update' can be used to install a revised version after making
 # customizations or such.  Unlike 'make install', it doesn't delete everything
 # from the target directory to have a clean start.
@@ -437,6 +448,8 @@ update: $(PRECHECK) $(GAME) recover $(VARDAT) spec_levs sys/unix/sysconf
 	touch $(VARDIR)/perm $(VARDIR)/record
 # sysconf, but only if it does not exist
 	true; $(SYSCONFENSURE)
+# other steps from hints file
+	true; $(POSTUPDATE)
 # and a reminder
 	@echo You may also want to install the man pages via the doc Makefile.
 

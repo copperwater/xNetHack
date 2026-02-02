@@ -1,4 +1,4 @@
-/* NetHack 3.7	hack.c	$NHDT-Date: 1736530208 2025/01/10 09:30:08 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.477 $ */
+/* NetHack 3.7	hack.c	$NHDT-Date: 1763708572 2025/11/20 23:02:52 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.494 $ */
 /* Copyright (c) Stichting Mathematisch Centrum, Amsterdam, 1985. */
 /*-Copyright (c) Derek S. Ray, 2015. */
 /* NetHack may be freely redistributed.  See license for details. */
@@ -39,6 +39,7 @@ staticfn boolean impaired_movement(coordxy *, coordxy *) NONNULLPTRS;
 staticfn boolean avoid_moving_on_trap(coordxy, coordxy, boolean);
 staticfn boolean avoid_moving_on_liquid(coordxy, coordxy, boolean);
 staticfn boolean avoid_running_into_trap_or_liquid(coordxy, coordxy);
+staticfn boolean avoid_trap_andor_region(coordxy, coordxy);
 staticfn boolean move_out_of_bounds(coordxy, coordxy);
 staticfn boolean carrying_too_much(void);
 staticfn boolean escape_from_sticky_mon(coordxy, coordxy);
@@ -51,6 +52,7 @@ staticfn int pickup_checks(void);
 staticfn void maybe_wail(void);
 staticfn boolean water_turbulence(coordxy *, coordxy *);
 staticfn boolean summon_thronerm_archfiend(int);
+staticfn int QSORTCALLBACK cmp_weights(const void *, const void *);
 
 #define IS_SHOP(x) (svr.rooms[x].rtype >= SHOPBASE)
 
@@ -104,7 +106,7 @@ obj_to_any(struct obj *obj)
 boolean
 revive_nasty(coordxy x, coordxy y, const char *msg)
 {
-    struct obj *otmp, *otmp2;
+    struct obj *otmp = 0, *otmp2 = 0;
     struct monst *mtmp;
     coord cc;
     boolean revived = FALSE;
@@ -136,7 +138,8 @@ revive_nasty(coordxy x, coordxy y, const char *msg)
     return revived;
 }
 
-#define squeezeablylightinvent() (!gi.invent || inv_weight() <= -850)
+#define squeezeablylightinvent() (!gi.invent \
+    || inv_weight() <= (WT_SQUEEZABLE_INV * -1))
 
 /* can hero move onto a spot containing one or more boulders?
    used for m<dir> and travel and during boulder push failure */
@@ -955,7 +958,7 @@ cant_squeeze_thru(struct monst *mon)
     /* lugging too much junk? */
     amt = (mon == &gy.youmonst) ? inv_weight() + weight_cap()
                                : curr_mon_load(mon);
-    if (amt > 600)
+    if (amt > WT_TOOMUCH_DIAGONAL)
         return 2;
 
     /* Sokoban restriction applies to hero only */
@@ -1765,22 +1768,25 @@ notice_all_mons(boolean reset)
         struct monst **arr = NULL;
         int j, i = 0, cnt = 0;
 
-        for (mtmp = fmon; mtmp; mtmp = mtmp->nmon)
+        for (mtmp = fmon; mtmp; mtmp = mtmp->nmon) {
+            if (DEADMONSTER(mtmp))
+                continue;
             if (canspotmon(mtmp))
                 cnt++;
             else if (reset)
                 mtmp->mspotted = FALSE;
-
+        }
         if (!cnt)
             return;
 
-        arr = (struct monst **) alloc(cnt * sizeof(struct monst *));
-
+        arr = (struct monst **) alloc(cnt * sizeof (struct monst *));
 
         for (mtmp = fmon; mtmp; mtmp = mtmp->nmon) {
+            if (DEADMONSTER(mtmp))
+                continue;
             if (!canspotmon(mtmp))
                 mtmp->mspotted = FALSE;
-            else if (!DEADMONSTER(mtmp) && i < cnt)
+            else if (i < cnt)
                 arr[i++] = mtmp;
         }
 
@@ -2029,9 +2035,11 @@ domove_attackmon_at(
                                    && bad_rock(gy.youmonst.data, x, u.uy0))))
                       && goodpos(u.ux0, u.uy0, mtmp, GP_ALLOW_U));
         /* if not displacing, try to attack; note that it might evade;
-           also, we don't attack tame when _safepet_ */
-        if (!*displaceu && do_attack(mtmp))
-            return TRUE;
+           also, we don't attack tame or peaceful when safemon() */
+        if (!*displaceu) {
+            if (do_attack(mtmp))
+                return TRUE;
+        }
     }
     return FALSE;
 }
@@ -2495,7 +2503,10 @@ avoid_moving_on_trap(coordxy x, coordxy y, boolean msg)
 {
     struct trap *trap;
 
-    if ((trap = t_at(x, y)) && trap->tseen) {
+    if ((trap = t_at(x, y)) && trap->tseen
+        /* the vibrating square is implemented as a trap but treated as if
+           it were a type of terrain */
+        && trap->ttyp != VIBRATING_SQUARE) {
         if (msg && flags.mention_walls) {
             set_msg_xy(x, y);
             You("stop in front of %s.",
@@ -2551,6 +2562,84 @@ avoid_running_into_trap_or_liquid(coordxy x, coordxy y)
         if (would_stop)
             svc.context.move = 0;
         return would_stop;
+    }
+    return FALSE;
+}
+
+/* if paranoid_confirm:Trap is enabled, check whether the next step forward
+   needs player confirmation due to visible region or discovered trap;
+   result: True => stop moving, False => proceed */
+staticfn boolean
+avoid_trap_andor_region(coordxy x, coordxy y)
+{
+    char qbuf[QBUFSZ];
+    NhRegion *newreg, *oldreg;
+    struct trap *trap = NULL;
+
+    /* treat entering a visible gas cloud region like entering a trap;
+       there could be a known trap as well as a region at the target spot;
+       if so, ask about entring the region first; even though this could
+       lead to two consecutive confirmation prompts, the situation seems
+       to be too uncommon to warrant a separate case with combined
+       trap+region confirmation */
+    if (ParanoidTrap && !Blind && !Stunned && !Confusion && !Hallucination
+        /* skip if player used 'm' prefix or is moving recklessly */
+        && (!svc.context.nopick || svc.context.run)
+        /* check for region(s) */
+        && (newreg = visible_region_at(x, y)) != 0
+        && ((oldreg = visible_region_at(u.ux, u.uy)) == 0
+            /* if moving from one region into another, only ask for
+               confirmation if the one potentially being entered inflicts
+               damage (poison gas) and the one being exited doesn't (vapor) */
+            || (reg_damg(newreg) > 0 && reg_damg(oldreg) == 0))
+        /* check whether attempted move will be viable */
+        && test_move(u.ux, u.uy, u.dx, u.dy, TEST_MOVE)
+        /* we don't override confirmation for poison resistance since the
+           region also hinders hero's vision even if/when no damage is done */
+    ) {
+        Snprintf(qbuf, sizeof qbuf, "%s into that %s cloud?",
+                 u_locomotion("step"),
+                 (reg_damg(newreg) > 0) ? "poison gas" : "vapor");
+        if (!paranoid_query(ParanoidConfirm, upstart(qbuf))) {
+            nomul(0);
+            svc.context.move = 0;
+            return TRUE;
+        }
+    }
+
+    /* maybe ask player for confirmation before walking into known trap */
+    if (ParanoidTrap && !Stunned && !Confusion
+        /* skip if player used 'm' prefix or is moving recklessly */
+        && (!svc.context.nopick || svc.context.run)
+        /* check for discovered trap */
+        && (trap = t_at(x, y)) != 0 && trap->tseen
+        /* check whether attempted move will be viable */
+        && test_move(u.ux, u.uy, u.dx, u.dy, TEST_MOVE)
+        /* override confirmation if the trap is harmless to the hero */
+        && (immune_to_trap(&gy.youmonst, trap->ttyp) != TRAP_CLEARLY_IMMUNE
+            /* Hallucination: all traps still show as ^, but the
+               hero can't tell what they are, so treat as dangerous */
+            || Hallucination)
+        /* these are special case traps that the hero is supposed to use to
+         * trigger events in the puzzle or navigate the teleporter maze, so
+         * don't warn of it */
+        && !((Is_wizpuzzle_lev(&u.uz) && trap->ttyp == SQKY_BOARD)
+             || (Is_telemaze_lev(&u.uz) && trap->ttyp == TELEP_TRAP))) {
+        int traptype = (Hallucination ? rnd(TRAPNUM - 1) : (int) trap->ttyp);
+        boolean into = into_vs_onto(traptype);
+
+        Snprintf(qbuf, sizeof qbuf, "Really %s %s that %s?",
+                 u_locomotion("step"), into ? "into" : "onto",
+                 defsyms[trap_to_defsym(traptype)].explanation);
+        /* handled like paranoid_confirm:pray; when paranoid_confirm:trap
+           isn't set, don't ask at all but if it is set (checked above),
+           ask via y/n if parnoid_confirm:confirm isn't also set or via
+           yes/no if it is */
+        if (!paranoid_query(ParanoidConfirm, qbuf)) {
+            nomul(0);
+            svc.context.move = 0;
+            return TRUE;
+        }
     }
     return FALSE;
 }
@@ -2636,14 +2725,6 @@ escape_from_sticky_mon(coordxy x, coordxy y)
              * guaranteed escape.
              */
             switch (rn2(!u.ustuck->mcanmove ? 8 : 40)) {
-            case 0:
-            case 1:
-            case 2:
- pull_free:
-                mtmp = u.ustuck;
-                set_ustuck((struct monst *) 0);
-                You("pull free from %s.", y_monnam(mtmp));
-                break;
             case 3:
                 if (!u.ustuck->mcanmove) {
                     /* it's free to move on next turn */
@@ -2653,11 +2734,20 @@ escape_from_sticky_mon(coordxy x, coordxy y)
                 FALLTHROUGH;
                 /*FALLTHRU*/
             default:
-                if (u.ustuck->mtame && !Conflict && !u.ustuck->mconf)
-                    goto pull_free;
-                You("cannot escape from %s!", y_monnam(u.ustuck));
-                nomul(0);
-                return TRUE;
+                if (Conflict || u.ustuck->mconf || !u.ustuck->mtame) {
+                    You("cannot escape from %s!", y_monnam(u.ustuck));
+                    nomul(0);
+                    return TRUE;
+                }
+                FALLTHROUGH;
+                /*FALLTHRU*/
+            case 0:
+            case 1:
+            case 2:
+                mtmp = u.ustuck;
+                set_ustuck((struct monst *) 0);
+                You("pull free from %s.", y_monnam(mtmp));
+                break;
             }
         }
     }
@@ -2686,9 +2776,7 @@ domove_core(void)
 {
     struct monst *mtmp;
     struct rm *tmpr;
-    NhRegion *newreg, *oldreg;
     coordxy x, y;
-    struct trap *trap = NULL;
     int glyph;
     coordxy chainx = 0, chainy = 0,
             ballx = 0, bally = 0;       /* ball&chain new positions */
@@ -2774,125 +2862,63 @@ domove_core(void)
             return;
     }
 
-    if (domove_fight_ironbars(x, y))
-        return;
+    if (!displaceu) {
 
-    if (domove_fight_web(x, y))
-        return;
+        if (domove_fight_ironbars(x, y))
+            return;
 
-    if (domove_fight_empty(x, y))
-        return;
+        if (domove_fight_web(x, y))
+            return;
 
-    (void) unmap_invisible(x, y);
+        if (domove_fight_empty(x, y))
+            return;
 
-    /* not attacking an animal, so we try to move */
-    if ((u.dx || u.dy) && u.usteed && stucksteed(FALSE)) {
-        nomul(0);
-        return;
-    }
-
-    if (u_rooted())
-        return;
-
-    /* treat entering a visible gas cloud region like entering a trap;
-       there could be a known trap as well as a region at the target spot;
-       if so, ask about entring the region first; even though this could
-       lead to two consecutive confirmation prompts, the situation seems to
-       be too uncommon to warrant a separate case with combined trap+region
-       confirmation */
-    if (ParanoidTrap && !Blind && !Stunned && !Confusion && !Hallucination
-        /* skip if player used 'm' prefix or is moving recklessly */
-        && (!svc.context.nopick || svc.context.run)
-        /* check for region(s) */
-        && (newreg = visible_region_at(x, y)) != 0
-        && ((oldreg = visible_region_at(u.ux, u.uy)) == 0
-            /* if moving from one region into another, only ask for
-               confirmation if the one potentially being entered inflicts
-               damage (poison gas) and the one being exited doesn't (vapor) */
-            || (reg_damg(newreg) > 0 && reg_damg(oldreg) == 0))
-        /* check whether attempted move will be viable */
-        && test_move(u.ux, u.uy, u.dx, u.dy, TEST_MOVE)
-        /* we don't override confirmation for poison resistance since the
-           region also hinders hero's vision even if/when no damage is done */
-        ) {
-        char qbuf[QBUFSZ];
-
-        Snprintf(qbuf, sizeof qbuf, "%s into that %s cloud?",
-                 u_locomotion("step"),
-                 (reg_damg(newreg) > 0) ? "poison gas" : "vapor");
-        if (!paranoid_query(ParanoidConfirm, upstart(qbuf))) {
+        (void) unmap_invisible(x, y);
+        /* not attacking an animal, so we try to move */
+        if ((u.dx || u.dy) && u.usteed && stucksteed(FALSE)) {
             nomul(0);
-            svc.context.move = 0;
             return;
         }
-    }
-    /* maybe ask player for confirmation before walking into known traps */
-    if (ParanoidTrap && !Stunned && !Confusion
-        /* skip if player used 'm' prefix or is moving recklessly */
-        && (!svc.context.nopick || svc.context.run)
-        /* check for discovered trap */
-        && (trap = t_at(x, y)) != 0 && trap->tseen
-        /* check whether attempted move will be viable */
-    /*
-     * FIXME:
-     *  this will result in "Really step into trap?" if there is a
-     *  peaceful or tame monster already there.
-     */
-        && test_move(u.ux, u.uy, u.dx, u.dy, TEST_MOVE)
-        /* override confirmation if the trap is harmless to the hero */
-        && (immune_to_trap(&gy.youmonst, trap->ttyp) != TRAP_CLEARLY_IMMUNE
-            /* Hallucination: all traps still show as ^, but the
-               hero can't tell what they are, so treat as dangerous */
-            || Hallucination)
-        /* these are special case traps that the hero is supposed to use to
-         * trigger events in the puzzle or navigate the teleporter maze, so
-         * don't warn of it */
-        && !((Is_wizpuzzle_lev(&u.uz) && trap->ttyp == SQKY_BOARD)
-             || (Is_telemaze_lev(&u.uz) && trap->ttyp == TELEP_TRAP))) {
-        char qbuf[QBUFSZ];
-        int traptype = (Hallucination ? rnd(TRAPNUM - 1) : (int) trap->ttyp);
-        boolean into = into_vs_onto(traptype);
 
-        Snprintf(qbuf, sizeof qbuf, "Really %s %s that %s?",
-                 u_locomotion("step"), into ? "into" : "onto",
-                 defsyms[trap_to_defsym(traptype)].explanation);
-        /* handled like paranoid_confirm:pray; when paranoid_confirm:trap
-           isn't set, don't ask at all but if it is set (checked above),
-           ask via y/n if parnoid_confirm:confirm isn't also set or via
-           yes/no if it is */
-        if (!paranoid_query(ParanoidConfirm, qbuf)) {
-            nomul(0);
-            svc.context.move = 0;
+        if (u_rooted())
+            return;
+
+        /* handling for paranoid_confirm:Trap which doubles as
+           paranoid_confirm:Region */
+        if (ParanoidTrap) {
+            if (avoid_trap_andor_region(x, y))
+                return;
+        }
+
+        if (u.utrap) { /* when u.utrap is True, displaceu is False */
+            boolean moved = trapmove(x, y, (struct trap *) NULL);
+
+            if (!u.utrap) {
+                disp.botl = TRUE;
+                reset_utrap(TRUE); /* might resume levitation or flight */
+            }
+            /* might not have escaped, or did escape but remain in the same
+               spot */
+            if (!moved)
+                return;
+        }
+
+        if (!test_move(u.ux, u.uy, x - u.ux, y - u.uy, DO_MOVE)) {
+            if (!svc.context.door_opened) {
+                svc.context.move = 0;
+                nomul(0);
+            }
             return;
         }
-    }
 
-    if (u.utrap) {
-        boolean moved = trapmove(x, y, trap);
-
-        if (!u.utrap) {
-            disp.botl = TRUE;
-            reset_utrap(TRUE); /* might resume levitation or flight */
-        }
-        /* might not have escaped, or did escape but remain in same spot */
-        if (!moved)
-            return;
-    }
-
-    if (!test_move(u.ux, u.uy, x - u.ux, y - u.uy, DO_MOVE)) {
-        if (!svc.context.door_opened) {
+        /* Is it dangerous to swim in water or lava or step off a cliff? */
+        if (swim_move_danger(x, y) || air_move_danger(x, y)) {
             svc.context.move = 0;
             nomul(0);
+            return;
         }
-        return;
-    }
 
-    /* Is it dangerous to swim in water or lava or step off a cliff? */
-    if (swim_move_danger(x, y) || air_move_danger(x, y)) {
-        svc.context.move = 0;
-        nomul(0);
-        return;
-     }
+    } /* !dislacedu */
 
     /* Move ball and chain.  */
     if (Punished)
@@ -3482,7 +3508,7 @@ char *
 in_rooms(coordxy x, coordxy y, int typewanted)
 {
     static char buf[5];
-    char rno, *ptr = &buf[4];
+    char rno = 0, *ptr = &buf[4];
     int typefound, min_x, min_y, max_x, max_y_offset, step;
     struct rm *lev;
 
@@ -4239,21 +4265,34 @@ maybe_wail(void)
 boolean
 saving_grace_would_trigger(int dmg)
 {
+    if (!svc.context.mon_moving) {
+        /* saving grace doesn't protect you from your own actions */
+        return FALSE;
+    }
+
     if (Upolyd)
         /* rehumanize() is expected instead
          * (in xNetHack should we be triggering saving grace when in a permanent
          * polymorph form?) */
         return FALSE;
 
+    if (gs.saving_grace_turn)
+        /* saving grace already triggered
+         * note that this returns TRUE only for the benefit of callers checking
+         * it for messages: the actual saving_grace function checks it
+         * separately before calling this because if it relied on returning TRUE
+         * here, you would get multiple saving grace livelogs */
+        return TRUE;
+
+    if (dmg < u.uhp || u.uhp <= 0)
+        /* no need for saving grace */
+        return FALSE;
+
     if (u.usaving_grace != 0)
         /* already used up saving grace */
         return FALSE;
 
-    if (dmg < u.uhp)
-        /* not a killing blow */
-        return FALSE;
-
-    if ((u.uhp * 100 / u.uhpmax) <= 90)
+    if ((gu.uhp_at_start_of_monster_turn * 100 / u.uhpmax) <= 90)
         /* killing blow, but you were below 90% HP */
         return FALSE;
 
@@ -4270,6 +4309,13 @@ saving_grace(int dmg)
         return 0;
     }
 
+    if (gs.saving_grace_turn) {
+        /* saving grace already triggered and prevents HP reducing below 1
+           this turn (specifically: until the next player action or turn
+           boundary), don't print further messages or livelog entries */
+        return u.uhp - 1;
+    }
+
     if (saving_grace_would_trigger(dmg)) {
         /* saving_grace doesn't have it's own livelog classification;
            we might invent one, or perhaps use LL_LIFESAVE, but surviving
@@ -4279,11 +4325,14 @@ saving_grace(int dmg)
            from #chronicle during play but show it to livelog observers */
         livelog_printf(LL_CONDUCT | LL_SPOILER, "%s (%d damage, %d/%d HP)",
                        "survived one-shot death via saving-grace",
-                       dmg, u.uhp, u.uhpmax);
+                       /* include damage that happened earlier this turn */
+                       gu.uhp_at_start_of_monster_turn - u.uhp + dmg,
+                       gu.uhp_at_start_of_monster_turn, u.uhpmax);
 
         /* note: this could reduce dmg to 0 if u.uhpmax==1 */
         dmg = u.uhp - 1;
         u.usaving_grace = 1; /* used up */
+        gs.saving_grace_turn = TRUE;
         end_running(TRUE);
         if (u.usleep)
             unmul("Suddenly you wake up!");
@@ -4366,7 +4415,8 @@ weight_cap(void)
        functions enough in that situation to enhance carrying capacity */
     BLevitation &= ~I_SPECIAL;
 
-    carrcap = 25 * (ACURRSTR + ACURR(A_CON)) + 50;
+    carrcap = (WT_WEIGHTCAP_STRCON * (ACURRSTR + ACURR(A_CON)))
+               + WT_WEIGHTCAP_SPARE;
     if (Upolyd) {
         /* consistent with can_carry() in mon.c */
         if (gy.youmonst.data->mlet == S_NYMPH)
@@ -4387,9 +4437,9 @@ weight_cap(void)
             carrcap = MAX_CARR_CAP;
         if (!Flying) {
             if (EWounded_legs & LEFT_SIDE)
-                carrcap -= 100;
+                carrcap -= WT_WOUNDEDLEG_REDUCT;
             if (EWounded_legs & RIGHT_SIDE)
-                carrcap -= 100;
+                carrcap -= WT_WOUNDEDLEG_REDUCT;
         }
     }
 
@@ -4472,6 +4522,90 @@ check_capacity(const char *str)
         return 1;
     }
     return 0;
+}
+
+struct weight_table_entry {
+    unsigned wtyp; /* 1 = monst, 2 = obj */
+    const char *nm; /* 0-6 = weight in ascii; 7 - end = name */
+    int wt, idx;
+    boolean unique;
+};
+
+static struct weight_table_entry *weightlist;
+
+void
+dump_weights(void)
+{
+    int i, cnt = 0, nmwidth = 49, mcount = NUMMONS, ocount = NUM_OBJECTS;
+    char nmbuf[BUFSZ], nmbufbase[BUFSZ];
+    size_t num_entries = (size_t) (mcount + ocount);
+
+    weightlist = (struct weight_table_entry *)
+                alloc(sizeof (struct weight_table_entry) * num_entries);
+    decl_globals_init();
+    init_objects();
+    for (i = 0; i < mcount; ++i) {
+        if (i != PM_LONG_WORM_TAIL) {
+            boolean cm;
+
+            weightlist[cnt].wt = (int) mons[i].cwt;
+            weightlist[cnt].idx = i;
+            weightlist[cnt].wtyp = 1;
+            weightlist[cnt].unique = ((mons[i].geno & G_UNIQ) != 0);
+            Snprintf(nmbuf, sizeof nmbuf, "%07u", weightlist[cnt].wt);
+            cm = CapitalMon(mons[i].pmnames[NEUTRAL]);
+            Snprintf(&nmbuf[7], sizeof nmbuf - 7, "%s%s", "the body of ",
+                     (cm)                     ? the(mons[i].pmnames[NEUTRAL])
+                     : weightlist[cnt].unique ? mons[i].pmnames[NEUTRAL]
+                                              : an(mons[i].pmnames[NEUTRAL]));
+            weightlist[cnt].nm = dupstr(nmbuf);
+            cnt++;
+        }
+    }
+    for (i = 0; i < ocount; ++i) {
+        const char *oc_name = (i == SLIME_MOLD) ? "slime mold"
+                              : obj_descr[i].oc_name;
+        int wt = (int) objects[i].oc_weight;
+
+        if (wt && oc_name) {
+            weightlist[cnt].idx = i;
+            weightlist[cnt].wt = wt;
+            weightlist[cnt].wtyp = 2;
+            weightlist[cnt].unique = (objects[i].oc_unique != 0);
+            objects[i].oc_name_known = 1;
+            Strcpy(nmbufbase, simple_typename(i));
+            Snprintf(nmbuf, sizeof nmbuf, "%07u%s", wt,
+                     (weightlist[cnt].unique) ? the(nmbufbase)
+                                              : an(nmbufbase));
+            weightlist[cnt].nm = dupstr(nmbuf);
+            cnt++;
+        }
+    }
+    qsort((genericptr_t) weightlist, cnt,
+          sizeof (struct weight_table_entry), cmp_weights);
+    raw_printf("int all_weights[] = {");
+    for (i = 0; i < cnt; ++i) {
+        if (weightlist[i].nm) {
+            raw_printf("    %7u%s /* %*s */", weightlist[i].wt,
+                       (i == cnt - 1) ? " " : ",", -nmwidth,
+                       &weightlist[i].nm[7]);
+            free((genericptr_t) weightlist[i].nm), weightlist[i].nm = 0;
+        }
+    }
+    raw_print("};");
+    raw_print("");
+    free((genericptr_t) weightlist);
+    freedynamicdata();
+}
+
+staticfn int QSORTCALLBACK
+cmp_weights(const void *p1, const void *p2)
+{
+    struct weight_table_entry *i1 = (struct weight_table_entry *) p1,
+                              *i2 = (struct weight_table_entry *) p2;
+
+   /* return (i1->wt - i2->wt); */
+    return strcmp(i1->nm, i2->nm);
 }
 
 int

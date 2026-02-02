@@ -149,10 +149,11 @@
 
 #ifdef X11_GRAPHICS
 /*
- * There are two ways that X11 tiles may be defined.  (1) using a custom
- * format loaded by NetHack code, or (2) using the XPM format loaded by
- * the free XPM library.  The second option allows you to then use other
- * programs to generate tiles files.  For example, the PBMPlus tools
+ * There are two ways that X11 tiles may be defined:
+ * (1) using a custom format loaded by NetHack code.
+ * (2) using the XPM format loaded by the free XPM library.
+ * The second option allows you to then use other programs to
+ * generate tiles files.  For example, the PBMPlus tools
  * would allow:
  *  xpmtoppm <x11tiles.xpm | pnmscale 1.25 | ppmquant 90 | \
  *      ppmtoxpm >x11tiles_big.xpm
@@ -259,7 +260,7 @@
 # ifdef CRASHREPORT
 #  undef CRASHREPORT
 # endif
-# ifdef MSDOS
+# if defined(MSDOS) || defined(NOPANICTRACE)
 #  undef PANICTRACE
 # endif
 #endif
@@ -273,7 +274,7 @@
 # endif
 # ifdef __linux__
 #  define PANICTRACE
-#  ifndef NOSTATICFN	   // may be defined on command line
+#  ifndef NOSTATICFN       // may be defined on command line
 #   define NOSTATICFN
 #  endif
 # endif
@@ -396,38 +397,6 @@
 #ifndef COMPRESS
 /* # define ZLIB_COMP */            /* ZLIB for compression */
 #endif
-
-/*
- *      Internal Compression Options
- *
- *      Internal compression options RLECOMP and ZEROCOMP alter the data
- *      that gets written to the save file by NetHack, in contrast
- *      to COMPRESS or ZLIB_COMP which compress the entire file after
- *      the NetHack data is written out.
- *
- *      Defining RLECOMP builds in support for internal run-length
- *      compression of level structures. If RLECOMP support is included
- *      it can be toggled on/off at runtime via the config file option
- *      rlecomp.
- *
- *      Defining ZEROCOMP builds in support for internal zero-comp
- *      compression of data. If ZEROCOMP support is included it can still
- *      be toggled on/off at runtime via the config file option zerocomp.
- *
- *      RLECOMP and ZEROCOMP support can be included even if
- *      COMPRESS or ZLIB_COMP support is included. One reason for doing
- *      so would be to provide savefile read compatibility with a savefile
- *      where those options were in effect. With RLECOMP and/or ZEROCOMP
- *      defined, NetHack can read an rlecomp or zerocomp savefile in, yet
- *      re-save without them.
- *
- *      Using any compression option will create smaller bones/level/save
- *      files at the cost of additional code and time.
- */
-
-/* # define INTERNAL_COMP */ /* defines both ZEROCOMP and RLECOMP */
-/* # define ZEROCOMP      */ /* Support ZEROCOMP compression */
-/* # define RLECOMP       */ /* Support RLECOMP compression  */
 
 /*
  *      Data librarian.  Defining DLB places most of the support files into

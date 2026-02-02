@@ -339,8 +339,10 @@ m_initweap(struct monst *mtmp)
             /* make long sword be +0 to +3, mace be +3 to +6 to compensate
                for being significantly weaker against large opponents */
             otmp->spe = rn2(4);
-            if (typ == MACE)
+            if (typ == MACE) {
                 otmp->spe += 3;
+                set_material(otmp, SILVER);
+            }
             (void) mpickobj(mtmp, otmp);
 
             otmp = mongets(mtmp, !rn2(4) || is_lord(ptr) ? SHIELD_OF_REFLECTION
@@ -1601,8 +1603,10 @@ makemon(
             }
             if (what) {
                 set_msg_xy(mtmp->mx, mtmp->my);
-                Norep("%s%s appears%s%c", what,
+                Norep("%s%s %s%s%c", what,
                       exclaim ? " suddenly" : "",
+                      /* 'what' might be "gold pieces" so need plural verb */
+                      vtense(what, "appear"),
                       next2u(x, y) ? " next to you"
                       : (distu(x, y) <= (BOLT_LIM * BOLT_LIM)) ? " close by"
                         : "",

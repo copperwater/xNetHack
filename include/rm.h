@@ -1,4 +1,4 @@
-/* NetHack 3.7	rm.h	$NHDT-Date: 1684058570 2023/05/14 10:02:50 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.107 $ */
+/* NetHack 3.7	rm.h	$NHDT-Date: 1745114235 2025/04/19 17:57:15 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.120 $ */
 /* Copyright (c) Stichting Mathematisch Centrum, Amsterdam, 1985. */
 /*-Copyright (c) Pasi Kallinen, 2017. */
 /* NetHack may be freely redistributed.  See license for details. */
@@ -12,8 +12,8 @@
  * building on Don G Kneller's MS-DOS implementation. See drawing.c for
  * the code that permits the user to set the contents of the symbol structure.
  *
- * The door representation was changed by Ari
- * Huttunen(ahuttune@niksula.hut.fi) and later by aosdict
+ * The door representation was changed by
+ * Ari Huttunen(ahuttune@niksula.hut.fi).
  */
 
 /*
@@ -173,9 +173,10 @@ struct rm {
  *         |  bit6  |   bit5      |     bit4    |   bit3 |   bit2   |    bit1   |
  *         |  0x20  |   0x10      |      0x8    |    0x4 |    0x2   |     0x1   |
  *         +--------+-------------+-------------+--------+----------+-----------+
- * door    |D_WARNED|D_IRON       | D_TRAPPED   |D_LOCKED| ~~~~~doorstate~~~~~~ |
- * drawbr. |        |DB_FLOOR     | DB_ICE      |DB_LAVA |DB_DIR    |DB_DIR     |
  * wall    |        |W_NONPASSWALL|W_NONDIGGABLE|W_MASK  |W_MASK    |W_MASK     |
+ * door    |D_WARNED|D_IRON       | D_TRAPPED   |D_LOCKED| ~~~~~doorstate~~~~~~ |
+ * sdoor   |        |D_IRON       | D_TRAPPED   |W_MASK  |W_MASK    |W_MASK     |
+ * drawbr. |        |DB_FLOOR     | DB_ICE      |DB_LAVA |DB_DIR    |DB_DIR     |
  * sink    |        |             |             |S_LRING |S_LDWASHER|S_LPUDDING |
  * tree    |        |             |             |        |TREE_SWARM|TREE_LOOTED|
  * throne  |        |             |             |        |          |T_LOOTED   |
@@ -195,9 +196,9 @@ struct rm {
  *      Note:  secret doors (SDOOR) want to use both rm.doormask and
  *      rm.wall_info but those both overload rm.flags.  SDOOR only
  *      has 2 states (closed or locked).  However, it can't specify
- *      D_CLOSED due to that conflicting with WM_MASK (below).  When
- *      a secret door is revealed, the door gets set to D_CLOSED iff
- *      it isn't set to D_LOCKED (see cvt_sdoor_to_door() in detect.c).
+ *      D_LOCKED due to that conflicting with WM_MASK (below).  When
+ *      a secret door is revealed, the door gets set to D_CLOSED and
+ *      is never locked (see cvt_sdoor_to_door() in detect.c).
  *
  *      D_TRAPPED conflicts with W_NONDIGGABLE but the latter is not
  *      expected to be used on door locations.  D_IRON conflicts
@@ -214,6 +215,10 @@ struct rm {
 #define icedpool   flags /* used for ice (in case it melts) */
 #define emptygrave flags /* no corpse in grave */
 #define is_niche   flags /* used to mark corridor spaces that are niches */
+
+/* candig is used for floor trap locations so is available for overload
+   on walls, doors, secret doors, and furniture */
+#define arboreal_sdoor candig
 
 /*
  * The possible states of doors - lowest 2 bits of doormask
@@ -531,7 +536,7 @@ typedef struct {
 #define fmon svl.level.monlist
 
 /*
- * Covert a trap number into the defsym graphics array.
+ * Convert a trap number into the defsym graphics array.
  * Convert a defsym number into a trap number.
  * Assumes that arrow trap will always be the first trap.
  */

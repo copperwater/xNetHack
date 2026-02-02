@@ -15,7 +15,7 @@
 #     - WINOBJ0
 #---
 # User selections could be specified as combinations of any of the following:
-# WIN_WANT_TTY=1, WIN_WANT_CURSES=1, WIN_WANT_QT=1, WIN_WANT_X11=1
+# WANT_WIN_TTY=1, WANT_WIN_CURSES=1, WANT_WIN_QT=1, WANT_WIN_X11=1
 # The selections will all be linked into the same binary.
 #
 # Assuming you have the prerequisite packages mentioned above, you can
@@ -163,7 +163,7 @@ ifndef CPLUSPLUS_NEEDED
 CPLUSPLUS_NEEDED = 1
 endif   # CPLUSPLUS_NEEDED
 ifdef WANT_WIN_QT6
-CPLUSPLUS_NEED17 = 1
+CPLUSPLUS_NEED20 = 1
 CPLUSPLUS_NEED_DEPSUPPRESS = 1
 endif   # WANT_WIN_QT6
 endif   # WANT_WIN_QT
@@ -192,6 +192,21 @@ REGEXOBJ=$(TARGETPFX)cppregex.o
 ifndef CPLUSPLUS_NEEDED
 CPLUSPLUS_NEEDED = 1
 endif
+endif
+
+ifeq "$(musl)" "1"
+MUSL=1
+endif
+ifeq "$(MUSL)" "1"
+ifneq "$(NOCRASHREPORT)" "1"
+NOCRASHREPORT=1
+endif
+WINCFLAGS += -DMUSL_LIBC
+# use this instead of col -bx
+COLCMD=../util/stripbs
+STRIPBS=../util/stripbs
+else
+WINCFLAGS += -DGNU_LIBC
 endif
 
 ifeq "$(NOCRASHREPORT)" "1"

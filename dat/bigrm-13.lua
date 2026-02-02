@@ -1,68 +1,81 @@
--- "The Great Bridge" bigroom
+-- NetHack bigroom bigrm-13.lua	$NHDT-Date: 1652196024 2022/05/10 15:20:24 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.0 $
+--	Copyright (c) 2026 by Pasi Kallinen
+-- NetHack may be freely redistributed.  See license for details.
+--
+-- Pillars
 
 des.level_init({ style = "solidfill", fg = " " });
-des.level_flags("mazelevel", "noflipx");
+des.level_flags("mazelevel", "noflip");
 
--- Originally the river was narrower and just passed under the center of the
--- bridge with space to either side, but this has the unwanted effect of
--- monsters on the right side trying to beeline to the player and getting stuck.
--- So instead, it's shaped to help funnel them towards the bridge.
--- 
--- If better AI is introduced at some point so that monsters will intelligently
--- pathfind across the bridge, you can probably change it back.
 des.map([[
---------------------------------}}}}}}}}}}}}}}}}}}}------------------------
-|...............................}}}}}}}}}}}}}}}}}}}.......................|
-|..............................}}}}}}}}}}}}}}}}}}}........................|
-|.............................}}}}}}}}}}}}}}}}}}}}........................|
-|.............................}}}}}}}}}}}}}}}}}}}.........................|
-|............................}}}}}}}}}}}}}}}}}}}}.........................|
-|.........................----}}}}}}}}}}}}}}}----.........................|
-|............................-----------------............................|
+---------------------------------------------------------------------------
 |.........................................................................|
 |.........................................................................|
-|............................-----------------............................|
-|.........................----}}}}}}}}}}}}}}}----.........................|
-|............................}}}}}}}}}}}}}}}}}}}}.........................|
-|............................}}}}}}}}}}}}}}}}}}}}}........................|
-|...........................}}}}}}}}}}}}}}}}}}}}}}........................|
-|...........................}}}}}}}}}}}}}}}}}}}}}}}.......................|
-|...........................}}}}}}}}}}}}}}}}}}}}}}}}......................|
-----------------------------}}}}}}}}}}}}}}}}}}}}}}}}-----------------------
+|.........................................................................|
+|.........................................................................|
+|.........................................................................|
+|.........................................................................|
+|.........................................................................|
+|.........................................................................|
+|.........................................................................|
+|.........................................................................|
+|.........................................................................|
+|.........................................................................|
+|.........................................................................|
+|.........................................................................|
+|.........................................................................|
+|.........................................................................|
+|.........................................................................|
+---------------------------------------------------------------------------
 ]]);
 
-des.region(selection.area(01,01, 73, 16), "lit");
-des.non_diggable();
-des.teleport_region({ region = {01,01,25,16}, dir="down" })
+local pillar = [[
+---
+| |
+---]];
 
--- are you playing Horatius, or Gandalf?
-if percent(10) then
-   des.replace_terrain({ region={00,00,74,17}, fromterrain='}', toterrain='A' })
+filters = {
+   -- 1: all pillars
+   function(x, y) return true; end,
+   -- 2: 3 vertical lines
+   function(x, y) return (x%2 == 1); end,
+   -- 3: checkerboard
+   function(x, y) return (((x+y)%2) == 0); end,
+   -- 4: center row
+   function(x, y) return (y%2 == 1); end,
+   -- 5: top and bottom rows
+   function(x, y) return (y%2 == 0); end,
+   -- 6: random 50%
+   function(x, y) return (math.random(0,1) == 0); end,
+   -- 7: corners and center
+   function(x, y) return ((x/3)%2 == y%2); end,
+   -- 8: slanted
+   function(x, y) return ((x+1)//3 == y); end,
+};
+
+idx = math.random(1, #filters);
+
+for y = 0,2 do
+   for x = 0,6 do
+      if (filters[idx](x, y)) then
+         des.map({ coord = {12 + x*9, 4 + y*5}, map = pillar, contents=function() end });
+      end
+   end
 end
 
-leftside = selection.area(01,01,25,16)
-rightside = selection.area(49,01,73,16):filter_mapchar('.')
+des.region(selection.area(00,00,75,18), "lit");
+des.wallify();
+des.non_diggable();
 
-des.stair({ dir='up', coord=leftside:rndcoord() });
-des.stair({ dir='down', coord=rightside:rndcoord() });
+des.stair("up");
+des.stair("down");
 
-for i = 1,8 do
+for i = 1,15 do
+   des.object();
+end
+for i = 1,6 do
    des.trap();
 end
-
--- there's fewer things on the left side
-leftobjs = nh.rn2(6)
-for i = 1, leftobjs do
-   des.object({ coord = leftside:rndcoord() });
-end
-for i = 1, 15 - leftobjs do
-   des.object({ coord = rightside:rndcoord() });
-end
-
-leftmons = nh.rn2(4)
-for i = 1, leftmons do
-   des.monster({ coord = leftside:rndcoord(1) })
-end
-for i = 1, 28 - leftmons do
-   des.monster({ coord = rightside:rndcoord(1) })
+for i = 1,28 do
+  des.monster();
 end

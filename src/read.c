@@ -1,4 +1,4 @@
-/* NetHack 3.7	read.c	$NHDT-Date: 1715889745 2024/05/16 20:02:25 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.308 $ */
+/* NetHack 3.7	read.c	$NHDT-Date: 1762577372 2025/11/07 20:49:32 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.323 $ */
 /* Copyright (c) Stichting Mathematisch Centrum, Amsterdam, 1985. */
 /*-Copyright (c) Robert Patrick Rankin, 2012. */
 /* NetHack may be freely redistributed.  See license for details. */
@@ -835,6 +835,12 @@ recharge(struct obj *obj, int curse_bless)
          *      7 : 100     100
          */
         n = (int) obj->recharged;
+        /* note: experienced but xNetHack-unspoiled players should never hit the
+         * wand of wishing case because they will never recharge one when it
+         * still has charges left, and they will not get one at 0:0 because
+         * zapping the last charge will make it disintegrate;
+         * an inexperienced player might try to recharge it... and probably
+         * won't a second time */
         if (obj->otyp == WAN_WISHING
             || (n > 0 && (n * n * n > rn2(7 * 7 * 7)))) { /* recharge_limit */
             wand_explode(obj, rnd(lim));
@@ -1362,12 +1368,33 @@ seffect_enchant_armor(struct obj **sobjp)
         useup(otmp);
         return;
     }
-    s = scursed ? -1
-        : (otmp->spe >= 9)
-        ? (rn2(otmp->spe) == 0)
-        : sblessed
-        ? rnd(3 - otmp->spe / 3)
-        : 1;
+    if (s < -100) s = -100; /* avoid integer overflow with very negative armor */
+
+    /* Base power of the enchantment:
+
+       2 for -1 to +0 armor;
+       1 for +1 to +2 armor;
+       0 for +3 to +4 armor, etc.
+
+       When disenchanting, everything is done with reversed signs. */
+    s = (4 - s) / 2;
+
+    /* Elven/artifact and nonmagical armor is easier to enchant;
+       blessed scrolls are more effective. */
+    if (special_armor) ++s;
+    if (!objects[otmp->otyp].oc_magic) ++s;
+    if (sblessed) ++s;
+
+    if (s <= 0) {
+        s = 0;
+        if (otmp->spe > 0 && !rn2(otmp->spe)) s = 1;
+    } else {
+        s = rnd(s);
+    }
+    if (s > 11) s = 11;    /* unlikely but possible: avoids an overflow later */
+
+    if (scursed) s = -s;
+
     pline("%s %s%s%s%s for a %s.", Yname2(otmp),
           (s == 0) ? "violently " : "",
           otense(otmp, Blind ? "vibrate" : "glow"),
@@ -2578,7 +2605,7 @@ drop_boulder_on_monster(coordxy x, coordxy y, boolean confused, boolean byu)
 
 /* overcharging any wand or zapping/engraving cursed wand */
 void
-wand_explode(struct obj* obj, int chg /* recharging */)
+wand_explode(struct obj *obj, int chg /* recharging */)
 {
     const char *expl = !chg ? "suddenly" : "vibrates violently and";
     int dmg, n, k;
@@ -3005,7 +3032,7 @@ do_genocide(
               * 3 = forced genocide of player
               * 5 (4 | 1) = normal genocide from throne */
 {
-    char buf[BUFSZ], promptbuf[QBUFSZ];
+    char buf[BUFSZ], realbuf[BUFSZ], promptbuf[QBUFSZ];
     int i, killplayer = 0;
     int mndx;
     struct permonst *ptr;
@@ -3110,27 +3137,31 @@ do_genocide(
     }
 
     which = "all ";
+    Strcpy(realbuf, ptr->pmnames[NEUTRAL]); /* standard singular */
     if (Hallucination) {
-        if (Upolyd)
+        /* hallucinate hero's type */
+        if (Upolyd) {
             Strcpy(buf, pmname(gy.youmonst.data,
                                flags.female ? FEMALE : MALE));
-        else {
+        } else {
             Strcpy(buf, (flags.female && gu.urole.name.f) ? gu.urole.name.f
-                                                       : gu.urole.name.m);
+                                                          : gu.urole.name.m);
             buf[0] = lowc(buf[0]);
         }
     } else {
-        Strcpy(buf, ptr->pmnames[NEUTRAL]); /* standard singular */
+        /* use actual type */
+        Strcpy(buf, realbuf);
         if ((ptr->geno & G_UNIQ) && ptr != &mons[PM_HIGH_CLERIC])
             which = !type_is_pname(ptr) ? "the " : "";
     }
+
     if (how & REALLY) {
         if (!num_genocides())
             livelog_printf(LL_CONDUCT | LL_GENOCIDE,
                            "performed %s first genocide (%s)",
-                           uhis(), makeplural(buf));
+                           uhis(), makeplural(realbuf));
         else
-            livelog_printf(LL_GENOCIDE, "genocided %s", makeplural(buf));
+            livelog_printf(LL_GENOCIDE, "genocided %s", makeplural(realbuf));
 
         /* setting no-corpse affects wishing and random tin generation */
         svm.mvitals[mndx].mvflags |= (G_GENOD | G_NOCORPSE);
@@ -3155,13 +3186,13 @@ do_genocide(
             }
 
             /* Polymorphed characters will die as soon as they're rehumanized.
-             */
-            /* KMH -- Unchanging prevents rehumanization */
+               KMH -- Unchanging prevents rehumanization. */
             if (Upolyd && ptr != gy.youmonst.data) {
                 delayed_killer(POLYMORPH, svk.killer.format, svk.killer.name);
                 You_feel("%s inside.", udeadinside());
-            } else
+            } else {
                 done(GENOCIDED);
+            }
         } else if (ptr == gy.youmonst.data) {
             rehumanize();
         }
@@ -3205,7 +3236,7 @@ punish(struct obj *sobj)
         You("are being punished for your misbehavior!");
     if (Punished) {
         Your("iron ball gets heavier.");
-        uball->owt += IRON_BALL_W_INCR * (1 + cursed_levy);
+        uball->owt += WT_IRON_BALL_INCR * (1 + cursed_levy);
         return;
     }
     if (amorphous(gy.youmonst.data) || is_whirly(gy.youmonst.data)

@@ -152,6 +152,7 @@ local loc = place:rndcoord(1);
 des.object({ id = "chest", trapped = 0, locked = 1, coord = loc ,
              contents = function()
                 des.object({ class = "/", id = "wishing", spe = 1 });
+                des.object("potion of gain level");
              end
 });
 -- Prevent monsters from eating it.  (@'s never eat objects)

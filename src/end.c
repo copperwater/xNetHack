@@ -14,6 +14,7 @@
 #endif
 #include "dlb.h"
 
+#ifndef SFCTOOL
 #ifndef NO_SIGNAL
 staticfn void done_intr(int);
 # if defined(UNIX) || defined(VMS) || defined(__EMX__)
@@ -34,9 +35,11 @@ staticfn void dump_plines(void);
 #endif
 staticfn void dump_everything(int, time_t);
 staticfn void fixup_death(int);
+#endif /* SFCTOOL */
 staticfn int wordcount(char *);
 staticfn void bel_copy1(char **, char *);
 
+#ifndef SFCTOOL
 #define done_stopprint program_state.stopprint
 
 /*
@@ -99,9 +102,8 @@ done2(void)
         && y_n("Switch from the tutorial back to regular play?") == 'y')
         abandon_tutorial = TRUE;
 
-    if (abandon_tutorial
-        || !paranoid_query(ParanoidQuit,
-                    "Really quit? (This will end your game permanently!)")) {
+    if (abandon_tutorial || !paranoid_query(
+            ParanoidQuit, "Really quit without saving?")) {
 #ifndef NO_SIGNAL
         (void) signal(SIGINT, (SIG_RET_TYPE) done1);
 #endif
@@ -686,14 +688,16 @@ dump_everything(
     /* overview of the game up to this point */
     show_gamelog((how >= PANICKED) ? ENL_GAMEOVERALIVE : ENL_GAMEOVERDEAD);
     putstr(NHW_DUMPTXT, 0, "");
-    list_vanquished('d', FALSE); /* 'd' => 'y' */
-    putstr(NHW_DUMPTXT, 0, "");
-    list_genocided('d', FALSE); /* 'd' => 'y' */
-    putstr(NHW_DUMPTXT, 0, "");
+    show_spells(); /* ends with a blank line */
+    show_skills(); /* ends with a blank line */
     show_conduct((how >= PANICKED) ? 1 : 2);
     putstr(NHW_DUMPTXT, 0, "");
     putstr(0, ATR_HEADING, "Dungeon overview:");
     show_overview((how >= PANICKED) ? 1 : 2, how);
+    putstr(NHW_DUMPTXT, 0, "");
+    list_vanquished('d', FALSE); /* 'd' => 'y' */
+    putstr(NHW_DUMPTXT, 0, "");
+    list_genocided('d', FALSE); /* 'd' => 'y' */
     putstr(NHW_DUMPTXT, 0, "");
     dump_redirect(FALSE);
 #else
@@ -721,6 +725,7 @@ disclose(int how, boolean taken)
         if (c == 'y') {
             /* caller has already ID'd everything; we pass 'want_reply=True'
                to force display_pickinv() to avoid using WIN_INVENT */
+            iflags.force_invmenu = FALSE;
             (void) display_inventory((char *) 0, TRUE);
             container_contents(gi.invent, TRUE, TRUE, FALSE);
         }
@@ -1007,7 +1012,8 @@ artifact_score(
             if (counting) {
                 u.urexp = nowrap_add(u.urexp, points);
             } else {
-                discover_object(otmp->otyp, TRUE, FALSE);
+                discover_object(otmp->otyp, TRUE, TRUE, FALSE);
+                /* not observe_object; dead characters don't observe */
                 otmp->known = otmp->dknown = otmp->bknown = otmp->rknown = 1;
                 /* assumes artifacts don't have quan > 1 */
                 Sprintf(pbuf, "%s%s (worth %ld %s and %ld points)",
@@ -1371,7 +1377,8 @@ really_done(int how)
          */
         for (obj = gi.invent; obj; obj = nextobj) {
             nextobj = obj->nobj;
-            discover_object(obj->otyp, TRUE, FALSE);
+            discover_object(obj->otyp, TRUE, TRUE, FALSE);
+            /* observe_object not necessary after discover_object */
             obj->known = obj->bknown = obj->dknown = obj->rknown = 1;
             set_cknown_lknown(obj); /* set flags when applicable */
             /* we resolve Schroedinger's cat now in case of both
@@ -1672,9 +1679,10 @@ really_done(int how)
                 if (objects[typ].oc_class != GEM_CLASS
                     || typ <= LAST_REAL_GEM) {
                     otmp = mksobj(typ, FALSE, FALSE);
-                    discover_object(otmp->otyp, TRUE, FALSE);
-                    otmp->known = 1;  /* for fake amulets */
+                    discover_object(otmp->otyp, TRUE, TRUE, FALSE);
                     otmp->dknown = 1; /* seen it (blindness fix) */
+                    /* observe_object not necessary after discover_object */
+                    otmp->known = 1;  /* for fake amulets */
                     if (has_oname(otmp))
                         free_oname(otmp);
                     otmp->quan = count;
@@ -1813,9 +1821,9 @@ container_contents(
                                           (boolean (*)(OBJ_P)) 0);
                     for (srtc = sortedcobj; (obj = srtc->obj) != 0; ++srtc) {
                         if (identified) {
-                            discover_object(obj->otyp, TRUE, FALSE);
-                            obj->known = obj->bknown = obj->dknown
-                                = obj->rknown = 1;
+                            discover_object(obj->otyp, TRUE, TRUE, FALSE);
+                            obj->dknown = 1; /* observe_object unnecessary */
+                            obj->known = obj->bknown = obj->rknown = 1;
                             if (Is_container(obj) || obj->otyp == STATUE)
                                 obj->cknown = obj->lknown = 1;
                         }
@@ -1936,10 +1944,9 @@ save_killers(NHFILE *nhfp)
 {
     struct kinfo *kptr;
 
-    if (perform_bwrite(nhfp)) {
+    if (update_file(nhfp)) {
         for (kptr = &svk.killer; kptr; kptr = kptr->next) {
-            if (nhfp->structlevel)
-                bwrite(nhfp->fd, (genericptr_t) kptr, sizeof (struct kinfo));
+	    Sfo_kinfo(nhfp, kptr, "kinfo");
         }
     }
     if (release_data(nhfp)) {
@@ -1950,6 +1957,7 @@ save_killers(NHFILE *nhfp)
         }
     }
 }
+#endif /* !SFCTOOL */
 
 void
 restore_killers(NHFILE *nhfp)
@@ -1957,8 +1965,7 @@ restore_killers(NHFILE *nhfp)
     struct kinfo *kptr;
 
     for (kptr = &svk.killer; kptr != (struct kinfo *) 0; kptr = kptr->next) {
-        if (nhfp->structlevel)
-            mread(nhfp->fd, (genericptr_t) kptr, sizeof(struct kinfo));
+        Sfi_kinfo(nhfp, kptr, "kinfo");
         if (kptr->next) {
             kptr->next = (struct kinfo *) alloc(sizeof (struct kinfo));
         }
@@ -2113,12 +2120,12 @@ NH_abort(char *why USED_FOR_CRASHREPORT)
     panictrace_setsignals(FALSE);
 #endif
 #endif /* PANICTRACE */
-#ifdef WIN32
+#if defined(WIN32)
     win32_abort();
 #else
     abort();
 #endif
 }
-#undef USED_FOR_CRASHREPORT
 
+#undef USED_FOR_CRASHREPORT
 /*end.c*/

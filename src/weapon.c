@@ -16,6 +16,7 @@ staticfn boolean could_advance(int);
 staticfn boolean peaked_skill(int);
 staticfn int slots_required(int);
 staticfn void skill_advance(int);
+staticfn void add_skills_to_menu(winid, boolean, boolean);
 
 /* Categories whose names don't come from OBJ_NAME(objects[type])
  */
@@ -154,7 +155,7 @@ hitval(struct obj *otmp, struct monst *mon)
     if (Is_weapon)
         tmp += otmp->spe;
 
-    /* Put weapon specific "to hit" bonuses in below: */
+    /* Put weapon-specific "to hit" bonuses in below: */
     tmp += objects[otmp->otyp].oc_hitbon;
 
     /* Put weapon vs. monster type "to hit" bonuses in below: */
@@ -319,11 +320,10 @@ dmgval(struct obj *otmp, struct monst *mon)
             }
         }
 #undef is_odd_material
+        /* negative enchantment mustn't produce negative damage */
+        if (tmp < 0)
+            tmp = 0;
     }
-
-    /* negative modifiers mustn't produce negative damage */
-    if (tmp < 0)
-        tmp = 0;
 
     if (otmp->material <= LEATHER && thick_skinned(ptr))
         /* thick skinned/scaled creatures don't feel it */
@@ -336,7 +336,7 @@ dmgval(struct obj *otmp, struct monst *mon)
         int wt = (int) objects[HEAVY_IRON_BALL].oc_weight;
 
         if ((int) otmp->owt > wt) {
-            wt = ((int) otmp->owt - wt) / IRON_BALL_W_INCR;
+            wt = ((int) otmp->owt - wt) / WT_IRON_BALL_INCR;
             tmp += rnd(4 * wt);
             if (tmp > 25)
                 tmp = 25; /* objects[].oc_wldam */
@@ -651,16 +651,35 @@ oselect(struct monst *mtmp, int type, boolean missile)
     return (struct obj *) 0;
 }
 
-/* TODO: have monsters use aklys' throw-and-return */
 static NEARDATA const int rwep[] = {
     DWARVISH_SPEAR, ELVEN_SPEAR, SPEAR, ORCISH_SPEAR, JAVELIN,
     SHURIKEN, YA, ELVEN_ARROW, ARROW, ORCISH_ARROW,
     CROSSBOW_BOLT, ELVEN_DAGGER, DAGGER, ORCISH_DAGGER, KNIFE,
-    FLINT, ROCK, LUCKSTONE, DART, /* BOOMERANG, */ CREAM_PIE
+    FLINT, ROCK, LUCKSTONE, DART, CREAM_PIE
 };
 
+/* polearms */
 static NEARDATA const int pwep[] = { HALBERD,  GLAIVE, BEC_DE_CORBIN,
                                      PARTISAN, LANCE };
+
+#define AKLYS_LIM (BOLT_LIM / 2)
+/* throw-and-return weapons */
+static NEARDATA const struct throw_and_return_weapon arwep[] = {
+    /* { BOOMERANG, 5, 0 }, */
+    { AKLYS, AKLYS_LIM * AKLYS_LIM, 1 },
+};
+
+const struct throw_and_return_weapon *
+autoreturn_weapon(struct obj *otmp)
+{
+    int i;
+
+    for (i = 0; i < SIZE(arwep); i++) {
+        if (otmp->otyp == arwep[i].otyp)
+            return &arwep[i];
+    }
+    return (struct throw_and_return_weapon *) 0;
+}
 
 /* select a ranged weapon for the monster */
 struct obj *
@@ -693,6 +712,11 @@ select_rwep(struct monst *mtmp)
     mweponly = (mwelded(mwep) && mtmp->weapon_check == NO_WEAPON_WANTED);
     if (dist2(mtmp->mx, mtmp->my, mtmp->mux, mtmp->muy) <= 13
         && couldsee(mtmp->mx, mtmp->my)) {
+        if (is_art(mwep, ART_SNICKERSNEE)) {
+            gp.propellor = mwep;
+            return mwep;
+        }
+
         for (i = 0; i < SIZE(pwep); i++) {
             /* Only strong monsters can wield big (esp. long) weapons.
              * Big weapon is basically the same as bimanual.
@@ -710,9 +734,29 @@ select_rwep(struct monst *mtmp)
             }
         }
     }
+    /* Next, try to select a throw-and-return weapon, since they are
+     * also not as expendable. Again, don't pick one if monster's
+     * weapon is welded.
+     */
+    for (i = 0; i < SIZE(arwep); i++) {
+        const struct throw_and_return_weapon *arw = &arwep[i];
+
+        if (!mindless(mtmp->data) && !is_animal(mtmp->data) && !mweponly
+            && dist2(mtmp->mx, mtmp->my, mtmp->mux, mtmp->muy) <= arw->range
+            && couldsee(mtmp->mx, mtmp->my)) {
+            if ((((mtmp->misc_worn_check & W_ARMS) == 0)
+                 || !objects[arw->otyp].oc_bimanual)) {
+                if ((otmp = oselect(mtmp, arw->otyp, TRUE)) != 0
+                    && (otmp == mwep || !mweponly)) {
+                    gp.propellor = otmp; /* force the monster to wield it */
+                    return otmp;
+                }
+            }
+        }
+    }
 
     /*
-     * other than these two specific cases, always select the
+     * other than the specific cases above, always select the
      * most potent ranged weapon to hand.
      */
     for (i = 0; i < SIZE(rwep); i++) {
@@ -1004,10 +1048,15 @@ mon_wield_item(struct monst *mon)
         mon->weapon_check = NEED_WEAPON;
         if (!gi.in_mklev && canseemon(mon)) {
             boolean newly_welded;
+            const struct throw_and_return_weapon *arw;
 
             pline_mon(mon, "%s wields %s%c",
                       Monnam(mon), doname(obj),
                       exclaim ? '!' : '.');
+            if ((arw = autoreturn_weapon(obj)) != 0 && arw->tethered != 0)
+                pline_mon(mon, "%s secures the tether on %s.", Monnam(mon),
+                          the(xname(obj)));
+
             /* 3.6.3: mwelded() predicate expects the object to have its
                W_WEP bit set in owormmask, but the pline here and for
                artifact_light don't want that because they'd have '(weapon
@@ -1363,6 +1412,117 @@ static const struct skill_range {
     { P_FIRST_SPELL, P_LAST_SPELL, "Spellcasting Skills" },
 };
 
+/* write a list of skills onto the given menu
+
+   if selectable is set, give selection letters for skills that can be
+   advanced and leave room for them on skills that can't be advanced */
+void
+add_skills_to_menu(winid win, boolean selectable, boolean speedy)
+{
+    int pass, i, len, longest;
+    anything any;
+    char buf[BUFSZ], sklnambuf[BUFSZ], maxsklnambuf[BUFSZ], percentbuf[BUFSZ];
+    const char *prefix;
+    int clr = NO_COLOR;
+
+    /* Find the longest skill name. */
+    for (longest = 0, i = 0; i < P_NUM_SKILLS; i++) {
+        if (P_RESTRICTED(i))
+            continue;
+        if ((len = Strlen(P_NAME(i))) > longest)
+            longest = len;
+    }
+
+    /* List the skills, making ones that could be advanced selectable if
+       selectable is set.  List the miscellaneous skills first.  Possible
+       future enhancement: list spell skills before weapon skills for
+       spellcaster roles. */
+    for (pass = 0; pass < SIZE(skill_ranges); pass++)
+        for (i = skill_ranges[pass].first; i <= skill_ranges[pass].last;
+             i++) {
+            /* Print headings for skill types */
+            any = cg.zeroany;
+            if (i == skill_ranges[pass].first)
+                add_menu_heading(win, skill_ranges[pass].name);
+
+            if (P_RESTRICTED(i))
+                continue;
+            /*
+             * Sigh, this assumes a monospaced font unless
+             * iflags.menu_tab_sep is set in which case it puts
+             * tabs between columns.
+             * The 12 is the longest skill level name.
+             * The "    " is room for a selection letter and dash, "a - ".
+             */
+            if (!selectable)
+                prefix = "";
+            else if (can_advance(i, speedy))
+                prefix = ""; /* will be preceded by menu choice */
+            else if (could_advance(i))
+                prefix = "  * ";
+            else if (peaked_skill(i))
+                prefix = "  # ";
+            else
+                prefix = "    ";
+
+            (void) skill_level_name(P_SKILL(i), sklnambuf);
+            (void) skill_level_name(P_MAX_SKILL(i), maxsklnambuf);
+
+            int percent = skill_training_percent(i);
+            Strcpy(percentbuf, "");
+            if (percent > 0) {
+                Sprintf(percentbuf, "%d%%", percent);
+            }
+            if (P_SKILL(i) == P_MAX_SKILL(i)
+                || (P_SKILL(i) + (percent / 100)) == P_MAX_SKILL(i)) {
+                Strcpy(percentbuf, "MAX");
+            }
+            // end new
+            if (wizard) {
+                if (!iflags.menu_tab_sep)
+                    Snprintf(buf, sizeof buf,
+                             " %s%-*s %-12s %5d(%4d)", prefix,
+                             longest, P_NAME(i), sklnambuf, P_ADVANCE(i),
+                             practice_needed_to_advance(P_SKILL(i)));
+                else
+                    Snprintf(buf, sizeof buf,
+                             " %s%s\t%s\t%5d(%4d)", prefix, P_NAME(i),
+                             sklnambuf, P_ADVANCE(i),
+                             practice_needed_to_advance(P_SKILL(i)));
+            } else {
+                if (!iflags.menu_tab_sep)
+                    Snprintf(buf, sizeof(buf),
+                             " %s %-*s [%12s / %-12s] %4s",
+                             prefix, longest, P_NAME(i), sklnambuf,
+                             maxsklnambuf, percentbuf);
+                else
+                    Snprintf(buf,  sizeof(buf),
+                             " %s%s\t[%s\t /%s] %4s",
+                             prefix, P_NAME(i), sklnambuf, maxsklnambuf,
+                             percentbuf);
+            }
+            any.a_int = selectable && can_advance(i, speedy) ? i + 1 : 0;
+            add_menu(win, &nul_glyphinfo, &any, 0, 0,
+                     ATR_NONE, clr, buf, MENU_ITEMFLAGS_NONE);
+        }
+}
+
+/* Displays a skill list for dumplog purposes. */
+void
+show_skills(void)
+{
+    winid win;
+    menu_item *selected;
+
+    pline("Skills:");
+    win = create_nhwindow(NHW_MENU);
+    start_menu(win, MENU_BEHAVE_STANDARD);
+    add_skills_to_menu(win, FALSE, FALSE);
+    end_menu(win, "");
+    nhUse(select_menu(win, PICK_NONE, &selected));
+    destroy_nhwindow(win);
+}
+
 /*
  * The `#enhance' extended command.  What we _really_ would like is
  * to keep being able to pick things to advance until we couldn't any
@@ -1374,14 +1534,11 @@ static const struct skill_range {
 int
 enhance_weapon_skill(void)
 {
-    int pass, i, n, len, longest, to_advance, eventually_advance, maxxed_cnt;
-    char buf[BUFSZ], sklnambuf[BUFSZ], maxsklnambuf[BUFSZ], percentbuf[BUFSZ];
-    const char *prefix;
+    int i, n, to_advance, eventually_advance, maxxed_cnt;
+    char buf[BUFSZ];
     menu_item *selected;
-    anything any;
     winid win;
     boolean speedy = FALSE;
-    int clr = NO_COLOR;
 
     /* player knows about #enhance, don't show tip anymore */
     svc.context.tips[TIP_ENHANCE] = TRUE;
@@ -1390,13 +1547,11 @@ enhance_weapon_skill(void)
         speedy = TRUE;
 
     do {
-        /* find longest available skill name, count those that can advance */
+        /* count advanceable skills */
         to_advance = eventually_advance = maxxed_cnt = 0;
-        for (longest = 0, i = 0; i < P_NUM_SKILLS; i++) {
+        for (i = 0; i < P_NUM_SKILLS; i++) {
             if (P_RESTRICTED(i))
                 continue;
-            if ((len = Strlen(P_NAME(i))) > longest)
-                longest = len;
             if (can_advance(i, speedy))
                 to_advance++;
             else if (could_advance(i))
@@ -1428,79 +1583,8 @@ enhance_weapon_skill(void)
             add_menu_str(win, "");
         }
 
-        /* List the skills, making ones that could be advanced
-           selectable.  List the miscellaneous skills first.
-           Possible future enhancement:  list spell skills before
-           weapon skills for spellcaster roles. */
-        for (pass = 0; pass < SIZE(skill_ranges); pass++)
-            for (i = skill_ranges[pass].first; i <= skill_ranges[pass].last;
-                 i++) {
-                /* Print headings for skill types */
-                any = cg.zeroany;
-                if (i == skill_ranges[pass].first)
-                    add_menu_heading(win, skill_ranges[pass].name);
-
-                if (P_RESTRICTED(i))
-                    continue;
-                /*
-                 * Sigh, this assumes a monospaced font unless
-                 * iflags.menu_tab_sep is set in which case it puts
-                 * tabs between columns.
-                 * The 12 is the longest skill level name.
-                 * The "    " is room for a selection letter and dash, "a - ".
-                 */
-                if (can_advance(i, speedy))
-                    prefix = ""; /* will be preceded by menu choice */
-                else if (could_advance(i))
-                    prefix = "  * ";
-                else if (peaked_skill(i))
-                    prefix = "  # ";
-                else
-                    prefix =
-                        (to_advance + eventually_advance + maxxed_cnt > 0)
-                            ? "    "
-                            : "";
-
-                (void) skill_level_name(P_SKILL(i), sklnambuf);
-                (void) skill_level_name(P_MAX_SKILL(i), maxsklnambuf);
-
-                int percent = skill_training_percent(i);
-                Strcpy(percentbuf, "");
-                if (percent > 0) {
-                    Sprintf(percentbuf, "%d%%", percent);
-                }
-                if (P_SKILL(i) == P_MAX_SKILL(i)
-                    || (P_SKILL(i) + (percent / 100)) == P_MAX_SKILL(i)) {
-                    Strcpy(percentbuf, "MAX");
-                }
-
-                if (wizard) {
-                    if (!iflags.menu_tab_sep)
-                        Snprintf(buf, sizeof(buf),
-                                 " %s%-*s %-12s %5d(%4d)", prefix,
-                                 longest, P_NAME(i), sklnambuf, P_ADVANCE(i),
-                                 practice_needed_to_advance(P_SKILL(i)));
-                    else
-                        Snprintf(buf, sizeof(buf),
-                                 " %s%s\t%s\t%5d(%4d)", prefix, P_NAME(i),
-                                 sklnambuf, P_ADVANCE(i),
-                                 practice_needed_to_advance(P_SKILL(i)));
-                } else {
-                    if (!iflags.menu_tab_sep)
-                        Snprintf(buf, sizeof(buf),
-                                 " %s %-*s [%12s / %-12s] %4s",
-                                 prefix, longest, P_NAME(i), sklnambuf,
-                                 maxsklnambuf, percentbuf);
-                    else
-                        Snprintf(buf,  sizeof(buf),
-                                 " %s%s\t[%s\t /%s] %4s",
-                                 prefix, P_NAME(i), sklnambuf, maxsklnambuf,
-                                 percentbuf);
-                }
-                any.a_int = can_advance(i, speedy) ? i + 1 : 0;
-                add_menu(win, &nul_glyphinfo, &any, 0, 0,
-                         ATR_NONE, clr, buf, MENU_ITEMFLAGS_NONE);
-            }
+        add_skills_to_menu(
+            win, to_advance + eventually_advance + maxxed_cnt > 0, speedy);
 
         Strcpy(buf, (to_advance > 0) ? "Pick a skill to advance:"
                                      : "Current skills / skill caps:");
@@ -1514,7 +1598,7 @@ enhance_weapon_skill(void)
             n = selected[0].item.a_int - 1; /* get item selected */
             free((genericptr_t) selected);
             skill_advance(n);
-            /* check for more skills able to advance, if so then .. */
+            /* check for more skills able to advance; if so, then... */
             for (n = i = 0; i < P_NUM_SKILLS; i++) {
                 if (can_advance(i, speedy)) {
                     if (!speedy)
@@ -1944,5 +2028,20 @@ setmnotwielded(struct monst *mon, struct obj *obj)
         MON_NOWEP(mon);
     obj->owornmask &= ~W_WEP;
 }
+
+#undef PN_BARE_HANDED
+#undef PN_RIDING
+#undef PN_POLEARMS
+#undef PN_SABER
+#undef PN_HAMMER
+#undef PN_WHIP
+#undef PN_ATTACK_SPELL
+#undef PN_HEALING_SPELL
+#undef PN_DIVINATION_SPELL
+#undef PN_ENCHANTMENT_SPELL
+#undef PN_CLERIC_SPELL
+#undef PN_ESCAPE_SPELL
+#undef PN_MATTER_SPELL
+#undef AKLYS_LIM
 
 /*weapon.c*/

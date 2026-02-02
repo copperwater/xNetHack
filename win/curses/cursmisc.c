@@ -343,7 +343,12 @@ curses_break_str(const char *str, int width, int line_num)
     }
 
     if (curline < line_num) {
+#if 0
         return NULL;
+#else
+        /* callers aren't prepared to handle NULL return */
+        Strcpy(curstr, "");
+#endif
     }
 
     retstr = curses_copy_of(curstr);
@@ -1012,6 +1017,7 @@ parse_escape_sequence(int key, boolean *keypadnum)
             ret = getch();
 
         if (ret == ERR) {
+            iflags.term_gone = 1;
             /* there was no additional char; treat as M-O or M-^O below */
             ret = (key == '\033') ? 'O' : C('O');
         } else if (ret >= 112 && ret <= 121) { /* 'p'..'y' */

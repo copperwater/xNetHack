@@ -1,4 +1,4 @@
-/* NetHack 3.7	trap.c	$NHDT-Date: 1720128169 2024/07/04 21:22:49 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.602 $ */
+/* NetHack 3.7	trap.c	$NHDT-Date: 1741926700 2025/03/13 20:31:40 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.621 $ */
 /* Copyright (c) Stichting Mathematisch Centrum, Amsterdam, 1985. */
 /*-Copyright (c) Robert Patrick Rankin, 2013. */
 /* NetHack may be freely redistributed.  See license for details. */
@@ -545,7 +545,7 @@ maketrap(coordxy x, coordxy y, int typ)
 
         /*
          * some cases which can happen when digging
-         * down while phazing thru solid areas
+         * down while phasing thru solid areas
          */
         } else if (lev->typ == STONE || lev->typ == SCORR) {
             (void) set_levltyp(x, y, CORR);
@@ -1199,7 +1199,7 @@ trapeffect_arrow_trap(
         } else {
             place_object(otmp, u.ux, u.uy);
             if (!Blind)
-                otmp->dknown = 1;
+                observe_object(otmp);
             stackobj(otmp);
             newsym(u.ux, u.uy);
         }
@@ -1280,7 +1280,7 @@ trapeffect_rocktrap(
                 harmless = TRUE;
             }
             if (!Blind)
-                otmp->dknown = 1;
+                observe_object(otmp);
             stackobj(otmp);
             newsym(u.ux, u.uy); /* map the rock */
 
@@ -2212,7 +2212,7 @@ trapeffect_web(
         /* time will be adjusted below */
         set_utrap(1, TT_WEB);
 
-        /* Time stuck in the web depends on your/steed strength. */
+        /* Time stuck in the web depends on your/steed's strength. */
         {
             int tim, str = ACURR(A_STR);
 
@@ -2568,8 +2568,8 @@ trapeffect_landmine(
                   already_seen ? " land mine" : "it");
         } else {
             /* prevent landmine from killing steed, throwing you to
-             * the ground, and you being affected again by the same
-             * mine because it hasn't been deleted yet
+             * the ground, and then that same landmine affecting you
+             * again because it hasn't been deleted yet
              */
             static boolean recursive_mine = FALSE;
 
@@ -3327,7 +3327,8 @@ launch_obj(
     newsym(x1, y1);
     /* in case you're using a pick-axe to chop the boulder that's being
        launched (perhaps a monster triggered it), destroy context so that
-       next dig attempt never thinks you're resuming previous effort */
+       the next dig attempt never thinks that you're resuming
+       the previous effort */
     if ((otyp == BOULDER || otyp == STATUE)
         && singleobj->ox == svc.context.digging.pos.x
         && singleobj->oy == svc.context.digging.pos.y)
@@ -4041,7 +4042,7 @@ float_up(void)
     float_vs_flight(); /* set BFlying, also BLevitation if still trapped */
     /* levitation gives maximum carrying capacity, so encumbrance
        state might be reduced */
-    (void) encumber_msg();
+    encumber_msg();
     return;
 }
 
@@ -4088,7 +4089,7 @@ float_down(
                       : (u.utraptype == TT_BURIEDBALL) ? "chain"
                           : (u.utraptype == TT_LAVA) ? "lava"
                               : "ground"); /* TT_INFLOOR */
-        (void) encumber_msg(); /* carrying capacity might have changed */
+        encumber_msg(); /* carrying capacity might have changed */
         return 0;
     }
     disp.botl = TRUE;
@@ -4099,14 +4100,14 @@ float_down(
                             * unless hero is stuck in floor */
         if (Flying) {
             You("have stopped levitating and are now flying.");
-            (void) encumber_msg(); /* carrying capacity might have changed */
+            encumber_msg(); /* carrying capacity might have changed */
             return 1;
         }
     }
     if (u.uswallow) {
         You("float down, but you are still %s.",
             digests(u.ustuck->data) ? "swallowed" : "engulfed");
-        (void) encumber_msg();
+        encumber_msg();
         return 1;
     }
 
@@ -4195,7 +4196,7 @@ float_down(
     /* levitation gives maximum carrying capacity, so having it end
        potentially triggers greater encumbrance; do this after
        'come down' messages, before trap activation or autopickup */
-    (void) encumber_msg();
+    encumber_msg();
 
     /* can't rely on u.uz0 for detecting trap door-induced level change;
        it gets changed to reflect the new level before we can check it */
@@ -4819,8 +4820,8 @@ water_damage(
         water_damage_chain(obj->cobj, FALSE, 0, TRUE);
         return ER_DAMAGED; /* contents were damaged */
     } else if (Waterproof_container(obj)) {
-        if (in_invent) {
-            pline_The("%s slides right off your %s.", hliquid("water"), ostr);
+        if (in_invent && !Blind && !Underwater) {
+            pline_The("%s cannot get into your %s.", hliquid("water"), ostr);
             gm.mentioned_water = !Hallucination;
             makeknown(obj->otyp); /* if an oilskin sack, discover it; doesn't
                                    * matter for chest, large box, ice box */
@@ -5571,7 +5572,7 @@ try_disarm(
     /* duplicate tight-space checks from test_move */
     if (u.dx && u.dy && bad_rock(gy.youmonst.data, u.ux, ttmp->ty)
         && bad_rock(gy.youmonst.data, ttmp->tx, u.uy)) {
-        if ((gi.invent && (inv_weight() + weight_cap() > 600))
+        if ((gi.invent && (inv_weight() + weight_cap() > WT_TOOMUCH_DIAGONAL))
             || bigmonst(gy.youmonst.data)) {
             /* don't allow untrap if they can't get thru to it */
             You("are unable to reach the %s!", trapname(ttype, FALSE));
@@ -5916,7 +5917,7 @@ disarm_box(struct obj *box, boolean force, boolean confused)
         } else {
             You("disarm it!");
             box->otrapped = 0;
-            box->tknown = 0;
+            box->tknown = 1;
             more_experienced(8, 0);
             newexplevel();
         }
@@ -5943,7 +5944,7 @@ untrap_box(
         else
             pline("There's a trap on %s.", the(xname(box)));
         box->tknown = 1;
-        box->dknown = 1;
+        observe_object(box);
         if (!confused)
             exercise(A_WIS, TRUE);
 
@@ -6390,7 +6391,8 @@ openfallingtrap(
     return result;
 }
 
-/* only called when the player is doing something to the chest directly */
+/* only called when the player is doing something to the chest directly;
+   returns True if chest is destroyed, False if it remains in play */
 boolean
 chest_trap(
     struct obj *obj,
@@ -6405,9 +6407,9 @@ chest_trap(
     if (get_obj_location(obj, &cc.x, &cc.y, 0)) /* might be carried */
         obj->ox = cc.x, obj->oy = cc.y;
 
-    otmp->tknown = 0;
+    otmp->tknown = 0;   /* for xname(); will be set to 1 below */
     otmp->otrapped = 0; /* trap is one-shot; clear flag first in case
-                           chest kills you and ends up in bones file */
+                         * chest kills you and ends up in bones file */
     You(disarm ? "set it off!" : "trigger a trap!");
     display_nhwindow(WIN_MESSAGE, FALSE);
 
@@ -6478,7 +6480,7 @@ chest_trap(
         case 21: {
             struct monst *shkp = 0;
             long loss = 0L;
-            boolean costly, insider;
+            boolean costly, insider, chestgone;
             coordxy ox = obj->ox, oy = obj->oy;
 
             /* the obj location need not be that of player */
@@ -6508,28 +6510,35 @@ chest_trap(
                                  && uball->ox == ox && uball->oy == oy)))
                 unpunish();
             /* destroy everything at the spot (the Amulet, the
-               invocation tools, and Rider corpses will remain intact) */
+               invocation tools, and Rider corpses will remain intact);
+               usually the chest will be destroyed along with the stuff at
+               this spot, but not if it is being carried */
+            chestgone = FALSE;
             for (otmp = svl.level.objects[ox][oy]; otmp; otmp = otmp2) {
                 otmp2 = otmp->nexthere;
                 if (costly)
                     loss += stolen_value(otmp, otmp->ox, otmp->oy,
                                          (boolean) shkp->mpeaceful, TRUE);
+                if (otmp == obj)
+                    chestgone = TRUE;
                 delobj(otmp);
             }
             wake_nearby(FALSE);
             losehp(Maybe_Half_Phys(d(6, 6)), buf, KILLED_BY_AN);
             exercise(A_STR, FALSE);
             if (costly && loss) {
-                if (insider)
+                if (insider) {
                     You("owe %ld %s for objects destroyed.", loss,
                         currency(loss));
-                else {
+                } else {
                     You("caused %ld %s worth of damage!", loss,
                         currency(loss));
                     make_angry_shk(shkp, ox, oy);
                 }
             }
-            return TRUE;
+            if (chestgone)
+                return TRUE;
+            break; /* set tknown and return False */
         } /* case 21 */
         case 20:
         case 19:
@@ -6607,6 +6616,7 @@ chest_trap(
         bot(); /* to get immediate botl re-display */
     }
 
+    obj->tknown = 1; /* hero knows chest is no longer trapped */
     return FALSE;
 }
 

@@ -4,6 +4,7 @@
 /* NetHack may be freely redistributed.  See license for details. */
 
 #include "config.h"
+#include "weight.h"
 #include "permonst.h"
 #include "wintype.h"
 #include "sym.h"

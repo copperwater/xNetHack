@@ -147,11 +147,11 @@ HACK_H	= $(SRC)hack.h-t
 # all .c that are part of the main NetHack program and are not operating- or
 # windowing-system specific
 HACKCSRC = allmain.c alloc.c apply.c artifact.c attrib.c ball.c bones.c \
-	   botl.c calendar.c cmd.c coloratt.c dbridge.c decl.c detect.c dig.c \
-	   display.c dlb.c do.c do_name.c do_wear.c dog.c dogmove.c dokick.c \
+	   botl.c calendar.c cfgfiles.c cmd.c coloratt.c dbridge.c decl.c detect.c \
+	   dig.c display.c dlb.c do.c do_name.c do_wear.c dog.c dogmove.c dokick.c \
 	   dothrow.c drawing.c dungeon.c eat.c end.c engrave.c exper.c \
 	   explode.c extralev.c files.c fountain.c getpos.c glyphs.c hack.c \
-	   hacklib.c insight.c invent.c light.c lock.c \
+	   hacklib.c iactions.c insight.c invent.c light.c lock.c \
 	   mail.c makemon.c mcastu.c mhitm.c mhitu.c minion.c \
 	   mklev.c mkmap.c mkmaze.c mkobj.c mkroom.c mon.c mondata.c \
 	   monmove.c monst.c mplayer.c mthrowu.c muse.c music.c o_init.c \
@@ -174,15 +174,18 @@ VERSOURCES = $(HACKCSRC) $(SYSSRC) $(WINSRC) $(RANDSRC) $(GENCSRC)
 # all .h files except date.h which would
 # cause dependency loops if run through "make depend"
 #
-HACKINCL = align.h artifact.h artilist.h attrib.h color.h \
-	   config.h config1.h context.h coord.h decl.h defsym.h display.h \
-	   dlb.h dungeon.h engrave.h extern.h flag.h func_tab.h global.h \
-	   hack.h hacklib.h mextra.h mfndpos.h micro.h mkroom.h \
-	   monattk.h mondata.h monflag.h monst.h sym.h obj.h objclass.h \
-	   patchlevel.h pcconf.h permonst.h prop.h rect.h \
-	   region.h sym.h defsym.h rm.h sp_lev.h spell.h sys.h system.h \
-	   tcap.h timeout.h tradstdc.h trap.h unixconf.h vision.h \
-	   vmsconf.h wintty.h winX.h winprocs.h wintype.h you.h youprop.h
+HACKINCL = align.h artifact.h artilist.h attrib.h botl.h \
+	color.h config.h config1.h context.h coord.h cstd.h decl.h \
+	defsym.h display.h dlb.h dungeon.h engrave.h extern.h flag.h \
+	fnamesiz.h func_tab.h global.h warnings.h hack.h lint.h mextra.h \
+	micro.h mkroom.h monattk.h mondata.h monflag.h monst.h monsters.h \
+	mfndpos.h nhmd4.h obj.h objects.h objclass.h optlist.h patchlevel.h \
+	pcconf.h permonst.h prop.h rect.h region.h savefile.h selvar.h sym.h \
+	rm.h sp_lev.h spell.h sndprocs.h seffects.h stairs.h sys.h \
+	tcap.h timeout.h tradstdc.h trap.h unixconf.h vision.h vmsconf.h \
+	wintty.h wincurs.h winX.h winprocs.h wintype.h you.h youprop.h \
+	weight.h
+
 
 #HSOURCES = $(HACKINCL) date.h onames.h pm.h
 
@@ -191,13 +194,13 @@ FIRSTOBJ = vmsmisc.obj,vmsfiles.obj,monst.obj,objects.obj
 
 # split up long list so that we can write pieces of it into nethack.opt
 HOBJ1 = allmain.obj,alloc.obj,apply.obj,artifact.obj,attrib.obj, \
-	ball.obj,bones.obj,botl.obj,calendar.obj,cmd.obj,coloratt.obj, \
-	dbridge.obj,decl.obj,detect.obj,dig.obj,display.obj,dlb.obj, \
-	do.obj,do_name.obj,do_wear.obj
+	ball.obj,bones.obj,botl.obj,calendar.obj,cfgfiles.obj,cmd.obj, \
+	coloratt.obj,dbridge.obj,decl.obj,detect.obj,dig.obj,display.obj, \
+	dlb.obj,do.obj,do_name.obj,do_wear.obj
 HOBJ2 = dog.obj,dogmove.obj,dokick.obj,dothrow.obj,drawing.obj, \
 	dungeon.obj,eat.obj,end.obj,engrave.obj,exper.obj,explode.obj, \
 	extralev.obj,files.obj,fountain.obj,getpos.obj,glyphs.obj,hack.obj, \
-	hacklib.obj,insight.obj,invent.obj
+	hacklib.obj,iactions.obj,insight.obj,invent.obj
 HOBJ3 = light.obj,lock.obj,mail.obj,makemon.obj,mcastu.obj, \
 	mhitm.obj,mhitu.obj,minion.obj,mklev.obj,mkmap.obj,mkmaze.obj, \
 	mkobj.obj,mkroom.obj,mon.obj,mondata.obj,monmove.obj
@@ -401,7 +404,7 @@ $(HACK_H) : $(INC)hack.h $(CONFIG_H) $(INC)align.h \
 		$(INC)monsters.h $(INC)timeout.h $(INC)trap.h \
 		$(INC)flag.h $(INC)rm.h $(INC)vision.h \
 		$(INC)display.h $(INC)engrave.h $(INC)rect.h $(INC)region.h \
-		$(INC)winprocs.h $(INC)wintty.h $(INC)sys.h
+		$(INC)weight.h $(INC)winprocs.h $(INC)wintty.h $(INC)sys.h
 	$(TOUCH) $(HACK_H)
 #	VMS-specific code
 vmsmain.obj :	$(VMS)vmsmain.c $(HACK_H) $(INC)dlb.h
@@ -500,6 +503,7 @@ ball.obj :	ball.c $(HACK_H)
 bones.obj :	bones.c $(HACK_H)
 botl.obj :	botl.c $(HACK_H)
 cmd.obj :	cmd.c $(HACK_H) $(INC)func_tab.h
+cfgfiles.obj :	cfgfiles.c $(HACK_H)
 dbridge.obj :	dbridge.c $(HACK_H)
 decl.obj :	decl.c $(HACK_H)
 detect.obj :	detect.c $(HACK_H) $(INC)artifact.h
@@ -524,6 +528,7 @@ files.obj :	files.c $(HACK_H) $(INC)dlb.h $(INC)wintty.h #zlib.h
 fountain.obj :	fountain.c $(HACK_H)
 hack.obj :	hack.c $(HACK_H)
 hacklib.obj :	hacklib.c $(HACK_H)
+iactions.obj :	iactions.c $(HACK_H)
 insight.obj :	insight.c $(HACK_H)
 invent.obj :	invent.c $(HACK_H)
 light.obj :	light.c $(HACK_H)

@@ -1143,7 +1143,7 @@ mswin_select_menu(winid wid, int how, MENU_ITEM_P **selected)
 
 /*
     -- Indicate to the window port that the inventory has been changed.
-    -- Merely calls display_inventory() for window-ports that leave the
+    -- Merely calls repopulate_perminvent() for window-ports that leave the
         window up, otherwise empty.
 */
 void

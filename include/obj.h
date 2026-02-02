@@ -108,7 +108,9 @@ struct obj {
                              * or enchantment); many items have this preset if
                              * they lack anything interesting to discover */
     Bitfield(dknown, 1);    /* description known (item seen "up close");
-                             * some types of items always have dknown set */
+                             * some types of items always have dknown set;
+                             * use observe_object to set to TRUE so that the
+                             * discoveries list is still correct */
     Bitfield(bknown, 1);    /* BUC (blessed/uncursed/cursed) known */
     Bitfield(rknown, 1);    /* rustproofing status known */
     Bitfield(cknown, 1); /* for containers (including statues): the contents
@@ -231,10 +233,12 @@ struct obj {
     (otmp->oclass == WEAPON_CLASS                     \
      && objects[otmp->otyp].oc_skill >= P_SHORT_SWORD \
      && objects[otmp->otyp].oc_skill <= P_SABER)
+/* Snickersnee is not a polearm, but can hit from distance */
 #define is_pole(otmp)                                             \
     ((otmp->oclass == WEAPON_CLASS || otmp->oclass == TOOL_CLASS) \
      && (objects[otmp->otyp].oc_skill == P_POLEARMS               \
-         || objects[otmp->otyp].oc_skill == P_LANCE))
+         || objects[otmp->otyp].oc_skill == P_LANCE               \
+         || is_art(otmp, ART_SNICKERSNEE)))
 #define is_spear(otmp) \
     (otmp->oclass == WEAPON_CLASS && objects[otmp->otyp].oc_skill == P_SPEAR)
 #define is_launcher(otmp)                                                  \
@@ -255,6 +259,9 @@ struct obj {
     ((o)->oclass == TOOL_CLASS && objects[(o)->otyp].oc_skill != P_NONE)
         /* towel is not a weptool:  spe isn't an enchantment, cursed towel
            doesn't weld to hand, and twoweapon won't work with one */
+#define is_blunt_weapon(o)                          \
+    (((o)->oclass == WEAPON_CLASS || is_weptool(o)) \
+     && ((objects[(o)->otyp].oc_dir & WHACK) != 0))
 #define is_wet_towel(o) ((o)->otyp == TOWEL && (o)->spe > 0)
 #define bimanual(otmp)                                            \
     ((otmp->oclass == WEAPON_CLASS || otmp->oclass == TOOL_CLASS) \

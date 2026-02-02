@@ -452,6 +452,7 @@ dig(void)
     }
 
     if (svc.context.digging.effort > 100) {
+        char digbuf[BUFSZ];
         const char *digtxt, *dmgtxt = (const char *) 0;
         struct obj *obj, *bobj;
         boolean shopedge = *in_rooms(dpx, dpy, SHOPBASE);
@@ -520,7 +521,9 @@ dig(void)
             digtxt = "You break through a secret door!";
             set_doorstate(lev, D_BROKEN);
         } else if (closed_door(dpx, dpy)) {
-            digtxt = "You break through the door.";
+            Sprintf(digbuf, "You break through the door with your %s.",
+                    simpleonames(uwep));
+            digtxt = digbuf;
             set_doorstate(lev, D_BROKEN);
         } else
             return 0; /* statue or boulder got taken */
@@ -534,18 +537,9 @@ dig(void)
             pay_for_damage(dmgtxt, FALSE);
 
         if (Is_earthlevel(&u.uz) && !rn2(3)) {
-            struct monst *mtmp;
+            int mndx = rn2(2) ? PM_EARTH_ELEMENTAL : PM_XORN;
 
-            switch (rn2(2)) {
-            case 0:
-                mtmp = makemon(&mons[PM_EARTH_ELEMENTAL], dpx, dpy,
-                               MM_NOMSG);
-                break;
-            default:
-                mtmp = makemon(&mons[PM_XORN], dpx, dpy, MM_NOMSG);
-                break;
-            }
-            if (mtmp)
+            if (makemon(&mons[mndx], dpx, dpy, MM_NOMSG))
                 pline_The("debris from your digging comes to life!");
         }
         if (IS_DOOR(lev->typ)) {
@@ -1357,7 +1351,7 @@ use_pick_axe2(struct obj *obj)
         /* it must be air -- water checked above */
         You("swing %s through thin air.", yobjnam(obj, (char *) 0));
     } else if (!can_reach_floor(FALSE)) {
-        cant_reach_floor(u.ux, u.uy, FALSE, FALSE);
+        cant_reach_floor(u.ux, u.uy, FALSE, FALSE, FALSE);
     } else if (is_pool_or_lava(u.ux, u.uy)) {
         /* Monsters which swim also happen not to be able to dig */
         You("cannot stay under%s long enough.",
@@ -1367,7 +1361,7 @@ use_pick_axe2(struct obj *obj)
         dotrap(trap, FORCEBUNGLE);
         /* might escape trap and still be teetering at brink */
         if (!u.utrap)
-            cant_reach_floor(u.ux, u.uy, FALSE, TRUE);
+            cant_reach_floor(u.ux, u.uy, FALSE, TRUE, FALSE);
     } else if (!ispick
                /* can only dig down with an axe when doing so will
                   trigger or disarm a trap here */

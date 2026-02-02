@@ -1,4 +1,4 @@
-NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.1535 $ $NHDT-Date: 1740629713 2025/02/26 20:15:13 $
+NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.1614 $ $NHDT-Date: 1769342601 2026/01/25 04:03:21 $
 
 General Fixes and Modified Features
 -----------------------------------
@@ -121,7 +121,8 @@ tribute (Discworld snippets) typos, in book order rather than fix order:
 	 quote, passage #6 first footnote, insert omitted "be", passage #7
 	 last paragraph, "to" -> "be"
 	Men at Arms passage #1, italicize /for/, passage #2, insert omitted
-	 word "had": 'it was /fate/ that _had_ let Edward'
+	 word "had": 'it was /fate/ that _had_ let Edward', #9, fix name typo
+	 "Noddy" -> "Nobby"
 	Interesting Times passage #1, italicize several words
 	Feet of Clay passage #1, second "does not need" -> "doesn't even need"
 	Hogfather passage #7 missing initial double quote for "Oh, just ...",
@@ -131,7 +132,8 @@ tribute (Discworld snippets) typos, in book order rather than fix order:
 	 missing opening single quote on second sentence of Lord Downey's
 	 line, passage #11 both in footnote:  "genious" -> "genius",
 	 "was, oddly enough, was one [...]" -> "was, oddly enough, one [...]"
-	The Fifth Elephant #1, italicize /always/, #9, "dublet" -> "doublet"
+	The Fifth Elephant #1, italicize /always/, #9, "dublet" -> "doublet",
+	  #12, fix name typo, "Vines" -> "Vimes"
 	The Truth #1, italicize several words
 	Thief of Time #2, "gold starts" -> "gold stars"
 	A Hat Full of Sky passage #9 "though" -> "thought"
@@ -213,7 +215,7 @@ if riding or levitating, hero could apply bullwhip downward to pull up things
 some monster code was checking whether pets or engulfers were eating green
 	slime by checking for green slime corpse instead of glob
 change light radius of stack of candles to square root
-could get redundate "mon hits other-mon" messages when mon wields an artifact
+could get redundant "mon hits other-mon" messages when mon wields an artifact
 failed untrap while mounted that moved hero onto the trap would leave steed
 	with stale coordinates, triggering warnings if 'sanity_check' is On
 when digging a pit results in it being filled by adjacent pool or lava, any
@@ -528,7 +530,7 @@ innocuous items like scrolls or eucalyptus leaves did harm when falling on
 	hero's head after being thrown upward
 fighter types who start out knowing all non-magic armor should not know
 	cornuthaum and dunce cap
-prediscovered weapons adjustmens:  only knights and samurai know polearms;
+prediscovered weapons adjustments:  only knights and samurai know polearms;
 	rangers know launchers (bows), ammo (arrows), and spears regardless
 	of their race/species; likewise, rogues know all daggers
 if the move counter ever reaches 1000000000, end the game
@@ -713,7 +715,7 @@ selection of random engravings, epitaphs, and hallucinatory monster names had
 	follow longer than average lines are most likely to be chosen and
 	ones which follow shorter than average lines are least likely; use
 	same workaround as for rumors:  pad the shortest lines; result isn't
-	uniforn distribution but is better (tradeoff vs size; see makedefs)
+	uniform distribution but is better (tradeoff vs size; see makedefs)
 make selection of random rumors, engravings, epitaphs, and hallucinatory monst
 	names have uniform distribution by handling long lines specially
 when filling a special room with monsters, if one that can come in groups got
@@ -835,7 +837,8 @@ if a lit potion of oil on the floor was launched by an explosion and it hit
 	it could trigger an "obj_is_local" panic when end of game cleanup
 	tried to extinguish it as a light source
 place_object() validated coordinates after using them to index level.objects
-killed rope golem may drop leashes and bullwhips
+killed rope golem may drop leashes, bullwhips, and grappling hooks
+killed leather golem may drop leather cloaks, and saddles
 using magic portals stuns hero for a few turns
 using level teleporters confuses hero without teleport control for a few turns
 clear obj->bypass for buried objects [a giant on ice triggers a fire trap,
@@ -963,7 +966,7 @@ putting on water walking boots while underwater (maybe via magical breathing)
 	and rising to surface wasn't causing the boots to become discovered
 flying pets wouldn't target underwater food but if they happened to fly over
 	such food they could and would eat it
-praying on an altar with pet corpse on it can revive the pet
+praying on an altar with pet corpse or statue on it can revive the pet
 applying a cursed oil lamp can make your hands slippery
 valkyries start with a spear instead of a long sword
 grid bugs don't have hands
@@ -989,7 +992,7 @@ bigroom variant 3 may have some walls replaced with other terrain
 bigroom variant 4 may have two large squares of terrain in the middle
 bigroom variant 5 may have patches of ice or clouds
 some large monsters can knock back smaller monsters with a hit
-change Demonbane to a mace, make it the first sac gift for priests,
+change Demonbane to a silver mace, make it the first sac gift for priests,
 	and give it an invoke ability to banish demons
 wielding Giantslayer prevents knockback from larger monsters; likewise for
 	carried loadstone(s)
@@ -1235,7 +1238,7 @@ restore the ability for trap creation via magic which creates pits to destroy
 allow #sit while flying over a squeaky board trap to trigger it
 weight of statues of wraiths and of monsters which never leave a corpse was 0
 when a werecreature in human form attacked hero, it could transform to critter
-	despite hero having the Protection_from_shape_changers_attibute
+	despite hero having the Protection_from_shape_changers_attribute
 status highlighting for hit points didn't work as intended for up or down HP
 	changes; 'up' rule was used for both, 'down' rule was ignored
 unhide an unseen water monster using a polymorph trap on land
@@ -1506,6 +1509,72 @@ since introduction in 3.1.0, the definition for Mitre of Holiness has specified
 	no 'defends' capability for it since carrying should encompass that
 if a tree and a boulder or statue were at the same location, applying an axe
 	would break the boulder or statue rather than chop the tree
+avoid premapping outside Sokoban map to prevent showing stone glyphs
+Grimtooth is permanently poisoned, protects from poison, and can fling poison
+invoke cost for Grimtooth and Sunsword can be paid with magic power
+cursed magic whistle can teleport you to your pet
+Fire and Frost Brand can be invoked for expert level fireball or cone of cold
+wielding Trollsbane grants hungerless regeneration
+hitting with Ogresmasher gives a higher chance of knockback
+Snickersnee can hit at a distance once per turn for free
+the engraving pristine text field was not being appropriately populated during
+       level creation
+worn alchemy smock reduces chances of dipped potions exploding
+dwarves can sense buried items under their feet
+monsters trapped in pits cannot kick
+create familiar spell can create harder creatures
+a vampire lord could choose to take on wolf form while flying over water or
+	lava, then revert to vampire lord form and teleport unnecessarily
+a gas spore that was killed when an engulfer swallowed it produced an explosion
+	on the map rather than inside the engulfer
+hallucination can display objects on the map that have a description (for
+	shuffling into play at game start) but no name; examining those might
+	trigger a crash
+some food and paper items do no damage when bashing
+improved messages for oilskin sacks protecting from water damage
+some messages by amorous demons and mail daemon were delivered as verbal ones
+	even when the hero is deaf
+travel couldn't find the vibrating square if it was covered by an object or
+	a monster; it isn't really a trap so treat it as special terrain
+travel would stop one step in front of known vibrating square like other traps
+fix bug which delayed burden changes due to monster actions (e.g. reverting to
+        natural form due to damage, changing carry capacity) for one turn
+on arboreal levels (Ranger quest) where STONE terrain is treated as TREE, an
+	object at a tree location would be described as "embedded in stone"
+an item at an ordinary tree location, whether the level is arboreal or not,
+	would be described as itself with no mention of the tree
+some types of shopkeeper now start with a scroll of charging
+objects are now accurately tracked as discovered even if not type-named nor
+        formally identified (fixing some bugs in scroll writing, and making
+        the discoveries list more accurate)
+you cannot sacrifice objects/corpses while stunned or confused
+'whatis' actions // and /? didn't work when the lootabc option was on, they
+	required /a and /c instead; add '/' and '?' as group accelerators so
+	that they work; /y and /n for them now only work when lootabc is off
+writing on an unidentified scroll of blank paper identifies blank paper
+dumplogs include spells and skills
+praying will not restore monster-form HP while polymorphed, unless you
+        have unchanging
+winter wolf cub was missing for monster to lycanthrope conversion
+monster elves shooting arrows weren't getting intended small to-hit and damage
+	bonuses
+luck has a reduced effect on to-hit chance
+monsters use wand of teleportation to move hero away from item pile
+lycanthrope instincts keep hero from changing shape while next to hostiles
+scroll of enchant armor formula has changed (in particular, magical armor now
+        gains less enchantment when enchanted than nonmagical armor and
+        uncursed scrolls can sometimes enchant by more than one point)
+dragonhide can rot
+throwing ammo without a launcher produces a message
+polymorphing into a large polyform unequips rather than destroying cloaks
+clarify in the #quit message that it doesn't save the game
+cursed potion of invisibility removes intrinsic invisibility
+fix bug which caused engulf damage from air elementals and fog clouds to
+        ignore damage reduction from armor class
+elementals do double damage on their home plane
+water elementals move slightly more slowly
+the "totally digested" instadeath timer is much faster
+slow monster effects are more effective against faster enemies
 
 
 Fixes to 3.7.0-x General Problems Exposed Via git Repository
@@ -1833,7 +1902,7 @@ after the fix for zombie reviving near hero (which now interrupts hero's
 	occupation), could get "revive panic" when eating a troll corpse if
 	it revived on the same turn that eating the corpse would finish
 a wizard's starting equipment was supposed to include a random spellbook of
-	spell level 1 through 3 but it was being foced to be level 1
+	spell level 1 through 3 but it was being forced to be level 1
 earlier fix for prices of unpaid objects going away in persistent inventory
 	display when hero bought something during itemized billing didn't work
 	if paying for a used-up shop item--prices of any unpaid items vanished
@@ -1923,7 +1992,7 @@ don't blame/credit hero for stinking cloud if dying quest nemesis releases one
 Lua selection operations 'subtract' and 'xor' didn't always work as intended
 accept 'true' or 'false' as value for des.object field 'trapped'
 special level loader didn't check for bad coordinates supplied by <level>.lua
-	file thorougnly enough
+	file thoroughly enough
 hero might not be credited with "entered Mine Town" achievement for the town
 	variations which treat the whole level as the town if that level gets
 	entered via falling or level teleport
@@ -2047,7 +2116,7 @@ restoring a save file could trigger impossible "rnd(0) attempted" if it tried
 	a released version, it would crash due to divide by 0 error instead
 fix regression of a post-3.6 fix:  if 2 Wizards of Yendor were in play and 1
 	escaped the dungeon, bookkeeping for current number of Wizards stayed
-	at 2, interferring with future Wizard behavior
+	at 2, interfering with future Wizard behavior
 sometimes a repeat count from the preceding command carried over to most
 	recent one when using do-again (^A); if the most recent one was an
 	extended command, the spurious repeat was for '#'
@@ -2098,6 +2167,41 @@ when walking into/against a locked closed door, 'autounlock'==kick didn't
 having a 1% chance of creating rideable monsters with worn saddle gave knights
 	a 1% chance of creating an extra saddle for starting pony; it wasn't
 	tracked with other objects so produced a trivial memory leak
+when attacking a displacer beast, using the 'F' forcefight prefix prevented it
+	from swapping places with the hero
+successfully disarming a chest trap was clearing the chest's 'tknown' bit
+	instead of setting it; likewise when failing to disarm triggered and
+	used up the trap
+when game ended with 'force_invmenu' On, final disclosure of inventory would
+	contain spurious menu entry "? - (list likely candidates)"
+avoid reporting "a gold pieces appears next to you" for mimic
+don't try to split a pudding that got jousted into a hole and is off the map
+mounted hero was able to deliver joust hits when trapped
+timer sanity check for melting ice gave false complaint about non-ice for
+	frozen moat under open drawbridge
+mhitm_ad_phys() was not applying Half_physical_damage when hero was target
+throwing crystal plate mail or helm of brilliance up against the ceiling could
+	result in the item being cracked and then vanishing
+yn_function (used all over the place) sometimes triggered an impossible()
+	during do-again (^A) processing [ongoing revisions; more are probably
+	needed; listed here in case ^A behavior changes]
+uncursed genocide while hallucinating deliberately mis-reports hero's role as
+	target but was also inappropriately showing it to livelog/#chronicle
+livelog/#chronicle for bribing a demon lord reported random monster and
+	currency if hero was hallucinating
+livelog/#chronicle for saving-grace: if saving-grace prevents hero's death,
+	report it [at present, it uses the livelog classification for breaking
+	a conduct]
+naming a type of item, unnaming it (with name of <space>), naming it again
+	(new name or re-use of old one), then unnaming it again would issue
+	impossible: "named object not in disco"
+throwing entire quiver and then picking the stack back up was not putting it
+	back into quiver
+when reading a T-shirt or apron, add trailing period to the slogan unless
+	 already present in the quoted text
+when reading an engraving, suppress the addition of a trailing period if the
+	text already has one
+cursed magic whistle could teleport hero on no-teleport levels
 
 
 Fixes to 3.7.0-x Platform and/or Interface Problems Exposed Via git Repository
@@ -2209,6 +2313,9 @@ X11: when trying to lookup scrollbars in order to handle scrolling via keys,
 X11: enable horizontal scrollbar for persistent inventory window
 X11: if a group accelerator matched a menu command ('^' in menu for '/')
 	it wouldn't work to select, just to manipulate the menu
+X11: ascii_map could try to use a color value, with some added flag bits set,
+	as an index into the color_gcs[] and inv_color_gcs[] arrays leading
+	to a segfault; clear the flag bits before using the color as an index
 X11+macOS: after the "bad Atom" fix (below), the persistent inventory window
 	crept downward every time it got updated
 
@@ -2252,7 +2359,7 @@ curses: if user's terminal was set to 'application keypad mode' (DEC VTxxx
 	"ESC SPC G"), nethack wasn't recognizing number pad keys
 curses: change petattr attributes, dropping support for curses-only ones
 curses: swap the grey and no-color color initialization
-curses+Qt: allow changing default colors with the 'palette' config option
+curses+tty+Qt: allow changing default colors with the 'palette' config option
 	(only if compiled with CHANGE_COLOR)
 curses: if messages have been issued during start-up (for instance, warnings
 	about issues in run-time config file), prompt user to press <return>
@@ -2427,6 +2534,8 @@ tty: hide cursor unless waiting for user input; now extended to include tty
 	platforms that define NO_TERMS, rather than just on those using
 	termcap/terminfo, namely Windows console and msdos (text-mode
 	implemented; vga and vesa just have stubs currently)
+tty+curses: if terminal goes away while in the wishing prompt, return to the
+	wish prompt when game is restored
 Unix: when user name is used as default character name, keep hyphenated value
 	intact instead stripping off dash and whatever follows as if that
 	specified role/race/&c (worked once upon a time; broken since 3.3.0)
@@ -2438,6 +2547,10 @@ Unix: re-do command line parsing
 Unix: add ../include/nhlua.h to the alloc.o dependencies in Makefile.utl to
 	match Makefile.src
 Unix: implement SELF_RECOVER compile-time option, on by default on linux
+Unix: allow build to succeed with musl (instead of glibc), by specifying
+	musl=1 on the make command line
+Unix: support tilde expansion for home directory path, "~/relative-path", in
+	command line --nethackrc=path and environment NETHACKOPTIONS=@path
 user_sounds: move the message hook from inside individual window display ports
 	to the core where it allows MSGTYP_NOSHOW msgtyp's to still trigger
 	sounds to correct a reported github issue; also fixes a past reported
@@ -2541,6 +2654,8 @@ item-using monsters will zap wand of undead turning at corpse-wielding hero
 	when the corpse is harmful
 boiling a pool or fountain now creates a temporary cloud of steam
 random themed rooms in the dungeons of doom
+environment variables THEMERM and THEMERMFILL can be used in wizard mode to
+	provide some control over theme room generation
 extended achievement and conduct fields for xlogfile
 record amount of gold in hero's possession in xlogfile
 new objects:  amulets of flying and guarding, helm of caution,
@@ -2617,7 +2732,7 @@ menu for what-is command supports /^ and /" to view a list of nearby or whole
 	level visible and remembered traps
 spiders will occasionally spin webs when moving around
 drinking a burning potion of oil will cure being turned into slime
-new bigroom variants, a boulder maze and hexagons
+new bigroom variants, a boulder maze, hexagons, pillars
 vomiting on an altar provokes the deities wrath
 branch stairs have a different glyph, show up in yellow color in tty
 duration of confusion when drinking booze depends upon hunger state
@@ -2755,9 +2870,6 @@ wand of secret door detection, spell of detect unseen, and wizard mode ^E now
 	flash the cursor at each location where detection finds something
 saving-grace: once per game if receiving a killing blow from full or nearly
 	full HP, survive with 1 HP
-livelog/#chronicle for saving-grace: if saving-grace prevents hero's death,
-	report it [at present, it uses the livelog classification for breaking
-	a conduct]
 enlightenment/attribute disclosure for saving-grace: include a line for have
 	or haven't been saved (game in progress) or did or didn't get saved
 	(game over) via saving-grace
@@ -2774,6 +2886,8 @@ blessed scroll of destroy armor asks which armor to destroy
 archeologists' fedora is lucky
 telepathic hero can discern which particular monster just read a scroll
 add "make fetch-docs" to download pre-formatted documentation
+monsters will use throw-and-return weapons such as an aklys
+archeologists can identify scrolls by deciphering their labels
 
 
 Platform- and/or Interface-Specific New Features
@@ -2832,7 +2946,7 @@ Unix: support --nethackrc=filename on the command line; same effect as
 	NETHACKOPTIONS='@filename' but leaves NETHACKOPTIONS available for
 	specifying options; --no-nethackrc is same as --nethackrc=/dev/null
 Windows: implement MSGHANDLER (pr #749 by argrath)
-Windows: Add configuration to support Curses on WinGUI (pr #1028 by chasonr) 
+Windows: Add configuration to support Curses on WinGUI (pr #1028 by chasonr)
 X11: implement 'selectsaved', restore via menu of saved games
 X11: echo getline prompt and response (wishes, applying names) to message
 	window and dumplog message history
@@ -2971,6 +3085,11 @@ split making pits on do_earthquake() into a separate function and
 	eliminate some gotos on do_earthquake() (pr #1287 by argrath)
 update the WASM cross-compile to work with the current
 	code (pr #1331 by guillaumebrunerie)
+add silver maces (pr #1405 by disperse)
+applied several source comment spelling or grammar fixes that were linked
+	to an old rec.games.roguelike.nethack post from May 2006
+	by Arthur J. O'Dwyer
+modernize code of LaTeX Guidebook (pr #1473 by Daniel Clow)
 
 
 Code Cleanup and Reorganization
@@ -3104,4 +3223,3 @@ relocate general-purpose function choose_classes_menu(), from
 	options.c to windows.c
 remove register from variable declarations
 make glyph_to_cmap() a function instead of a macro
-

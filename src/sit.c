@@ -32,11 +32,15 @@ take_gold(void)
     }
 }
 
+staticfn void special_throne_effect(int effect);
+
 /* maybe do something when hero sits on a throne */
 staticfn void
 throne_sit_effect(void)
 {
     coordxy tx = u.ux, ty = u.uy;
+
+    boolean special_throne = !!In_V_tower(&u.uz);
 
     if (rnd(6) > 4) { /* [why so convoluted? it's the same as '!rn2(3)'] */
         int effect = rnd(13);
@@ -54,6 +58,11 @@ throne_sit_effect(void)
             which = atoi(buf);
             if (which >= 1 && which <= 13)
                 effect = which;
+        }
+
+        if (special_throne) {
+            special_throne_effect(effect);
+            return;
         }
 
         switch (effect) {
@@ -216,7 +225,8 @@ throne_sit_effect(void)
        only happened when teleporting back to the same point where hero
        started from.]  "Analyzing a throne" doesn't really make any sense
        but if the answer is yes than it will vanish in a puff of logic. */
-    if (!rn2(3) && (!wizard || y_n("Analyze throne?") == 'y')) {
+    if (!special_throne &&
+        !rn2(3) && (!wizard || y_n("Analyze throne?") == 'y')) {
         levl[tx][ty].typ = ROOM, levl[tx][ty].flags = 0;
         map_background(tx, ty, FALSE);
         newsym_force(tx, ty);
@@ -224,6 +234,122 @@ throne_sit_effect(void)
            Douglas Adams' _The_Hitchhiker's_Guide_to_the_Galaxy_. */
         pline_The("throne %s in a puff of logic.",
                   cansee(tx, ty) ? "vanishes" : "has vanished");
+    }
+}
+
+/* special throne in Vlad's tower: effect is 1 to 13 inclusive */
+staticfn void
+special_throne_effect(int effect) {
+    coordxy tx = u.ux, ty = u.uy;
+
+    switch (effect) {
+    case 1:
+    case 2:
+    case 3:
+    case 4:
+        /* 4 chances of a wish, but then the throne disappears.
+
+           This is the only way the throne can disappear from sitting
+           on it, so if you sit on it enough (enduring the negative
+           effects) you are guaranteed an eventual wish. */
+        makewish();
+        levl[tx][ty].typ = ROOM, levl[tx][ty].flags = 0;
+        map_background(tx, ty, FALSE);
+        newsym_force(tx, ty);
+        pline_The("throne disintegrates, having spent its power.");
+        break;
+    case 5:
+        /* permanent level drain */
+        pline("Sitting on the throne was a terrible experience.");
+        if (!Drain_resistance) {
+            losexp("a bad experience sitting on a throne");
+            if (u.ulevelmax > u.ulevel)
+                u.ulevelmax -= 1;
+        }
+        break;
+    case 6:
+    {
+        /* grease hands and inventory
+
+           Same rules for which items can be affected as grease_ok in apply.c */
+        struct obj *otmp;
+
+        pline("A greasy liquid sprays all over you!");
+        for (otmp = gi.invent; otmp; otmp = otmp->nobj)
+            if (otmp->oclass != COIN_CLASS)
+                otmp->greased = 1;
+        make_glib(rn1(101, 100));
+        update_inventory();
+        break;
+    }
+    case 7:
+        /* lose an intrinsic */
+        attrcurse();
+        pline_The("throne somehow seems to be amused.");
+        break;
+    case 8:
+    {
+        /* level teleport to Vibrating Square level */
+        d_level vs_level;
+        find_hell(&vs_level);
+        vs_level.dlevel = svd.dungeons[vs_level.dnum].num_dunlevs - 1;
+        if (u.uhave.amulet)
+            You_feel("extremely disoriented for a moment.");
+        else
+            schedule_goto(
+                &vs_level, UTOTYPE_NONE, (char *) 0,
+                "You feel extremely out of place.");
+        break;
+    }
+    case 9:
+    {
+        /* summon demons; a NULL argument to msummon summons demons as
+           though they were summoned by the Wizard of Yendor */
+        pline_The("throne seeems to be calling for help!");
+        msummon(NULL);
+        msummon(NULL);
+        msummon(NULL);
+        break;
+    }
+    case 10:
+    {
+        /* confused blessed remove curse effect */
+        struct obj fake_spellbook;
+        long save_confusion = HConfusion;
+
+        fake_spellbook = cg.zeroobj;
+        fake_spellbook.otyp = SPE_REMOVE_CURSE;
+        fake_spellbook.oclass = SPBOOK_CLASS;
+        fake_spellbook.blessed = 1;
+        HConfusion = 1L;
+        (void) seffects(&fake_spellbook);
+        HConfusion = save_confusion;
+        break;
+    }
+    case 11:
+        /* polymorph effect (not blocked by magic resistance, but other things
+           that protect from polymorphs work) */
+        pline("This throne was not meant for those such as you!");
+        You_feel("a change coming over you.");
+        polyself(POLY_NOFLAGS);
+        break;
+    case 12:
+        /* acid damage */
+        pline("The throne is covered in acid!");
+        losehp(Acid_resistance ? rnd(16) : rnd(80), "acidic chair",
+               KILLED_BY_AN);
+        exercise(A_CON, FALSE);
+        break;
+    case 13:
+    {
+        /* ability shuffle */
+        int ability;
+        pline("As you sit on the throne, your body and mind start to warp.");
+        for (ability = 0; ability < A_MAX; ++ability) {
+            adjattrib(ability, rn2(5) - 2, -1);
+        }
+        break;
+    }
     }
 }
 
@@ -260,7 +386,8 @@ lay_an_egg(void)
     uegg->owt = weight(uegg);
     /* this sets hatch timers if appropriate */
     set_corpsenm(uegg, egg_type_from_parent(u.umonnum, FALSE));
-    uegg->known = uegg->dknown = 1;
+    uegg->known = 1;
+    observe_object(uegg);
     You("%s an egg.", eggs_in_water(gy.youmonst.data) ? "spawn" : "lay");
     dropy(uegg);
     stackobj(uegg);
@@ -456,8 +583,9 @@ rndcurse(void)
 
     if (Antimagic) {
         shieldeff(u.ux, u.uy);
-        You(mal_aura, "you");
     }
+
+    You(mal_aura, "you");
 
     for (otmp = gi.invent; otmp; otmp = otmp->nobj) {
         /* gold isn't subject to being cursed or blessed */

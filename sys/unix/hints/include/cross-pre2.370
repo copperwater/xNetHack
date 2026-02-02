@@ -7,9 +7,9 @@
 ifdef BUILD_TARGET_LUA
 #===============-=================================================
 # LUA library
-# Source from http://www.lua.org/ftp/lua-5.4.6.tar.gz
+# Source from http://www.lua.org/ftp/lua-5.4.8.tar.gz
 #=================================================================
-LUA_VERSION ?=5.4.6
+LUA_VERSION ?=5.4.8
 LUATOP ?= ../lib/lua-$(LUA_VERSION)
 LUASRCDIR ?= $(LUATOP)/src
 LUAOBJFILES1 =  $(TARGETPFX)lapi.o $(TARGETPFX)lauxlib.o \
@@ -119,7 +119,7 @@ ifdef CROSS_TO_MSDOS
 # 2. Then
 #     make CROSS_TO_MSDOS=1 WANT_WIN_TTY=1 WANT_WIN_CURSES=1 all
 #
-# Source from http://www.lua.org/ftp/lua-5.4.6.tar.gz
+# Source from http://www.lua.org/ftp/lua-5.4.8.tar.gz
 #=================================================================
 
 CFLAGS += -DCROSSCOMPILE
@@ -188,6 +188,7 @@ MSDOS_TARGET_CXXFLAGS = -c -O $(DBGFLAGS) -I../include -I../sys/msdos -I../win/s
 PDCINCL += -I$(PDCPORT)
 PDC_TARGET_CFLAGS = $(MSDOS_TARGET_CFLAGS) -Wno-unused-parameter \
 			-Wno-missing-prototypes
+ifndef SKIP_FONTS_IN_CI
 FONTVER = terminus-font-4.49.1
 FONTTOP = ../lib/$(FONTVER)
 DOSFONT = ../sys/msdos/fonts
@@ -195,6 +196,9 @@ FONTTARGETS = $(DOSFONT)/ter-u16b.psf $(DOSFONT)/ter-u16v.psf \
 		$(DOSFONT)/ter-u18b.psf $(DOSFONT)/ter-u20b.psf \
 		$(DOSFONT)/ter-u22b.psf $(DOSFONT)/ter-u24b.psf \
 		$(DOSFONT)/ter-u28b.psf $(DOSFONT)/ter-u32b.psf
+else
+FONTTARGETS=
+endif
 LUABIN = ../lib/lua-$(LUA_VERSION)/src/lua
 LUA_TARGET_CFLAGS = $(MSDOS_TARGET_CFLAGS)
 override TARGET_CFLAGS = $(MSDOS_TARGET_CFLAGS) $(MSDOS_PEDANTIC)
@@ -228,6 +232,7 @@ override LUALIBS=
 override TOPLUALIB=
 override GAMEBIN = $(TARGETPFX)nethack.exe
 override RECOVERBIN = $(TARGETPFX)recover.exe
+override SFCTOOLBIN = $(TARGETPFX)sfctool.exe
 override PACKAGE = dospkg
 override PREGAME += mkdir -p $(TARGETDIR) ; make $(TARGETPFX)exceptn.o ;
 override CLEANMORE += rm -f -r $(TARGETDIR) ; rm -f -r $(FONTTARGETS) ;
@@ -274,7 +279,7 @@ EMCC_LFLAGS += -s ALLOW_TABLE_GROWTH
 EMCC_LFLAGS += -s ASYNCIFY -s ASYNCIFY_IMPORTS='["local_callback"]'
 EMCC_LFLAGS += -O3
 EMCC_LFLAGS += -s MODULARIZE
-EMCC_LFLAGS += -s EXPORTED_FUNCTIONS='["_main", "_shim_graphics_set_callback", "_display_inventory", "_malloc"]'
+EMCC_LFLAGS += -s EXPORTED_FUNCTIONS='["_main", "_shim_graphics_set_callback", "_repopulate_perminvent", "_malloc"]'
 EMCC_LFLAGS += -s EXPORTED_RUNTIME_METHODS='["cwrap", "ccall", "addFunction", \
 			"removeFunction", "UTF8ToString", "stringToUTF8", "getValue", \
 			"setValue", "ENV", "FS", "IDBFS"]'

@@ -248,9 +248,7 @@ local regions = {
    },
    { lit=0,
       contents = function()
-         des.object({ id='chest', contents=function()
-            des.object({ class="/", id = "wishing", spe=1 })
-         end })
+         des.object('chest')
       end
    },
    { lit=0,

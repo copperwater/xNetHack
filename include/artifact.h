@@ -5,6 +5,10 @@
 
 #ifndef ARTIFACT_H
 #define ARTIFACT_H
+
+#include "permonst.h"
+#include "prop.h"
+
 /* clang-format off */
 
 #define SPFX_NONE   0x00000000L /* no special effects, just a bonus */
@@ -69,10 +73,27 @@ enum invoke_prop_types {
     ENLIGHTENING,
     CREATE_AMMO,
     BANISH,
+    FLING_POISON,
+    FIRESTORM,
+    SNOWSTORM,
     BLINDING_RAY,
     /* xNetHack specific ones: */
     LIGHTNING_BOLT,
     SMOKE_CLOUD
+};
+
+/* artifact tracking; gift and wish imply found; it also gets set for items
+   seen on the floor, in containers, and wielded or dropped by monsters */
+struct arti_info {
+    Bitfield(exists, 1); /* 1 if corresponding artifact has been created */
+    Bitfield(found, 1);  /* 1 if artifact is known by hero to exist */
+    Bitfield(gift, 1);   /* 1 iff artifact was created as a prayer reward */
+    Bitfield(wish, 1);   /* 1 iff artifact was created via wish */
+    Bitfield(named, 1);  /* 1 iff artifact was made by naming an item */
+    Bitfield(viadip, 1); /* 1 iff dipped long sword became Excalibur */
+    Bitfield(lvldef, 1); /* 1 iff created by special level definition */
+    Bitfield(bones, 1);  /* 1 iff came from bones file */
+    Bitfield(rndm, 1);   /* 1 iff randomly generated */
 };
 
 /* clang-format on */

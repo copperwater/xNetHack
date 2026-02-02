@@ -21,6 +21,9 @@ $(OM)/%.d: $(U)%.c $(NHLUAH) | $(OM)
 $(OR)/recover.d: $(U)recover.c | $(OR)
 	$(cce) $(CFLAGSU) $< -o$@
 
+$(OR)/rversion.d: $(SRC)/version.c | $(OR)
+	$(cce) $(CFLAGSU) -DMINIMAL_FOR_RECOVER $< -o$@
+
 $(OT)/tiletxt.d: $(WSHR)/tilemap.c $(NHLUAH) | $(OT)
 	$(cce) $(CFLAGSU) -DTILETEXT $< -o$@
 

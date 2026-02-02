@@ -1,4 +1,4 @@
-/* NetHack 3.7	detect.c	$NHDT-Date: 1721684299 2024/07/22 21:38:19 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.180 $ */
+/* NetHack 3.7	detect.c	$NHDT-Date: 1763708572 2025/11/20 23:02:52 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.191 $ */
 /* Copyright (c) Stichting Mathematisch Centrum, Amsterdam, 1985. */
 /*-Copyright (c) Robert Patrick Rankin, 2018. */
 /* NetHack may be freely redistributed.  See license for details. */
@@ -26,7 +26,7 @@ staticfn void reconstrain_map(void);
 staticfn void map_redisplay(void);
 staticfn void browse_map(unsigned, const char *);
 staticfn void map_monst(struct monst *, boolean);
-staticfn void do_dknown_of(struct obj *);
+staticfn void observe_recursively(struct obj *);
 staticfn boolean check_map_spot(coordxy, coordxy, char, unsigned);
 staticfn boolean clear_stale_map(char, unsigned);
 staticfn void sense_trap(struct trap *, coordxy, coordxy, int);
@@ -38,6 +38,7 @@ staticfn void foundone(coordxy, coordxy, int);
 staticfn void findone(coordxy, coordxy, genericptr_t);
 staticfn void openone(coordxy, coordxy, genericptr_t);
 staticfn int mfind0(struct monst *, boolean);
+staticfn boolean skip_premap_detect(coordxy, coordxy);
 staticfn int reveal_terrain_getglyph(coordxy, coordxy, unsigned, int,
                                      unsigned);
 
@@ -245,14 +246,14 @@ o_material(struct obj *obj, unsigned material)
 }
 
 staticfn void
-do_dknown_of(struct obj *obj)
+observe_recursively(struct obj *obj)
 {
     struct obj *otmp;
 
-    obj->dknown = 1;
+    observe_object(obj);
     if (Has_contents(obj)) {
         for (otmp = obj->cobj; otmp; otmp = otmp->nobj)
-            do_dknown_of(otmp);
+            observe_recursively(otmp);
     }
 }
 
@@ -666,7 +667,7 @@ object_detect(struct obj *detector, /* object doing the detecting */
 
     if (do_dknown)
         for (obj = gi.invent; obj; obj = obj->nobj)
-            do_dknown_of(obj);
+            observe_recursively(obj);
 
     for (obj = fobj; obj; obj = obj->nobj) {
         if ((!class && !boulder) || o_in(obj, class) || o_in(obj, boulder)) {
@@ -676,7 +677,7 @@ object_detect(struct obj *detector, /* object doing the detecting */
                 ct++;
         }
         if (do_dknown)
-            do_dknown_of(obj);
+            observe_recursively(obj);
     }
 
     for (obj = svl.level.buriedobjlist; obj; obj = obj->nobj) {
@@ -687,7 +688,7 @@ object_detect(struct obj *detector, /* object doing the detecting */
                 ct++;
         }
         if (do_dknown)
-            do_dknown_of(obj);
+            observe_recursively(obj);
     }
 
     if (u.usteed)
@@ -701,7 +702,7 @@ object_detect(struct obj *detector, /* object doing the detecting */
                 || o_in(obj, boulder))
                 ct++;
             if (do_dknown)
-                do_dknown_of(obj);
+                observe_recursively(obj);
         }
         if ((is_cursed && M_AP_TYPE(mtmp) == M_AP_OBJECT
              && (!class || class == objects[mtmp->mappearance].oc_class))
@@ -961,7 +962,7 @@ detect_obj_traps(
         }
         if (Is_box(otmp) && otmp->otrapped) {
             otmp->tknown = 1;
-            otmp->dknown = 1;
+            observe_object(otmp);
             result |= u_at(x, y) ? OTRAP_HERE : OTRAP_THERE;
             if (ft) {
                 flash_glyph_at(x, y, trapglyph, FOUND_FLASH_COUNT);
@@ -1495,7 +1496,7 @@ do_vicinity_map(
                    unlike object detection, we don't notice buried items */
                 otmp = svl.level.objects[zx][zy];
                 if (extended)
-                    otmp->dknown = 1;
+                    observe_object(otmp);
                 map_object(otmp, TRUE);
                 newglyph = glyph_at(zx, zy);
                 /* if otmp is underwater, we'll need to redisplay the water */
@@ -1571,7 +1572,7 @@ do_vicinity_map(
         docrt();
 }
 
-/* convert a secret door into a normal door */
+/* convert a secret door into a normal door; it might be trapped */
 void
 cvt_sdoor_to_door(struct rm *lev)
 {
@@ -1586,6 +1587,7 @@ cvt_sdoor_to_door(struct rm *lev)
      * here, but for the third bit D_LOCKED it's impossible to store what the
      * door should be when exposed. So we have to just set it randomly. */
     set_door_lock(lev, rn2(2));
+    lev->arboreal_sdoor = 0; /* clears 'candig' */
 }
 
 /* update the map for something which has just been found by wand of secret
@@ -2106,6 +2108,16 @@ warnreveal(void)
         }
 }
 
+/* skip premap detection of areas outside Sokoban map */
+staticfn boolean
+skip_premap_detect(coordxy x, coordxy y)
+{
+    if ((levl[x][y].typ == STONE)
+        && (levl[x][y].wall_info & (W_NONDIGGABLE | W_NONPASSWALL)) != 0)
+        return TRUE;
+    return FALSE;
+}
+
 /* Pre-map (the sokoban) levels */
 void
 premap_detect(void)
@@ -2117,6 +2129,8 @@ premap_detect(void)
     /* Map the background and boulders */
     for (x = 1; x < COLNO; x++)
         for (y = 0; y < ROWNO; y++) {
+            if (skip_premap_detect(x, y))
+                continue;
             levl[x][y].seenv = SVALL;
             levl[x][y].waslit = TRUE;
             if (levl[x][y].typ == SDOOR)
@@ -2154,6 +2168,12 @@ reveal_terrain_getglyph(
             keep_mons = (which_subset & TER_MON) != 0,
             do_visited = (which_subset & TER_VISIT) != 0,
             full = (which_subset & TER_FULL) != 0;
+
+    /*
+     * FIXME:
+     *  travel treats discovered vibrating square as if it were terrain
+     *  rather than a trap so this should do so too.
+     */
 
     /* for 'full', show the actual terrain for the entire level,
        otherwise what the hero remembers for seen locations with

@@ -1,4 +1,4 @@
-/* NetHack 3.7	cmd.c	$NHDT-Date: 1736401574 2025/01/08 21:46:14 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.744 $ */
+/* NetHack 3.7	cmd.c	$NHDT-Date: 1762680996 2025/11/09 01:36:36 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.755 $ */
 /* Copyright (c) Stichting Mathematisch Centrum, Amsterdam, 1985. */
 /*-Copyright (c) Robert Patrick Rankin, 2013. */
 /* NetHack may be freely redistributed.  See license for details. */
@@ -988,7 +988,7 @@ enter_explore_mode(void)
 void
 makemap_prepost(boolean pre)
 {
-    NHFILE tmpnhfp;
+    NHFILE *tmpnhfp;
     struct monst *mtmp;
 
     if (pre) {
@@ -1036,9 +1036,9 @@ makemap_prepost(boolean pre)
         dobjsfree();
 
         /* discard current level; "saving" is used to release dynamic data */
-        zero_nhfile(&tmpnhfp);  /* also sets fd to -1 as desired */
-        tmpnhfp.mode = FREEING;
-        savelev(&tmpnhfp, ledger_no(&u.uz));
+        tmpnhfp = get_freeing_nhfile();
+        savelev(tmpnhfp, ledger_no(&u.uz));
+        close_nhfile(tmpnhfp);
     } else {
         vision_reset();
         gv.vision_full_recalc = 1;
@@ -2050,8 +2050,9 @@ struct ext_func_tab extcmdlist[] = {
     /* internal commands: only used by game core, not available for user */
     { '\0', "clicklook", NULL, doclicklook, INTERNALCMD | MOUSECMD, NULL },
     { '\0', "mouseaction", NULL, domouseaction, INTERNALCMD | MOUSECMD, NULL },
-    { '\0', "altdip", NULL, dip_into, INTERNALCMD, NULL },
     { '\0', "altadjust", NULL, adjust_split, INTERNALCMD, NULL },
+    { '\0', "altdip", NULL, dip_into, INTERNALCMD, NULL },
+    { '\0', "alttakeoff", NULL, ia_dotakeoff, INTERNALCMD, NULL },
     { '\0', "altunwield", NULL, remarm_swapwep, INTERNALCMD, NULL },
     { '\0', (char *) 0, (char *) 0, donull, 0, (char *) 0 } /* sentinel */
 };
@@ -2158,7 +2159,7 @@ handler_rebind_keys_add(boolean keyfirst)
         pline("Bind which key? ");
         key = pgetchar();
 
-        if (!key || key == '\027')
+        if (!key || key == '\033')
             return;
     }
 
@@ -2223,7 +2224,7 @@ handler_rebind_keys_add(boolean keyfirst)
             pline("Bind which key? ");
             key = pgetchar();
 
-            if (!key || key == '\027')
+            if (!key || key == '\033')
                 return;
         }
 
@@ -2346,6 +2347,8 @@ handler_change_autocompletions(void)
                 parseautocomplete(buf, FALSE);
             }
         }
+        if (n > 0)
+            free((genericptr_t) picks);
     }
 
     destroy_nhwindow(win);
@@ -3311,11 +3314,19 @@ fuz_log(const char *msg)
 }
 #endif /* FUZZER_LOG */
 
+/* choose a random character, biased towards movement commands, primarily
+   for debug-fuzzer testing */
 char
 randomkey(void)
 {
     static unsigned i = 0;
+    static char last_c = '\0';
     char c;
+
+    /* give ^A and ^P a high probability of being repeated */
+    if ((last_c == C('a') || last_c == C('p'))
+        && program_state.input_state == commandInp && rn2(5))
+        return last_c;
 
     switch (rn2(16)) {
     default:
@@ -3364,6 +3375,8 @@ randomkey(void)
         break;
     }
 
+    if (program_state.input_state == commandInp)
+        last_c = c;
     return c;
 }
 
@@ -3788,9 +3801,9 @@ getdir(const char *s)
 
  retry:
     program_state.input_state = getdirInp;
-    if (gi.in_doagain || *readchar_queue)
+    if (gi.in_doagain || *readchar_queue) {
         dirsym = readchar();
-    else
+    } else {
         dirsym = yn_function((s && *s != '^') ? s : "In what direction?",
                              (char *) 0, '\0', FALSE);
 #ifdef FUZZER_LOG
@@ -3800,11 +3813,31 @@ getdir(const char *s)
         fuz_log(buf);
     }
 #endif /* FUZZER_LOG */
+
+        /* for the fuzzer, usually force the result to be a valid direction,
+           but sometimes let it exercise the invalid direction code; we
+           don't try to enforce no-diagonal for hero in grid bug form since
+           things like '^' to look at adjacent trap shouldn't be bound by
+           that (caller is expected to handle situations where it matters) */
+        if (iflags.debug_fuzzer && rn2(20)) {
+            switch (rn2(20)) {
+            case 0:
+                dirsym = gc.Cmd.spkeys[rn2(2) ? NHKF_GETDIR_SELF : NHKF_ESC];
+                break;
+            case 1:
+                dirsym = gc.Cmd.dirchars[rn2(2) ? DIR_DOWN : DIR_UP];
+                break;
+            default:
+                dirsym = gc.Cmd.dirchars[rn2(N_DIRS)];
+                break;
+            }
+        }
+    }
     /* remove the prompt string so caller won't have to */
     clear_nhwindow(WIN_MESSAGE);
 
     if (redraw_cmd(dirsym)) { /* ^R */
-        docrt();              /* redraw */
+        docrt_flags(docrtRefresh); /* redraw */
         goto retry;
     }
     if (!gi.in_doagain)
@@ -5284,7 +5317,7 @@ yn_function(
         query = qbuf;
     }
 
-    if ((cmdq = cmdq_pop()) != 0) {
+    if (addcmdq && (cmdq = cmdq_pop()) != 0) {
         cq = *cmdq;
         free(cmdq);
     } else {
@@ -5297,6 +5330,28 @@ yn_function(
             res = cq.key;
         else
             cmdq_clear(CQ_CANNED); /* 'res' is ESC */
+        addcmdq = FALSE;
+
+    /* for the fuzzer, usually force a valid response, but sometimes let
+       it exercise windowport yn_function and invalid response handling */
+    } else if (iflags.debug_fuzzer && resp && *resp && rn2(20)) {
+        int ln = (int) strlen(resp), ridx = rn2(ln);
+
+        res = resp[ridx];
+        /* if valid-responses includes ESC followed by unshown candidates
+           and we randomly picked the ESC, try again with only whatever is
+           before it; be careful to avoid rn2(0) */
+        if (res == '\033') {
+            if (ln > 1) {
+                /* if ESC is at start (ridx==0), pick something after it */
+                ridx = (ridx == 0) ? (1 + rn2(ln - 1)) : rn2(ridx);
+                res = resp[ridx];
+            } else {
+                /* ESC is the only thing (ln==1); something is strange... */
+                res = def; /* might be '\0' */
+            }
+        }
+
     } else {
 #ifdef SND_SPEECH
         if ((gp.pline_flags & PLINE_SPEECH) != 0) {
@@ -5307,9 +5362,9 @@ yn_function(
         if (!yn_function_menu(query, resp, def, &res)) {
             res = (*windowprocs.win_yn_function)(query, resp, def);
         }
-        if (addcmdq)
-            cmdq_add_key(CQ_REPEAT, res);
     }
+    if (addcmdq)
+        cmdq_add_key(CQ_REPEAT, res);
 
 #ifdef DUMPLOG_CORE
     if (idx == gs.saved_pline_index) {
@@ -5322,15 +5377,28 @@ yn_function(
     }
 #endif
     /* should not happen but cq.key has been observed to not obey 'resp';
-       do this after dumplog has recorded the potentially bad value */
-    if (resp && res && !strchr(resp, res)) {
+       it is most likely caused by saving a keystroke that was just used
+       to answer a context-sensitive prompt, then using the do-again
+       command with context that has changed */
+    if (resp && *resp && res && !strchr(resp, res)) {
         /* this probably needs refinement since caller is expecting something
            within 'resp' and ESC won't be (it could be present, but as a flag
            for unshown possibilities rather than as acceptable input) */
         int altres = def ? def : '\033';
 
-        impossible("yn_function() returned '%s'; using '%s' instead",
-                   visctrl(res), visctrl(altres));
+        if (!gi.in_doagain || wizard) {
+/*TEMP*/    xint8 fuzzing = iflags.debug_fuzzer;
+            char dbg_buf[BUFSZ];
+
+            Snprintf(dbg_buf, sizeof dbg_buf, "%s [%s] (%s)",
+                     query, resp ? resp : "", def ? visctrl(def) : "");
+            paniclog("yn debug", dbg_buf);
+/*TEMP*/    /* don't let this known problem kill the fuzzer */
+/*TEMP*/    iflags.debug_fuzzer = fuzzer_impossible_continue;
+            impossible("yn_function() returned '%s'; using '%s' instead",
+                       visctrl(res), visctrl(altres));
+/*TEMP*/    iflags.debug_fuzzer = fuzzing;
+        }
         res = altres;
     }
     /* in case we're called via getdir() which sets input_state */
@@ -5394,9 +5462,11 @@ paranoid_ynq(
             /* for empty input, return value c will already be 'n' */
         } while (ParanoidConfirm && strcmpi(ans, "no") && --trylimit);
     } else if (accept_q) {
-        c = ynq(prompt); /* 'y', 'n', or 'q' */
+        /* 'y', 'n', or 'q' */
+        c = yn_function(prompt, ynqchars, 'n', FALSE);
     } else {
-        c = y_n(prompt); /* 'y' or 'n' */
+        /* 'y' or 'n' */
+        c = yn_function(prompt, ynchars, 'n', FALSE);
     }
     if (c != 'y' && (c != 'q' || !accept_q))
         c = 'n';

@@ -43,7 +43,7 @@ BEGIN {
     # Set $is_sourcerepo while we're at it - same logic.
     {
 	    # Special case for running nhgitset against a different repo.
-	    # Must preceed the normal case!
+	    # Must precede the normal case!
 	    # NB: we use $DEVhooksdir later in the program
 	$DEVhooksdir = ($0 =~ m!^(.*)$DS!)[0];
 	chomp($DEVhooksdir);

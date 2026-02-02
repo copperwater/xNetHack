@@ -1,4 +1,4 @@
-/* NetHack 3.7	minion.c	$NHDT-Date: 1624322864 2021/06/22 00:47:44 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.60 $ */
+/* NetHack 3.7	minion.c	$NHDT-Date: 1762727599 2025/11/09 14:33:19 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.81 $ */
 /* Copyright (c) Stichting Mathematisch Centrum, Amsterdam, 1985. */
 /*-Copyright (c) Robert Patrick Rankin, 2008. */
 /* NetHack may be freely redistributed.  See license for details. */
@@ -389,6 +389,7 @@ demon_talk(struct monst *mtmp)
     long cash, demand, offer = 0L;
     struct obj *otmp, *shiny = (struct obj *) 0;
     int items_given = 0;
+    char* livelog_monnam;
 
     if (u_wield_art(ART_EXCALIBUR) || u_wield_art(ART_DEMONBANE)) {
         if (canspotmon(mtmp))
@@ -489,11 +490,16 @@ demon_talk(struct monst *mtmp)
         }
     } while (demand > 0 && rn2(4));
 
+    /* if 'mtmp' is unrecognizable due to hero's hallucination,
+       #chronicle will reveal its true identity -- just live with that;
+       also, avoid random hallucinatory currency() units */
+    livelog_monnam = x_monnam(mtmp, ARTICLE_A, (char *) 0, EXACT_NAME, FALSE);
+
     if (demand <= 0) { /* forfeited enough items to satisfy mtmp */
         verbalize("Very well, mortal. I shall not impede thy quest.");
         pline("%s vanishes, laughing to %sself.", Amonnam(mtmp), mhis(mtmp));
         livelog_printf(LL_UMONST, "bribed %s with %d items for safe passage",
-                        Amonnam(mtmp), items_given);
+                       livelog_monnam, items_given);
         /* fall through to mongone() */
     }
     else if (items_given == 0 && (cash == 0 || gm.multi < 0)) {
@@ -533,8 +539,9 @@ demon_talk(struct monst *mtmp)
             verbalize("Very well, mortal. I shall not impede thy quest.");
             pline("%s vanishes, laughing about cowardly mortals.",
                   Amonnam(mtmp));
-            livelog_printf(LL_UMONST, "bribed %s with %ld %s for safe passage",
-                           Amonnam(mtmp), offer, currency(offer));
+            livelog_printf(LL_UMONST,
+                           "bribed %s with %ld zorkmid%s for safe passage",
+                           livelog_monnam, offer, (offer == 1L ? "" : "s"));
         }
         else if (offer == cash && offer > 0 && cash >= demand / 2 && !rn2(50)) {
             /* monster may rarely take pity on you if you hand over everything
@@ -543,7 +550,7 @@ demon_talk(struct monst *mtmp)
                     Amonnam(mtmp));
             livelog_printf(LL_UMONST,
                            "turned out their pockets for %s for safe passage",
-                           Amonnam(mtmp));
+                           livelog_monnam);
         }
         else if((long) rnd(100 * ACURR(A_CHA)) > (demand - offer)) {
             /* monster may also decide that being shortchanged by a small
@@ -551,8 +558,8 @@ demon_talk(struct monst *mtmp)
             pline("%s scowls at you menacingly, then vanishes.",
                   Amonnam(mtmp));
             livelog_printf(LL_UMONST,
-                           "shortchanged %s with %ld %s for safe passage",
-                           Amonnam(mtmp), offer, currency(offer));
+                           "shortchanged %s with %ld zorkmid%s for safe passage",
+                           livelog_monnam, offer, (offer == 1L ? "" : "s"));
         }
         else {
             pline("%s gets angry...", Amonnam(mtmp));

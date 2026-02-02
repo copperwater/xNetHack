@@ -810,7 +810,7 @@ EM_JS(void, js_helpers_init, (), {
     // used by update_inventory
     function displayInventory() {
         // Asyncify.handleAsync(async () => {
-            return _display_inventory(0, 0);
+            return _repopulate_perminvent();
         // });
     }
 

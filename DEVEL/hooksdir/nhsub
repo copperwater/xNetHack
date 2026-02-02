@@ -397,7 +397,7 @@ sub cmdparse {
     }
     if($opt{cmd} eq 'commit' && $opt{a} && $#in == -1){
 		# "git commit -a" does multiple things; we only care
-		# about modigied files.
+		# about modified files.
 #XXX this assumes $RS is set properly for Windows - need to check that
 	    my @x = split(/$::RS/,`git ls-files -m`);
 	    chomp(@x);
@@ -661,7 +661,7 @@ is actually a directory, the program recurses into that directory tree.
 Not all files found are re-written; only those with the attribute
 NHSUBST (for inline substitutions) or NH_DATESUB (for template
 substitution) are considered; finally those with no substitution
-variables or no changes due to subtitution variables are not
+variables or no changes due to substitution variables are not
 re-written.  Unless changed by the options, files that have not
 changed are not affected.
 
@@ -711,7 +711,7 @@ or the changes will be overwritten with the current date.)
 
 =back
 
-=head1 SUBSTITUTION VALRIABLES
+=head1 SUBSTITUTION VARIABLES
 
 =over
 

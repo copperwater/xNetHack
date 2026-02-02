@@ -1,4 +1,4 @@
-/* NetHack 3.7	allmain.c	$NHDT-Date: 1726894914 2024/09/21 05:01:54 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.261 $ */
+/* NetHack 3.7	allmain.c	$NHDT-Date: 1744860497 2025/04/16 19:28:17 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.276 $ */
 /* Copyright (c) Stichting Mathematisch Centrum, Amsterdam, 1985. */
 /*-Copyright (c) Robert Patrick Rankin, 2012. */
 /* NetHack may be freely redistributed.  See license for details. */
@@ -104,7 +104,7 @@ moveloop_preamble(boolean resuming)
         fix_shop_damage();
     }
 
-    (void) encumber_msg(); /* in case they auto-picked up something */
+    encumber_msg(); /* in case they auto-picked up something */
     if (gd.defer_see_monsters) {
         gd.defer_see_monsters = FALSE;
         see_monsters();
@@ -112,6 +112,12 @@ moveloop_preamble(boolean resuming)
 
     u.uz0.dlevel = u.uz.dlevel;
     svc.context.move = 0;
+
+    /* finish processing "--debug:fuzzer" from the command line */
+    if (iflags.fuzzerpending) {
+        iflags.debug_fuzzer = fuzzer_impossible_panic;
+        iflags.fuzzerpending = FALSE;
+    }
 
     program_state.in_moveloop = 1;
 
@@ -195,6 +201,8 @@ moveloop_core(void)
 #ifdef POSITIONBAR
     do_positionbar();
 #endif
+    if (iflags.pending_customizations)
+        maybe_shuffle_customizations();
 
     dobjsfree();
 
@@ -204,20 +212,28 @@ moveloop_core(void)
     if (iflags.sanity_check || iflags.debug_fuzzer)
         sanity_check();
 
+    if (svc.context.resume_wish)
+        makewish(); /* clears resume_wish */
+
     if (svc.context.move) {
         /* actual time passed */
         u.umovement -= NORMAL_SPEED;
 
         do { /* hero can't move this turn loop */
-            mvl_wtcap = encumber_msg();
+            encumber_msg();
 
             svc.context.mon_moving = TRUE;
+            gu.uhp_at_start_of_monster_turn = u.uhp;
             do {
                 monscanmove = movemon();
                 if (u.umovement >= NORMAL_SPEED)
                     break; /* it's now your turn */
             } while (monscanmove);
             svc.context.mon_moving = FALSE;
+
+            /* this needs to be after the monster movement loop in
+               case monster actions affected burden, e.g. rehumanize */
+            mvl_wtcap = near_capacity();
 
             if (!monscanmove && u.umovement < NORMAL_SPEED) {
                 /* both hero and monsters are out of steam this round */
@@ -308,6 +324,8 @@ moveloop_core(void)
                     mk_dgl_extrainfo();
                 }
 #endif
+
+                gs.saving_grace_turn = FALSE;
 
                 /* One possible result of prayer is healing.  Whether or
                  * not you get healed depends on your current hit points.
@@ -462,7 +480,7 @@ moveloop_core(void)
            inventory may have changed in, e.g., nh_timeout(); we do
            need two checks here so that the player gets feedback
            immediately if their own action encumbered them */
-        (void) encumber_msg();
+        encumber_msg();
 
 #ifdef STATUS_HILITES
         if (iflags.hilite_delta)
@@ -489,6 +507,8 @@ moveloop_core(void)
         else if (!u.umoved)
             (void) pooleffects(FALSE);
 
+        gs.saving_grace_turn = FALSE;
+
         /* vision while buried or underwater is updated here */
         if (Underwater)
             under_water(0);
@@ -503,6 +523,13 @@ moveloop_core(void)
     /****************************************/
 
     clear_splitobjs();
+
+    /* the Amulet of Yendor gives a wish when initially picked up */
+    if (u.uhave.amulet && !u.uevent.amulet_wish) {
+        u.uevent.amulet_wish = 1;
+        makewish();
+    }
+
     find_ac();
     if (!svc.context.mv || Blind) {
         /* redo monsters if hallu or wearing a helm of telepathy */
@@ -818,7 +845,7 @@ init_sound_disp_gamewindows(void)
 
     WIN_MESSAGE = create_nhwindow(NHW_MESSAGE);
     if (VIA_WINDOWPORT()) {
-        status_initialize(0);
+        status_initialize(FALSE);
     } else {
         WIN_STATUS = create_nhwindow(NHW_STATUS);
     }
@@ -860,7 +887,7 @@ init_sound_disp_gamewindows(void)
     if (iflags.perm_invent_pending)
         check_perm_invent_again();
 #endif
- }
+}
 
 void
 newgame(void)
@@ -895,7 +922,7 @@ newgame(void)
                        * any artifacts */
     init_archfiends(); /* who will have a wish this game? */
 
-    u_init();
+    u_init_misc();
 
     l_nhcore_init();  /* create a Lua state that lasts until end of game */
     reset_glyphmap(gm_newgame);
@@ -930,18 +957,29 @@ newgame(void)
         HUnchanging |= FROMOUTSIDE;
     }
 
-    if (wizard)
-        obj_delivery(FALSE); /* finish wizkit */
     vision_reset();          /* set up internals for level (after mklev) */
     check_special_room(FALSE);
 
     if (MON_AT(u.ux, u.uy))
         mnexto(m_at(u.ux, u.uy), RLOC_NOMSG);
     (void) makedog();
+
+    u_init_inventory_attrs();
     docrt();
+    flush_screen(1);
+    bot();
+    while (u.uroleplay.reroll && reroll_menu()) {
+        u_init_inventory_attrs();
+        bot();
+    }
+    u_init_skills_discoveries();
+
+    if (wizard) {
+        read_wizkit();
+        obj_delivery(FALSE); /* finish wizkit */
+    }
 
     if (flags.legacy) {
-        flush_screen(1);
         com_pager(u.uroleplay.pauper ? "pauper_legacy" : "legacy");
     }
 
@@ -1094,6 +1132,7 @@ static const struct early_opt earlyopts[] = {
 #endif
     { ARG_DUMPGLYPHIDS, "dumpglyphids", 12, FALSE },
     { ARG_DUMPMONGEN, "dumpmongen", 10, FALSE },
+    { ARG_DUMPWEIGHTS, "dumpweights", 11, FALSE },
 #ifdef WIN32
     { ARG_WINDOWS, "windows", 4, TRUE },
 #endif
@@ -1198,6 +1237,9 @@ argcheck(int argc, char *argv[], enum earlyarg e_arg)
         case ARG_DUMPMONGEN:
             dump_mongen();
             return 2;
+        case ARG_DUMPWEIGHTS:
+            dump_weights();
+            return 2;
 #ifdef CRASHREPORT
         case ARG_BIDSHOW:
             crashreport_bidshow();
@@ -1230,6 +1272,7 @@ argcheck(int argc, char *argv[], enum earlyarg e_arg)
  * immediateflips   - WIN32: turn off display performance
  *                    optimization so that display output
  *                    can be debugged without buffering.
+ * fuzzer           - enable fuzzer without debugger intervention.
  */
 staticfn void
 debug_fields(const char *opts)
@@ -1274,6 +1317,8 @@ debug_fields(const char *opts)
     if (match_optname(opts, "immediateflips", 14, FALSE))
         iflags.debug.immediateflips = negated ? FALSE : TRUE;
 #endif
+    if (match_optname(opts, "fuzzer", 4, FALSE))
+        iflags.fuzzerpending = TRUE;
     return;
 }
 

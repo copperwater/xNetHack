@@ -30,9 +30,9 @@ WINSHIM=[-.win.shim]
 WINCHAIN=[-.win.chain]
 
 # Lua location relative to here
-LUAVER=546
-LUADOTVER=5.4.6
-LUAUNDERVER=5_4_6
+LUAVER=548
+LUADOTVER=5.4.8
+LUAUNDERVER=5_4_8
 LUAINC=[-.lib.lua.lua$(LUAVER).src]
 LUALIB=[-.lib.lua]lua$(LUAVER).olb
 LUASRCDIR =[-.lib.lua.lua$(LUAVER).src]
@@ -113,7 +113,7 @@ ODATE = $(OBJDIR)date.obj
 MAKEOBJS = []makedefs.obj $(OMONOBJ) $(ODATE) $(OALLOC) $(OPANIC)
 
 # object files for recovery utility
-RECOVOBJS = $(TARGETPFX)recover.obj
+RECOVOBJS = $(TARGETPFX)recover.obj $(TARGETPFX)recover_ver.obj
 
 # object files for the data librarian
 DLBOBJS = dlb_main.obj $(OBJDIR)dlb.obj $(OALLOC) $(OPANIC)
@@ -140,9 +140,9 @@ $(HACKLIB): $(HACKLIBOBJS) [-.util]panic.obj
 #	dependencies for makedefs
 #
 
-makedefs.exe:	$(HACKLIB) $(MAKEOBJS) placeholder.obj mdgrep.h
+makedefs.exe:	$(HACKLIB) $(MAKEOBJS) uplaceholder.obj mdgrep.h
 	$(CLINK) $(LFLAGS) /EXE=$@ \
-		$(addsuffix $(comma),$(MAKEOBJS)) placeholder.obj, \
+		$(addsuffix $(comma),$(MAKEOBJS)) uplaceholder.obj, \
 		$(HACKLIB)/lib
 
 # note: the headers listed here are maintained manually rather than via
@@ -158,10 +158,10 @@ makedefs.obj: makedefs.c $(SRC)mdlib.c $(CONFIG_H) \
 		$(INCL)dlb.h $(INCL)patchlevel.h mdgrep.h
 	$(CC) $(CFLAGS) $(CSTD) makedefs.c /OBJ=$@
 
-placeholder.c:
-	echo int makedefs_placeholder = 1; >$@
+uplaceholder.c:
+	echo int uplaceholder = 1; >$@
 
-placeholder.obj: placeholder.c
+uplaceholder.obj: uplaceholder.c
 
 
 # Don't require perl to build; that is why mdgrep.h is spelled wrong below.
@@ -193,13 +193,18 @@ panic.obj:     panic.c $(CONFIG_H)
 #
 #	dependencies for recover
 #
-$(TARGETPFX)recover.exe: $(HACKLIB) $(RECOVOBJS)
+$(TARGETPFX)recover.exe: $(HACKLIB) $(RECOVOBJS) uplaceholder.obj
 	$(TARGET_CLINK) $(TARGET_LFLAGS) /EXE=$@ \
-	$(RECOVOBJS),$(HACKLIB)/lib $(LIBS)
+	$(addsuffix $(comma),$(RECOVOBJS)) uplaceholder.obj, \
+	$(HACKLIB)/lib $(LIBS)
 
 $(TARGETPFX)recover.obj: recover.c $(CONFIG_H)
 	$(TARGET_CC) $(TARGET_CFLAGS) $(CSTD) recover.c /OBJ=$@
 
+$(TARGETPFX)recover_ver.obj: [-.src]version.c $(HACK_H)
+	$(TARGET_CC) $(TARGET_CFLAGS) $(CSTD) \
+		/DEFINE=(MINIMAL_FOR_RECOVER) \
+		[-.src]version.c /OBJ=$@
 
 #	dependencies for dlb
 #

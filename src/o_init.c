@@ -1,10 +1,11 @@
-/* NetHack 3.7	o_init.c	$NHDT-Date: 1720391455 2024/07/07 22:30:55 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.87 $ */
+/* NetHack 3.7	o_init.c	$NHDT-Date: 1756520041 2025/08/29 18:14:01 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.96 $ */
 /* Copyright (c) Stichting Mathematisch Centrum, Amsterdam, 1985. */
 /*-Copyright (c) Robert Patrick Rankin, 2011. */
 /* NetHack may be freely redistributed.  See license for details. */
 
 #include "hack.h"
 
+#ifndef SFCTOOL
 staticfn void setgemprobs(d_level *);
 staticfn void randomize_gem_colors(void);
 staticfn void shuffle(int, int, boolean);
@@ -347,7 +348,7 @@ shuffle_all(void)
 /* Return TRUE if the provided string matches the unidentified description of
  * the provided object. */
 boolean
-objdescr_is(struct obj* obj, const char * descr)
+objdescr_is(struct obj *obj, const char *descr)
 {
     const char *objdescr;
 
@@ -375,12 +376,15 @@ savenames(NHFILE *nhfp)
     int i;
     unsigned int len;
 
-    if (perform_bwrite(nhfp)) {
-        if (nhfp->structlevel) {
-            bwrite(nhfp->fd, (genericptr_t) svb.bases, sizeof svb.bases);
-            bwrite(nhfp->fd, (genericptr_t) svd.disco, sizeof svd.disco);
-            bwrite(nhfp->fd, (genericptr_t) objects,
-                   sizeof(struct objclass) * NUM_OBJECTS);
+    if (update_file(nhfp)) {
+        for (i = 0; i < (MAXOCLASSES + 2); ++i) {
+            Sfo_int(nhfp, &svb.bases[i], "names-bases");
+        }
+        for (i = 0; i < NUM_OBJECTS; ++i) {
+            Sfo_short(nhfp, &svd.disco[i], "names-disco");
+        }
+        for (i = 0; i < NUM_OBJECTS; ++i) {
+            Sfo_objclass(nhfp, &objects[i], "names-objclass");
         }
     }
     /* as long as we use only one version of Hack we
@@ -388,12 +392,11 @@ savenames(NHFILE *nhfp)
        oc_uname for all objects */
     for (i = 0; i < NUM_OBJECTS; i++)
         if (objects[i].oc_uname) {
-            if (perform_bwrite(nhfp)) {
+            if (update_file(nhfp)) {
                 len = Strlen(objects[i].oc_uname) + 1;
-                if (nhfp->structlevel) {
-                    bwrite(nhfp->fd, (genericptr_t) &len, sizeof len);
-                    bwrite(nhfp->fd, (genericptr_t) objects[i].oc_uname, len);
-                }
+                Sfo_unsigned(nhfp, &len, "names-len");
+                Sfo_char(nhfp, objects[i].oc_uname, "names-oc_uname",
+                             (int) len);
             }
             if (release_data(nhfp)) {
                 free((genericptr_t) objects[i].oc_uname);
@@ -401,6 +404,7 @@ savenames(NHFILE *nhfp)
             }
         }
 }
+#endif /* !SFCTOOL */
 
 void
 restnames(NHFILE *nhfp)
@@ -408,63 +412,77 @@ restnames(NHFILE *nhfp)
     int i;
     unsigned int len = 0;
 
-    if (nhfp->structlevel) {
-        mread(nhfp->fd, (genericptr_t) svb.bases, sizeof svb.bases);
-        mread(nhfp->fd, (genericptr_t) svd.disco, sizeof svd.disco);
-        mread(nhfp->fd, (genericptr_t) objects,
-              NUM_OBJECTS * sizeof (struct objclass));
+    for (i = 0; i < (MAXOCLASSES + 2); ++i) {
+        Sfi_int(nhfp, &svb.bases[i], "names-bases");
+    }
+    for (i = 0; i < NUM_OBJECTS; ++i) {
+        Sfi_short(nhfp, &svd.disco[i], "names-disco");
+    }
+    for (i = 0; i < NUM_OBJECTS; ++i) {
+        Sfi_objclass(nhfp, &objects[i], "names-objclass");
     }
     for (i = 0; i < NUM_OBJECTS; i++) {
         if (objects[i].oc_uname) {
-            if (nhfp->structlevel) {
-                mread(nhfp->fd, (genericptr_t) &len, sizeof len);
-            }
+            Sfi_unsigned(nhfp, &len, "names-len");
             objects[i].oc_uname = (char *) alloc(len);
-            if (nhfp->structlevel) {
-                mread(nhfp->fd, (genericptr_t) objects[i].oc_uname, len);
-            }
+            Sfi_char(nhfp, objects[i].oc_uname, "names-oc_uname", (int) len);
         }
     }
+#ifndef SFCTOOL
 #ifdef TILES_IN_GLYPHMAP
     shuffle_tiles();
 #endif
+#endif
+}
+
+#ifndef SFCTOOL
+/* make the object dknown and mark it as encountered */
+void
+observe_object(struct obj *obj)
+{
+    obj->dknown = 1;
+    discover_object(obj->otyp, FALSE, TRUE, FALSE);
 }
 
 void
 discover_object(
     int oindx,
     boolean mark_as_known,
+    boolean mark_as_encountered,
     boolean credit_hero)
 {
-    if (!objects[oindx].oc_name_known
+    if (oindx < FIRST_OBJECT) /* don't discover generic objects */
+        return;
+
+    if ((!objects[oindx].oc_name_known && mark_as_known)
+        || (!objects[oindx].oc_encountered && mark_as_encountered)
         || (Role_if(PM_SAMURAI)
             && Japanese_item_name(oindx, (const char *) 0))) {
         int dindx, acls = objects[oindx].oc_class;
 
         /* Loop thru disco[] 'til we find the target (which may have been
            uname'd) or the next open slot; one or the other will be found
-           before we reach the next class...
-         */
+           before we reach the next class... */
         for (dindx = svb.bases[acls]; svd.disco[dindx] != 0; dindx++)
             if (svd.disco[dindx] == oindx)
                 break;
         svd.disco[dindx] = oindx;
 
-        /* if already known, we forced an item with a Japanese name into
-           disco[] but don't want to exercise wisdom or update perminv */
-        if (objects[oindx].oc_name_known)
-            return;
+        if (mark_as_encountered)
+            objects[oindx].oc_encountered = 1;
 
-        if (mark_as_known) {
+        if (!objects[oindx].oc_name_known && mark_as_known) {
             objects[oindx].oc_name_known = 1;
             if (credit_hero)
                 exercise(A_WIS, TRUE);
-        }
-        /* !in_moveloop => initial inventory, gameover => final disclosure */
-        if (program_state.in_moveloop && !program_state.gameover) {
-            if (objects[oindx].oc_class == GEM_CLASS)
-                gem_learned(oindx); /* could affect price of unpaid gems */
-            update_inventory();
+
+            /* !in_moveloop => initial inventory,
+               gameover => final disclosure */
+            if (program_state.in_moveloop && !program_state.gameover) {
+                if (objects[oindx].oc_class == GEM_CLASS)
+                    gem_learned(oindx); /* could affect price of unpaid gems */
+                update_inventory();
+            }
         }
     }
 }
@@ -473,7 +491,7 @@ discover_object(
 void
 undiscover_object(int oindx)
 {
-    if (!objects[oindx].oc_name_known) {
+    if (!objects[oindx].oc_name_known && !objects[oindx].oc_encountered) {
         int dindx, acls = objects[oindx].oc_class;
         boolean found = FALSE;
 
@@ -495,7 +513,6 @@ undiscover_object(int oindx)
 
         if (objects[oindx].oc_class == GEM_CLASS)
             gem_learned(oindx); /* ok, it's actually been unlearned */
-        update_inventory();
     }
 }
 
@@ -508,9 +525,11 @@ interesting_to_discover(int i)
     if (Role_if(PM_SAMURAI) && Japanese_item_name(i, (const char *) 0))
         return TRUE;
 
-    /* Pre-discovered objects are now printed with a '*' */
+    /* Objects that were discovered without encountering them are now printed
+       with a '*' */
     return (boolean) (objects[i].oc_uname != (char *) 0
-                      || (objects[i].oc_name_known
+                      || ((objects[i].oc_name_known
+                           || objects[i].oc_encountered)
                           && OBJ_DESCR(objects[i]) != (char *) 0));
 }
 
@@ -544,7 +563,7 @@ sortloot_descr(int otyp, char *outbuf)
     o = cg.zeroobj;
     o.otyp = otyp;
     o.oclass = objects[otyp].oc_class;
-    o.dknown = 1;
+    o.dknown = 1; /* not observe_object, this isn't a real object */
     o.known = (objects[otyp].oc_name_known || !objects[otyp].oc_uses_known)
               ? 1 : 0;
     o.corpsenm = NON_PM; /* suppress statue and figurine details */
@@ -561,6 +580,7 @@ sortloot_descr(int otyp, char *outbuf)
             sl_cookie.orderclass, sl_cookie.subclass, sl_cookie.disco);
     return outbuf;
 }
+#endif /* !SFCTOOL */
 
 #define DISCO_BYCLASS      0 /* by discovery order within each class */
 #define DISCO_SORTLOOT     1 /* by discovery order within each subclass */
@@ -575,6 +595,8 @@ static const char *const disco_orders_descr[] = {
     "alphabetical across all classes",
     (char *) 0
 };
+
+#ifndef SFCTOOL
 
 int
 choose_disco_sort(
@@ -683,9 +705,10 @@ disco_append_typename(char *buf, int dis)
 
 /* sort and output sorted_lines to window and free the lines */
 staticfn void
-disco_output_sorted(winid tmpwin,
-                    char **sorted_lines, int sorted_ct,
-                    boolean lootsort)
+disco_output_sorted(
+    winid tmpwin,
+    char **sorted_lines, int sorted_ct,
+    boolean lootsort)
 {
     char *p;
     int j;
@@ -693,6 +716,7 @@ disco_output_sorted(winid tmpwin,
     qsort(sorted_lines, sorted_ct, sizeof (char *), discovered_cmp);
     for (j = 0; j < sorted_ct; ++j) {
         p = sorted_lines[j];
+        assert(p != NULL); /* pacify static analyzer */
         if (lootsort) {
             p[6] = p[0]; /* '*' or ' ' */
             p += 6;
@@ -773,7 +797,7 @@ dodiscovered(void) /* free after Robert Viduya */
                         prev_class = oclass;
                     }
                 }
-                Strcpy(buf,  objects[dis].oc_pre_discovered ? "* " : "  ");
+                Strcpy(buf, objects[dis].oc_encountered ? "  " : "* ");
                 if (lootsort)
                     (void) sortloot_descr(dis, &buf[2]);
                 disco_append_typename(buf, dis);
@@ -1000,7 +1024,7 @@ doclassdisco(void)
              ++i) {
             if ((dis = svd.disco[i]) != 0 && interesting_to_discover(dis)) {
                 ++ct;
-                Strcpy(buf,  objects[dis].oc_pre_discovered ? "* " : "  ");
+                Strcpy(buf, objects[dis].oc_encountered ? "  " : "* ");
                 if (lootsort)
                     (void) sortloot_descr(dis, &buf[2]);
                 disco_append_typename(buf, dis);
@@ -1103,13 +1127,14 @@ rename_disco(void)
             odummy.quan = 1L;
             odummy.known = !objects[dis].oc_uses_known;
             odummy.material = objects[dis].oc_material;
-            odummy.dknown = 1;
+            odummy.dknown = 1; /* not observe_object: it isn't real */
             docall(&odummy);
         }
     }
     destroy_nhwindow(tmpwin);
     return;
 }
+#endif /* !SFCTOOL */
 
 void
 get_sortdisco(char *opts, boolean cnf)

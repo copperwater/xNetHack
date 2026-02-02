@@ -24,7 +24,7 @@ staticfn int postmov(struct monst *, struct permonst *, coordxy, coordxy, int,
 staticfn boolean can_hide_under_obj(struct obj *obj);
 staticfn boolean leppie_avoidance(struct monst *);
 staticfn void leppie_stash(struct monst *);
-staticfn boolean m_balks_at_approaching(struct monst *);
+staticfn int m_balks_at_approaching(int, struct monst *, int *, int *);
 staticfn boolean stuff_prevents_passage(struct monst *);
 staticfn int vamp_shift(struct monst *, struct permonst *, boolean);
 staticfn void maybe_spin_web(struct monst *);
@@ -261,24 +261,33 @@ boolean
 onscary(coordxy x, coordxy y, struct monst *mtmp)
 {
     struct engr *ep;
+    /* <0,0> is used by musical scaring;
+     * it doesn't care about scrolls or engravings or dungeon branch */
+    boolean auditory_scare = (x == 0 && y == 0),
+            magical_scare = !auditory_scare;
 
-    /* creatures who are directly resistant to magical scaring:
-     * humans aren't monsters
-     * uniques have ascended their base monster instincts
-     * Rodney, lawful minions, Angels, the Riders, shopkeepers
-     * inside their own shop, priests inside their own temple, uniques,
-     * zombies */
+    /* creatures who are directly resistant to any type of scaring:
+     * Rodney, lawful minions, Angels, the Riders, zombies */
     if (mtmp->iswiz || is_lminion(mtmp) || mtmp->data == &mons[PM_ANGEL]
-        || is_rider(mtmp->data)
-        || mtmp->data->mlet == S_HUMAN || unique_corpstat(mtmp->data)
-        || (mtmp->isshk && inhishop(mtmp))
-        || (mtmp->ispriest && inhistemple(mtmp))
-        || (mtmp->data->geno & G_UNIQ) || is_zombie(mtmp->data))
+        || is_rider(mtmp->data) || is_zombie(mtmp->data))
         return FALSE;
 
-    /* <0,0> is used by musical scaring to check for the above;
-     * it doesn't care about scrolls or engravings or dungeon branch */
-    if (x == 0 && y == 0)
+    /* creatures who are directly resistant to magical scaring
+     * based on the mere presence of something at a location:
+     * humans etc.
+     * uniques have ascended their base monster instincts */
+    if (magical_scare
+        && (mtmp->data->mlet == S_HUMAN || unique_corpstat(mtmp->data)))
+        return FALSE;
+
+    /* creatues who resist scaring under particular circumstances:
+     * shopkeepers inside their own shop
+     * priests inside their own temple */
+    if ((mtmp->isshk && inhishop(mtmp))
+        || (mtmp->ispriest && inhistemple(mtmp)))
+        return FALSE;
+
+    if (auditory_scare)
         return TRUE;
 
     /* should this still be true for defiled/molochian altars? */
@@ -313,7 +322,7 @@ onscary(coordxy x, coordxy y, struct monst *mtmp)
                 || (ep->guardobjects && vobj_at(x, y)))
             && !(mtmp->isshk || mtmp->isgd || !mtmp->mcansee
                  || mtmp->mpeaceful
-                 || mtmp->data->mlet == S_HUMAN || mtmp->data->mlet == S_ELF
+                 || mtmp->data->mlet == S_ELF
                  || mtmp->data == &mons[PM_MINOTAUR]
                  || Inhell || In_endgame(&u.uz)));
 }
@@ -785,22 +794,8 @@ dochug(struct monst *mtmp)
         return 0; /* dead or gone */
     }
 
-    /* Erinyes will inform surrounding monsters of your crimes */
-    if (mdat == &mons[PM_ERINYS] && !mtmp->mpeaceful && m_canseeu(mtmp))
-        aggravate();
-
-    /* Shriekers and Medusa have irregular abilities which must be
-       checked every turn. These abilities do not cost a turn when
-       used. */
-    if (mdat->msound == MS_SHRIEK && !um_dist(mtmp->mx, mtmp->my, 1))
-        m_respond(mtmp);
-    if (mdat->msound == MS_ROAR && !um_dist(mtmp->mx, mtmp->my, 10) && !rn2(30)
-        && couldsee(mtmp->mx, mtmp->my))
-        m_respond(mtmp);
-    if (mdat == &mons[PM_NAZGUL])
-        m_respond(mtmp);
-    if (mdat == &mons[PM_MEDUSA] && couldsee(mtmp->mx, mtmp->my))
-        m_respond(mtmp);
+    /* some monsters have special abilities */
+    m_respond(mtmp);
     if (DEADMONSTER(mtmp))
         return 1; /* m_respond gaze can kill medusa */
 
@@ -1211,9 +1206,7 @@ itsstuck(struct monst *mtmp)
 boolean
 should_displace(
     struct monst *mtmp,
-    coord *poss, /* coord poss[9] */
-    long *info,  /* long info[9] */
-    int cnt,
+    const struct mfndposdata *data,
     coordxy ggx,
     coordxy ggy)
 {
@@ -1223,11 +1216,11 @@ should_displace(
     int i, nx, ny;
     int ndist;
 
-    for (i = 0; i < cnt; i++) {
-        nx = poss[i].x;
-        ny = poss[i].y;
+    for (i = 0; i < data->cnt; i++) {
+        nx = data->poss[i].x;
+        ny = data->poss[i].y;
         ndist = dist2(nx, ny, ggx, ggy);
-        if (MON_AT(nx, ny) && (info[i] & ALLOW_MDISP) && !(info[i] & ALLOW_M)
+        if (MON_AT(nx, ny) && (data->info[i] & ALLOW_MDISP) && !(data->info[i] & ALLOW_M)
             && !undesirable_disp(mtmp, nx, ny)) {
             if (shortest_with_displacing == -1
                 || (ndist < shortest_with_displacing))
@@ -1314,32 +1307,57 @@ leppie_stash(struct monst *mtmp)
     }
 }
 
-/* does monster want to avoid you? */
-staticfn boolean
-m_balks_at_approaching(struct monst *mtmp)
+/* does monster want to avoid you?
+ *  returns the original value of appr if not.
+ *  returns -1 if so.
+ *  returns -2 if monster wants to adhere to a particular range,
+ *             which may actually be further away,
+ *             and sets *pdistmin and *pdistmax to describe that range
+ */
+staticfn int
+m_balks_at_approaching(int oldappr, struct monst *mtmp, int *pdistmin,
+                       int *pdistmax)
 {
+    struct obj *mwep = MON_WEP(mtmp);
+    coordxy x = mtmp->mx, y = mtmp->my, ux = mtmp->mux, uy = mtmp->muy;
+    int edist = dist2(x, y, ux, uy);
+    const struct throw_and_return_weapon *arw;
+
+    if (pdistmin)
+        *pdistmin = 0;
+    if (pdistmax)
+        *pdistmax = 0;
+
     /* peaceful, far away, or can't see you */
-    if (mtmp->mpeaceful
-        || (dist2(mtmp->mx, mtmp->my, mtmp->mux, mtmp->muy) >= 5*5)
-        || !m_canseeu(mtmp))
-        return FALSE;
+    if (mtmp->mpeaceful || (edist >= 5 * 5) || !m_canseeu(mtmp))
+        return oldappr;
 
     /* has ammo+launcher */
     if (m_has_launcher_and_ammo(mtmp))
-        return TRUE;
+        return -1;
 
     /* is using a polearm and in range */
     if (MON_WEP(mtmp) && is_pole(MON_WEP(mtmp))
-        && dist2(mtmp->mx, mtmp->my, mtmp->mux, mtmp->muy) <= MON_POLE_DIST)
-        return TRUE;
+        && edist <= MON_POLE_DIST)
+        return -1;
+
+    /* is using a throw-and-return weapon; provide min and max preferred range
+     */
+    if (mwep && (arw = autoreturn_weapon(mwep)) != 0) {
+        if (pdistmin)
+            *pdistmin = 2 * 2;
+        if (pdistmax)
+            *pdistmax = arw->range;
+        return -2;
+    }
 
     /* can attack from distance, and hp loss or attack not used */
     if (ranged_attk_available(mtmp)
         && ((mtmp->mhp < (mtmp->mhpmax+1) / 3)
             || !mtmp->mspec_used))
-        return TRUE;
+        return -1;
 
-    return FALSE;
+    return oldappr; /* leaves appr unchanged */
 }
 
 staticfn boolean
@@ -1769,8 +1787,9 @@ m_move(struct monst *mtmp, int after)
     boolean better_with_displacing = FALSE;
     unsigned seenflgs;
     struct permonst *ptr;
-    int chi, mmoved = MMOVE_NOTHING; /* not strictly nec.: chi >= 0 will do */
-    long info[9];
+    int chi, mmoved = MMOVE_NOTHING, /* not strictly nec.: chi >= 0 will do */
+        preferredrange_min = 0, preferredrange_max = 0;
+    struct mfndposdata mfp;
     long flag;
     coordxy omx = mtmp->mx, omy = mtmp->my;
 
@@ -1918,8 +1937,7 @@ m_move(struct monst *mtmp, int after)
             appr = -1;
 
         /* hostiles with ranged weapon or attack try to stay away */
-        if (m_balks_at_approaching(mtmp))
-            appr = -1;
+        appr = m_balks_at_approaching(appr, mtmp, &preferredrange_min, &preferredrange_max);
 
         if (!should_see && can_track(ptr)) {
             coord *cp;
@@ -1965,9 +1983,8 @@ m_move(struct monst *mtmp, int after)
         int jcnt, cnt;
         int ndist, nidist;
         coord *mtrk;
-        coord poss[9];
 
-        cnt = mfndpos(mtmp, poss, info, flag);
+        cnt = mfndpos(mtmp, &mfp, flag);
         if (cnt == 0 && !is_unicorn(mtmp->data)) {
             if (find_defensive(mtmp, TRUE) && use_defensive(mtmp))
                 return MMOVE_DONE;
@@ -1984,22 +2001,22 @@ m_move(struct monst *mtmp, int after)
         if (is_unicorn(ptr) && noteleport_level(mtmp)) {
             /* on noteleport levels, perhaps we cannot avoid hero */
             for (i = 0; i < cnt; i++)
-                if (!(info[i] & NOTONL))
+                if (!(mfp.info[i] & NOTONL))
                     avoid = TRUE;
         }
         better_with_displacing =
-            should_displace(mtmp, poss, info, cnt, ggx, ggy);
+            should_displace(mtmp, &mfp, ggx, ggy);
         for (i = 0; i < cnt; i++) {
-            if (avoid && (info[i] & NOTONL))
+            if (avoid && (mfp.info[i] & NOTONL))
                 continue;
-            nx = poss[i].x;
-            ny = poss[i].y;
+            nx = mfp.poss[i].x;
+            ny = mfp.poss[i].y;
 
             if (m_avoid_kicked_loc(mtmp, nx, ny))
                 continue;
 
-            if (MON_AT(nx, ny) && (info[i] & ALLOW_MDISP)
-                && !(info[i] & ALLOW_M) && !better_with_displacing)
+            if (MON_AT(nx, ny) && (mfp.info[i] & ALLOW_MDISP)
+                && !(mfp.info[i] & ALLOW_M) && !better_with_displacing)
                 continue;
             if (appr != 0) {
                 mtrk = &mtmp->mtrack[0];
@@ -2012,7 +2029,11 @@ m_move(struct monst *mtmp, int after)
             nearer = ((ndist = dist2(nx, ny, ggx, ggy)) < nidist);
 
             if ((appr == 1 && nearer) || (appr == -1 && !nearer)
-                || (!appr && !rn2(++chcnt)) || (mmoved == MMOVE_NOTHING)) {
+                || (!appr && !rn2(++chcnt))
+                || (appr == -2
+                    && ((ndist <= preferredrange_min && !nearer)
+                        || (ndist >= preferredrange_max && nearer)))
+                || (mmoved == MMOVE_NOTHING)) {
                 nix = nx;
                 niy = ny;
                 nidist = ndist;
@@ -2053,8 +2074,8 @@ m_move(struct monst *mtmp, int after)
          * mfndpos) has no effect for normal attacks, though it lets a
          * confused monster attack you by accident.
          */
-        assert(IndexOk(chi, info));
-        if (info[chi] & ALLOW_U) {
+        assert(IndexOk(chi, mfp.info));
+        if (mfp.info[chi] & ALLOW_U) {
             nix = mtmp->mux;
             niy = mtmp->muy;
         }
@@ -2069,7 +2090,7 @@ m_move(struct monst *mtmp, int after)
          * Pets get taken care of above and shouldn't reach this code.
          * Conflict gets handled even farther away (movemon()).
          */
-        if ((info[chi] & ALLOW_M) != 0
+        if ((mfp.info[chi] & ALLOW_M) != 0
             || (nix == mtmp->mux && niy == mtmp->muy))
             return m_move_aggress(mtmp, nix, niy);
 
@@ -2080,7 +2101,7 @@ m_move(struct monst *mtmp, int after)
             return MMOVE_NOTHING;
         }
 
-        if ((info[chi] & ALLOW_MDISP) != 0) {
+        if ((mfp.info[chi] & ALLOW_MDISP) != 0) {
             struct monst *mtmp2;
             int mstatus;
 
@@ -2097,7 +2118,7 @@ m_move(struct monst *mtmp, int after)
         if (!m_in_out_region(mtmp, nix, niy))
             return MMOVE_DONE;
 
-        if ((info[chi] & ALLOW_ROCK) && m_can_break_boulder(mtmp)) {
+        if ((mfp.info[chi] & ALLOW_ROCK) && m_can_break_boulder(mtmp)) {
             (void) m_break_boulder(mtmp, nix, niy);
             return MMOVE_DONE;
         }

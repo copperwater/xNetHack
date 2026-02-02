@@ -1,4 +1,4 @@
-/* NetHack 3.7	objnam.c	$NHDT-Date: 1737528848 2025/01/21 22:54:08 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.444 $ */
+/* NetHack 3.7	objnam.c	$NHDT-Date: 1745114235 2025/04/19 17:57:15 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.453 $ */
 /* Copyright (c) Stichting Mathematisch Centrum, Amsterdam, 1985. */
 /*-Copyright (c) Robert Patrick Rankin, 2011. */
 /* NetHack may be freely redistributed.  See license for details. */
@@ -222,8 +222,7 @@ obj_typename(int otyp)
     buf[0] = '\0'; /* redundant */
     switch (ocl->oc_class) {
     case COIN_CLASS:
-        Strcpy(buf, "coin");
-        break;
+        return strcpy(buf, actualn); /* "gold piece" */
     case POTION_CLASS:
         Strcpy(buf, "potion");
         break;
@@ -254,9 +253,17 @@ obj_typename(int otyp)
         if (dn)
             Sprintf(eos(buf), " (%s)", dn);
         return buf;
+    case ARMOR_CLASS:
+        if (objects[otyp].oc_armcat == ARM_GLOVES
+            || objects[otyp].oc_armcat == ARM_BOOTS)
+            Strcpy(buf, "pair of ");
+        else if (otyp >= GRAY_DRAGON_SCALES && otyp <= YELLOW_DRAGON_SCALES)
+            Strcpy(buf, "set of ");
+        FALLTHROUGH;
+        /*FALLTHRU*/
     default:
         if (nn) {
-            Strcpy(buf, actualn);
+            Strcat(buf, actualn);
             if (GemStone(otyp))
                 Strcat(buf, " stone");
             if (un) /* 3: length of " (" + ")" which will enclose 'dn' */
@@ -264,7 +271,7 @@ obj_typename(int otyp)
             if (dn)
                 Sprintf(eos(buf), " (%s)", dn);
         } else {
-            Strcpy(buf, dn ? dn : actualn);
+            Strcat(buf, dn ? dn : actualn);
             if (ocl->oc_class == GEM_CLASS)
                 Strcat(buf,
                        (ocl->oc_material == MINERAL) ? " stone" : " gem");
@@ -620,7 +627,7 @@ xname_flags(
     if (!nn && ocl->oc_uses_known && ocl->oc_unique)
         obj->known = 0;
     if (!Blind && !gd.distantname)
-        obj->dknown = 1;
+        observe_object(obj);
     if (Role_if(PM_CLERIC))
         obj->bknown = 1; /* avoid set_bknown() to bypass update_inventory() */
     /* rangers of a certain level/skill auto-know ammo enchantments */
@@ -1080,6 +1087,8 @@ minimal_xname(struct obj *obj)
     bareobj = cg.zeroobj;
     bareobj.otyp = otyp;
     bareobj.oclass = obj->oclass;
+    /* not observe_object, either the hero observed the object already or this
+       is overriding ID and shouldn't discover the object */
     bareobj.dknown = (obj->dknown || iflags.override_ID) ? 1 : 0;
     /* suppress known except for amulets (needed for fakes and real A-of-Y) */
     bareobj.known = (obj->oclass == AMULET_CLASS)
@@ -1212,14 +1221,16 @@ add_erosion_words(struct obj *obj, char *prefix)
             Strcat(prefix, "indestructible ");
         else if (iscrys)
             Strcat(prefix, "fixed ");
-        else if (is_crackable(obj))
-            Strcat(prefix, "tempered ");
         else if (is_rustprone(obj))
             Strcat(prefix, "rustproof ");
         else if (is_corrodeable(obj))
             Strcat(prefix, "corrodeproof ");
         else if (is_flammable(obj))
             Strcat(prefix, "fireproof ");
+        else if (is_crackable(obj))
+            Strcat(prefix, "tempered ");
+        else if (is_rottable(obj))
+            Strcat(prefix, "rotproof ");
     }
 }
 
@@ -2006,7 +2017,8 @@ killer_xname(struct obj *obj)
         save_oname = ONAME(obj);
 
     /* killer name should be more specific than general xname; however, exact
-       info like blessed/cursed and rustproof makes things be too verbose */
+       info like blessed/cursed and rustproof makes things be too verbose; set
+       dknown (not observe_object) because dead characters don't observe */
     obj->known = obj->dknown = 1;
     obj->bknown = obj->rknown = obj->greased = 0;
     /* if character is a priest[ess], bknown will get toggled back on */
@@ -3621,7 +3633,7 @@ staticfn struct obj *
 wizterrainwish(struct _readobjnam_data *d)
 {
     struct rm *lev;
-    boolean madeterrain = FALSE, badterrain = FALSE, didblock, is_dbridge;
+    boolean madeterrain = FALSE, badterrain = FALSE, is_dbridge;
     int trap;
     unsigned oldtyp, ltyp;
     coordxy x = u.ux, y = u.uy;
@@ -3653,7 +3665,6 @@ wizterrainwish(struct _readobjnam_data *d)
     lev = &levl[x][y];
     oldtyp = lev->typ;
     is_dbridge = (oldtyp == DRAWBRIDGE_DOWN || oldtyp == DRAWBRIDGE_UP);
-    didblock = does_block(x, y, lev);
     p = eos(bp);
     if (!BSTRCMPI(bp, p - 8, "fountain")) {
         lev->typ = FOUNTAIN;
@@ -3956,14 +3967,7 @@ wizterrainwish(struct _readobjnam_data *d)
         } else {
             if (u.utrap && u.utraptype == TT_LAVA && !is_lava(u.ux, u.uy))
                 reset_utrap(FALSE);
-
-            if (does_block(x, y, lev)) {
-                if (!didblock)
-                    block_point(x, y);
-            } else {
-                if (didblock)
-                    unblock_point(x, y);
-            }
+            recalc_block_point(x, y);
         }
 
         /* fixups for replaced terrain that aren't handled above */
@@ -4851,8 +4855,8 @@ readobjnam_postparse1(struct _readobjnam_data *d)
         return 4; /*goto any;*/
     }
 
-    /* Search for class names: XXXXX potion, scroll of XXXXX.  Avoid */
-    /* false hits on, e.g., rings for "ring mail". */
+    /* Search for class names: XXXXX potion, scroll of XXXXX.
+       Avoid false hits on, e.g., rings for "ring mail". */
     if (strncmpi(d->bp, "enchant ", 8)
         && strncmpi(d->bp, "destroy ", 8)
         && strncmpi(d->bp, "detect food", 11)
@@ -4894,10 +4898,24 @@ readobjnam_postparse1(struct _readobjnam_data *d)
                     if (d->p > d->bp && d->p[-1] == ' ')
                         d->p[-1] = '\0';
                 } else {
+                    int k, l;
+                    char amubuf[BUFSZ];
+
                     /* amulet without "of"; convoluted wording but better a
                        special case that's handled than one that's missing */
                     if (!strncmpi(d->bp, "versus poison ", 14)) {
                         d->typ = AMULET_VERSUS_POISON;
+                        return 2; /*goto typfnd;*/
+                    }
+                    /* check for "<shape> amulet"; strip off trailing
+                       " amulet" for that w/o changing contents of d->bp */
+                    l = (int) strlen(d->bp) - j;
+                    if (l > 0 && d->bp[l - 1] == ' ')
+                        l -= 1;
+                    copynchars(amubuf, d->bp, min(l, (int) sizeof amubuf - 1));
+                    k = rnd_otyp_by_namedesc(amubuf, AMULET_CLASS, 0);
+                    if (k != STRANGE_OBJECT) {
+                        d->typ = k;
                         return 2; /*goto typfnd;*/
                     }
                 }
@@ -5678,6 +5696,9 @@ readobjnam(char *bp, struct obj *no_wish)
             d.otmp->opoisoned = 1;
     }
 
+    if (permapoisoned(d.otmp))
+        d.otmp->opoisoned = 1;
+
     /* more wishing abuse: don't allow wishing for certain artifacts */
     /* and make them pay; charge them for the wish anyway! */
     if ((is_quest_artifact(d.otmp)
@@ -5748,7 +5769,7 @@ readobjnam(char *bp, struct obj *no_wish)
     }
     d.otmp->owt = weight(d.otmp);
     if (d.very && d.otmp->otyp == HEAVY_IRON_BALL)
-        d.otmp->owt += IRON_BALL_W_INCR;
+        d.otmp->owt += WT_IRON_BALL_INCR;
 
     return d.otmp;
 }

@@ -1,4 +1,4 @@
-/* NetHack 3.7	context.h	$NHDT-Date: 1646428003 2022/03/04 21:06:43 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.45 $ */
+/* NetHack 3.7	context.h	$NHDT-Date: 1753856387 2025/07/29 22:19:47 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.58 $ */
 /* Copyright (c) Stichting Mathematisch Centrum, Amsterdam, 1985. */
 /*-Copyright (c) Michael Allison, 2006. */
 /* NetHack may be freely redistributed.  See license for details. */
@@ -161,6 +161,11 @@ struct fiend_info {
  * number */
 #define NUM_ARCHFIENDS 8
 
+struct lifelists {
+    long total_seen_upclose;    /* count of critters seen up close */
+    long total_photographed;    /* count of critters photographed (tourists) */
+};
+
 struct context_info {
     unsigned ident;         /* social security number for each monster */
     unsigned no_of_wizards; /* 0, 1 or 2 (wizard and his shadow) */
@@ -171,9 +176,11 @@ struct context_info {
     int current_fruit;      /* fruit->fid corresponding to svp.pl_fruit[] */
     int mysteryforce;       /* adjusts how often "mysterious force" kicks in */
     int rndencode;          /* randomized escape sequence introducer */
+    int startingpet_typ;    /* monster type for initial pet */
     int warnlevel;          /* threshold (digit) to warn about unseen mons */
     long next_attrib_check; /* next attribute check */
     long seer_turn;         /* when random clairvoyance will next kick in */
+    long snickersnee_turn;  /* Snickersnee last used to distance attack */
     long stethoscope_seq;   /* when a stethoscope was last used; first use
                              * during a move takes no time, second uses move */
     boolean travel;  /* find way automatically to u.tx,u.ty */
@@ -186,6 +193,7 @@ struct context_info {
     boolean mv;
     boolean bypasses;    /* bypass flag is set on at least one fobj */
     boolean door_opened; /* set to true if door was opened during test_move */
+    boolean resume_wish; /* game was exited while in wish prompt */
     boolean tips[NUM_TIPS];
     struct dig_info digging;
     struct victual_info victual;
@@ -200,6 +208,7 @@ struct context_info {
     struct tribute_info tribute;
     struct novel_tracking novel;
     struct achievement_tracking achieveo;
+    struct lifelists lifelist;
     char jingle[5 + 1];
     struct fiend_info archfiends[NUM_ARCHFIENDS];
 };

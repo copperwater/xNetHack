@@ -17,6 +17,7 @@
 
 #include "hack.h"
 
+#ifndef SFCTOOL
 staticfn boolean isbig(struct mkroom *);
 staticfn struct mkroom *pick_room(boolean);
 staticfn void mkshop(void), mkzoo(int), mkswamp(void);
@@ -31,8 +32,12 @@ staticfn struct permonst *squadmon(void);
 staticfn struct permonst *zoomon(void);
 staticfn struct permonst *demondenmon(void);
 staticfn struct permonst *abattoirmon(void);
+#endif /* SFCTOOL */
+
 staticfn void save_room(NHFILE *, struct mkroom *);
 staticfn void rest_room(NHFILE *, struct mkroom *);
+
+#ifndef SFCTOOL
 staticfn boolean invalid_shop_shape(struct mkroom *sroom);
 
 #define sq(x) ((x) * (x))
@@ -569,7 +574,7 @@ fill_zoo(struct mkroom *sroom)
                 if (!rn2(2)) {
                     const char* bloodstains[] =
                         { "/", "-", "\\", ".", ",", ":" };
-                    make_engr_at(sx, sy, ROLL_FROM(bloodstains),
+                    make_engr_at(sx, sy, ROLL_FROM(bloodstains), NULL,
                                  0, ENGR_BLOOD);
                 }
                 break;
@@ -1199,8 +1204,7 @@ save_room(NHFILE *nhfp, struct mkroom *r)
      * of writing the whole structure. That is I should not write
      * the gs.subrooms pointers, but who cares ?
      */
-    if (nhfp->structlevel)
-        bwrite(nhfp->fd, (genericptr_t) r, sizeof (struct mkroom));
+    Sfo_mkroom(nhfp, r, "room-mkroom");
     for (i = 0; i < r->nsubrooms; i++) {
         save_room(nhfp, r->sbrooms[i]);
     }
@@ -1215,19 +1219,18 @@ save_rooms(NHFILE *nhfp)
     short i;
 
     /* First, write the number of rooms */
-    if (nhfp->structlevel)
-        bwrite(nhfp->fd, (genericptr_t) &svn.nroom, sizeof(svn.nroom));
+    Sfo_int(nhfp, &svn.nroom, "room-nroom");
     for (i = 0; i < svn.nroom; i++)
         save_room(nhfp, &svr.rooms[i]);
 }
+#endif /* !SFCTOOL */
 
 staticfn void
 rest_room(NHFILE *nhfp, struct mkroom *r)
 {
     short i;
 
-    if (nhfp->structlevel)
-        mread(nhfp->fd, (genericptr_t) r, sizeof(struct mkroom));
+    Sfi_mkroom(nhfp, r, "room-mkroom");
 
     for (i = 0; i < r->nsubrooms; i++) {
         r->sbrooms[i] = &gs.subrooms[gn.nsubroom];
@@ -1245,8 +1248,7 @@ rest_rooms(NHFILE *nhfp)
 {
     short i;
 
-    if (nhfp->structlevel)
-        mread(nhfp->fd, (genericptr_t) &svn.nroom, sizeof(svn.nroom));
+    Sfi_int(nhfp, &svn.nroom, "room-nroom");
 
     gn.nsubroom = 0;
     for (i = 0; i < svn.nroom; i++) {
@@ -1257,6 +1259,7 @@ rest_rooms(NHFILE *nhfp)
     gs.subrooms[gn.nsubroom].hx = -1;
 }
 
+#ifndef SFCTOOL
 /* convert a display symbol for terrain into topology type;
    used for remembered terrain when mimics pose as furniture */
 int
@@ -1452,5 +1455,6 @@ invalid_shop_shape(struct mkroom *sroom)
     }
     return FALSE;
 }
+#endif /* !SFCTOOL */
 
 /*mkroom.c*/

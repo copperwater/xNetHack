@@ -171,13 +171,12 @@ VDECLCB(shim_status_update,
     (int fldidx, genericptr_t ptr, int chg, int percent, int color, unsigned long *colormasks),
     "vipiiip",
     A2P fldidx, P2V ptr, A2P chg, A2P percent, A2P color, P2V colormasks)
-
 #ifdef __EMSCRIPTEN__
-/* XXX: calling display_inventory() from shim_update_inventory() causes reentrancy that breaks emscripten Asyncify */
-/* this should be fine since according to windows.doc, the only purpose of shim_update_inventory() is to call display_inventory() */
+/* XXX: calling repopulate_perminvent() from shim_update_inventory() causes reentrancy that breaks emscripten Asyncify */
+/* this should be fine since according to windows.doc, the only purpose of shim_update_inventory() is to call repopulate_perminvent() */
 void shim_update_inventory(int a1 UNUSED) {
     if(iflags.perm_invent) {
-        display_inventory(NULL, FALSE);
+        repopulate_perminvent();
     }
 }
 
@@ -196,11 +195,12 @@ shim_ctrl_nhwindow(
     return (win_request_info *) 0;
 }
 #else /* !__EMSCRIPTEN__ */
-VDECLCB(shim_update_inventory,(int a1 UNUSED)
-DECLB(win_request_info *, shim_ctrl_nhwindow,
+VDECLCB(shim_player_selection, (void), "v")
+VDECLCB(shim_update_inventory,(int a1 UNUSED), "vi", A2P a1)
+DECLCB(win_request_info *, shim_ctrl_nhwindow,
     (winid window, int request, win_request_info *wri),
     "viip",
-    A2P window UNUSED, A2P request UNUSED, P2V wri UNUSED)
+    A2P window, A2P request, P2V wri)
 #endif
 
 /* Interface definition used in windows.c */

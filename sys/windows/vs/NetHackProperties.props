@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+<Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ImportGroup Label="PropertySheets" />
   <PropertyGroup Label="UserMacros">
     <VERSION_MAJOR>9</VERSION_MAJOR>
@@ -8,7 +8,7 @@
     <XNETHACK_VERSION>$(VERSION_MAJOR).$(VERSION_MINOR).$(PATCHLEVEL)</XNETHACK_VERSION>
     <LUA_MAJOR_VERSION>5</LUA_MAJOR_VERSION>
     <LUA_MINOR_VERSION>4</LUA_MINOR_VERSION>
-    <LUA_PATCH_LEVEL>6></LUA_PATCH_LEVEL>
+    <LUA_PATCH_LEVEL>8></LUA_PATCH_LEVEL>
     <LUA_VERSION>$(LUA_MAJOR_VERSION).$(LUA_MINOR_VERSION).$(LUA_PATCH_LEVEL)</LUA_VERSION>
     <FMODROOT>$(ROOTDIR)lib\fmod\api\core\</FMODROOT>
 	  <FMODLIBBASENAME>fmod_vc.lib</FMODLIBBASENAME>

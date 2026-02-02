@@ -221,7 +221,7 @@ nhdupstr(const char *string, const char *file, int line)
     /* we've got some info about the caller, so use it instead of __func__ */
     unsigned len = FITSuint_(strlen(string), file, line);
 
-    if (FITSuint(len + 1, file, line) < len)
+    if (FITSuint_(len + 1, file, line) < len)
         panic("nhdupstr: string length overflow, line %d of %s",
               line, file);
 
@@ -246,6 +246,8 @@ dupstr(const char *string)
     return strcpy((char *) alloc(len + 1), string);
 }
 
+#if 0   /* suppress this; if included, it will need a MONITOR_HEAP edition */
+
 /* similar for reasonable size strings, but return length of input as well */
 char *
 dupstr_n(const char *string, unsigned int *lenout)
@@ -257,7 +259,7 @@ dupstr_n(const char *string, unsigned int *lenout)
     *lenout = (unsigned int) len;
     return strcpy((char *) alloc(len + 1), string);
 }
-
+#endif
 
 /* cast to int or panic on overflow; use via macro */
 int
