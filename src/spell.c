@@ -2078,7 +2078,7 @@ dospellmenu(
 {
     winid tmpwin;
     int i, n, how, splnum;
-    char buf[BUFSZ], pw_buf[5], sep;
+    char buf[BUFSZ], pw_buf[5];
     const char *fmt;
     menu_item *selected;
     anything any;
@@ -2103,14 +2103,10 @@ dospellmenu(
                 "Name",
                 "Category");
         fmt = "%-20s  %2d   %-12s %4s     %5d";
-        sep = ' ';
     } else {
         Sprintf(buf, "Name\tLevel\tCategory\tPw\tRetention");
         fmt = "%s\t%-d\t%s\t%s\t%d";
-        sep = '\t';
     }
-    if (wizard)
-        Sprintf(eos(buf), "%c%6s", sep, "turns");
 
     add_menu_heading(tmpwin, buf);
     for (i = 0; i < MAXSPELL && spellid(i) != NO_SPELL; i++) {
