@@ -2276,16 +2276,16 @@ invoke_smoke_cloud(struct obj *obj)
 
     start_menu(tmpwin, MENU_BEHAVE_STANDARD);
     any.a_char = 'a';
-    add_menu(tmpwin, &nul_glyphinfo, &any, 0, 0, ATR_NONE, 0,
+    add_menu(tmpwin, &nul_glyphinfo, &any, 0, 0, ATR_NONE, NO_COLOR,
              "Create a stinking cloud", MENU_ITEMFLAGS_NONE);
     any.a_char = 'b';
-    add_menu(tmpwin, &nul_glyphinfo, &any, 0, 0, ATR_NONE, 0,
+    add_menu(tmpwin, &nul_glyphinfo, &any, 0, 0, ATR_NONE, NO_COLOR,
              "Gaze into the surface", MENU_ITEMFLAGS_NONE);
     end_menu(tmpwin, "What would you like to do?");
     n = select_menu(tmpwin, PICK_ONE, &selected);
     destroy_nhwindow(tmpwin);
 
-    if (n < 0) {
+    if (n <= 0 || !selected) {
         obj->age = 0;
         return ECMD_CANCEL;
     }
