@@ -92,8 +92,18 @@ good_rm_wall_doorpos(coordxy x, coordxy y, int dir, struct mkroom *room)
 
     rmno = (room - svr.rooms) + ROOMOFFSET;
 
-    if (rmno != (int) levl[tx][ty].roomno)
+    if (rmno != (int) levl[tx][ty].roomno) {
+        /* (tx, ty) might be a point in a subroom while we were called with the
+         * parent room, so the roomno won't match; to avoid failure to find any
+         * valid points when the subroom or subrooms take up an entire wall,
+         * recursively try subrooms */
+        int subrmidx;
+        for (subrmidx = 0; subrmidx < room->nsubrooms; subrmidx++) {
+            if (good_rm_wall_doorpos(x, y, dir, room->sbrooms[subrmidx]))
+                return TRUE;
+        }
         return FALSE;
+    }
 
     return TRUE;
 }
