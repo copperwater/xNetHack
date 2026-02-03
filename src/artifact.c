@@ -2336,6 +2336,8 @@ arti_invoke_cost(struct obj *obj)
             /* the artifact is tired :-) */
             You_feel("that %s %s ignoring you.", the(xname(obj)),
                      otense(obj, "are"));
+            if (wizard && y_n("Override?") == 'y')
+                return TRUE;
             /* and just got more so; patience is essential... */
             obj->age += (long) d(3, 10);
             return FALSE;
