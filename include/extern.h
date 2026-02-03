@@ -2844,7 +2844,7 @@ extern boolean rnf(int, int);
 extern void init_random(int(*fn)(int));
 extern void reseed_random(int(*fn)(int));
 extern void shuffle_int_array(int *, int) NONNULLARG1;
-extern unsigned int coord_hash(int, int, int);
+extern unsigned int coord_hash(coordxy, coordxy, int);
 extern unsigned int hash1(int);
 extern int int_hash1(int);
 
