@@ -1424,6 +1424,7 @@ add_skills_to_menu(winid win, boolean selectable, boolean speedy)
     char buf[BUFSZ], sklnambuf[BUFSZ], maxsklnambuf[BUFSZ], percentbuf[BUFSZ];
     const char *prefix;
     int clr = NO_COLOR;
+    boolean dumping = program_state.gameover;
 
     /* Find the longest skill name. */
     for (longest = 0, i = 0; i < P_NUM_SKILLS; i++) {
@@ -1442,8 +1443,14 @@ add_skills_to_menu(winid win, boolean selectable, boolean speedy)
              i++) {
             /* Print headings for skill types */
             any = cg.zeroany;
-            if (i == skill_ranges[pass].first)
-                add_menu_heading(win, skill_ranges[pass].name);
+            if (i == skill_ranges[pass].first) {
+                if (dumping)
+                    /* html dumplogs: add_menu_heading does not permit
+                     * formatting */
+                    putstr(win, ATR_SUBHEAD, skill_ranges[pass].name);
+                else
+                    add_menu_heading(win, skill_ranges[pass].name);
+            }
 
             if (P_RESTRICTED(i))
                 continue;
@@ -1514,7 +1521,7 @@ show_skills(void)
     winid win;
     menu_item *selected;
 
-    pline("Skills:");
+    putstr(0, ATR_HEADING, "Skills:");
     win = create_nhwindow(NHW_MENU);
     start_menu(win, MENU_BEHAVE_STANDARD);
     add_skills_to_menu(win, FALSE, FALSE);
