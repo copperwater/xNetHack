@@ -144,7 +144,6 @@ struct achievement_tracking {
 
 struct fiend_info {
     int mndx;            /* PM_* index of this fiend */
-    /* has_wish is unused yet - needs to be migrated from wish_dlords */
     boolean has_wish;    /* is guarding a wand of wishing this game */
     unsigned num_in_dgn; /* how many of it exist in the dungeon (usually 0 or 1,
                             but could be more for Juiblex; since he can be split
