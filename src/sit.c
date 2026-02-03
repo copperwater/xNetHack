@@ -588,7 +588,7 @@ rndcurse(void)
     You(mal_aura, "you");
 
     for (otmp = gi.invent; otmp; otmp = otmp->nobj) {
-        /* gold isn't subject to being cursed or blessed */
+        /* gold coins aren't subject to being cursed or blessed */
         if (otmp->oclass == COIN_CLASS)
             continue;
         else if (otmp->material == GOLD && !otmp->cursed)
