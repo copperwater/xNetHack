@@ -74,6 +74,7 @@ changes:
   throne now gives a guaranteed wish with the risk of some bad effects, and the
   Amulet of Yendor gives a wish when picked up; both of these work the same as
   in vanilla).
+- Owlbears and xorns can roar like dragons to wake up nearby monsters.
 
 ### Interface changes
 

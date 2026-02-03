@@ -24,7 +24,7 @@ staticfn void anger_quest_guardians(struct monst *);
 staticfn boolean ok_to_obliterate(struct monst *);
 staticfn void m_respond_shrieker(struct monst *);
 staticfn void m_respond_medusa(struct monst *);
-staticfn void m_respond_dragon(struct monst *);
+staticfn void m_respond_roarer(struct monst *);
 staticfn void m_respond_nazgul(struct monst *);
 staticfn void qst_guardians_respond(void);
 staticfn void peacefuls_respond(struct monst *);
@@ -4596,9 +4596,9 @@ m_respond_medusa(struct monst *mtmp)
         }
 }
 
-/* dragon special action: roar and wake nearby monsters */
+/* special action for MS_ROAR monsters: roar and wake other nearby monsters */
 staticfn void
-m_respond_dragon(struct monst *mtmp)
+m_respond_roarer(struct monst *mtmp)
 {
     if (mtmp->mpeaceful || mtmp->mtame)
         return;
@@ -4708,9 +4708,9 @@ m_respond(struct monst *mtmp)
     /* Erinyes will inform surrounding monsters of your crimes */
     if (mtmp->data == &mons[PM_ERINYS] && !mtmp->mpeaceful && m_canseeu(mtmp))
         aggravate();
-    if (mtmp->data->msound == MS_ROAR && mtmp->data->mlet == S_DRAGON
-        && !um_dist(mtmp->mx, mtmp->my, 10) && !rn2(30))
-        m_respond_dragon(mtmp);
+    if (mtmp->data->msound == MS_ROAR && !um_dist(mtmp->mx, mtmp->my, 10)
+        && !rn2(30))
+        m_respond_roarer(mtmp);
     if (mtmp->data == &mons[PM_NAZGUL])
         m_respond_nazgul(mtmp);
 }
