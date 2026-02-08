@@ -81,27 +81,28 @@ static const char *hgodvoices[] = {
  * order to have the values be meaningful.
  */
 
-#define TROUBLE_STONED 15
-#define TROUBLE_SLIMED 14
-#define TROUBLE_STRANGLED 13
-#define TROUBLE_LAVA 12
-#define TROUBLE_SICK 11
-#define TROUBLE_WITHERING 10
-#define TROUBLE_STARVING 9
-#define TROUBLE_REGION 8 /* stinking cloud */
-#define TROUBLE_HIT 7
-#define TROUBLE_LYCANTHROPE 6
-#define TROUBLE_COLLAPSING 5
-#define TROUBLE_STUCK_IN_WALL 4
-#define TROUBLE_CURSED_LEVITATION 3
-#define TROUBLE_UNUSEABLE_HANDS 2
+#define TROUBLE_STONED 16
+#define TROUBLE_SLIMED 15
+#define TROUBLE_STRANGLED 14
+#define TROUBLE_LAVA 13
+#define TROUBLE_SICK 12
+#define TROUBLE_WITHERING 11
+#define TROUBLE_STARVING 10
+#define TROUBLE_REGION 9 /* stinking cloud */
+#define TROUBLE_HIT 8
+#define TROUBLE_LYCANTHROPE 7
+#define TROUBLE_COLLAPSING 6
+#define TROUBLE_STUCK_IN_WALL 5
+#define TROUBLE_CURSED_LEVITATION 4
+#define TROUBLE_UNUSEABLE_HANDS 3
+#define TROUBLE_INTRINSICALLY_BLIND 2 /* permanently blind */
 #define TROUBLE_CURSED_BLINDFOLD 1
 
 #define TROUBLE_PUNISHED (-1)
 #define TROUBLE_FUMBLING (-2)
 #define TROUBLE_CURSED_ITEMS (-3)
 #define TROUBLE_SADDLE (-4)
-#define TROUBLE_BLIND (-5)
+#define TROUBLE_BLIND (-5) /* temporarily blind */
 #define TROUBLE_POISONED (-6)
 #define TROUBLE_WOUNDED_LEGS (-7)
 #define TROUBLE_HUNGRY (-8)
@@ -328,6 +329,8 @@ in_trouble(void)
             && (!Unchanging || ((otmp = unchanger()) != 0 && otmp->cursed)))
             return TROUBLE_UNUSEABLE_HANDS;
     }
+    if (!PermaBlind && (HBlinded & FROMOUTSIDE))
+        return TROUBLE_INTRINSICALLY_BLIND;
     if (Blindfolded && ublindf->cursed)
         return TROUBLE_CURSED_BLINDFOLD;
 
@@ -639,6 +642,7 @@ fix_worst_trouble(int trouble)
         }
         encumber_msg();
         break;
+    case TROUBLE_INTRINSICALLY_BLIND:
     case TROUBLE_BLIND: { /* handles deafness as well as blindness */
         char msgbuf[BUFSZ];
         const char *eyes = body_part(EYE);
