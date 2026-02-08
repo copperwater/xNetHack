@@ -1891,6 +1891,10 @@ trapeffect_pit(
         boolean adj_pit = adj_nonconjoined_pit(trap);
         boolean already_known = trap->tseen ? TRUE : FALSE;
         boolean deliberate = FALSE;
+        /* note: message suppression applies only to the initial fall-into-pit
+         * message for cases where we already gave a message to that effect
+         * (i.e. pit fiend hurling you), flag does not affect other messages */
+        boolean nomsg = (trflags & NOPITMSG);
         int steed_article = ARTICLE_THE;
 
         /* suppress article in various steed messages when using its
@@ -1916,7 +1920,7 @@ trapeffect_pit(
         /* is the pit an "open grave"? (if it's in a graveyard, yes) */
         boolean is_grave = (getroomtype(u.ux, u.uy) == MORGUE &&
                             ttype != SPIKED_PIT);
-        if (!Sokoban) {
+        if (!Sokoban && !nomsg) {
             char verbbuf[BUFSZ];
 
             *verbbuf = '\0';

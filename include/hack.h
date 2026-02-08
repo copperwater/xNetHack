@@ -1364,6 +1364,7 @@ typedef uint32_t mmflags_nht;     /* makemon MM_ flags */
 #define NO_TRAP_FLAGS 0x00U
 #define FORCETRAP     0x01U /* triggering not left to chance */
 #define NOWEBMSG      0x02U /* suppress stumble into web message */
+#define NOPITMSG      0x02U /* suppress fall-into-pit message (also 0x02) */
 #define FORCEBUNGLE   0x04U /* adjustments appropriate for bungling */
 #define RECURSIVETRAP 0x08U /* trap changed into another type this same turn */
 #define TOOKPLUNGE    0x10U /* used '>' to enter pit below you */

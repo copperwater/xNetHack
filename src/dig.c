@@ -2505,7 +2505,7 @@ create_pit_under(struct monst *mdef, struct monst *magr)
          * flying or levitating; however, like the !youdefend case below, either
          * will cause you to skip the pit's actual effects (but you will take
          * the regular damage from the hurling attack). */
-        dotrap(trap, FORCETRAP);
+        dotrap(trap, FORCETRAP | NOPITMSG);
         if (u.utotype) { /* nonzero = will goto_level after this */
             sent_down_hole = TRUE;
         }
