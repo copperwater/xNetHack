@@ -994,12 +994,6 @@ dochug(struct monst *mtmp)
      * PHASE THREE: Now the actual movement phase
      */
 
-    /* Hezrous create clouds of stench. This does not cost a move. */
-    if (mtmp->data == &mons[PM_HEZROU]) /* stench */
-        create_gas_cloud(mtmp->mx, mtmp->my, 1, 8);
-    else if (mtmp->data == &mons[PM_STEAM_VORTEX] && !mtmp->mcan)
-        create_gas_cloud(mtmp->mx, mtmp->my, 1, 0); /* harmless vapor */
-
     /* A killer bee may eat honey in order to turn into a queen bee,
        costing it a move. */
     if (mdat == &mons[PM_KILLER_BEE]
