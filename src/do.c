@@ -1759,6 +1759,10 @@ goto_level(
             seetrap(ttrap);
             u_on_newpos(ttrap->tx, ttrap->ty);
         }
+    } else if (u.gt_x) {
+        /* caller wants to be placed at a specific coordinate */
+        u_on_newpos(u.gt_x, u.gt_y);
+        u.gt_x = u.gt_y = 0;
     } else if (at_stairs && !In_endgame(&u.uz)) {
         if (up) {
             stairway *stway = stairway_find_from(&u.uz0, ga.at_ladder);

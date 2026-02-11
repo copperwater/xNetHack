@@ -2026,6 +2026,8 @@ thiefstone_tele_mon(struct obj* stone, struct monst* mon)
         if (samelevel) {
             teleds(cc.x, cc.y, TELEDS_NO_FLAGS);
         } else {
+            u.gt_x = cc.x;
+            u.gt_y = cc.y;
             goto_level(&newlev, FALSE, FALSE, FALSE);
             /* FIXME: bug: you appear on a random spot on the level and then move
              * here, possibly mapping an area of the level you shouldn't have
