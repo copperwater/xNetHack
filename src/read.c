@@ -292,12 +292,18 @@ tin_text(struct obj *tin, char* buf)
     if (food == HOMEMADE_TIN || !tin_msgs[msgidx]) {
         return (char *) 0;
     }
-    if (tin->tinseed % 5 == 0 && tin->corpsenm) { /* be truthful */
+    if (tin->tinseed % 5 == 0) { /* be truthful */
         msgidx = (tin->tinseed % NUM_MONST_LABELS) + LABEL_MONST_START;
         if (food == SPINACH_TIN) {
             Strcpy(format_arg, "spinach");
-        } else {
+        }
+        else if (tin->corpsenm != NON_PM) {
             Strcpy(format_arg, mons[tin->corpsenm].pmnames[NEUTRAL]);
+        }
+        else {
+            /* empty tin; not an impossible case, just very unlikely, when tin
+             * creation fails to pick a tinnable monster 200 times */
+            Strcpy(format_arg, "nothing");
         }
     }
     else { /* lie */
