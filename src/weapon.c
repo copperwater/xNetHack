@@ -1419,19 +1419,25 @@ static const struct skill_range {
 void
 add_skills_to_menu(winid win, boolean selectable, boolean speedy)
 {
-    int pass, i, len, longest;
+    int pass, i, len, longest_name, longest_curr, longest_max;
     anything any;
     char buf[BUFSZ], sklnambuf[BUFSZ], maxsklnambuf[BUFSZ], percentbuf[BUFSZ];
     const char *prefix;
     int clr = NO_COLOR;
     boolean dumping = program_state.gameover;
 
-    /* Find the longest skill name. */
-    for (longest = 0, i = 0; i < P_NUM_SKILLS; i++) {
+    /* Find the max lengths of 3 strings across all skills: skill name, current
+     * level of skill, maximum level of skill. */
+    longest_name = longest_curr = longest_max = 0;
+    for (i = 0; i < P_NUM_SKILLS; i++) {
         if (P_RESTRICTED(i))
             continue;
-        if ((len = Strlen(P_NAME(i))) > longest)
-            longest = len;
+        if ((len = Strlen(P_NAME(i))) > longest_name)
+            longest_name = len;
+        if ((len = Strlen(skill_level_name(P_SKILL(i), buf))) > longest_curr)
+            longest_curr = len;
+        if ((len = Strlen(skill_level_name(P_MAX_SKILL(i), buf))) > longest_max)
+            longest_max = len;
     }
 
     /* List the skills, making ones that could be advanced selectable if
@@ -1489,7 +1495,7 @@ add_skills_to_menu(winid win, boolean selectable, boolean speedy)
                 if (!iflags.menu_tab_sep)
                     Snprintf(buf, sizeof buf,
                              " %s%-*s %-12s %5d(%4d)", prefix,
-                             longest, P_NAME(i), sklnambuf, P_ADVANCE(i),
+                             longest_name, P_NAME(i), sklnambuf, P_ADVANCE(i),
                              practice_needed_to_advance(P_SKILL(i)));
                 else
                     Snprintf(buf, sizeof buf,
@@ -1499,9 +1505,10 @@ add_skills_to_menu(winid win, boolean selectable, boolean speedy)
             } else {
                 if (!iflags.menu_tab_sep)
                     Snprintf(buf, sizeof(buf),
-                             " %s %-*s [%12s / %-12s] %4s",
-                             prefix, longest, P_NAME(i), sklnambuf,
-                             maxsklnambuf, percentbuf);
+                             " %s %-*s [%-*s / %-*s] %4s",
+                             prefix, longest_name, P_NAME(i),
+                             longest_curr, sklnambuf,
+                             longest_max, maxsklnambuf, percentbuf);
                 else
                     Snprintf(buf,  sizeof(buf),
                              " %s%s\t[%s\t /%s] %4s",
