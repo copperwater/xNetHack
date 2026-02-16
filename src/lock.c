@@ -212,7 +212,8 @@ picklock(void)
              * conceivably trap themselves in part of the level with no keys to
              * escape with */
             set_door_iron(gx.xlock.door, FALSE);
-            newsym(doorx, doory);
+            feel_newsym(doorx, doory);
+            recalc_block_point(doorx, doory);
             useup(gx.xlock.pick);
             reset_pick();
         }
