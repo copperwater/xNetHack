@@ -1505,7 +1505,7 @@ add_skills_to_menu(winid win, boolean selectable, boolean speedy)
             } else {
                 if (!iflags.menu_tab_sep)
                     Snprintf(buf, sizeof(buf),
-                             " %s %-*s [%-*s / %-*s] %4s",
+                             " %s %-*s [ %*s / %-*s ] %4s",
                              prefix, longest_name, P_NAME(i),
                              longest_curr, sklnambuf,
                              longest_max, maxsklnambuf, percentbuf);
