@@ -1495,32 +1495,45 @@ builds_up(d_level *lev)
     return FALSE;
 }
 
-/* get the next level beneath this one; if there is none (last level of a branch
- * that builds down), return (0,0) */
+/* get the level to which creatures and objects that fall into open air on the
+ * given start level should fall; if there is none (last level of a branch that
+ * builds down), return (0,0).
+ * Only used in situations involving open air, not used for trapdoors/holes etc.
+ */
 void
-find_level_beneath(const d_level *start, d_level *beneath)
+find_level_beneath(const d_level *const_start, d_level *beneath)
 {
-    branch *br = Is_branchlev((d_level *) start);
-    if (Is_stronghold((d_level *) start)) {
+    d_level start; /* non-const for functions that want non-const */
+    branch *br;
+    boolean on_bottom;
+
+    start = *const_start;
+    br = Is_branchlev(&start);
+    on_bottom = (start.dlevel == dunlevs_in_dungeon(&start));
+
+    if (Is_stronghold(&start)) {
         /* special case for Castle */
         assign_level(beneath, &valley_level);
     }
-    else if (In_abyss(start)) {
-        /* falling into any level of the Abyss goes straight to the bottom */
-        *beneath = *start;
-        beneath->dlevel = dunlevs_in_dungeon((d_level *) start);
+    else if (In_abyss(&start) && !on_bottom) {
+        /* falling into any level of the Abyss goes straight to the bottom,
+         * unless you happen to fall into air in the bottom of the Abyss, in
+         * which case it's bottomless.
+         * (currently there is no air on either possible Abyss bottom level) */
+        *beneath = start;
+        beneath->dlevel = dunlevs_in_dungeon(&start);
     }
-    else if (start->dlevel != dunlevs_in_dungeon((d_level *) start)) {
+    else if (!on_bottom) {
         /* if not on the bottom level of a branch, then fall to next lowest
          * level (not multiple levels as might happen with a trapdoor) */
-        *beneath = *start;
+        *beneath = start;
         beneath->dlevel++;
     }
-    else if (br && br->type == BR_STAIR && builds_up((d_level *) start)) {
+    else if (br && br->type == BR_STAIR && builds_up(&start)) {
         /* In Vlad's Tower cavern (or theoretically some other branch that
          * grows upwards and is physically connected to the parent branch by a
          * stairway), fall to that parent branch level beneath it */
-        if (br->end1.dnum == start->dnum)
+        if (br->end1.dnum == start.dnum)
             *beneath = br->end2;
         else
             *beneath = br->end1;
@@ -1530,6 +1543,13 @@ find_level_beneath(const d_level *start, d_level *beneath)
          * doesn't connect via a stair */
         beneath->dnum = 0;
         beneath->dlevel = 0;
+    }
+
+    /* make sure we are actually going somewhere deeper */
+    if (beneath->dnum != 0 && beneath->dlevel != 0
+        && depth(&start) >= depth(beneath)) {
+        impossible("find_level_beneath: dest %d not below start %d",
+                   ledger_no(beneath), ledger_no(&start));
     }
 }
 
