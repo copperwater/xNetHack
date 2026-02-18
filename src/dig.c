@@ -432,7 +432,7 @@ dig(void)
                 You("destroy %s with %s.",
                     ttmp->tseen ? the(ttmpname) : an(ttmpname),
                     yobjnam(uwep, (const char *) 0));
-            deltrap(ttmp);
+            deltrap_with_ammo(ttmp, DELTRAP_DESTROY_AMMO);
             /* we haven't made any progress toward a pit yet */
             svc.context.digging.effort = 0;
             return 0;
