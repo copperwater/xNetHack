@@ -918,7 +918,10 @@ scrolltele(struct obj *scroll)
         /* possible extensions: introduce a small error if
             magic power is low; allow transfer to solid rock */
         if (teleok(cc.x, cc.y, FALSE)
-            || (wizard
+            /* only allow illegal teleport overriding outside the debug fuzzer
+             * since teleporting directly onto a monster exposes a number of
+             * bugs that are impossible in the absence of teleport overriding */
+            || (wizard && !iflags.debug_fuzzer
                 && y_n("You can't normally teleport here. Do it anyway?")
                     == 'y')) {
             /* for scroll, discover it regardless of destination */
