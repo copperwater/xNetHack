@@ -374,12 +374,56 @@ themeroom_fills = {
       contents = function()
          local interior = selection.room()
          des.terrain(interior, 'g')
-         if interior:numpoints() > 8 then
-            -- in the original implementation this tried to pick points not against
-            -- a wall so as not to block doors. now that this is a fill, that's too
-            -- hard to do.
-            for i = 1, d(4)-2 do
-               des.terrain(interior:rndcoord(), 'T')
+         -- Maybe place a couple trees, but we must take care to avoid placing
+         -- trees such that there are no longer any points on any edge that are
+         -- valid to place a door on.
+         -- Note that this will be obsolete if at some point the room joining
+         -- code is updated so that it can connect to any point on a room edge
+         -- and not be required to connect to a specific wall.
+
+         -- 1. Find the selection's bounding box. (should this be a core
+         -- selection function? maybe if it gets reused elsewhere)
+         local lx = 1000
+         local hx = 0
+         local ly = 1000
+         local hy = 0
+         interior:iterate(function(x, y)
+            lx = math.min(lx, x)
+            hx = math.max(hx, x)
+            ly = math.min(ly, y)
+            hy = math.max(hy, y)
+         end)
+
+         -- 2. Store the number of points on each edge.
+         local pointsN, pointsE, pointsS, pointsW
+         pointsN, pointsE, pointsS, pointsW = 0, 0, 0, 0
+         interior:iterate(function(x, y)
+            if x == lx then pointsW = pointsW + 1 end
+            if x == hx then pointsE = pointsE + 1 end
+            if y == ly then pointsN = pointsN + 1 end
+            if y == hy then pointsS = pointsS + 1 end
+         end)
+
+         -- 3. Tree creation loop
+         for i = 1, d(4)-2 do
+            local pt = interior:rndcoord(1)
+            local onW = (pt.x == lx)
+            local onN = (pt.y == ly)
+            local onE = (pt.x == hx)
+            local onS = (pt.y == hy)
+
+            if (onW and pointsW == 1) or (onN and pointsN == 1)
+               or (onE and pointsE == 1) or (onS and pointsS == 1) then
+               -- do nothing
+            else
+               -- make the tree, but decrement any appropriate edge counters
+               -- since we might make more trees; if we're not on any edge no
+               -- counters will be affected
+               des.terrain(pt, 'T')
+               if onW then pointsW = pointsW - 1 end
+               if onN then pointsN = pointsN - 1 end
+               if onE then pointsE = pointsE - 1 end
+               if onS then pointsS = pointsS - 1 end
             end
          end
       end,
