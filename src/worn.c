@@ -1452,7 +1452,8 @@ extract_from_minvent(
             if (do_extrinsics) {
                 update_mon_extrinsics(mon, obj, FALSE, silently);
             }
-            mselftouch(mon, NULL, !svc.context.mon_moving);
+            if (unwornmask & W_ARMG)
+                mselftouch(mon, NULL, !svc.context.mon_moving);
         }
         mon->misc_worn_check &= ~unwornmask;
         /* give monster a chance to wear other equipment on its next

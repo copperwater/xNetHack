@@ -3962,6 +3962,8 @@ mselftouch(
 {
     struct obj *mwep = MON_WEP(mon);
 
+    /* assume caller has already checked that mon is not wearing gloves, to
+     * avoid calling which_armor in this function */
     if (mwep && mwep->otyp == CORPSE && touch_petrifies(&mons[mwep->corpsenm])
         && !resists_ston(mon)) {
         if (cansee(mon->mx, mon->my)) {
