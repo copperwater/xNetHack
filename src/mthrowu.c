@@ -28,23 +28,23 @@ static NEARDATA const char *breathwep[] = {
 
 /* hallucinatory ray types */
 static const char *const hallublasts[] = {
-    "asteroids", "beads", "bubbles", "butterflies", "champagne", "chaos",
-    "coins", "cotton candy", "crumbs", "dark matter", "darkness", "data",
-    "dust specks", "emoticons", "emotions", "entropy", "flowers", "foam", "fog",
-    "gamma rays", "gelatin", "gemstones", "ghosts", "glass shards", "glitter",
-    "good vibes", "gravel", "gravity", "gravy", "grawlixes", "holy light",
-    "hornets", "hot air", "hyphens", "hypnosis", "infrared", "insects",
-    "jargon", "laser beams", "leaves", "lightening", "logic gates", "magma",
-    "marbles", "mathematics", "megabytes", "metal shavings", "metapatterns",
-    "meteors", "mist", "mud", "music", "nanites", "needles", "noise",
-    "nostalgia", "oil", "paint", "photons", "pixels", "plasma", "polarity",
-    "powder", "powerups", "prismatic light", "pure logic", "purple",
+    "asteroids", "beads", "bubbles", "bugs", "butterflies", "champagne",
+    "chaos", "coins", "cotton candy", "crumbs", "dark matter", "darkness",
+    "data", "dust specks", "emoticons", "emotions", "entropy", "flowers",
+    "foam", "fog", "gamma rays", "gelatin", "gemstones", "ghosts", "glass shards",
+    "glitter", "good vibes", "gravel", "gravity", "gravy", "grawlixes",
+    "holy light", "hornets", "hot air", "hyphens", "hypnosis", "infrared",
+    "insects", "jargon", "laser beams", "leaves", "lightening", "logic gates",
+    "magma", "marbles", "mathematics", "megabytes", "metal shavings",
+    "metapatterns", "meteors", "mist", "mud", "music", "nanites", "needles",
+    "noise", "nostalgia", "oil", "paint", "photons", "pixels", "plasma",
+    "polarity", "powder", "powerups", "prismatic light", "pure logic", "purple",
     "radio waves", "rainbows", "rock music", "rocket fuel", "rope", "sadness",
     "salt", "sand", "scrolls", "sinewaves", "sludge", "smileys", "snowflakes",
     "sparkles", "specularity", "spirits", "spores", "stars", "steam",
     "tetrahedrons", "text", "the past", "tinsel", "tornadoes", "toxic waste",
     "ultraviolet light", "viruses", "water", "waveforms", "wind", "X-rays",
-    "zorkmids"
+    "yogurt", "zorkmids"
 };
 
 /* Return a random hallucinatory blast. */

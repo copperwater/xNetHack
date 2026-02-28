@@ -27,6 +27,8 @@ Amulet of Yendor
 RNG
 carnivorous bag
 feeling that you're being watched
+foocubus
+footrice
 mysterious force
 royal jelly
 wand of wishing
@@ -71,8 +73,10 @@ hallucinogen-distorted hallucination
 hexagonal grid bug
 humongous mimic
 inside-out bag of holding
+int64_t worm
 invisible potion of invisibility
 jagged asterisk
+long long worm
 lurker below
 master lichen
 mithril piercer
@@ -182,6 +186,7 @@ moldier ant
 monotaur
 mortar orc
 mountain lymph
+owbear
 pager golem
 pie fiend
 pit friend
@@ -197,6 +202,7 @@ seesawing sphere
 sock mole
 solid ant
 stain vortex
+swear rat
 tire elemental
 umbrella hulk
 vampire mace
@@ -345,6 +351,7 @@ legendary black beast of Aaarrrrggh
 shrubbery
 |Black Knight
 |Knight Who Says Ni
+Spanish Inquisition
 
 # The Princess Bride
 +Inigo Montoya
@@ -536,7 +543,6 @@ carrionette
 death linen
 duck bunny
 flail snail
-flumph
 giant vampire frog
 groundsquid
 monkey bee
@@ -849,6 +855,8 @@ kamikaze watermelon
 
 # Antigua
 blue dragon Vorltrarr
+mini-wad
+-Head Centaur of the Unicorns
 
 # Pikmin
 bulborb
@@ -1144,6 +1152,7 @@ explosive weasel
 fire nymph
 firebug
 flaming skull
+flying pig
 fool
 forgotten beast
 ghoti
@@ -1229,6 +1238,7 @@ pigasus
 pillar of salt
 pilot
 pink elephant
+pink panther
 pop culture reference
 possessed waffle iron
 poultrygeist
@@ -1261,6 +1271,7 @@ skelephant
 sleazoid
 slinky
 small megabat
+space pirate
 spherical cow
 steam dragon
 stick figure
