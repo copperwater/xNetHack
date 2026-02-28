@@ -2121,6 +2121,8 @@ dump_add_menu(winid win UNUSED,
         fprintf(dumphtml_file, "%s", iscolor ? "</span>" : "");
         html_write_tags(dumphtml_file, attr, FALSE);
     }
+#else
+    nhUse(attr);
 #endif
 }
 
