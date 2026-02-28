@@ -4,7 +4,7 @@
 #  The version of the game this Makefile was designed for
 
 !IFNDEF XNETHACK_VERSION
-XNETHACK_VERSION="9.0.0"
+XNETHACK_VERSION="9.1.0"
 !MESSAGE XNETHACK_VERSION set to $(XNETHACK_VERSION).
 !ELSE
 !MESSAGE XNETHACK_VERSION set to $(XNETHACK_VERSION) by caller.
