@@ -1974,7 +1974,10 @@ mon_give_prop(struct monst *mtmp, int prop)
         return; /* can't give it */
         break;
     }
-    intrinsic = res_to_mr(prop);
+    /* res_to_mr only handles resistances; res_to_mr(TELEPAT) returns 0, so
+     * avoid it for telepathy */
+    if (intrinsic != MR2_TELEPATHY)
+        intrinsic = res_to_mr(prop);
 
     /* Don't give message if it already had this property intrinsically, but
        still do grant the intrinsic if it only had it from mresists.
