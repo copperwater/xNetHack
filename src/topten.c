@@ -340,7 +340,7 @@ writexlentry(FILE *rfile, struct toptenentry *tt, int how)
 {
 #define Fprintf (void) fprintf
 #define XLOG_SEP '\t' /* xlogfile field separator. */
-#define XNH_EXTRA_ACHIEVEMENTS 2
+#define XNH_EXTRA_ACHIEVEMENTS 3
     char buf[BUFSZ], tmpbuf[DTHSZ + 1];
     char stuck = (Upolyd && Unchanging && !Polyinit_mode);
     char achbuf[(N_ACH + XNH_EXTRA_ACHIEVEMENTS) * 40];
@@ -644,6 +644,9 @@ encode_extended_achievements(char *buf)
     }
     if (i > LAST_ARCHFIEND) { /* completed loop, all archfiends killed off */
         add_achieveX(buf, "killed_all_archfiends", TRUE);
+    }
+    if (svw.wizpuzzle.solved) {
+        add_achieveX(buf, "solved_wiz_puzzle", TRUE);
     }
 
     return buf;
