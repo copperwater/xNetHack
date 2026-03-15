@@ -615,12 +615,18 @@ encode_extended_achievements(char *buf)
     }
 
     /* put xNetHack specific achievements for Junethack here; when doing so,
-     * increment XNH_EXTRA_ACHIEVEMENTS */
-    /* Junethack 2021 shim: record quest completion in achieveX without making
-     * it a formal achievement (because vanilla NetHack might add it as an
-     * actual achievement and only one achievement slot remains at the moment).
-     */
+     * increment XNH_EXTRA_ACHIEVEMENTS.
+     * These achievements do NOT get recorded in the signed long achieve=
+     * xlogfile field, because currently (as of March 2026) this field is full.
+     * There is code to handle a second 32-bit int, but it's as of yet unused,
+     * and I consider it better to let vanilla expand into that field on its own
+     * time rather than enabling the code in some way that will create conflicts
+     * later. */
     if (u.uevent.qcompleted) {
+        /* Junethack 2021 shim: quest completion is considered as a candidate
+         * for addition to vanilla NetHack (along with several other quest
+         * milestones) but isn't yet added, so handle it as an xnh extra
+         * achievement for now. */
         add_achieveX(buf, "completed_quest", TRUE);
     }
     for (i = FIRST_ARCHFIEND; i <= LAST_ARCHFIEND; ++i) {
