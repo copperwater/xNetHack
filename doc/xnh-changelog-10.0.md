@@ -22,6 +22,11 @@ changes:
 
 ### Gameplay changes
 
+- Randomly generated amulets other than the amulet of reflection now get
+  assigned a material from an amulet-specific list rather than using the same
+  material list as shields of reflection. This list has a more even distribution
+  of possible materials, and also includes gemstone, stone, and bone.
+  - Amulets of reflection still use the shield of reflection material list.
 
 ### Interface changes
 

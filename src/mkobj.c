@@ -4279,8 +4279,8 @@ static const struct icp elven_materials[] = {
     { 2, GOLD}
 };
 
-/* Reflectable items - for the shield of reflection; anything that can hold a
- * polish. Amulets also arbitrarily use this list. */
+/* Reflectable items - for the shield of reflection and amulet of reflection;
+ * anything that can hold a polish. */
 static const struct icp shiny_materials[] = {
     {30, SILVER},
     {22, COPPER},
@@ -4313,6 +4313,25 @@ static const struct icp horn_materials[] = {
     { 5, SILVER},
     { 2, GOLD}
 };
+
+/* for amulets: bears a lot of similarity to shiny_materials, which they
+ * previously used, but is a bit more flexible.
+ * Note: the amulet of reflection still uses shiny_materials. */
+static const struct icp amulet_materials[] = {
+    {10, SILVER},
+    {10, COPPER},
+    {10, GOLD},
+    {10, IRON}, /* default material for all amulets */
+    {10, GLASS},
+    {10, MITHRIL},
+    {10, METAL}, /* aluminum, or similar */
+    {10, WOOD},
+    { 5, GEMSTONE},
+    { 5, MINERAL},
+    { 5, BONE},
+    { 5, PLATINUM}
+};
+
 
 /* hacks for specific objects... not great because it's a lot of data, but it's
  * a relatively clean solution */
@@ -4426,8 +4445,10 @@ material_list(struct obj* obj)
         return crude_materials;
     }
     else if (obj->oclass == AMULET_CLASS) {
-        /* could use metal_materials too */
-        return shiny_materials;
+        if (obj->otyp == AMULET_OF_REFLECTION)
+            return shiny_materials;
+        else
+            return amulet_materials;
     }
     else if (obj->oclass == WEAPON_CLASS || obj->oclass == ARMOR_CLASS
              || obj->oclass == TOOL_CLASS) {
