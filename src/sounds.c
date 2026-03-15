@@ -236,8 +236,9 @@ dosounds(void)
         }
         return;
     }
-    if (In_quest(&u.uz) && u.uz.dlevel >= qlocate_level.dlevel
-        && Role_if(PM_ARCHEOLOGIST) && !svq.quest_status.touched_artifact
+    if (Role_if(PM_ARCHEOLOGIST) && In_quest(&u.uz)
+        && u.uz.dlevel >= qlocate_level.dlevel
+        && !svq.quest_status.touched_artifact
         && !svq.quest_status.met_nemesis && !rn2(300)) {
         /* special sounds for Arc quest */
         if (!cant_hear) {
