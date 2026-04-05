@@ -23,6 +23,7 @@ changes:
 ### Gameplay changes
 
 - Cursed weapons are no longer immune to breaking when used to force a lock.
+- Chests and large boxes can no longer generate made of bone.
 
 ### Interface changes
 

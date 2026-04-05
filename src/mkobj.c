@@ -4601,6 +4601,11 @@ nonsensical_obj_material(struct obj *obj, uchar mat)
         return TRUE;
     }
 
+    /* a large, sealed container made out of bones... */
+    if (mat == BONE && Is_box(obj)) {
+        return TRUE;
+    }
+
     return FALSE;
 }
 
