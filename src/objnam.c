@@ -4180,6 +4180,11 @@ not_actually_specifying_material(const char * const str, int material)
     /* does it match some terrain or a trap? e.g. "iron bars" */
     for (i = 0; i < MAXPCHARS; ++i) {
         const char *terr_name = defsyms[i].explanation;
+        if (i == S_stone) {
+            /* "stone" is a valid material specifier and you can't actually wish
+             * for stone (solid rock) terrain, so skip this one */
+            continue;
+        }
         if (terr_name && *terr_name
             && !strncmpi(str, terr_name, strlen(terr_name))) {
             return TRUE;
