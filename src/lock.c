@@ -307,6 +307,32 @@ forcelock(void)
         /* for a +0 weapon, probability that it survives an unsuccessful
          * attempt to force the lock is (.992)^50 = .67
          */
+        int wep_mat_adjustment;
+        switch (uwep->material) {
+        case MITHRIL:
+            wep_mat_adjustment = 6;
+            break;
+        case COPPER:
+            wep_mat_adjustment = -2;
+            break;
+        case SILVER:
+            wep_mat_adjustment = -4;
+            break;
+        case GOLD:
+        case WOOD:
+        case PLASTIC:
+        case MINERAL:
+            wep_mat_adjustment = -10;
+            break;
+        case GLASS:
+            /* note that if it's shatterproof, it'll never break due to the if
+             * clause below */
+            wep_mat_adjustment = -40;
+            break;
+        default: /* iron etc. */
+            break;
+        }
+        threshold += wep_mat_adjustment;
         if (roll > threshold
             && !(uwep->material == GLASS && uwep->oerodeproof)
             && !obj_resists(uwep, 0, 99)) {
@@ -317,8 +343,16 @@ forcelock(void)
             exercise(A_DEX, TRUE);
             return ((gx.xlock.usedtime = 0));
         }
-    } else             /* blunt */
+    } else {           /* blunt */
         wake_nearby(FALSE); /* due to hammering on the container */
+        if (is_crackable(uwep) && !rn2(20) && !obj_resists(uwep, 0, 99)) {
+            /* 5% chance per turn of cracking, which stops you from trying
+             * further */
+            breakobj(uwep, u.ux, u.uy, TRUE, TRUE);
+            You("stop trying to force the lock.");
+            return ((gx.xlock.usedtime = 0));
+        }
+    }
 
     if (rn2(100) >= gx.xlock.chance)
         return 1; /* still busy */

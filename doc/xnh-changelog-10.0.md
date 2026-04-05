@@ -28,8 +28,21 @@ changes:
   cannot be locked (but may still be trapped) through magic or mundane means,
   and they are always easily openable. They no longer display as "unlocked" even
   when fully identified.
-- Metal chests' locks cannot be broken open by kicking, and forcing them with a
-  bladed weapon is significantly more likely to result in the weapon breaking.
+- Metal chests' or large boxes' locks cannot be broken open by kicking, and
+  forcing them with a bladed weapon is significantly more likely to result in
+  the weapon breaking.
+- Weapons have different odds of breaking when used to pry open a chest or large
+  box.
+  - Iron and metal are unchanged from the usual odds.
+  - Mithril is somewhat less likely to break than iron.
+  - Copper is a little worse than iron.
+  - Silver is a little worse than copper.
+  - Gold, wood, plastic, and stone are worse than iron, but not to the point
+    where they will reliably break.
+  - Glass is very likely to break, unless it has been shatterproofed.
+- Blunt glass weapons have a 5% chance per turn of cracking when being used to
+  smash the lock on a box. If it cracks, you will stop trying to force the lock,
+  but may continue if you wish.
 
 ### Interface changes
 
