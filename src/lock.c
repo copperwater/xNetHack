@@ -298,12 +298,18 @@ forcelock(void)
     }
 
     if (gx.xlock.picktyp) { /* blade */
-        if (rn2(1000 - (int) uwep->spe) > (992 - greatest_erosion(uwep) * 10)
+        int roll = rn2(1000 - (int) uwep->spe);
+        int threshold = (992
+                         - (greatest_erosion(uwep) * 10)
+                         /* metal boxes are much more likely to be tougher than
+                          * your weapon */
+                         - (is_metallic(gx.xlock.box) ? 40 : 0));
+        /* for a +0 weapon, probability that it survives an unsuccessful
+         * attempt to force the lock is (.992)^50 = .67
+         */
+        if (roll > threshold
             && !(uwep->material == GLASS && uwep->oerodeproof)
             && !obj_resists(uwep, 0, 99)) {
-            /* for a +0 weapon, probability that it survives an unsuccessful
-             * attempt to force the lock is (.992)^50 = .67
-             */
             pline("%sour %s broke!", (uwep->quan > 1L) ? "One of y" : "Y",
                   xname(uwep));
             useup(uwep);

@@ -28,6 +28,8 @@ changes:
   cannot be locked (but may still be trapped) through magic or mundane means,
   and they are always easily openable. They no longer display as "unlocked" even
   when fully identified.
+- Metal chests' locks cannot be broken open by kicking, and forcing them with a
+  bladed weapon is significantly more likely to result in the weapon breaking.
 
 ### Interface changes
 

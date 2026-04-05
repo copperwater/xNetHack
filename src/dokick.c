@@ -662,12 +662,16 @@ really_kick_object(coordxy x, coordxy y)
     /* a box gets a chance of breaking open here */
     if (Is_box(gk.kickedobj)) {
         boolean otrp = gk.kickedobj->otrapped;
+        boolean metal = is_metallic(gk.kickedobj);
 
         if (range < 2)
-            pline("THUD!");
+            pline(metal ? "CLANG!" : "THUD!");
         container_impact_dmg(gk.kickedobj, x, y);
         if (gk.kickedobj->olocked) {
-            if (!rn2(5) || (martial() && !rn2(2))) {
+            if (metal) {
+                pline("The lock doesn't budge.");
+            }
+            else if (!rn2(5) || (martial() && !rn2(2))) {
                 You("break open the lock!");
                 breakchestlock(gk.kickedobj, FALSE);
                 if (otrp)
