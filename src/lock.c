@@ -299,7 +299,7 @@ forcelock(void)
 
     if (gx.xlock.picktyp) { /* blade */
         if (rn2(1000 - (int) uwep->spe) > (992 - greatest_erosion(uwep) * 10)
-            && !uwep->cursed && !(uwep->material == GLASS && uwep->oerodeproof)
+            && !(uwep->material == GLASS && uwep->oerodeproof)
             && !obj_resists(uwep, 0, 99)) {
             /* for a +0 weapon, probability that it survives an unsuccessful
              * attempt to force the lock is (.992)^50 = .67

@@ -22,6 +22,7 @@ changes:
 
 ### Gameplay changes
 
+- Cursed weapons are no longer immune to breaking when used to force a lock.
 
 ### Interface changes
 
