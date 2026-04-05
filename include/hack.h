@@ -85,6 +85,7 @@
 #define LOOKHERE_NOFLAGS       0U
 #define LOOKHERE_PICKED_SOME   1U
 #define LOOKHERE_SKIP_DFEATURE 2U
+#define LOOKHERE_FROMCMD       4U
 
 /* max size of a windowtype option */
 #define WINTYPELEN 16

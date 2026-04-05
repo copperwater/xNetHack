@@ -287,6 +287,7 @@ breakchestlock(struct obj *box, boolean destroyit)
 staticfn int
 forcelock(void)
 {
+    boolean crystal_chest = (gx.xlock.box->material == GLASS);
     if ((gx.xlock.box->ox != u.ux) || (gx.xlock.box->oy != u.uy))
         return ((gx.xlock.usedtime = 0)); /* you or it moved */
 
@@ -294,6 +295,8 @@ forcelock(void)
         You("give up your attempt to force the lock.");
         if (gx.xlock.usedtime >= 50) /* you made the effort */
             exercise((gx.xlock.picktyp) ? A_DEX : A_STR, TRUE);
+        if (crystal_chest)
+            pline("The lock seems to be magical and immune to mundane damage.");
         return ((gx.xlock.usedtime = 0));
     }
 
@@ -354,7 +357,7 @@ forcelock(void)
         }
     }
 
-    if (rn2(100) >= gx.xlock.chance)
+    if (rn2(100) >= gx.xlock.chance || crystal_chest)
         return 1; /* still busy */
 
     You("succeed in forcing the lock.");
@@ -620,6 +623,9 @@ pick_lock(
 
                 if (otmp->material == MINERAL) {
                     pline("It has no mechanism for you to lock or unlock.");
+                    return PICKLOCK_LEARNED_SOMETHING;
+                } else if (otmp->material == GLASS) {
+                    pline("The lock here seems magical, not physical.");
                     return PICKLOCK_LEARNED_SOMETHING;
                 } else if (otmp->obroken) {
                     You_cant("fix its broken lock with %s.",

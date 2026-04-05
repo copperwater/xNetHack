@@ -4179,7 +4179,8 @@ look_here(
     boolean skip_objects, felt_cockatrice = FALSE,
             picked_some = (lookhere_flags & LOOKHERE_PICKED_SOME) != 0,
             /* skip 'dfeature' if caller used describe_decor() to show it */
-            skip_dfeature = (lookhere_flags & LOOKHERE_SKIP_DFEATURE) != 0;
+            skip_dfeature = (lookhere_flags & LOOKHERE_SKIP_DFEATURE) != 0,
+            fromcmd = (lookhere_flags & LOOKHERE_FROMCMD) != 0;
 
     /* default pile_limit is 5; a value of 0 means "never skip"
        (and 1 effectively forces "always skip") */
@@ -4348,6 +4349,9 @@ look_here(
         iflags.last_msg = PLNMSG_ONE_ITEM_HERE;
         if (otmp->otyp == CORPSE)
             feel_cockatrice(otmp, FALSE);
+        if (!Blind && Is_box(otmp) && (fromcmd || !otmp->cknown)
+            && otmp->material == GLASS)
+            container_contents(otmp, FALSE, FALSE, TRUE);
     } else {
         char buf[BUFSZ];
 
@@ -4389,7 +4393,7 @@ dolook(void)
        MSGTYPE={norep,noshow} "You see here"
        interfere with feedback from the look-here command */
     hide_unhide_msgtypes(TRUE, MSGTYP_MASK_REP_SHOW);
-    res = look_here(0, LOOKHERE_NOFLAGS);
+    res = look_here(0, LOOKHERE_FROMCMD);
     /* restore normal msgtype handling */
     hide_unhide_msgtypes(FALSE, MSGTYP_MASK_REP_SHOW);
     return res;

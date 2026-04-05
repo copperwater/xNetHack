@@ -45,6 +45,18 @@ changes:
 - Blunt glass weapons have a 5% chance per turn of cracking when being used to
   smash the lock on a box. If it cracks, you will stop trying to force the lock,
   but may continue if you wish.
+- Glass chests and large boxes are referred to as "crystal" and have the
+  following properties:
+  - They are always generated locked.
+  - Randomly generated ones generate 1 additional item in their contents.
+  - The lock is magical and cannot be broken by force or unlocked via mundane
+    means such as a key or lock pick. It requires a locking or unlocking spell
+    or wand.
+  - They are see-through: when you move onto a space containing one of these and
+    no other objects, you will be shown the contents of the container. This
+    doesn't trigger again by walking over it as long as you know the contents,
+    but you can look at the contents again by using the near-look command while
+    standing over it.
 
 ### Interface changes
 

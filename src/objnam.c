@@ -710,8 +710,12 @@ xname_flags(
 
         if ((obj->material != objects[typ].oc_material
              || force_material_name(typ)) && dknown) {
-            Strcat(buf, materialnm[obj->material]);
-            Strcat(buf, " ");
+            if (Is_box(obj) && obj->material == GLASS)
+                Strcat(buf, "crystal ");
+            else {
+                Strcat(buf, materialnm[obj->material]);
+                Strcat(buf, " ");
+            }
         }
 
         if (!dknown)
@@ -4120,10 +4124,9 @@ object_not_monster(const char *str)
  * happens to start with a material name and is not actually specifying a
  * material. */
 static boolean
-not_actually_specifying_material(const char * const str, int material)
+not_actually_specifying_material(const char * const str, const char *matstr)
 {
     int i;
-    const char *matstr = materialnm[material];
     int matlen = strlen(matstr);
     /* is this the entire string? e.g. "gold" is actually a wish for zorkmids
      * The effect of this is that you can't just wish for a material and get a
@@ -4454,6 +4457,12 @@ readobjnam_preparse(struct _readobjnam_data *d)
                 || !strncmpi(d->bp + l, "an ", more_l = 3)
                 || !strncmpi(d->bp + l, "the ", more_l = 4))
                 l += more_l;
+
+        /* Special case for crystal containers, which are actually just glass,
+         * but won't be handled in the main material loop below */
+        } else if (!strncmpi(d->bp, "crystal ", l = 8)
+                   && !not_actually_specifying_material(d->bp, "crystal")) {
+            d->material = GLASS;
         } else {
             int i;
             /* doesn't currently catch "wood" for wooden */
@@ -4464,7 +4473,7 @@ readobjnam_preparse(struct _readobjnam_data *d)
                      * but need to ensure that it's not just a wish for
                      * something else that happens to have a prefix of a
                      * material */
-                    && !not_actually_specifying_material(d->bp, i))
+                    && !not_actually_specifying_material(d->bp, materialnm[i]))
                 {
                     d->material = i;
                     l++;
@@ -5649,10 +5658,13 @@ readobjnam(char *bp, struct obj *no_wish)
             d.otmp->owt = weight(d.otmp);
         }
     }
-    /* set locked/unlocked/broken, except on stone boxes which have no lock */
+    /* set locked/unlocked/broken, except on stone boxes which have no lock and
+     * crystal boxes which cannot be broken */
     if (Is_box(d.otmp)) {
         if (d.material == MINERAL) {
             d.otmp->olocked = 0, d.otmp->obroken = 0;
+        } else if (d.material == GLASS) {
+            d.otmp->olocked = 1, d.otmp->obroken = 0;
         } else if (d.locked) {
             d.otmp->olocked = 1, d.otmp->obroken = 0;
         } else if (d.unlocked) {

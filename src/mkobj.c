@@ -314,9 +314,13 @@ mkbox_cnts(struct obj *box)
         break;
     case CHEST:
         n = box->olocked ? 7 : 5;
+        if (box->material == GLASS)
+            n += 2;
         break;
     case LARGE_BOX:
         n = box->olocked ? 5 : 3;
+        if (box->material == GLASS)
+            n += 2;
         break;
     case SACK:
     case OILSKIN_SACK:
@@ -1135,7 +1139,11 @@ mksobj_init(struct obj **obj, boolean artif)
             break;
         case CHEST:
         case LARGE_BOX:
-            otmp->olocked = (otmp->material != MINERAL && !!(rn2(5)));
+            otmp->olocked = !!(rn2(5));
+            if (otmp->material == MINERAL)
+                otmp->olocked = 0;
+            else if (otmp->material == GLASS)
+                otmp->olocked = 1;
             otmp->otrapped = !(rn2(10));
             otmp->tknown = otmp->otrapped && !rn2(100); /* obvious trap */
             FALLTHROUGH;
