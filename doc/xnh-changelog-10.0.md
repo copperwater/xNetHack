@@ -24,6 +24,10 @@ changes:
 
 - Cursed weapons are no longer immune to breaking when used to force a lock.
 - Chests and large boxes can no longer generate made of bone.
+- Chests and large boxes made of stone no longer have any lock at all. They
+  cannot be locked (but may still be trapped) through magic or mundane means,
+  and they are always easily openable. They no longer display as "unlocked" even
+  when fully identified.
 
 ### Interface changes
 

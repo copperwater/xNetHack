@@ -2353,6 +2353,17 @@ create_object(object *o, struct mkroom *croom)
         otmp->recharged = (o->recharged % 8);
     if (o->locked == 0 || o->locked == 1) {
         otmp->olocked = o->locked;
+        /* stone chests have no lock; if the level designer specifies a box that
+         * is both stone and locked, the locked criteria is silently ignored;
+         * if locked is specified but material isn't (i.e. the box randomly
+         * rolled stone as its material), change the material to the default
+         * which we assume is not stone */
+        if (Is_box(otmp) && otmp->material == MINERAL && o->locked == 1) {
+            if (o->material == NO_MATERIAL)
+                otmp->material = objects[otmp->otyp].oc_material;
+            else
+                otmp->olocked = 0;
+        }
     } else if (o->broken) {
         otmp->obroken = 1;
         otmp->olocked = 0; /* obj generation may set */

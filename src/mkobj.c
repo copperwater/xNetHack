@@ -1135,7 +1135,7 @@ mksobj_init(struct obj **obj, boolean artif)
             break;
         case CHEST:
         case LARGE_BOX:
-            otmp->olocked = !!(rn2(5));
+            otmp->olocked = (otmp->material != MINERAL && !!(rn2(5)));
             otmp->otrapped = !(rn2(10));
             otmp->tknown = otmp->otrapped && !rn2(100); /* obvious trap */
             FALLTHROUGH;

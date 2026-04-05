@@ -578,7 +578,10 @@ pick_lock(
                         continue; /* try next box */
                 }
 
-                if (otmp->obroken) {
+                if (otmp->material == MINERAL) {
+                    pline("It has no mechanism for you to lock or unlock.");
+                    return PICKLOCK_LEARNED_SOMETHING;
+                } else if (otmp->obroken) {
                     You_cant("fix its broken lock with %s.",
                              ansimpleoname(pick));
                     return PICKLOCK_LEARNED_SOMETHING;
@@ -1158,7 +1161,7 @@ boxlock(struct obj *obj, struct obj *otmp) /* obj *is* a box */
     switch (otmp->otyp) {
     case WAN_LOCKING:
     case SPE_WIZARD_LOCK:
-        if (!obj->olocked) { /* lock it; fix if broken */
+        if (!obj->olocked && obj->material != MINERAL) { /* lock it; fix if broken */
             Soundeffect(se_klunk, 50);
             pline("Klunk!");
             obj->olocked = 1;

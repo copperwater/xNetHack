@@ -1407,6 +1407,11 @@ doname_base(
             Strcat(prefix, "broken ");
         else if (obj->olocked)
             Strcat(prefix, "locked ");
+        else if (obj->material == MINERAL)
+            /* stone boxes have no lock to speak of, so avoid describing as
+             * "unlocked", but if we somehow end up with a locked or broken one,
+             * describe it as such */
+            ;
         else
             Strcat(prefix, "unlocked ");
     }
@@ -5639,9 +5644,11 @@ readobjnam(char *bp, struct obj *no_wish)
             d.otmp->owt = weight(d.otmp);
         }
     }
-    /* set locked/unlocked/broken */
+    /* set locked/unlocked/broken, except on stone boxes which have no lock */
     if (Is_box(d.otmp)) {
-        if (d.locked) {
+        if (d.material == MINERAL) {
+            d.otmp->olocked = 0, d.otmp->obroken = 0;
+        } else if (d.locked) {
             d.otmp->olocked = 1, d.otmp->obroken = 0;
         } else if (d.unlocked) {
             d.otmp->olocked = 0, d.otmp->obroken = 0;
