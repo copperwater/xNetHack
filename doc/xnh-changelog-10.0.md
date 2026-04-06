@@ -60,6 +60,9 @@ changes:
 - Archfiends' chests that may store wands of wishing are always crystal chests.
 - The chest in the Castle containing the wand of wishing is now a crystal chest
   25% of the time, iron 37.5% of the time, and wood 37.5% of the time.
+- Ordinary soldiers have a 1% chance of generating with a leather drum or cheap
+  flute. Those generated at level creation time in Fort Ludios will never
+  generate with drums.
 
 ### Interface changes
 

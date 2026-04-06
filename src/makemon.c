@@ -708,6 +708,15 @@ m_initinv(struct monst *mtmp)
                     (void) mongets(mtmp, C_RATION);
                 if (ptr != &mons[PM_SOLDIER] && !rn2(3))
                     (void) mongets(mtmp, BUGLE);
+                if (ptr == &mons[PM_SOLDIER] && !rn2(100)) {
+                    if (!rn2(4) && !(Is_knox(&u.uz) && gi.in_mklev))
+                        (void) mongets(mtmp, LEATHER_DRUM);
+                    else {
+                        otmp = mongets(mtmp, MUNDANE_FLUTE);
+                        if (otmp)
+                            set_material(otmp, rn2(2) ? COPPER : METAL);
+                    }
+                }
             }
         } else if (ptr == &mons[PM_SHOPKEEPER]) {
             (void) mongets(mtmp, SKELETON_KEY);
