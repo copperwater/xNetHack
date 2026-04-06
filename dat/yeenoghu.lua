@@ -48,7 +48,7 @@ des.monster({ id='Yeenoghu', coord={Yx,Yy}, waiting=1, inventory=function()
    -- he is specially coded not to flee or retreat so compensate for this
    des.object({ class='!', id='full healing', quan=2 })
 end })
-des.object({ id='chest', locked=true, coord={Yx,Yy}, buried=true, material='iron',
+des.object({ id='chest', locked=true, coord={Yx,Yy}, buried=true, material='glass',
              contents=function()
    if nh.is_wish_archfiend('Yeenoghu') then
       des.object({ class='/', id='wishing', spe=1 })

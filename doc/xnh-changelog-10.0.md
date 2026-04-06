@@ -57,6 +57,9 @@ changes:
     doesn't trigger again by walking over it as long as you know the contents,
     but you can look at the contents again by using the near-look command while
     standing over it.
+- Archfiends' chests that may store wands of wishing are always crystal chests.
+- The chest in the Castle containing the wand of wishing is now a crystal chest
+  25% of the time, iron 37.5% of the time, and wood 37.5% of the time.
 
 ### Interface changes
 

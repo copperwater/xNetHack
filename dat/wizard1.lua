@@ -243,12 +243,12 @@ local regions = {
    },
    { lit=0,
       contents = function()
-         des.object('chest')
+         des.object({ id='chest', material="glass" })
       end
    },
    { lit=0,
       contents = function()
-         des.object('chest')
+         des.object({ id='chest', material="glass" })
       end
    },
    { lit=0,
