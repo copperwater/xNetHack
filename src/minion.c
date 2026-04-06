@@ -881,6 +881,7 @@ init_archfiends(void)
         tmpinfo->mndx = i;
         tmpinfo->num_in_dgn = 0;
         tmpinfo->escaped = FALSE;
+        tmpinfo->has_wish = FALSE;
     }
     /* now randomly choose some of them to have wishes
      * Juiblex is omitted here because his lair is open and doesn't really have
