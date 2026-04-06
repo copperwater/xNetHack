@@ -4310,9 +4310,11 @@ static const struct icp metal_materials[] = {
 /* for objects which are normally wooden */
 static const struct icp wood_materials[] = {
     {80, WOOD},
-    {10, MINERAL},
+    { 5, MINERAL},
     { 5, IRON},
     { 3, BONE},
+    { 3, GLASS},
+    { 2, METAL},
     { 1, COPPER},
     { 0, GOLD}, /* can exist in certain special levels but not randomly
                  * generated */
@@ -4603,6 +4605,11 @@ nonsensical_obj_material(struct obj *obj, uchar mat)
 
     /* a large, sealed container made out of bones... */
     if (mat == BONE && Is_box(obj)) {
+        return TRUE;
+    }
+
+    /* a launcher made out of a brittle material... */
+    if ((mat == GLASS || mat == MINERAL) && is_launcher(obj)) {
         return TRUE;
     }
 

@@ -22,6 +22,8 @@ changes:
 
 ### Gameplay changes
 
+- The wooden material list is extended to include metal and glass. Launchers
+  cannot be made out of glass, but all other base-wooden items can be.
 - Cursed weapons are no longer immune to breaking when used to force a lock.
 - Chests and large boxes can no longer generate made of bone.
 - Chests and large boxes made of stone no longer have any lock at all. They
