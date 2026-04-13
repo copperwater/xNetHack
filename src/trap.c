@@ -3064,7 +3064,6 @@ dotrap(struct trap *trap, unsigned trflags)
             /* in wiztower puzzles, player wants to trigger the trap, so don't
              * frustrate them by randomly escaping it */
             && !(ttype == SQKY_BOARD && Is_wizpuzzle_lev(&u.uz))
-            && !(ttype == TELEP_TRAP && Is_telemaze_lev(&u.uz))
             && ttype != ANTI_MAGIC && !forcebungle && !plunged
             && !conj_pit && !adj_pit
             && (!rn2(5) || (is_pit(ttype)
