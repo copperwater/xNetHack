@@ -1931,6 +1931,11 @@ seffect_charging(struct obj **sobjp)
     useup(sobj);
     *sobjp = 0; /* it's gone */
     otmp = getobj("charge", charge_ok, GETOBJ_PROMPT | GETOBJ_ALLOWCNT);
+    /* This scroll (and only the scroll, not other charging methods) identifies
+     * the charge count when non-cursed.
+     * Needs to happen BEFORE recharge() because that may destroy otmp. */
+    if (!scursed)
+        otmp->known = 1;
     if (otmp)
         recharge(otmp, scursed ? -1 : sblessed ? 1 : 0);
 }
