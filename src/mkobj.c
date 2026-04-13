@@ -3206,6 +3206,7 @@ hornoplenty(
         pline("%s %s out.", what, vtense(what, "spill"));
         obj->blessed = horn->blessed;
         obj->cursed = horn->cursed;
+        obj->bknown = horn->bknown;
         obj->owt = weight(obj);
         /* using a shop's horn of plenty entails a usage fee and also
            confers ownership of the created item to the shopkeeper */

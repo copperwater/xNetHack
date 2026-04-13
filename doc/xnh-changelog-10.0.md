@@ -66,6 +66,8 @@ changes:
 
 ### Interface changes
 
+- If you know the beatitude of a horn of plenty or tinning kit, you will
+  automatically know the beatitude of the food items they produce.
 
 ### Architectural changes
 

@@ -2380,6 +2380,7 @@ use_tinning_kit(struct obj *obj)
         can->corpsenm = corpse->corpsenm;
         can->cursed = obj->cursed;
         can->blessed = obj->blessed;
+        can->bknown = obj->bknown;
         can->owt = weight(can);
         can->known = 1;
         /* Mark tinned tins. No spinach allowed... */
