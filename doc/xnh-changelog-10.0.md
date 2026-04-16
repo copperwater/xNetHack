@@ -72,6 +72,7 @@ changes:
   charged.
 - Copper items are now colored orange, to better distinguish them from gold
   items.
+- The Amulet of Yendor (and fakes) are colored bright magenta.
 
 ### Architectural changes
 

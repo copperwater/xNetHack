@@ -774,12 +774,12 @@ AMULET("amulet of flying",              "cubical", FLYING, 60,
 OBJECT(OBJ("cheap plastic imitation of the Amulet of Yendor",
            "Amulet of Yendor"),
        BITS(0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, PLASTIC),
-       0, AMULET_CLASS, 0, 0, 20, 0, 0, 0, 0, 0, 1, HI_METAL,
+       0, AMULET_CLASS, 0, 0, 20, 0, 0, 0, 0, 0, 1, CLR_BRIGHT_MAGENTA,
                                                 FAKE_AMULET_OF_YENDOR),
 OBJECT(OBJ("Amulet of Yendor", /* note: description == name */
            "Amulet of Yendor"),
        BITS(0, 0, 1, 0, 1, 0, 1, 1, 0, 0, 0, 0, MITHRIL),
-       0, AMULET_CLASS, 0, 0, 20, 30000, 0, 0, 0, 0, 20, HI_METAL,
+       0, AMULET_CLASS, 0, 0, 20, 30000, 0, 0, 0, 0, 20, CLR_BRIGHT_MAGENTA,
                                                 AMULET_OF_YENDOR),
 MARKER(LAST_AMULET, AMULET_OF_YENDOR)
 #undef AMULET
