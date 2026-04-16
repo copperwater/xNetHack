@@ -41,7 +41,7 @@
 /* these can be configured */
 #define HI_OBJ CLR_MAGENTA
 #define HI_METAL CLR_CYAN
-#define HI_COPPER CLR_YELLOW
+#define HI_COPPER CLR_ORANGE
 #define HI_SILVER CLR_GRAY
 #define HI_GOLD CLR_YELLOW
 #define HI_LEATHER CLR_BROWN
@@ -53,6 +53,7 @@
 #define HI_MINERAL CLR_GRAY
 #define DRAGON_SILVER CLR_BRIGHT_CYAN
 #define HI_ZAP CLR_BRIGHT_BLUE
+#define HI_BRASS CLR_YELLOW /* item made of copper, but shows as yellow */
 
 /* For monstercolors: special value that indicates a monstercolor isn't
  * configured for a given monster and it should use the default */

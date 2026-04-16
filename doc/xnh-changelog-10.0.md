@@ -70,6 +70,8 @@ changes:
   automatically know the beatitude of the food items they produce.
 - Non-cursed charging methods identify the charge count on the item they
   charged.
+- Copper items are now colored orange, to better distinguish them from gold
+  items.
 
 ### Architectural changes
 
