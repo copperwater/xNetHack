@@ -819,6 +819,10 @@ recharge(struct obj *obj, int curse_bless)
     is_cursed = curse_bless < 0;
     is_blessed = curse_bless > 0;
 
+    /* Identify the charge count, unless using a cursed charging method. */
+    if (!is_cursed)
+        obj->known = 1;
+
     if (obj->oclass == WAND_CLASS) {
         int lim = (objects[obj->otyp].oc_dir != NODIR) ? 8 : 15;
 
@@ -1931,11 +1935,6 @@ seffect_charging(struct obj **sobjp)
     useup(sobj);
     *sobjp = 0; /* it's gone */
     otmp = getobj("charge", charge_ok, GETOBJ_PROMPT | GETOBJ_ALLOWCNT);
-    /* This scroll (and only the scroll, not other charging methods) identifies
-     * the charge count when non-cursed.
-     * Needs to happen BEFORE recharge() because that may destroy otmp. */
-    if (!scursed)
-        otmp->known = 1;
     if (otmp)
         recharge(otmp, scursed ? -1 : sblessed ? 1 : 0);
 }
