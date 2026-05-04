@@ -27,6 +27,7 @@ changes:
   material list as shields of reflection. This list has a more even distribution
   of possible materials, and also includes gemstone, stone, and bone.
   - Amulets of reflection still use the shield of reflection material list.
+- Human Rangers can now be played as Lawful.
 
 ### Interface changes
 
