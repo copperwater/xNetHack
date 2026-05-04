@@ -2063,7 +2063,9 @@ dosearch0(int aflag) /* intrinsic autosearch vs explicit searching */
                     if (!aflag && !mtmp && !Blind)
                         (void) unmap_invisible(x, y);
 
-                    if ((trap = t_at(x, y)) && !trap->tseen && !rnl(8)) {
+                    if ((trap = t_at(x, y)) && !trap->tseen
+                        && (Role_if(PM_RANGER) && is_pit(trap->ttyp)
+                            ? !rnl(2) : !rnl(8))) {
                         nomul(0);
                         if (trap->ttyp == STATUE_TRAP) {
                             if (activate_statue_trap(trap, x, y, FALSE))
