@@ -29,6 +29,12 @@ changes:
   - Amulets of reflection still use the shield of reflection material list.
 - Human Rangers can now be played as Lawful.
 - Rangers are 4 times as good as other roles at finding pits and spiked pits.
+- Add the giant scorpion.
+  - It is basically a scaled-up, faster version of the regular scorpion.
+  - Unlike the smaller scorpion, it has a grapple attack.
+  - Regular scorpions can grow up into them.
+  - They appear on the Ranger quest.
+  - They are orange to be distinguishable from regular scorpions.
 
 ### Interface changes
 
