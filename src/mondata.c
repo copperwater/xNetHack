@@ -1342,6 +1342,7 @@ static const short grownups[][2] = {
     { PM_URUK_HAI, PM_ORC_CAPTAIN },
     { PM_SEWER_RAT, PM_GIANT_RAT },
     { PM_CAVE_SPIDER, PM_GIANT_SPIDER },
+    { PM_SCORPION, PM_GIANT_SCORPION },
     { PM_OGRE, PM_OGRE_LEADER },
     { PM_OGRE_LEADER, PM_OGRE_TYRANT },
     { PM_ELF, PM_ELF_NOBLE },
