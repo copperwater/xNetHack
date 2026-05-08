@@ -35,6 +35,8 @@ changes:
   - Regular scorpions can grow up into them.
   - They appear on the Ranger quest.
   - They are orange to be distinguishable from regular scorpions.
+- Allow large s-class monsters (giant spider and giant scorpion) to be saddled
+  and ridden.
 
 ### Interface changes
 
