@@ -2781,7 +2781,7 @@ get_cost_of_shop_item(
  * approximation would be something like "zorkmids per aum".
  * We only care about the ratio of two of these together. */
 static
-const int matprices[] = {
+const int matprices[NUM_MATERIAL_TYPES] = {
      0,
      1, /* LIQUID */
      1, /* WAX */
@@ -2803,7 +2803,8 @@ const int matprices[] = {
      3, /* PLASTIC */
     20, /* GLASS */
    500, /* GEMSTONE */
-    10  /* MINERAL */
+    10, /* MINERAL */
+     2  /* HARD_LIGHT */
 };
 
 staticfn long

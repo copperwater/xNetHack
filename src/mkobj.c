@@ -2035,7 +2035,7 @@ set_bknown(
  * overpowered by weighing about one-tenth as much as the iron counterpart.
  * Instead, use arbitrary units. */
 static
-const int matdensities[] = {
+const int matdensities[NUM_MATERIAL_TYPES] = {
     0,   // will cause div/0 errors if anything is this material
     10,  // LIQUID
     15,  // WAX
@@ -2057,7 +2057,8 @@ const int matdensities[] = {
     20,  // PLASTIC
     60,  // GLASS
     55,  // GEMSTONE
-    70   // MINERAL
+    70,  // MINERAL
+     5,  // HARD_LIGHT
 };
 
 /*
@@ -2176,7 +2177,7 @@ weight(struct obj *obj)
  * adjusted up so that there are no negatives.
  * The units involved here are AC points (but again, only the difference
  * matters.) */
-const int matac[] = {
+const int matac[NUM_MATERIAL_TYPES] = {
      0,
      0,  // LIQUID
      1,  // WAX
@@ -2198,7 +2199,8 @@ const int matac[] = {
      3,  // PLASTIC
      5,  // GLASS
      7,  // GEMSTONE
-     6   // MINERAL
+     6,  // MINERAL
+     6,  // HARD_LIGHT
 };
 
 /* Compute the bonus or penalty to AC an armor piece should get for being a

@@ -32,6 +32,7 @@ enum obj_material_types {
     GLASS       = 19,
     GEMSTONE    = 20,
     MINERAL     = 21,
+    HARD_LIGHT  = 22,
     NUM_MATERIAL_TYPES
 };
 
