@@ -37,6 +37,8 @@ changes:
   - They are orange to be distinguishable from regular scorpions.
 - Allow large s-class monsters (giant spider and giant scorpion) to be saddled
   and ridden.
+- Add a new material: hard light, which is a magic construct that is
+  lightweight and fairly strong.
 
 ### Interface changes
 

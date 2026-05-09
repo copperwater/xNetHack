@@ -537,8 +537,10 @@ shade_glare(struct obj *obj)
 {
     const struct artifact *arti;
 
-    /* any silver object is effective; bone too, though it gets no bonus */
-    if (obj->material == SILVER || obj->material == BONE)
+    /* any silver object is effective; bone too, though it gets no bonus;
+     * physically substantial light also can touch them */
+    if (obj->material == SILVER || obj->material == BONE
+        || obj->material == HARD_LIGHT)
         return TRUE;
     /* non-silver artifacts with bonus against undead also are effective */
     arti = get_artifact(obj);
