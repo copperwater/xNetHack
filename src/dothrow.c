@@ -197,6 +197,7 @@ throw_obj(struct obj *obj, int shotlimit)
                          /* otherwise any stackable (non-ammo) weapon */
                          : obj->oclass == WEAPON_CLASS)
         && !(Confusion || Stunned)) {
+        int multishot_floor = 1;
         /* some roles don't get a volley bonus until becoming expert */
         weakmultishot = (Role_if(PM_WIZARD) || Role_if(PM_CLERIC)
                          || (Role_if(PM_HEALER) && skill != P_KNIFE)
@@ -249,8 +250,10 @@ throw_obj(struct obj *obj, int shotlimit)
                elven and orcish rangers loss of bonus for use of racial bow
                plus racial arrows if they switch to the Longbow of Diana) */
             if (uwep && is_quest_artifact(uwep)
-                && ammo_and_launcher(obj, uwep))
+                && ammo_and_launcher(obj, uwep)) {
                 ++multishot;
+                multishot_floor = min(multishot, 3);
+            }
         }
 
         /* crossbows are slow to load and probably shouldn't allow multiple
@@ -262,6 +265,7 @@ throw_obj(struct obj *obj, int shotlimit)
             multishot = rnd(multishot);
 
         multishot = rnd(multishot);
+        multishot = max(multishot_floor, multishot);
         if ((long) multishot > obj->quan)
             multishot = (int) obj->quan;
         if (shotlimit > 0 && multishot > shotlimit)

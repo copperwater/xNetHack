@@ -53,6 +53,10 @@ changes:
     arrows if you are an orc.
 - Orion is replaced as the Ranger quest leader with Cedalion, his lieutenant
   and guide.
+- Wielding the Longbow of Orion puts a floor on the amount of multishot you get
+  from arrows fired from it. This floor is 1 (no multishot) if you wouldn't be
+  able to multishoot with it, or 2 if you can only shoot a maximum of 2 arrows,
+  but otherwise it's 3.
 
 ### Interface changes
 
