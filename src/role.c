@@ -323,7 +323,7 @@ const struct Role roles[NUM_ROLES+1] = {
       PM_SCORPION,
       S_CENTAUR,
       S_SPIDER,
-      ART_LONGBOW_OF_DIANA,
+      ART_LONGBOW_OF_ORION,
       MH_HUMAN | MH_ELF | MH_GNOME | MH_ORC | ROLE_MALE | ROLE_FEMALE
           | ROLE_LAWFUL | ROLE_NEUTRAL | ROLE_CHAOTIC,
       /* Str Int Wis Dex Con Cha */
