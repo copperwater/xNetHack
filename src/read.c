@@ -2650,12 +2650,14 @@ set_lit(coordxy x, coordxy y, genericptr_t val)
 void
 litroom(
     boolean on,      /* True: make nearby area lit; False: cursed scroll */
-    struct obj *obj) /* scroll, spellbook (for spell), or wand of light */
+    struct obj *obj) /* scroll, spellbook (for spell), wand of light, or
+                      * arrow of light */
 {
     struct obj *otmp, *nextobj;
     boolean blessed_effect = (obj && obj->oclass == SCROLL_CLASS
                               && obj->blessed);
     boolean no_op = (u.uswallow || Underwater || Is_waterlevel(&u.uz));
+    boolean lightarrow = (obj && obj->otyp == ARROW_OF_LIGHT);
     char is_lit = 0; /* value is irrelevant but assign something anyway; its
                       * address is used as a 'not null' flag for set_lit() */
     int radius = 0;
@@ -2721,7 +2723,7 @@ litroom(
                 pline("%s shines briefly.", Monnam(u.ustuck));
             else
                 pline("%s glistens.", Monnam(u.ustuck));
-        } else if (!Blind) {
+        } else if (!Blind && !lightarrow) {
             pline("A lit field %ssurrounds you!", no_op ? "briefly " : "");
         }
     }
@@ -2758,13 +2760,22 @@ litroom(
             radius = 11;
         }
     }
+    else if (lightarrow) {
+        radius = 3;
+    }
     else {
         radius = 5;
     }
 
     if (radius > 0) {
-        do_clear_area(u.ux, u.uy, radius, set_lit,
-                      (genericptr_t) (on ? &is_lit : (char *) 0));
+        if (lightarrow) {
+            do_clear_area(obj->ox, obj->oy, radius, set_lit,
+                          (genericptr_t) (on ? &is_lit : (char *) 0));
+        }
+        else {
+            do_clear_area(u.ux, u.uy, radius, set_lit,
+                          (genericptr_t) (on ? &is_lit : (char *) 0));
+        }
     }
 
     /*

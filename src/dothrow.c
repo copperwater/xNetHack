@@ -2054,6 +2054,10 @@ should_mulch_missile(struct obj *obj)
         || objects[obj->otyp].oc_magic)
         return FALSE;
 
+    /* arrows of light are always one-shots */
+    if (obj->otyp == ARROW_OF_LIGHT)
+        return TRUE;
+
     /* The previous version of this logic made sure early-game characters
      * couldn't use their ranged ammo much or it'd all break. That isn't what we
      * want. So instead, we use a combination of skill and max skill to

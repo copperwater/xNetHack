@@ -1044,6 +1044,26 @@ hmon_hitmon_weapon_ranged(
             hmd->hittxt = TRUE;
         }
     }
+    if (!hmd->thrown && obj == uwep && obj->otyp == ARROW_OF_LIGHT) {
+        /* this will still work, but very ineffectively compared to shooting
+         * them; note that if hmd->thrown (i.e. thrown without bow), they will
+         * still just deal d2 damage and evaporate when they hit the floor */
+        hmd->dmg = dmgval(obj, mon) * obj->quan / MAX_LIGHT_ARROWS;
+        You("pierce %s with %s.", mon_nam(mon), yname(obj));
+        pline("Light sprays wastefully from the wound as %s.",
+              obj->quan == 1L ? "it evaporates" : "they evaporate");
+        obj->ox = mon->mx; /* hack so litroom will light the right point */
+        obj->oy = mon->my;
+        litroom(TRUE, obj);
+        vision_recalc(0); /* another hack because litroom suspends vision
+                           * recalculation, but it will still be suspended by
+                           * the time we get to xkilled and the monster will be
+                           * referred to as "it" */
+        hmd->hittxt = TRUE;
+        useupall(obj);
+        /* corpse is still left because the monster didn't get hit critically
+         * enough to disintegrate */
+    }
     if (!hmd->thrown && obj == uwep && obj->otyp == BOOMERANG
         && rnl(4) == 4 - 1) {
         boolean more_than_1 = (obj->quan > 1L);
@@ -1116,6 +1136,34 @@ hmon_hitmon_weapon_melee(
          * some reason being Skilled+ gives a penalty?) */
         hmd->get_dmg_bonus = FALSE;
         hmd->dmg -= weapon_dam_bonus(uwep);
+    } else if (obj->otyp == ARROW_OF_LIGHT) {
+        /* no critical hit effect since this already does very high damage, just
+         * cosmetic messages (and avoiding corpse creation) */
+        pline("%s pierces deep into %s!", Yname2(obj), mon_nam(mon));
+        hmd->hittxt = TRUE;
+        if (hmd->dmg > mon->mhp
+            /* it will almost certainly kill a gremlin anyway, but there's no
+             * kill like overkill */
+            || mon->data == &mons[PM_GREMLIN]) {
+            pline("Transfixed, %s glows and explodes in a burst of radiance!",
+                  mon_nam(mon));
+            /* hack so litroom will light the right point */
+            obj->ox = mon->mx;
+            obj->oy = mon->my;
+            litroom(TRUE, obj);
+            vision_recalc(0);
+            xkilled(mon, XKILL_NOMSG | XKILL_NOCORPSE);
+            hmd->already_killed = TRUE;
+        }
+        else {
+            pline(
+                "Dazzling rays burst from the wound, and %s staggers blindly!",
+                  mon_nam(mon));
+            mon->mstun = 1;
+            mon->mblinded = 1;
+        }
+        /* arrow will be destroyed but we can't break it here */
+        hmd->defer_breakwep = TRUE;
     } else if (mon->mflee && Role_if(PM_ROGUE) && !Upolyd
                /* multi-shot throwing is too powerful here */
                && hmd->hand_to_hand) {
@@ -1295,7 +1343,8 @@ hmon_hitmon_weapon_melee(
          * one of the only remaining parameters passed around rather than being
          * in struct _hitmon_data, that doesn't suffice to prevent
          * use-after-free. Flag it for potential breakage later. */
-        hmd->defer_breakwep = TRUE;
+        if (obj->material == GLASS)
+            hmd->defer_breakwep = TRUE;
         crack_glass_obj(some_armor(mon));
     }
 }
@@ -2102,9 +2151,18 @@ hmon_hitmon(
         print_mon_wounded(mon, saved_mhp);
         wakeup(mon, TRUE, TRUE);
     }
-    /* now try to crack the glass weapon, if used */
-    if (hmd.defer_breakwep)
-        (void) crack_glass_obj(obj);
+
+    /* now potentially break the weapon, if it was flagged to get damaged or
+     * broken */
+    if (hmd.defer_breakwep) {
+        if (obj->otyp == ARROW_OF_LIGHT)
+            delobj(obj);
+        else if (obj->material == GLASS)
+            (void) crack_glass_obj(obj);
+        else
+            impossible("defer_breakwep with weapon typ %d, mat %d",
+                       obj->otyp, obj->material);
+    }
 
     return hmd.destroyed ? FALSE : TRUE;
 }

@@ -1165,6 +1165,9 @@ struct instance_globals_saved_d {
 struct instance_globals_saved_e {
     /* decl.c */
     struct exclusion_zone *exclusion_zones;
+    /* do.c */
+    int extant_arrows_of_light;
+#define MAX_LIGHT_ARROWS 5
 };
 
 struct instance_globals_saved_h {

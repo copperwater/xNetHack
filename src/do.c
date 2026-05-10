@@ -282,6 +282,17 @@ flooreffects(
         bury_objs(x, y);
         newsym(x, y);
         res = TRUE;
+    } else if (obj->otyp == ARROW_OF_LIGHT) {
+        /* hack so litroom will light the right point */
+        obj->ox = x;
+        obj->oy = y;
+        litroom(TRUE, obj);
+        /* can't delay vision recalc because we need to print a message */
+        vision_recalc(0);
+        if (cansee(x, y))
+            pline("%s into motes of light.", Tobjnam(obj, "disintegrate"));
+        useupf(obj, obj->quan);
+        res = TRUE;
     } else if (is_lava(x, y)) {
         res = lava_damage(obj, x, y);
     } else if (is_pool(x, y)) {

@@ -5401,6 +5401,23 @@ readobjnam(char *bp, struct obj *no_wish)
                         /* WEAPON_CLASS test excludes gems, gray stones */
                         || (d.oclass == WEAPON_CLASS && is_ammo(d.otmp))))))
             d.otmp->quan = (long) d.cnt;
+
+        /* post-fixup for arrows of light, which you can only get 1 of per wish
+         * in normal play (rather than 20) */
+        if (d.typ == ARROW_OF_LIGHT && !wizard)
+            d.otmp->quan = 1L;
+    }
+
+    /* also don't allow wishing to exceed the limit on extant arrows of light */
+    if (d.typ == ARROW_OF_LIGHT) {
+        if (!wizard && sve.extant_arrows_of_light >= MAX_LIGHT_ARROWS) {
+            pline("The wish fails!");
+            obfree(d.otmp, (struct obj *) 0);
+            d.otmp = &hands_obj;
+            return d.otmp;
+        }
+        else
+            sve.extant_arrows_of_light += d.otmp->quan;
     }
 
     if (d.islit && (d.typ == OIL_LAMP || d.typ == MAGIC_LAMP
