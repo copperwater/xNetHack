@@ -2089,7 +2089,15 @@ arti_invoke(struct obj *obj)
             enlightenment(MAGICENLIGHTENMENT, ENL_GAMEINPROGRESS);
             break;
         case CREATE_AMMO: {
-            struct obj *otmp = mksobj(ARROW, TRUE, FALSE);
+            struct obj *otmp;
+
+            if (sve.extant_arrows_of_light >= MAX_LIGHT_ARROWS)
+                otmp = mksobj(Race_if(PM_ELF) ? ELVEN_ARROW
+                                              : Race_if(PM_ORC) ? ORCISH_ARROW
+                                                                : ARROW,
+                              TRUE, FALSE);
+            else
+                otmp = mksobj(ARROW_OF_LIGHT, TRUE, FALSE);
 
             if (!otmp) {
                 nothing_special(obj);
@@ -2098,7 +2106,11 @@ arti_invoke(struct obj *obj)
             otmp->blessed = obj->blessed;
             otmp->cursed = obj->cursed;
             otmp->bknown = obj->bknown;
+            otmp->known = obj->known;
+            otmp->rknown = obj->rknown;
             otmp->oeroded = otmp->oeroded2 = 0;
+            if (otmp->otyp != ARROW_OF_LIGHT)
+                otmp->spe = obj->spe;
             if (obj->blessed) {
                 if (otmp->spe < 0)
                     otmp->spe = 0;
@@ -2108,9 +2120,27 @@ arti_invoke(struct obj *obj)
                     otmp->spe = 0;
             } else
                 otmp->quan += rnd(5);
+
+            if (otmp->otyp == ARROW_OF_LIGHT) {
+                /* quan rules above are for fallback case of normal arrows,
+                 * arrows of light always give either 3 or whatever number
+                 * ensures the total number in existence don't go beyond
+                 * MAX_LIGHT_ARROWS */
+                otmp->quan = min(MAX_LIGHT_ARROWS - sve.extant_arrows_of_light,
+                                 3);
+                sve.extant_arrows_of_light += otmp->quan;
+            }
             otmp->owt = weight(otmp);
-            otmp = hold_another_object(otmp, "Suddenly %s out.",
-                                       aobjnam(otmp, "fall"), (char *) 0);
+
+            pline("In a %s flash, %s%s!",
+                  (Role_if(PM_RANGER) && svq.quest_status.killed_nemesis)
+                    ? "twinkling" : "glimmering",
+                  otmp->quan == 1L ? "an " : "",
+                  aobjnam(otmp, "appear"));
+
+            otmp = hold_another_object(otmp, "But you have to drop %s.",
+                                       otmp->quan >= 1L ? "it" : "them",
+                                       (char *) 0);
             nhUse(otmp);
             break;
         }
