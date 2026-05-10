@@ -39,6 +39,7 @@ changes:
   and ridden.
 - Add a new material: hard light, which is a magic construct that is
   lightweight and fairly strong.
+- Rename the Longbow of Diana to the Longbow of Orion.
 
 ### Interface changes
 
