@@ -285,6 +285,10 @@ dmgval(struct obj *otmp, struct monst *mon)
             break;
         }
     }
+    if (otyp == ARROW_OF_LIGHT) {
+        /* override prior wsdam/wldam calculation */
+        tmp = d(8, 8) + 24; /* 60 average damage */
+    }
     if (Is_weapon) {
         tmp += otmp->spe;
 
@@ -364,6 +368,12 @@ dmgval(struct obj *otmp, struct monst *mon)
              * vs incorporeal enemies is the simplest way to do it. */
             bonus += 1;
         }
+        if (otyp == ARROW_OF_LIGHT && mon_hates_blessings(mon)
+            /* while it would be more consistent for this to not exclude
+             * uniques, it would almost certainly trivialize archfiend
+             * encounters */
+            && !unique_corpstat(mon->data))
+            bonus *= 2;
 
         /* if the weapon is going to get a double damage bonus, adjust
            this bonus so that effectively it's added after the doubling */

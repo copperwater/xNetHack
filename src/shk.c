@@ -1135,6 +1135,8 @@ obfree(struct obj *obj, struct obj *merge)
         maybe_reset_pick(obj);
     if (obj->otyp == BOULDER)
         obj->next_boulder = 0;
+    if (obj->otyp == ARROW_OF_LIGHT && !merge)
+        sve.extant_arrows_of_light -= obj->quan;
 
     shkp = 0;
     if (obj->unpaid) {

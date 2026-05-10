@@ -40,6 +40,10 @@ changes:
 - Add a new material: hard light, which is a magic construct that is
   lightweight and fairly strong.
 - Rename the Longbow of Diana to the Longbow of Orion.
+- Add a new object: arrow of light. It is a weightless arrow made of hard light
+  that deals exceptionally high damage but disintegrates after hitting
+  something or falling to the floor. Monsters it kills in one shot will leave
+  no corpse, and monsters it fails to kill will be blinded and stunned.
 
 ### Interface changes
 

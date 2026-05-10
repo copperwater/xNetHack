@@ -930,7 +930,8 @@ static const struct instance_globals_saved_d init_svd = {
 
 static const struct instance_globals_saved_e init_sve = {
     /* decl.c */
-    NULL                                 /* exclusion_zones */
+    NULL,                                /* exclusion_zones */
+    0                                    /* extant_arrows_of_light */
 };
 
 static const struct instance_globals_saved_h init_svh = {
