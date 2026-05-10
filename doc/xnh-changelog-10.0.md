@@ -51,6 +51,8 @@ changes:
     equal to the Longbow's enchantment.
   - These ordinary arrows will be elven arrows if you are an elf and orcish
     arrows if you are an orc.
+- Orion is replaced as the Ranger quest leader with Cedalion, his lieutenant
+  and guide.
 
 ### Interface changes
 

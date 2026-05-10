@@ -2313,7 +2313,6 @@ trapeffect_web(
         case PM_BALROG:
         case PM_KRAKEN:
         case PM_MASTODON:
-        case PM_ORION:
         case PM_NORN:
         case PM_CYCLOPS:
         case PM_LORD_SURTUR:

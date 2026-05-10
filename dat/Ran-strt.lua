@@ -6,7 +6,7 @@
 --
 --	The "start" level for the quest.
 --
---	Here you meet your (besieged) class leader, Orion,
+--	Here you meet your (besieged) class leader, Cedalion,
 --	and receive your quest assignment.
 --
 des.level_init({ style = "solidfill", fg = "." });
@@ -71,14 +71,14 @@ for i=1,d(4,3) do
 end
 des.replace_terrain({ selection=grass, fromterrain='.', toterrain='g' })
 
--- Orion and his faithful dog
-des.monster({ id = "Orion", coord = {20, 10}, inventory = function()
+-- Cedalion and his faithful dog
+des.monster({ id = "Cedalion", coord = {20, 10}, inventory = function()
    des.object({ id = "light armor", spe = 4 });
    des.object({ id = "yumi", spe = 4 });
    des.object({ id = "ya", spe = 4, quantity = 50 });
 end })
 des.monster({ id = "large dog", x=20, y=11, name="Sirius", peaceful=1 })
--- The treasure of Orion
+-- The treasure of Cedalion
 des.object({ id = "chest", trapped = 0, x=20, y=10,
              contents = function()
                 des.object({ id = "bow", buc = "blessed" })

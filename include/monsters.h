@@ -3606,15 +3606,15 @@
         M2_NOPOLY | M2_HUMAN | M2_PEACEFUL | M2_STRONG | M2_MALE | M2_COLLECT
             | M2_MAGIC, M3_CLOSE | M3_INFRAVISIBLE,
         30, CLR_WHITE, ARCH_PRIEST),
-    MON(NAM("Orion"), S_HUMAN, LVL(20, 15, 0, 90, 0), (G_NOGEN | G_UNIQ),
+    MON(NAM("Cedalion"), S_HUMAN, LVL(20, 15, 0, 90, 0), (G_NOGEN | G_UNIQ),
         A(ATTK(AT_WEAP, AD_PHYS, 4, 10), ATTK(AT_MAGC, AD_SPEL, 4, 8),
           NO_ATTK, NO_ATTK, NO_ATTK, NO_ATTK),
-        SIZ(2200, 700, MS_LEADER, MZ_HUGE), 0, 0,
+        SIZ(2200, 700, MS_LEADER, MZ_HUMAN), 0, 0,
         M1_HUMANOID | M1_OMNIVORE | M1_SEE_INVIS | M1_SWIM | M1_AMPHIBIOUS,
         M2_NOPOLY | M2_HUMAN | M2_PNAME | M2_PEACEFUL | M2_STRONG | M2_MALE
             | M2_COLLECT | M2_MAGIC,
         M3_CLOSE | M3_INFRAVISION | M3_INFRAVISIBLE,
-        24, HI_LORD, ORION),
+        24, HI_LORD, CEDALION),
     /* Note: Master of Thieves is also the Tourist's nemesis.
      */
     MON(NAM("Master of Thieves"), S_HUMAN,
