@@ -316,7 +316,7 @@ const struct Role roles[NUM_ROLES+1] = {
       "the cave of the wumpus",
       PM_RANGER,
       PM_LITTLE_DOG /* Orion & canis major */,
-      PM_ORION,
+      PM_CEDALION,
       PM_HUNTER,
       PM_SCORPIUS,
       PM_FOREST_CENTAUR,
