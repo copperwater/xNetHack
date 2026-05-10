@@ -44,12 +44,14 @@ des.replace_terrain({ region = {48,00,52,20}, fromterrain=".", toterrain="T", ch
 des.replace_terrain({ region = {53,00,77,20}, fromterrain=".", toterrain="T", chance=4 })
 
 -- Stairs
-local rightedge = selection.line(77,00, 77,21)
-local dnstair = rightedge:rndcoord()
-des.stair("down", dnstair)
+des.stair("down", 46,20)
 
--- Guarantee a treeless path from the stair to the forest entry
-des.terrain({ selection = selection.randline(77, dnstair.y, 43,09, 6), typ=".", lit=1 })
+-- Guarantee treeless path from the stair to the forest entry, but using (58,13)
+-- as a "junction" so it doesn't carve into the hardcoded tree area
+des.replace_terrain({ selection = selection.randline(44,09, 58,13, 6),
+                      fromterrain='T', toterrain="." })
+des.replace_terrain({ selection = selection.randline(58,13, 46,20, 6),
+                      fromterrain='T', toterrain="." })
 
 -- Portal arrival point; just about anywhere on the right hand side of the map
 des.levregion({ region = {51,2,77,18}, exclude = {0,0,40,20}, region_islev = 1, type="branch" })
@@ -57,7 +59,18 @@ des.levregion({ region = {51,2,77,18}, exclude = {0,0,40,20}, region_islev = 1, 
 -- Altar (entry text says there's one here)
 des.altar({ x=11, y=10, align="coaligned", type="altar" })
 
--- -- Random grass patches 
+-- Prevent monster generation within the sacred grove
+des.exclusion({ type = "monster-generation", region = { 10,09, 39,11 } })
+
+-- Define valid spawning area for monsters
+-- (note the above exclusion won't prevent lua-file random placement from
+-- putting them in the grove, so we have to do it manually)
+-- This intentionally comes before grass is placed so we can filter_mapchar('.')
+-- and not exclude grass patches
+local spawnable = selection.area(00,00,77,21) - selection.area(10,09,39,11)
+spawnable = spawnable:filter_mapchar('.')
+
+-- Random grass patches
 local grass = selection.new()
 local everything = selection.area(00, 00, 77, 21)
 for i=1,d(4,3) do
@@ -71,18 +84,18 @@ for i=1,d(4,3) do
 end
 des.replace_terrain({ selection=grass, fromterrain='.', toterrain='g' })
 
--- Cedalion and his faithful dog
+-- Cedalion
 des.monster({ id = "Cedalion", coord = {20, 10}, inventory = function()
    des.object({ id = "light armor", spe = 4 });
    des.object({ id = "yumi", spe = 4 });
    des.object({ id = "ya", spe = 4, quantity = 50 });
 end })
-des.monster({ id = "large dog", x=20, y=11, name="Sirius", peaceful=1 })
 -- The treasure of Cedalion
 des.object({ id = "chest", trapped = 0, x=20, y=10,
              contents = function()
                 des.object({ id = "bow", buc = "blessed" })
                 des.object({ id = "arrow", spe = 2, quantity = 40 })
+                des.object({ id = "beartrap", material = "metal", quantity = 3 })
                 des.object()
                 des.object()
                 des.object()
@@ -99,7 +112,7 @@ des.monster("hunter", 21, 09)
 des.monster("hunter", 19, 10)
 des.monster("hunter", 21, 10)
 des.monster("hunter", 19, 11)
-des.monster("hunter", 20, 12)
+des.monster("hunter", 20, 11)
 des.monster("hunter", 21, 11)
 
 -- Non diggable trees
@@ -117,30 +130,16 @@ for i=1,2 + d(3) do
   des.object()
 end
 
--- Monsters on siege duty.
-des.monster({ id = "forest centaur", x=19, y=03, peaceful = 0 })
-des.monster({ id = "forest centaur", x=19, y=04, peaceful = 0 })
-des.monster({ id = "forest centaur", x=19, y=05, peaceful = 0 })
-des.monster({ id = "forest centaur", x=21, y=03, peaceful = 0 })
-des.monster({ id = "forest centaur", x=21, y=04, peaceful = 0 })
-des.monster({ id = "forest centaur", x=21, y=05, peaceful = 0 })
-des.monster({ id = "forest centaur", x=01, y=09, peaceful = 0 })
-des.monster({ id = "forest centaur", x=02, y=09, peaceful = 0 })
-des.monster({ id = "forest centaur", x=03, y=09, peaceful = 0 })
-des.monster({ id = "forest centaur", x=01, y=11, peaceful = 0 })
-des.monster({ id = "forest centaur", x=02, y=11, peaceful = 0 })
-des.monster({ id = "forest centaur", x=03, y=11, peaceful = 0 })
-des.monster({ id = "forest centaur", x=19, y=15, peaceful = 0 })
-des.monster({ id = "forest centaur", x=19, y=16, peaceful = 0 })
-des.monster({ id = "forest centaur", x=19, y=17, peaceful = 0 })
-des.monster({ id = "forest centaur", x=21, y=15, peaceful = 0 })
-des.monster({ id = "forest centaur", x=21, y=16, peaceful = 0 })
-des.monster({ id = "forest centaur", x=21, y=17, peaceful = 0 })
-des.monster({ id = "plains centaur", peaceful=0 })
-des.monster({ id = "plains centaur", peaceful=0 })
-des.monster({ id = "plains centaur", peaceful=0 })
-des.monster({ id = "plains centaur", peaceful=0 })
-des.monster({ id = "plains centaur", peaceful=0 })
-des.monster({ id = "plains centaur", peaceful=0 })
-des.monster({ id = "scorpion", peaceful=0 })
-des.monster({ id = "scorpion", peaceful=0 })
+-- Monsters attacking the grove
+for i = 1, 12 do
+   des.monster({ id = "forest centaur", peaceful = 0, coord=spawnable:rndcoord(1) })
+end
+for i = 1, 6 do
+   des.monster({ id = "plains centaur", peaceful=0, coord=spawnable:rndcoord(1) })
+end
+for i = 1, 3 do
+   des.monster({ class = "C", peaceful=0, coord=spawnable:rndcoord(1) })
+   des.monster({ id = "mountain centaur", peaceful=0, coord=spawnable:rndcoord(1) })
+end
+des.monster({ id = "scorpion", peaceful=0, coord=spawnable:rndcoord(1) })
+des.monster({ id = "scorpion", peaceful=0, coord=spawnable:rndcoord(1) })
