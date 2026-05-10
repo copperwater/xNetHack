@@ -57,6 +57,9 @@ changes:
   from arrows fired from it. This floor is 1 (no multishot) if you wouldn't be
   able to multishoot with it, or 2 if you can only shoot a maximum of 2 arrows,
   but otherwise it's 3.
+- The Ranger quest has received an overhaul:
+  - The home level is lightly redesigned (from when it was redone in xNetHack
+    3.0); monsters will no longer spawn in the sacred grove.
 
 ### Interface changes
 
