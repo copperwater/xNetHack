@@ -108,31 +108,12 @@ local conns = {
 }
 
 local TOTAL_ROOMS = 24 -- still not counting Wizard's
-local reached = { }
-for i = 1,TOTAL_ROOMS do
-   reached[i] = false
-end
-
--- pick 1 initial room to build spanning tree from
-local initroom = d(TOTAL_ROOMS)
-reached[initroom] = true
-local nreached = 1
-while nreached < TOTAL_ROOMS do
-   local pick = d(#conns)
-   while reached[conns[pick][1]] == reached[conns[pick][2]] do
-      pick = d(#conns)
-   end
-
-   -- take a random point from the line and make it a secret door
-   local cc = selection.line(conns[pick][3],conns[pick][4],
-                             conns[pick][5],conns[pick][6]):rndcoord()
-   des.door({ state='secret', coord=cc })
-
-   -- update reached; both rooms are now reachable (one already was)
-   reached[conns[pick][1]] = true
-   reached[conns[pick][2]] = true
-   nreached = nreached + 1
-end
+make_spanning_tree(conns, TOTAL_ROOMS, nil, function(edge)
+   -- take a random point from the line stored in edge[3..6] and make it a
+   -- secret door
+   local cc = selection.line(edge[3],edge[4], edge[5],edge[6]):rndcoord()
+   des.door({ state='closed', coord=cc })
+end)
 
 -- Now connect the Wizard's chamber.
 -- Note that these doors are placed such that the player cannot hit the Wizard

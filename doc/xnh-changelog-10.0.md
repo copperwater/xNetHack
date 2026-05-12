@@ -69,3 +69,5 @@ changes:
 
 ### Architectural changes
 
+- Add a make_spanning_tree function in the Lua nhlib file, which constructs a
+  general spanning tree from a given unweighted graph.
