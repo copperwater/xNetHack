@@ -60,6 +60,9 @@ changes:
 - The Ranger quest has received an overhaul:
   - The home level is lightly redesigned (from when it was redone in xNetHack
     3.0); monsters will no longer spawn in the sacred grove.
+  - The upper filler level is no longer a cavern fill with trees as the
+    background but is still somewhat similar, consisting of randomized trails
+    through a forest leading into one of two caves.
 
 ### Interface changes
 
