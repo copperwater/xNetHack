@@ -2091,7 +2091,8 @@ arti_invoke(struct obj *obj)
         case CREATE_AMMO: {
             struct obj *otmp;
 
-            if (sve.extant_arrows_of_light >= MAX_LIGHT_ARROWS)
+            if (sve.extant_arrows_of_light >= MAX_LIGHT_ARROWS
+                || (Role_if(PM_RANGER) && !svq.quest_status.killed_nemesis))
                 otmp = mksobj(Race_if(PM_ELF) ? ELVEN_ARROW
                                               : Race_if(PM_ORC) ? ORCISH_ARROW
                                                                 : ARROW,
