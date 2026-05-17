@@ -66,6 +66,10 @@ changes:
   - The story has not been severely changed, but more closely tracks the
     mythological conflict between Orion and Scorpius. The largest change is
     that Orion is already dead and the mission is one of vengeance.
+  - You receive the Longbow of Orion from Cedalion as soon as you get assigned
+    the quest. However, it will not create arrows of light until Scorpius is
+    killed, though it can still create normal arrows and its passive extrinsics
+    still apply.
 
 ### Interface changes
 

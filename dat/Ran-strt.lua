@@ -89,6 +89,7 @@ des.monster({ id = "Cedalion", coord = {20, 10}, inventory = function()
    des.object({ id = "light armor", spe = 4 });
    des.object({ id = "yumi", spe = 4 });
    des.object({ id = "ya", spe = 4, quantity = 50 });
+   des.object({ id = "bow", buc="blessed", spe=0, name="The Longbow of Orion" })
 end })
 -- The treasure of Cedalion
 des.object({ id = "chest", trapped = 0, x=20, y=10,
