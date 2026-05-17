@@ -288,6 +288,12 @@ dmgval(struct obj *otmp, struct monst *mon)
     if (otyp == ARROW_OF_LIGHT) {
         /* override prior wsdam/wldam calculation */
         tmp = d(8, 8) + 24; /* 60 average damage */
+        if (Role_if(PM_RANGER) && svq.quest_status.killed_nemesis
+            && !svc.context.mon_moving)
+            ;
+        else
+            /* without Orion's blessing, they are not as effective */
+            tmp /= 2;
     }
     if (Is_weapon) {
         tmp += otmp->spe;

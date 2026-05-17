@@ -44,9 +44,12 @@ changes:
   that deals exceptionally high damage but disintegrates after hitting
   something or falling to the floor. Monsters it kills in one shot will leave
   no corpse, and monsters it fails to kill will be blinded and stunned.
+  - The arrow of light deals half its normal damage if you are not a Ranger who
+    has killed Scorpius.
 - The Longbow of Orion's invoke effect now creates arrows of light, granting
   either 3 of them, or if that would make there be more than 5 arrows of light
   in the game, as many as can be created to bring the total to 5.
+  - If you are not a Ranger, only one arrow of light will be created.
   - If there are already 5 in the game, it creates ordinary arrows enchanted
     equal to the Longbow's enchantment.
   - These ordinary arrows will be elven arrows if you are an elf and orcish
