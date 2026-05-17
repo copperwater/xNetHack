@@ -73,6 +73,8 @@ changes:
     the quest. However, it will not create arrows of light until Scorpius is
     killed, though it can still create normal arrows and its passive extrinsics
     still apply.
+  - Scorpions and other s-class monsters generate more frequently on the quest,
+    with centaurs generating less frequently.
 
 ### Interface changes
 
