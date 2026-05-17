@@ -63,6 +63,9 @@ changes:
   - The upper filler level is no longer a cavern fill with trees as the
     background but is still somewhat similar, consisting of randomized trails
     through a forest leading into one of two caves.
+  - The story has not been severely changed, but more closely tracks the
+    mythological conflict between Orion and Scorpius. The largest change is
+    that Orion is already dead and the mission is one of vengeance.
 
 ### Interface changes
 

@@ -2173,30 +2173,46 @@ to run out.]],
       },
    },
    Ran = {
+      arti_but_not_neme = {
+         -- Ran should not actually see this text because the code is supposed
+         -- to skip over that call site (otherwise you would never get leader's
+         -- encouragement)
+         text = "error: arti_but_not_neme should not be shown"
+      },
       assignquest = {
-         synopsis = "[%nC has stolen %o.  Infiltrate %i and retrieve %oh for us.]",
+         synopsis = "[%nC has slain Orion.  Take his bow and avenge his death.]",
          output = "text",
-         text = [["You are indeed ready, %p.  I shall tell you what has transpired,
-and why we so desperately need your help:
+         text = [[
+"You are indeed ready, %p.  Hear now the tale of our destruction:
 
-"A short time ago, the mountain centaurs to the east invaded
-and enslaved the plains centaurs in this area.  The local
-leader is now only a figurehead, and serves %n.
+"Our lord Orion is dead.
 
-"During our last gathering of worship here, we were beset by hordes of
-hostile centaurs, as you witnessed.  In the first onslaught a group,
-headed by %n %niself, managed to breach the grove and steal
-%o.
+"He and I, along with a contingent of %gp, were negotiating a peace
+treaty with the centaurs of the eastern lands.  It went well at first,
+but their chieftain was prideful and goaded Orion with subtle insults.
+Orion slew him and several of his lieutenants in wrath, and shouted to
+the fleeing centaurs that he would not stop killing until every beast on
+earth lay dead at his feet.
 
-"Since then, we have been besieged.  We do not know how much longer
-we will be able to maintain our magical barriers.
+"The centaurs must have laid this boast before their patron goddess,
+Gaia, for when they regrouped and counterattacked in force, the earth
+broke open and crawling things emerged to come to their aid.  The
+greatest and most terrible among these was %n.
 
-"If we are to survive, you, %p, must infiltrate
-%i.  There, you will find a pathway down, to the
-underground cavern of %n.  He has always coveted
-%o, and will surely keep it.
+"Orion must have known that %nS coming was the hour of his doom.
+He entrusted me with his great bow and commanded the rest of us to
+retreat to this grove, though I hid on a nearby hill and watched
+helplessly as %n overwhelmed Orion with %j deadly poison.
 
-"Recover %o for us, %p!  Only then will %d be safe."]],
+"The centaurs continue to press the attack, and these surviving hunters
+are far too green to break through their siege, let alone face %n.
+But you could. You are our best hope for avenging Orion.
+
+"As it was given to me, I will entrust you with %o.
+With it, you shall never want for ammunition, which should serve you
+well in the deadly %i.
+
+"Prevail against %n, %p!  Avenge the loss of our great lord!"]],
       },
       badalign = {
          synopsis = "[You are not sufficiently %a.  Come back when you have purified yourself.]",
@@ -2209,89 +2225,112 @@ we maintain a pure devotion to things %a!
       badlevel = {
          synopsis = "[You are too inexperienced.  Come back when you are %Ra.]",
          output = "text",
-         text = [["%p, you are yet too inexperienced to withstand the demands of that
-which we need you to do.  %RA might just be able to do this thing.
+         text = [["%p, you would certainly perish if you set off now.
+%RA might just be able to do this thing.
 
 "Return to us when you have learned more, my %S."]],
       },
       discourage = {
-         "\"Your %d is nothing, %c.  You are mine now!\"",
-         "\"Run away little %c!  You can never hope to defeat %n!\"",
-         "\"My servants will rip you to shreds!\"",
-         "\"I shall display your head as a trophy.  What do you think about that wall?\"",
-         "\"I shall break your %ls grove, and destroy all the %gP!\"",
-         "\"%d has abandoned you, %c.  You are doomed.\"",
-         "\"%rA?  %lC sends a mere %r against me?  Hah!\"",
-         "\"%lC has failed, %c.  %oC will never leave here.\"",
-         "\"You really think you can defeat me, eh %c?  You are wrong!\"",
-         "\"You weaken, %c.  I shall kill you now.\"",
+         "%n clacks %nj pincers.",
+         "%nS stinger whirls down and barely misses you.",
+         "%n stamps the ground with one of %nj front legs.",
+         "%n backs up momentarily, then rushes back forward in a false charge.",
+         -- avoid the above strings being printed too repetitively by padding
+         -- out the array
+         "", "", "", "", "",
       },
       encourage = {
-         "\"It is rumored that the Forest and Mountain Centaurs have resolved their ancient feud and now band together against us.\"",
-         "\"%nC is strong, and very smart.\"",
-         "\"Use %o, when you find it.  It will help you survive to reach us.\"",
+         "\"All hope at peace with the centaurs has been lost. They now band together against us.\"",
+         "\"%nC has a deadly sting. You must keep your distance and avoid it!\"",
+         "\"Invoking %O now only summons mundane arrows, but those are still useful.\"",
          "\"Remember, let %d be your guide.\"",
-         "\"Call upon %d when you face %n. The very act of doing so will infuriate him, and give you advantage.\"",
-         "\"%n and his kind have always hated us.\"",
+         "\"Do not start killing creatures indiscriminately. We must not provoke Gaia's fury again.\"",
+         "\"The various centaur tribes have ancient feuds, but they have set those aside.\"",
          "\"We cannot hold the grove much longer, %p.  Hurry!\"",
-         "\"To infiltrate %i, you must be very stealthy.\"",
-         "\"Remember that %n is a braggart.  Trust not what he says.\"",
-         "\"You can triumph, %p, if you trust in %d.\"",
+         "\"The Wumpus could slay you or me in one blow. Yet you must traverse its cave...\"",
+         "\"Trust your senses, stay on alert, and naught can take you by surprise.\"",
+         "\"%nC may summon its brethren to help. Do not get surrounded!\"",
       },
       firsttime = {
          synopsis = "[The ancient forest grove is surrounded by centaurs.]",
          output = "text",
-         text = [[You arrive in familiar surroundings.  In the distance, you %x the
-ancient forest grove, the place of worship to %d.
+         text = [[
+You arrive in familiar surroundings.  In the distance, you %x the
+ancient forest grove, the place of worship to %d that Orion keeps
+sacred.
 
-Something is wrong, though.  Surrounding the grove are centaurs!
-And they've noticed you!]],
+But why has Cedalion summoned you, rather than Orion?
+
+Something is wrong.  Grim-faced centaurs have spotted you and are
+closing in to attack!]],
       },
       goal_first = {
-         synopsis = "[You descend into a subterranean complex.  Hooves clatter in the distance.]",
+         synopsis = "[The forest is dark here. %nC must be nearby.]",
          output = "text",
-         text = [[You descend into a weird place, in which roughly cut cave-like walls
-join with smooth, finished ones, as if someone was in the midst of
-finishing off the construction of a subterranean complex.
+         text = [[
+The forest has grown darker with every mile that passes beneath your
+feet. The dense canopy blots out the overcast sky, turning the twilight
+hour to darkest night.
 
-Off in the distance, you hear a sound like the clattering of many
-hooves on rock.]],
+Wisps of fog trail slowly across the forest floor, and the silence is
+broken only by the occasional rustling nearby and the strange baying
+sounds echoing
+from somewhere more distant.
+
+Nearby, a hump of earth breaks open and a scorpion skitters out of it.
+
+You don't need your tracking knowledge to know that %nC must be nearby.]],
       },
       goal_next = {
-         text = "Once again, you enter the distorted castle of %n.",
+         text = "Once again, you enter the dark heart of the forest.",
       },
       gotit = {
-         synopsis = "[You pick up %o and feel power.  It's time to return %oh to %l.]",
+         -- Note: this is printed at the START of the ranger quest.
+         synopsis = "[You take %O and shoot into the sky. You are committed now.]",
          output = "text",
-         text = [[As you pick up %o, it seems to glow, and a warmth
-fills you completely.  You realize that its power is what has protected
-your %sp against their enemies for so long.
+         text = [[
+You turn over %o in your hands, recalling all the times
+you saw Orion wielding it and the unerring accuracy he had with it.  You
+swear to yourself that you shall do right by him.
 
-You must now return it to %l without delay -- their lives depend
-on your speed.]],
+%l hands you an arrow, which you nock.  The bow is of greater
+stature than you are used to, and it is difficult to draw at first, but
+you do draw the arrow back, pointing it into the sky in the direction
+%l indicates, the direction where you will find %n.  The
+other %gP pause what they are doing to watch.
+
+With a mighty twang, you loose the arrow and it sails into the sky,
+farther than you've ever shot before.  The other %gP murmur assent;
+now you are committed.
+
+To seek the death of Scorpius -- or perish in the attempt.]],
       },
       guardtalk_after = {
          "\"%pC!  I have not seen you in many moons.  How do you fare?\"",
-         "\"Birdsong has returned to the grove, surely this means you have defeated %n.\"",
-         "\"%lC seems to have regained some of his strength.\"",
-         "\"So, tell us how you entered %i, in case some new evil arises there.\"",
-         "\"Is that truly %o that I see you carrying?\"",
+         "\"Birdsong has returned to the grove; surely this means you have defeated %n.\"",
+         "\"Since you slew %n, the centaurs have abandoned the siege.\"",
+         "\"So, tell us how you passed through %i, in case some new evil arises there.\"",
+         "\"It's amazing how you carry %o with such grace. What is it like to wield it?\"",
       },
       guardtalk_before = {
          "\"%pC!  I have not seen you in many moons.  How do you fare?\"",
-         "\"%nC continues to threaten the grove.  But we hold fast.\"",
-         "\"%lC is growing weak.  The magic required to defend the grove drains us.\"",
-         "\"Remember %i is hard to enter.  Beware the distraction of leatherwings.\"",
-         "\"We must regain %o.  Without it we will be overrun.\"",
+         "\"The woods have gone quiet since Orion left us.\"",
+         "\"The centaurs have hemmed us in. Only here in the center can we still resist them.\"",
+         "\"I worry about %l.  We all grieve, but he is letting it distract him.\"",
+         "\"None of us save Orion have ever passed through %i and lived.\"",
+         "\"%oC looks awfully big for you. Are you sure you can wield it?\"",
       },
       hasamulet = {
          synopsis = "[You have the Amulet!  Take it to the Astral Plane and offer it to %d.]",
          output = "text",
-         text = [["You have it!  You have recovered the Amulet of Yendor!
-Now attend to me, %p, and I will tell you what must be done:
+         text = [[
+"You have it!  You have recovered the Amulet of Yendor!
+
+Now attend to me, %p, for here is what Orion planned to
+tell you should you obtain it:
 
 "The Amulet has within it magic, the capability to transport you to
-the Astral Plane, where the primary circle of %d resides.
+the Astral Plane, where the holy circle of %d resides.
 
 "To activate this magic, you must travel upwards as far as you can.
 When you reach the temple, sacrifice the Amulet to %d.
@@ -2299,26 +2338,48 @@ When you reach the temple, sacrifice the Amulet to %d.
 "Thus will you fulfill your destiny."]],
       },
       killed_nemesis = {
-         synopsis = "[%nC curses you as %nh dies.]",
+         synopsis = "[You %x Orion in the stars; he blesses you and empowers his bow.]",
          output = "text",
-         text = [[%nC collapses to the ground, cursing you and %l, then says:
+         text = [[
+As %nS death throes subside, you feel the wind picking up. The
+clouds clear, and in the dark night sky you %x a constellation that
+wasn't there before.  Somehow, you know it is Orion, striding
+triumphantly across the heavens.  As you gaze on it, you hear Orion's
+voice.
 
-    "You have defeated me, %r!  But I curse you one final time, with
-    my dying breath!  You shall die before you leave my castle!"]],
+"Thank you, %p, for ridding the world of %n.  I
+am avenged, and I can rest.
+
+"%d has placed me among the stars; from the stars do I now bless you.
+When you call upon the power of my longbow, the arrows it produces will
+be spun from starlight, empowering them greatly.  Use them well.
+
+"Please convey my regrets to %l.  The charge of the sacred grove
+now passes to %li.
+
+"Go forth, my %S, with my gratitude."
+]],
       },
       leader_first = {
-         synopsis = "[You have returned, %p.  We need your help.  Are you ready?]",
+         synopsis = "[You have returned, but Orion is dead.  I must see how experienced you are.]",
          output = "text",
-         text = [["%pC!  You have returned!  Thank %d.
+         text = [[
+"%pC!  You have returned!  Thank %d.
 
-"We have great need of you.  But first, I must see if you have the
-required abilities to take on this responsibility."]],
+"What? You want to know where Orion is? He has been... slain."
+
+A tear trickles down %lS cheek before he wipes it away.
+
+"Before I tell you the whole story, I must see if you have become
+experienced enough to take on this responsibility."]],
       },
       leader_last = {
          synopsis = "[You are not sufficiently %a.  We renounce your %shood.]",
          output = "text",
-         text = [["%pC!  You have doomed us all.  You fairly radiate %L influences
-and weaken the power we have raised in this grove as a result!
+         text = [[
+"%pC!  You have doomed us all.  You are a disgrace to
+all those who name themselves %a and weaken the power we have
+raised in this grove as a result!
 
 "Begone!  We renounce your %shood with us!  You are an outcast now!"]],
       },
@@ -2355,53 +2416,77 @@ You are in room 9 of the cave.  There are tunnels to rooms
          synopsis = "[You are still a %r!  Can you really do this?]",
          output = "text",
          text = [[
-"You are so young!  Still a %r!  Can you fight the centaurs?  Can you
-really find and infiltrate %i, take on %n, and recover
-%o for us?"]],
+"You are so young!  Still %rA!  Can you fight the centaurs?  Can you
+really find and survive %i and take on %n?]],
       },
       nemesis_first = {
-         synopsis = "[You have come to recover %o, but I shall keep %oh and you shall die.]",
+         synopsis = "[You face %n. But he is more terrible than you imagined.]",
          output = "text",
-         text = [["So, %c.  %lC has sent you to recover %o.
+         text = [[
+At last, you are face to face with %n.  But %nh is far more
+terrible than you ever imagined.
 
-"Well, I shall keep that bauble.  It pleases me.  You, %c, shall die."]],
+Towering over you, armored in gleaming black carapace, with pincers that
+could crush you whole.  Dark eyes glitter at you with malice that belies
+a more than animal mind.
+
+Why did you get so close?
+
+Dripping with venom, the stinger flashes down again.]],
       },
       nemesis_next = {
-         text = "\"Back again, eh?  Well, a mere %r is no threat to me!  Die, %c!\"",
+         text = "%n clicks %nj jaws and advances again.",
       },
       nemesis_other = {
-         text = "\"You haven't learned your lesson, %c.  You can't kill me!  You shall die now.\"",
+         text = "%nS eyes glint menacingly.",
       },
       nemesis_wantsit = {
-         text = [["I shall have %o from you, %r.  Then I shall
-kill you."]],
+         -- this is special cased not to occur since a ranger presumably will
+         -- frequently have the artifact already when facing nemesis
+         text = "error: nemesis_wantsit should not be shown"
       },
       nexttime = {
          text = "Once again, you stand before %H.",
       },
       offeredit = {
-         synopsis = "[You have succeeded.  Take %o with you as you go to find the Amulet.]",
+         synopsis = "[The centaurs have fled. Take %O with you as you search for the Amulet.]",
          output = "text",
-         text = [["%pC!  You have succeeded!  I feared it was not possible!
+         text = [[
+"Thank you, %p.  I knew you could do it.
 
-"You have returned with %o!
+"Last evening, the centaurs were closing in on the heart of the grove to
+put an end to us, our arrows exhausted and the sacred protections of
+Apollo spent.  But as night fell, we beheld Orion striding across the
+firmament, written in stars. I knew then that you had triumphed. The
+centaurs, who read the night skies and had seen their victory written
+there, were alarmed, for their foretellings had been shattered.  They
+broke and fled.
 
-"I fear, now, that the Centaurs will regroup and plot yet another raid.
-This will take some time, but if you can recover the Amulet of Yendor
-for %d before that happens, we will be eternally safe.
+"But this is not a lasting peace, and Orion will not reign forever in
+the sky. Apollo sent me a vision in a dream while I slept, showing me
+that Scorpius, too, has been placed into the stars to oppose Orion.  At
+the turning of the seasons, Orion will retreat and Scorpius will
+advance, and under his sign our enemies will again assail us.
 
-"Take %o with you.  It will aid in your quest for
-the Amulet."]],
+"Before then, you must recover the Amulet of Yendor for Apollo.  With
+it, his holy groves will be eternally safe.
+
+"Take the Longbow of Orion with you.  You are Orion's chosen hero now,
+as well as Apollo's, and it rightfully belongs with you.  It will serve
+you well in your search for the Amulet."]],
       },
       offeredit2 = {
          synopsis = "[You are the keeper of %o now.  Go and find the Amulet.]",
          output = "text",
          text = [[%l flexes %o reverently.
 
-"With this wondrous bow, one need never run out of arrows.
-You are its keeper now, and the time has come to resume your
-search for the Amulet.  %Z await your return
-through the magic portal that brought you here."]],
+"With this wondrous bow, one need never run out of arrows.  And with the
+blessing of Orion upon you, you shall wield the mighty arrows of light
+that can pierce even the heart of Moloch.
+
+"You are the bow's keeper now, and the time has come to resume your
+search for the Amulet.  %Z await your return through
+the magic portal that brought you here."]],
       },
       othertime = {
          text = [[You have the oddest feeling that this may be the last time you
