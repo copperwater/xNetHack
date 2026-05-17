@@ -2210,7 +2210,7 @@ But you could. You are our best hope for avenging Orion.
 
 "As it was given to me, I will entrust you with %o.
 With it, you shall never want for ammunition, which should serve you
-well in the deadly %i.
+well in the deadly %it.
 
 "Prevail against %n, %p!  Avenge the loss of our great lord!"]],
       },

@@ -312,8 +312,8 @@ const struct Role roles[NUM_ROLES+1] = {
         { "Marksman", "Markswoman" } },
       "Apollo", "_Diana", "Mars", /* Roman/planets */
       "Ran",
-      "Orion's camp",
-      "the cave of the wumpus",
+      "Orion's Grove",
+      "the Cave of the Wumpus",
       PM_RANGER,
       PM_LITTLE_DOG /* Orion & canis major */,
       PM_CEDALION,
