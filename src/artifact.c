@@ -2124,11 +2124,16 @@ arti_invoke(struct obj *obj)
 
             if (otmp->otyp == ARROW_OF_LIGHT) {
                 /* quan rules above are for fallback case of normal arrows,
-                 * arrows of light always give either 3 or whatever number
-                 * ensures the total number in existence don't go beyond
-                 * MAX_LIGHT_ARROWS */
-                otmp->quan = min(MAX_LIGHT_ARROWS - sve.extant_arrows_of_light,
-                                 3);
+                 * arrows of light for Rangers always give either 3 or whatever
+                 * number ensures the total number in existence don't go beyond
+                 * MAX_LIGHT_ARROWS, 1 for non-rangers */
+                if (Role_if(PM_RANGER)) {
+                    otmp->quan = min(MAX_LIGHT_ARROWS
+                                     - sve.extant_arrows_of_light, 3);
+                }
+                else {
+                    otmp->quan = 1;
+                }
                 sve.extant_arrows_of_light += otmp->quan;
             }
             otmp->owt = weight(otmp);
