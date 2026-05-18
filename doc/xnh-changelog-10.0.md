@@ -81,6 +81,7 @@ changes:
 - An extended achievement (which does not correspond to any bits in the xlogfile
   achieve field) is awarded for solving the Wizard's Puzzle, which is encoded in
   achieveX as "solved_wiz_puzzle".
+- Monster lookup shows whether or not a monster can be saddled.
 
 ### Architectural changes
 

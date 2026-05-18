@@ -22,15 +22,22 @@ rider_cant_reach(void)
 
 /*** Putting the saddle on ***/
 
-/* Can this monster wear a saddle? */
+/* Can a monster of this species wear a saddle? */
+boolean
+saddleable(struct permonst *ptr)
+{
+    return (strchr(steeds, ptr->mlet) && (ptr->msize >= MZ_MEDIUM)
+            && (!humanoid(ptr) || ptr->mlet == S_CENTAUR) && !amorphous(ptr)
+            && !noncorporeal(ptr) && !is_whirly(ptr) && !unsolid(ptr));
+}
+
+/* Can this monster wear a saddle?
+ * (I'm not sure why this takes a struct monst and not a struct permonst.) */
 boolean
 can_saddle(struct monst *mtmp)
 {
     struct permonst *ptr = mtmp->data;
-
-    return (strchr(steeds, ptr->mlet) && (ptr->msize >= MZ_MEDIUM)
-            && (!humanoid(ptr) || ptr->mlet == S_CENTAUR) && !amorphous(ptr)
-            && !noncorporeal(ptr) && !is_whirly(ptr) && !unsolid(ptr));
+    return saddleable(ptr);
 }
 
 int
