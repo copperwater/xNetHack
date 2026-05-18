@@ -3186,6 +3186,7 @@ extern struct obj *findgold(struct obj *, boolean) NO_NNARGS;
 /* ### steed.c ### */
 
 extern void rider_cant_reach(void);
+extern boolean saddleable(struct permonst *) NONNULLARG1;
 extern boolean can_saddle(struct monst *) NONNULLARG1;
 extern int use_saddle(struct obj *) NONNULLARG1;
 extern void put_saddle_on_mon(struct obj *, struct monst *) NONNULLARG2;

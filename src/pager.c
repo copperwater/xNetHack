@@ -1081,6 +1081,7 @@ add_mon_info(winid datawin, struct permonst * pm)
     APPENDC(is_undead(pm), "undead");
     if (!is_undead(pm))
         APPENDC(nonliving(pm), "nonliving");
+    APPENDC(saddleable(pm), "rideable with a saddle");
     if (*buf) {
         Snprintf(buf2, BUFSZ, "Is %s.", buf);
         MONPUTSTR(buf2);
