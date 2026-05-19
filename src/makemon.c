@@ -1126,6 +1126,13 @@ newmonhp(struct monst *mon, int mndx)
         /* Second half of the "special" fixed hp monster code: adjust level */
         mon->m_lev = mon->mhp / 4; /* approximation */
     }
+    if (deadly_wumpus(mon)) {
+        mon->m_lev *= 2;
+        if (mon->m_lev > 49)
+            mon->m_lev = 49;
+        mon->mhpmax *= 3;
+        mon->mhp = mon->mhpmax;
+    }
 }
 
 static const struct mextra zeromextra = DUMMY;

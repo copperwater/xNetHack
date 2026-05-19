@@ -1207,6 +1207,10 @@ mcalcmove(
             adj = 0;
         mmove += adj;
     }
+    if (deadly_wumpus(mon)) {
+        /* ordinary wumpus speed is 3, which is not threatening. */
+        mmove = 30;
+    }
 
     if (m_moving) {
         /* Randomly round the monster's speed to a multiple of NORMAL_SPEED.
@@ -6552,6 +6556,25 @@ mon_aireffects(struct monst *mtmp)
         migrate_to_level(mtmp, ledger_no(&destination), MIGR_RANDOM,
                             (coord *) 0);
     }
+}
+
+boolean
+deadly_wumpus(struct monst *mtmp)
+{
+    /* Track the id of the wumpus so that any subsequent ones created on the
+     * Ranger locate level are ordinary. */
+    static unsigned wumpus_mid = 0; /* reserved and unused ident */
+
+    if (wumpus_mid != 0)
+        return (mtmp->m_id == wumpus_mid);
+
+    if (mtmp->data == &mons[PM_WUMPUS] && Role_if(PM_RANGER)
+        && Is_qlocate(&u.uz)) {
+        wumpus_mid = mtmp->m_id;
+        return TRUE;
+    }
+
+    return FALSE;
 }
 
 /*mon.c*/

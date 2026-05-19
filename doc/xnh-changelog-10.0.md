@@ -75,6 +75,9 @@ changes:
     still apply.
   - Scorpions and other s-class monsters generate more frequently on the quest,
     with centaurs generating less frequently.
+  - The wumpus on the locate level is much stronger than ordinary wumpuses. It
+    has much more HP, is significantly faster, and its bite does a huge amount
+    of damage, enough to kill most characters.
 
 ### Interface changes
 

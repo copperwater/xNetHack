@@ -1333,6 +1333,8 @@ hitmu(struct monst *mtmp, struct attack *mattk)
     if (mdat == &mons[PM_GERYON] && mattk->adtyp == AD_PHYS
         && geryon_bonus() > 0)
         mhm.damage += rnd(geryon_bonus());
+    if (deadly_wumpus(mtmp))
+        mhm.damage += d(20, 50);
 
     mhitm_adtyping(mtmp, mattk, &gy.youmonst, &mhm);
 
