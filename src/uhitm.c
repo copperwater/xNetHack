@@ -249,13 +249,7 @@ attack_checks(
                 && m_next2u(mtmp))
                 set_ustuck(mtmp);
         }
-        /* #H7329 - if hero is on engraved "Elbereth", this will end up
-         * assessing an alignment penalty and removing the engraving
-         * even though no attack actually occurs.  Since it also angers
-         * peacefuls, we're operating as if an attack attempt did occur
-         * and the Elbereth behavior is consistent.
-         */
-        wakeup(mtmp, TRUE, TRUE); /* always necessary; also un-mimics mimics */
+        wakeup(mtmp, FALSE, TRUE); /* always necessary; also un-mimics mimics */
         return TRUE;
     }
 
