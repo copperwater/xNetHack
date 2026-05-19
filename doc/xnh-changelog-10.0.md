@@ -115,6 +115,8 @@ changes:
   standard 20% chance.
 - Most trees on the Archeologist and Monk quests can no longer produce fruit or
   bees. There are several trees on both start levels that still can, though.
+- When you walk into a peaceful invisible creature you weren't aware of, it
+  does not get angry.
 
 ### Interface changes
 
