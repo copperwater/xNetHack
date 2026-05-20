@@ -1511,6 +1511,10 @@ find_level_beneath(const d_level *start, d_level *beneath)
         *beneath = *start;
         beneath->dlevel = dunlevs_in_dungeon((d_level *) start);
     }
+    else if (Role_if(PM_RANGER) && Is_qlocate(&u.uz)) {
+        /* hunt the wumpus pits are truly bottomless */
+        beneath->dnum = beneath->dlevel = 0;
+    }
     else if (start->dlevel != dunlevs_in_dungeon((d_level *) start)) {
         /* if not on the bottom level of a branch, then fall to next lowest
          * level (not multiple levels as might happen with a trapdoor) */

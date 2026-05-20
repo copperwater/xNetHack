@@ -78,6 +78,18 @@ changes:
   - The wumpus on the locate level is much stronger than ordinary wumpuses. It
     has much more HP, is significantly faster, and its bite does a huge amount
     of damage, enough to kill most characters.
+  - The locate level is changed to be more cave-like and less
+    artificial-feeling while still being a series of 20 chambers arranged like
+    the vertices of a dodecahedron.
+    - Passages between the chambers are now corridor terrain rather than room
+      terrain.
+    - The upstairs and downstairs cavern are now randomized instead of fixed.
+    - The wumpus is waiting on the downstairs rather than being asleep.
+    - The two random "bottomless pit" chambers are open air terrain. Falling
+      into these is an instadeath. (The spiked pit traps are removed to avoid
+      confusion.)
+    - The centaurs spawn in two groups in random chambers rather than being
+      spread out.
 
 ### Interface changes
 
