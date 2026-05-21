@@ -57,6 +57,9 @@ T...BBB.......................................................BBB----
 --                 .........            .... ....           .....             
 --               20                         21                  22          
 
+-- Light up the level
+des.region(selection.area(00,00,74,20), "lit")
+
 -- Upstair back to the home level is near the middle of the top edge.
 local ustairx = 34 + nh.rn2(8)
 des.stair("up", ustairx, 00)

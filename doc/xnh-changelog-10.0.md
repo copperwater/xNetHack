@@ -90,6 +90,9 @@ changes:
       confusion.)
     - The centaurs spawn in two groups in random chambers rather than being
       spread out.
+  - The lower filler level(s) are similar to the upper one, but the map is
+    dark with some random clouds, there is no cave, and there are many more
+    scorpions than centaurs.
 
 ### Interface changes
 
