@@ -223,3 +223,72 @@ function make_spanning_tree(edges, numnodes, startnode, callback)
       num_reached = num_reached + 1
    end
 end
+
+-- xnethack: remove diagonal choke points from map; currently used only in the
+-- Ranger quest and hence it is hardcoded to work only on trees.
+-- While some levels it's used on are diggable, Rangers get a penalty for
+-- chopping down trees and it wouldn't be nice to make them do that.
+-- (Need to do both directions with the 'x' characters because selection.match
+-- requires odd-sized mapfrag and doing it in only one direction could result in
+-- failure to match on the edge of the map.)
+-- The repeat block is necessary because it's possible that turning a tree into
+-- a ROOM space creates a new diagonal gap.
+function remove_tree_chokepoints()
+   local totpoints = 0
+   repeat
+      totpoints = 0
+      local cut1 = selection.match([[
+T.x
+.Tx
+xxx]])
+      cut1:iterate(function(x, y)
+         totpoints = totpoints + 1
+         if percent(50) then
+            x = x - 1
+            y = y - 1
+         end
+         des.terrain(x, y, '.')
+      end)
+
+      local cut2 = selection.match([[
+xxx
+xT.
+x.T]])
+      cut2:iterate(function(x, y)
+         totpoints = totpoints + 1
+         if percent(50) then
+            x = x + 1
+            y = y + 1
+         end
+         des.terrain(x, y, '.')
+      end)
+
+      local cut3 = selection.match([[
+.Tx
+T.x
+xxx]])
+      cut3:iterate(function(x, y)
+         totpoints = totpoints + 1
+         if percent(50) then
+            x = x - 1
+         else
+            y = y - 1
+         end
+         des.terrain(x, y, '.')
+      end)
+
+      local cut4 = selection.match([[
+xxx
+x.T
+xT.]])
+      cut4:iterate(function(x, y)
+         totpoints = totpoints + 1
+         if percent(50) then
+            x = x + 1
+         else
+            y = y + 1
+         end
+         des.terrain(x, y, '.')
+      end)
+   until totpoints == 0
+end
