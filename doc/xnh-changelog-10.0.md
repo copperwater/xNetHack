@@ -93,6 +93,9 @@ changes:
   - The lower filler level(s) are similar to the upper one, but the map is
     dark with some random clouds, there is no cave, and there are many more
     scorpions than centaurs.
+  - The goal level is another forest traverse, but with more fog and a river.
+    Scorpius, a few centaurs, and a lot of scorpions inhabit a clearing across
+    the river.
 
 ### Interface changes
 
