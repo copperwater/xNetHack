@@ -1604,6 +1604,8 @@ consume_tin(const char *mesg)
     /* if you've eaten tin itself, chance to not eat contents gets bypassed */
     boolean always_eat = metallivorous(gy.youmonst.data);
     struct obj *tin = svc.context.tin.tin;
+    boolean tblessed = tin->blessed,
+            tcursed = tin->cursed;
 
     r = tin_variety(tin, FALSE);
     if (tin->otrapped || (tin->cursed && r != HOMEMADE_TIN && !rn2(8))) {
@@ -1715,8 +1717,8 @@ consume_tin(const char *mesg)
 
         if (!strcmp(tintxts[r].txt, "szechuan") && rn2(2)) {
             struct obj* cookie = mksobj(FORTUNE_COOKIE, TRUE, FALSE);
-            cookie->blessed = tin->blessed;
-            cookie->cursed = tin->cursed;
+            cookie->blessed = tblessed;
+            cookie->cursed = tcursed;
             pline("There is a free fortune cookie inside!");
             hold_another_object(cookie, "It falls to the floor.", NULL, NULL);
         }
