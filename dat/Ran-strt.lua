@@ -94,9 +94,10 @@ end })
 -- The treasure of Cedalion
 des.object({ id = "chest", trapped = 0, x=20, y=10,
              contents = function()
+                beartrapmat = (u.race == 'elf') and 'copper' or 'iron'
                 des.object({ id = "bow", buc = "blessed" })
                 des.object({ id = "arrow", spe = 2, quantity = 40 })
-                des.object({ id = "beartrap", material = "metal", quantity = 3 })
+                des.object({ id = "beartrap", material = beartrapmat, quantity = 3 })
                 des.object()
                 des.object()
                 des.object()
