@@ -1947,6 +1947,9 @@ nhl_meta_u_index(lua_State *L)
     } else if (!strcmp(tkey, "role")) {
         lua_pushstring(L, gu.urole.name.m);
         return 1;
+    } else if (!strcmp(tkey, "race")) {
+        lua_pushstring(L, gu.urace.noun);
+        return 1;
     } else if (!strcmp(tkey, "moves")) {
         lua_pushinteger(L, svm.moves);
         return 1;
