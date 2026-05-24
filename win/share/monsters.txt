@@ -14504,41 +14504,41 @@ Z = (195, 195, 195)
 }
 # tile 756 (Scorpius,male)
 {
-  .....JLJLJAA....
-  ....JA.JCJCKAA..
-  ....AJ.....JJJA.
-  ....LA......LCKA
-  .JAKJA......JJJA
-  ..JJA......ALCJA
-  .......ALLAJCJKA
-  ....JJALCCAAJJA.
-  .JJALLAJCJJJAA..
-  JA.LCCAJAJJAAAA.
-  ..JACJJJAAACCJAA
-  GGJJJJJAACCAAAJA
-  .JJGGAJACAAJJAAA
-  D.JJAAJAACA.JAA.
-  ...D...JAAJA.JJ.
-  ........JA.JA...
+  .....R0R0RAA....
+  ....RA.RTRTSAA..
+  ....AR.....RRRA.
+  ....0A......0TSA
+  .RASRA......RRRA
+  ..RRA......A0TRA
+  .......A00ARTRSA
+  ....RRA0TTAARRA.
+  .RRA00ARTRRRAA..
+  RA.0TTARARRAAAA.
+  ..RATRRRAAATTRAA
+  GGRRRRRAATTAAARA
+  .RRGGARATAARRAAA
+  D.RRAARAATA.RAA.
+  ...D...RAARA.RR.
+  ........RA.RA...
 }
 # tile 757 (Scorpius,female)
 {
-  .....JLJLJAA....
-  ....JA.JCJCKAA..
-  ....AJ.....JJJA.
-  ....LA......LCKA
-  .JAKJA......JJJA
-  ..JJA......ALCJA
-  .......ALLAJCJKA
-  ....JJALCCAAJJA.
-  .JJALLAJCJJJAA..
-  JA.LCCAJAJJAAAA.
-  ..JACJJJAAACCJAA
-  GGJJJJJAACCAAAJA
-  .JJGGAJACAAJJAAA
-  D.JJAAJAACA.JAA.
-  ...D...JAAJA.JJ.
-  ........JA.JA...
+  .....R0R0RAA....
+  ....RA.RTRTSAA..
+  ....AR.....RRRA.
+  ....0A......0TSA
+  .RASRA......RRRA
+  ..RRA......A0TRA
+  .......A00ARTRSA
+  ....RRA0TTAARRA.
+  .RRA00ARTRRRAA..
+  RA.0TTARARRAAAA.
+  ..RATRRRAAATTRAA
+  GGRRRRRAATTAAARA
+  .RRGGARATAARRAAA
+  D.RRAARAATA.RAA.
+  ...D...RAARA.RR.
+  ........RA.RA...
 }
 # tile 758 (Master Assassin,male)
 {
