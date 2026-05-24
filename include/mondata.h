@@ -313,6 +313,7 @@
  * tactics(). */
 #define covetous_nonwarper(ptr)       \
     ((ptr) == &mons[PM_SCHLIEMANN]    \
+     || (ptr) == &mons[PM_SCORPIUS]   \
      || is_archfiend(ptr))
 
 /* The monster knows the difference between a valuable gem and worthless glass.

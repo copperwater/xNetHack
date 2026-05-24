@@ -30,6 +30,7 @@ staticfn int vamp_shift(struct monst *, struct permonst *, boolean);
 staticfn void maybe_spin_web(struct monst *);
 staticfn boolean special_juiblex_actions(struct monst *);
 staticfn boolean special_baalzebub_actions(struct monst *);
+staticfn boolean special_scorpius_actions(struct monst *);
 
 /* a11y: give a message when monster moved */
 staticfn void
@@ -968,6 +969,8 @@ dochug(struct monst *mtmp)
     if (mdat == &mons[PM_JUIBLEX] && special_juiblex_actions(mtmp))
         return 0;
     if (mdat == &mons[PM_BAALZEBUB] && special_baalzebub_actions(mtmp))
+        return 0;
+    if (mdat == &mons[PM_SCORPIUS] && special_scorpius_actions(mtmp))
         return 0;
 
     /* If monster is nearby you, and has to wield a weapon, do so.  This
@@ -2741,6 +2744,69 @@ special_baalzebub_actions(struct monst *baalz)
         }
     }
     return FALSE;
+}
+
+/* once-per-move actions and effects for Scorpius; return true if this has used
+ * up his move and false if he should continue with his normal actions */
+staticfn boolean
+special_scorpius_actions(struct monst *scorpius)
+{
+    int cnt = d(2,3);
+    int i;
+    int seen = 0;
+    int sensed = 0;
+    boolean madeany = FALSE;
+
+    /* only at half health or lower */
+    if (scorpius->mhp * 2 > scorpius->mhpmax)
+        return FALSE;
+
+    /* can't do it constantly */
+    if (scorpius->mspec_used)
+        return FALSE;
+
+    /* only if sufficiently near player */
+    if (mdistu(scorpius) > 7 * 7)
+        return FALSE;
+
+    if (canspotmon(scorpius)) {
+        if (Deaf) {
+            pline("%s drums on the earth!", Monnam(scorpius));
+        }
+        else {
+            pline("%s emits a shrieking call!", Monnam(scorpius));
+        }
+    }
+    else {
+        You_hear("a horrible shrieking call!");
+    }
+
+    for (i = 0; i < cnt; ++i) {
+        struct permonst *mdat = rn2(3) ? &mons[PM_SCORPION]
+                                       : &mons[PM_GIANT_SCORPION];
+        struct monst *newmon = makemon(mdat, scorpius->mx, scorpius->my,
+                                       MM_ADJACENTOK | MM_ANGRY | MM_NOMSG);
+        if (!newmon)
+            continue;
+        madeany = TRUE;
+        if (canseemon(newmon))
+            seen++;
+        else if (canspotmon(newmon))
+            sensed++;
+    }
+    if (seen >= 1) {
+        pline("The ground bubbles up and bursts, and %s!",
+              (seen == 1 && sensed == 0) ? "a scorpion emerges"
+                                         : "scorpions emerge");
+    }
+    else if (sensed >= 1) {
+        pline("%s near %s!",
+              (sensed == 1) ? "A scorpion emerges" : "Scorpions emerge",
+              mon_nam(scorpius));
+    }
+    if (madeany)
+        scorpius->mspec_used = 20 + rnd(20);
+    return TRUE;
 }
 
 /*monmove.c*/

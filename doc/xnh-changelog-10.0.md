@@ -96,6 +96,17 @@ changes:
   - The goal level is another forest traverse, but with more fog and a river.
     Scorpius, a few centaurs, and a lot of scorpions inhabit a clearing across
     the river.
+  - Scorpius is buffed:
+    - He has a higher base level, giving him more HP.
+    - His AC is now 0 instead of 10, in line with most other nemeses.
+    - His base MR is now 50.
+    - He is faster at speed 18 instead of 12.
+    - One of his claw attacks is now a grabbing attack.
+    - He is now huge, though his attacks do *not* cause knockback.
+    - If he stings you a second time while you are already ill and you have
+      intrinsic poison resistance, you will lose that intrinsic.
+    - When below half health, he can summon scorpions and giant scorpions.
+    - On the other hand, he will no longer covetous warp.
 - Ice devils and cold traps no longer strip temporary cold resistance.
 
 ### Interface changes

@@ -1167,6 +1167,13 @@ diseasemu(struct permonst *mdat)
         You_feel("a slight illness.");
         return FALSE;
     } else {
+        if (Sick && mdat == &mons[PM_SCORPIUS]
+            && (HPoison_resistance & FROMOUTSIDE)) {
+            /* Scorpius's venom is capable of removing poison resistance, but
+             * only if you've already been rendered ill by a prior sting */
+            strip_poison_resistance(&gy.youmonst);
+            return TRUE;
+        }
         make_sick(Sick ? Sick / 3L + 1L : (long) rn1(ACURR(A_CON), 20),
                   mdat->pmnames[NEUTRAL], TRUE, SICK_NONVOMITABLE);
         return TRUE;
