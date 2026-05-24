@@ -111,6 +111,8 @@ changes:
   - Large dogs have a one-way grudge against Scorpius, so you can use Sirius to
     help attack him.
 - Ice devils and cold traps no longer strip temporary cold resistance.
+- Rangers have an 80% chance of escaping traps they created rather than the
+  standard 20% chance.
 
 ### Interface changes
 

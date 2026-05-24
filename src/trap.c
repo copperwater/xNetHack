@@ -3087,8 +3087,10 @@ dotrap(struct trap *trap, unsigned trflags)
             && !(ttype == TELEP_TRAP && Is_telemaze_lev(&u.uz))
             && ttype != ANTI_MAGIC && !forcebungle && !plunged
             && !conj_pit && !adj_pit
-            && (!rn2(5) || (is_pit(ttype)
-                            && !grounded(gy.youmonst.data)))) {
+            /* typically you have a 20% chance of escaping trap;
+             * rangers have 80% chance of escaping their own traps */
+            && (((Role_if(PM_RANGER) && trap->madeby_u) ? rn2(5) : !rn2(5))
+                || (is_pit(ttype) && !grounded(gy.youmonst.data)))) {
                 You("escape %s %s.", (ttype == ARROW_TRAP && !trap->madeby_u)
                                      ? "an"
                                      : a_your[trap->madeby_u],
