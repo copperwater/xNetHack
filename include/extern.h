@@ -3348,6 +3348,7 @@ extern struct monst *activate_statue_trap(struct trap *, coordxy, coordxy,
 extern int immune_to_trap(struct monst *, unsigned) NO_NNARGS; /* revisit */
 extern void set_utrap(unsigned, unsigned);
 extern void reset_utrap(boolean);
+extern boolean strip_poison_resistance(struct monst *mtmp) NONNULLARG1;
 extern boolean strip_cold_resistance(struct monst *mtmp) NONNULLARG1;
 extern boolean m_harmless_trap(struct monst *, struct trap *) NONNULLPTRS;
 extern void dotrap(struct trap *, unsigned) NONNULLARG1;

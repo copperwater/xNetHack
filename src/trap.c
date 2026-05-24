@@ -1751,9 +1751,34 @@ trapeffect_fire_trap(
     return Trap_Effect_Finished;
 }
 
+/* Remove any intrinsic poison resistance from mtmp, which can be either the
+ * player or a monster. Does not affect extrinsic poison resistance or resistance
+ * inherent to a monster's form (but DOES affect poison resistance from
+ * race/role).
+ * Return true if it was removed, false if mtmp did not have poison resistance. */
+boolean
+strip_poison_resistance(struct monst *mtmp)
+{
+    if (mtmp == &gy.youmonst) {
+        if (HPoison_resistance & INTRINSIC) {
+            HPoison_resistance &= ~INTRINSIC;
+            You_feel("a little sick!");
+            return TRUE;
+        }
+    }
+    else {
+        if (mtmp->mintrinsics & MR_POISON) {
+            mtmp->mintrinsics &= ~MR_POISON;
+            return TRUE;
+        }
+    }
+    return FALSE;
+}
+
 /* Remove any intrinsic cold resistance from mtmp, which can be either the
  * player or a monster. Does not affect extrinsic cold resistance or resistance
- * inherent to a monster's form.
+ * inherent to a monster's form (but DOES affect cold resistance from
+ * race/role).
  * Return true if it was removed, false if mtmp did not have cold resistance. */
 boolean
 strip_cold_resistance(struct monst *mtmp)

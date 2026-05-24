@@ -555,8 +555,8 @@ attrcurse(void)
         /*FALLTHRU*/
     case 3:
         if (HPoison_resistance & INTRINSIC) {
-            HPoison_resistance &= ~INTRINSIC;
-            You_feel("a little sick!");
+            /* moved to function to avoid duplication */
+            strip_poison_resistance(&gy.youmonst);
             ret = POISON_RES;
             break;
         }
@@ -575,8 +575,8 @@ attrcurse(void)
         /*FALLTHRU*/
     case 5:
         if (HCold_resistance & INTRINSIC) {
-            HCold_resistance &= ~INTRINSIC;
-            You_feel("cooler.");
+            /* moved to function to avoid duplication */
+            strip_cold_resistance(&gy.youmonst);
             ret = COLD_RES;
             break;
         }
