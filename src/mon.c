@@ -2707,6 +2707,12 @@ mm_aggression(
             || md == &mons[PM_BABY_GOLD_DRAGON]))
         return ALLOW_M|ALLOW_TM;
 
+    /* large dogs vs Scorpius;
+     * enables player to rescue Sirius on the Ranger quest and have him avenge
+     * Orion */
+    if (ma == &mons[PM_LARGE_DOG] && md == &mons[PM_SCORPIUS])
+        return ALLOW_M|ALLOW_TM;
+
     /* now test all two-way aggressions both ways */
     return (mm_2way_aggression(magr, mdef) | mm_2way_aggression(mdef, magr));
 }

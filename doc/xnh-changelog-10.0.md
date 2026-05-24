@@ -108,6 +108,8 @@ changes:
     - When below half health, he can summon scorpions and giant scorpions.
     - On the other hand, he will no longer covetous warp.
   - All levels of the quest have barren trees that contain no fruit or bees.
+  - Large dogs have a one-way grudge against Scorpius, so you can use Sirius to
+    help attack him.
 - Ice devils and cold traps no longer strip temporary cold resistance.
 
 ### Interface changes
