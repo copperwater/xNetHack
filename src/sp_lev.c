@@ -3410,6 +3410,8 @@ lspo_monster(lua_State *L)
             tmpmons.mm_flags |= MM_IGNOREWATER;
         if (!get_table_boolean_opt(L, "countbirth", TRUE))
             tmpmons.mm_flags |= MM_NOCOUNTBIRTH;
+        if (get_table_boolean_opt(L, "noitem", FALSE))
+            tmpmons.mm_flags |= MM_NOITEM;
 
         mappear = get_table_str_opt(L, "appear_as", NULL);
         if (mappear) {

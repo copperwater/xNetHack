@@ -1240,7 +1240,8 @@ makemon(
             byyou = u_at(x, y),
             allow_minvent = ((mmflags & NO_MINVENT) == 0),
             countbirth = ((mmflags & MM_NOCOUNTBIRTH) == 0),
-            allowtail = ((mmflags & MM_NOTAIL) == 0);
+            allowtail = ((mmflags & MM_NOTAIL) == 0),
+            noitem = ((mmflags & MM_NOITEM) != 0);
     mmflags_nht gpflags = (((mmflags & MM_IGNOREWATER) ? MM_IGNOREWATER : 0)
                            | GP_CHECKSCARY | GP_AVOID_MONPOS);
 
@@ -1418,7 +1419,7 @@ makemon(
         break;
     case S_SPIDER:
     case S_SNAKE:
-        if (gi.in_mklev) {
+        if (!noitem && gi.in_mklev) {
             if (x && y)
                 (void) mkobj_at(RANDOM_CLASS, x, y, TRUE);
             (void) hideunder(mtmp);

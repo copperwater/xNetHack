@@ -113,3 +113,5 @@ changes:
     "trees should not contain fruit or bees by default".
   - It is still possible for a level designer to create individual trees that
     do contain fruit or bees on an arboreal level by using des.terrain.
+- Add a makemon flag MM_NOITEM which suppresses the creation of a random item
+  for a snake or scorpion to hide underneath.
