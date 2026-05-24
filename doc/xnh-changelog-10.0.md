@@ -113,6 +113,8 @@ changes:
 - Ice devils and cold traps no longer strip temporary cold resistance.
 - Rangers have an 80% chance of escaping traps they created rather than the
   standard 20% chance.
+- Most trees on the Archeologist and Monk quests can no longer produce fruit or
+  bees. There are several trees on both start levels that still can, though.
 
 ### Interface changes
 

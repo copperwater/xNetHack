@@ -6,7 +6,7 @@
 des.level_init({ style = "solidfill", fg = " " });
 
 des.level_flags("mazelevel", "hardfloor", "outdoors", "noteleport", "nommap-boss",
-                "noflipx")
+                "arboreal", "noflipx")
 
 des.map([[
 ....TTT    .}}}...T...     T...      ..  T....      T..T      ...           

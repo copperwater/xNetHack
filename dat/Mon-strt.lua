@@ -11,7 +11,7 @@
 --
 des.level_init({ style = "solidfill", fg = " " });
 
-des.level_flags("mazelevel", "hardfloor", "outdoors", "noflipx")
+des.level_flags("mazelevel", "hardfloor", "outdoors", "arboreal", "noflipx")
 
 des.map([[
 ,,,,T,,,,,,,,,T,,,|,,,,,....,|.}}}.|T,,,,,,.........T....-...T.--....T,,,,,,
@@ -101,6 +101,14 @@ des.non_diggable(selection.area(25,00,29,16))
 des.non_diggable(selection.area(24,05,24,14))
 des.non_diggable(selection.area(30,16,40,19))
 des.non_diggable(selection.area(30,05,52,14))
+
+-- Trees specifically in the garden which can bear fruit
+des.feature({ type="tree", x=36, y=00, looted=false, swarm=percent(90) })
+des.feature({ type="tree", x=36, y=02, looted=false, swarm=percent(90) })
+des.feature({ type="tree", x=36, y=04, looted=false, swarm=percent(90) })
+des.feature({ type="tree", x=40, y=02, looted=false, swarm=percent(90) })
+des.feature({ type="tree", x=44, y=01, looted=false, swarm=percent(90) })
+des.feature({ type="tree", x=44, y=03, looted=false, swarm=percent(90) })
 
 -- A few rocks for scenery flavor
 des.object("boulder", 30, 00)

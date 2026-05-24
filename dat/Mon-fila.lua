@@ -5,7 +5,7 @@
 --
 des.level_init({ style = "solidfill", fg = "g", lit=1 });
 
-des.level_flags("mazelevel", "hardfloor", "outdoors", "noflipx")
+des.level_flags("mazelevel", "hardfloor", "outdoors", "arboreal", "noflipx")
 
 -- Scatter a few trees
 des.replace_terrain({ region={00,00,79,20}, fromterrain="g", toterrain="T", chance=4 })

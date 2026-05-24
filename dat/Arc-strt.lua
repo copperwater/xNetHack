@@ -35,14 +35,19 @@ des.map([[
 ,,,,,,,,|.....|...--+--,...+.........------,T.,}}}},,,.,,,,,,,,--.....--,.,,,
 ,,T,,,,,|.....|.......|,.,,|...........|,,,,..}}}}}}}}..,,,,,,,T--...--T,,,.,
 ]]);
+
 -- Dungeon Description
 des.region(selection.area(00,00,76,19), "lit")
+
 -- Stairs
 des.stair("down",76,05)
+
 -- Portal arrival point
 des.levregion({ region = {06,14,06,14}, type="branch" })
+
 -- Non diggable walls
 des.non_diggable(selection.area(00,00,75,19))
+
 -- Doors
 des.door("locked",06,02)
 des.door("closed",07,05)
@@ -73,11 +78,13 @@ des.door("closed",73,03)
 des.door("closed",68,03)
 des.door("closed",69,07)
 des.door("closed",71,16)
+
 -- Lord Carnarvon
 des.monster({ id = "Lord Carnarvon", coord = {31, 06}, inventory = function()
    des.object({ id = "fedora", spe = 5 });
    des.object({ id = "bullwhip", spe = 4 });
 end })
+
 -- The treasure of the Archeology Department
 storeroom = selection.fillrect(40,07,41,10)
 des.terrain(storeroom:rndcoord(1), "\\") -- a throne
@@ -87,6 +94,7 @@ des.object("chest", storeroom:rndcoord(1))
 for i = 1, 3 + d(4) do
    des.object("*", storeroom:rndcoord(1))
 end
+
 -- students milling around
 des.monster("student", 06, 04)
 des.monster("student", 24, 03)
@@ -97,6 +105,7 @@ des.monster("student", 16, 08)
 des.monster("student", 59, 11)
 des.monster("student", 66, 15)
 des.monster("student", 69, 05)
+
 -- objects
 des.object({ class="[", x=06, y=01 })
 des.object({ class="[", x=07, y=01 })
@@ -114,13 +123,21 @@ for i = 1,2 do
 end
 des.object("tinning kit", bookrooms:rndcoord(1))
 des.object("grappling hook", bookrooms:rndcoord(1))
+
 -- Small cemetery
 des.grave(73,18, "Dr. Carter -- Died to a mummy's curse")
 des.grave(75,19, "Under NO circumstances are students to dig up this grave!")
+
 -- Mimics in one room
 mimicroom = selection.floodfill(66,02)
 for i = 1,d(3)+2 do
    des.monster("m", mimicroom:rndcoord(1))
 end
+
+-- A few of the trees can bear fruit (or bees!)
+des.feature({ type = 'tree', x = 01, y = 01, looted = 'false', swarm = percent(50) })
+des.feature({ type = 'tree', x = 37, y = 07, looted = 'false', swarm = percent(50) })
+des.feature({ type = 'tree', x = 71, y = 19, looted = 'false', swarm = percent(50) })
+
 -- There are no roaming hostiles on this level at all when it's created (though
 -- more may spawn later) or traps. The College is not under attack.
