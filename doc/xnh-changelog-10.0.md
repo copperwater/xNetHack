@@ -120,6 +120,8 @@ changes:
   achieve field) is awarded for solving the Wizard's Puzzle, which is encoded in
   achieveX as "solved_wiz_puzzle".
 - Monster lookup shows whether or not a monster can be saddled.
+- Trees that are incapable of summoning a swarm of bees will not produce a "low
+  buzzing" when kicked.
 
 ### Architectural changes
 
