@@ -1759,8 +1759,8 @@ boolean
 strip_cold_resistance(struct monst *mtmp)
 {
     if (mtmp == &gy.youmonst) {
-        if (HCold_resistance) {
-            HCold_resistance = 0;
+        if (HCold_resistance & INTRINSIC) {
+            HCold_resistance &= ~INTRINSIC;
             You_feel("alarmingly cooler.");
             return TRUE;
         }

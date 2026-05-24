@@ -96,6 +96,7 @@ changes:
   - The goal level is another forest traverse, but with more fog and a river.
     Scorpius, a few centaurs, and a lot of scorpions inhabit a clearing across
     the river.
+- Ice devils and cold traps no longer strip temporary cold resistance.
 
 ### Interface changes
 
