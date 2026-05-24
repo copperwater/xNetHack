@@ -5,7 +5,12 @@
 --
 des.level_init({ style = "solidfill", fg = " ", lit = 0 });
 
-des.message("You emerge into a foggy valley with close, dark trees.")
+-- hack so that this message only prints on the level after the locate level and
+-- not on subsequent filb levels if there are multiple
+-- assumes locate level is always 4th level of quest
+if u.dlevel == 4 then
+   des.message("You emerge into a foggy valley with close, dark trees.")
+end
 
 des.level_flags("mazelevel", "hardfloor", "outdoors", "arboreal", "noflipx");
 
