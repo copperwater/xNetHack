@@ -13,7 +13,7 @@ des.level_init({ style = "solidfill", fg = "." });
 
 des.level_flags("mazelevel");
 
-des.level_flags("noteleport", "hardfloor", "outdoors")
+des.level_flags("noteleport", "hardfloor", "outdoors", "arboreal")
 des.map({ halign = "left", map = [[
 TTTTT..TTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTT.TT............}...................
 TTTT....TTTTTTTT..TTT.........TT......TTTT.T............}...................

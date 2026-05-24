@@ -107,6 +107,7 @@ changes:
       intrinsic poison resistance, you will lose that intrinsic.
     - When below half health, he can summon scorpions and giant scorpions.
     - On the other hand, he will no longer covetous warp.
+  - All levels of the quest have barren trees that contain no fruit or bees.
 - Ice devils and cold traps no longer strip temporary cold resistance.
 
 ### Interface changes

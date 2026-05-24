@@ -5,7 +5,7 @@
 --
 des.level_init({ style = "solidfill", fg = " ", lit = 0 });
 
-des.level_flags("mazelevel", "outdoors", "noflipx");
+des.level_flags("mazelevel", "outdoors", "arboreal", "noflipx");
 
 -- As in the filler levels, B indicates a trail junction, but it is also used to
 -- enforce some clearings by the riverside and define an area on the right side

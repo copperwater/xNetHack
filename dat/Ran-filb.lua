@@ -7,7 +7,7 @@ des.level_init({ style = "solidfill", fg = " ", lit = 0 });
 
 des.message("You emerge into a foggy valley with close, dark trees.")
 
-des.level_flags("mazelevel", "hardfloor", "outdoors", "noflipx");
+des.level_flags("mazelevel", "hardfloor", "outdoors", "arboreal", "noflipx");
 
 -- Generation for this level works along much the same lines as in Ran-fila. See
 -- that file for descriptions.

@@ -5,7 +5,7 @@
 --
 des.level_init({ style = "solidfill", fg = " ", lit = 1 });
 
-des.level_flags("mazelevel", "hardfloor", "outdoors", "noflipy");
+des.level_flags("mazelevel", "hardfloor", "outdoors", "arboreal", "noflipy");
 
 -- boundary syms (B) indicate "trail junctions", which will be connected by
 -- tree-less paths; other blobs of them are places that we deliberately want to
