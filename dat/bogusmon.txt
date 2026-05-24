@@ -518,7 +518,6 @@ scrag
 Dungeon Master
 beholder
 cloud giant
-flumph
 gazebo
 munchkin
 rules lawyer
@@ -805,6 +804,7 @@ Krell
 Incredibly Deadly Viper
 snow gnat
 cakesniffer
+Medusoid Mycelium
 
 # The Far Side
 Tyrannosaurus Mex
@@ -964,6 +964,7 @@ COBOL
 Y2K bug
 bogon
 buffer overflow
+clanker
 dangling pointer
 deferred feature
 deferred monster
@@ -972,6 +973,7 @@ floating point
 global variable
 goto statement
 lag monster
+large language model
 netsplit
 numeric prefix
 peer
@@ -1028,6 +1030,7 @@ mote in %d's eye
 mothership
 nanobot
 robot
+rogue artificial intelligence
 second law of thermodynamics
 space invader
 

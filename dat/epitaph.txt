@@ -483,6 +483,7 @@ Now it's over, I'm dead, and I haven't done anything that I want
 The grave is the loneliest place
 The statue got me high
 We die alone, we die afraid, we live in terror, we're naked and alone
+We'll be encased in gold, desiccated and old, when the lights come on
 
 # Lovecraft
 That is not dead which may eternal lie.
@@ -563,3 +564,6 @@ I'm only mostly dead!
 
 # Edgar Allan Poe
 Here! -- here! -- it is the beating of his hideous heart!
+
+# Kurt Vonnegut
+Everything was beautiful and nothing hurt
