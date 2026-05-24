@@ -101,6 +101,13 @@ set_levltyp(coordxy x, coordxy y, schar newtyp)
                 || (IS_SINK(oldtyp) != IS_SINK(newtyp)))
                 count_level_features(); /* level.flags.nfountains,nsinks */
 
+            if (svl.level.flags.arboreal) {
+                if (IS_TREE(oldtyp))
+                    levl[x][y].looted = 0;
+                if (IS_TREE(newtyp))
+                    levl[x][y].looted = (TREE_LOOTED | TREE_SWARM);
+            }
+
             return TRUE;
         }
 #ifdef EXTRA_SANITY_CHECKS

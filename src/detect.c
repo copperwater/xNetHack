@@ -2277,7 +2277,7 @@ dump_map(void)
     unsigned subset = TER_MAP | TER_TRP | TER_OBJ | TER_MON;
     /* cmap_to_glyph() evaluates its argument multiple times, so pull the
        tree vs stone conditional out of it */
-    nhsym default_sym = svl.level.flags.arboreal ? S_tree : S_stone;
+    nhsym default_sym = S_stone;
     int default_glyph = cmap_to_glyph(default_sym);
 
     /*
@@ -2346,7 +2346,7 @@ reveal_terrain(
             keep_mons = (which_subset & TER_MON) != 0, /* not used */
             do_visited = (which_subset & TER_VISIT) != 0;
     unsigned swallowed = u.uswallow; /* before unconstrain_map() */
-    nhsym default_sym = svl.level.flags.arboreal ? S_tree : S_stone;
+    nhsym default_sym = S_stone;
     /* 'full' implies no-traps, no-objs, no-mons */
     boolean full = (which_subset & TER_FULL) != 0; /* show whole map */
 

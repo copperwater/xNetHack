@@ -2319,7 +2319,7 @@ back_to_defsym(coordxy x, coordxy y)
     switch (ptr->typ) {
     case SCORR:
     case STONE:
-        idx = svl.level.flags.arboreal ? S_tree : S_stone;
+        idx = S_stone;
         break;
     case ROOM:
         idx = S_room;
@@ -2553,7 +2553,7 @@ get_bkglyph_and_framecolor(
         switch (lev->typ) {
         case SCORR:
         case STONE:
-            idx = svl.level.flags.arboreal ? S_tree : S_stone;
+            idx = S_stone;
             break;
         case ROOM:
            idx = S_room;

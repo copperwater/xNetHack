@@ -2358,8 +2358,7 @@ domove_fight_empty(coordxy x, coordxy y)
             /* glyph might indicate unseen terrain if hero is blind;
                unlike searching, this won't reveal what that terrain is;
                3.7: used to say "solid rock" for STONE, but that made it be
-               different from unmapped walls outside of rooms (and was wrong
-               on arboreal levels) */
+               different from unmapped walls outside of rooms */
             if (levl[x][y].seenv || IS_STWALL(levl[x][y].typ)
                 || levl[x][y].typ == SDOOR || levl[x][y].typ == SCORR) {
                 glyph = back_to_glyph(x, y);

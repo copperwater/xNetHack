@@ -186,10 +186,7 @@ dig_typ(struct obj *otmp, coordxy x, coordxy y)
              : closed_door(x, y)
                ? (door_is_iron(&levl[x][y]) ? DIGTYP_UNDIGGABLE : DIGTYP_DOOR)
                : IS_TREE(ltyp) ? DIGTYP_UNDIGGABLE /* pick vs tree */
-                 : (IS_OBSTRUCTED(ltyp)
-                    && (!svl.level.flags.arboreal || IS_WALL(ltyp)))
-                   ? DIGTYP_ROCK
-                   : DIGTYP_UNDIGGABLE;
+                 : IS_OBSTRUCTED(ltyp) ? DIGTYP_ROCK : DIGTYP_UNDIGGABLE;
 }
 
 boolean
@@ -1508,7 +1505,6 @@ mdig_tunnel(struct monst *mtmp)
     }
 
     if (IS_WALL(here->typ)) {
-        /* KMH -- Okay on arboreal levels (room walls are still stone) */
         if (flags.verbose && !rn2(5)) {
             Soundeffect(se_crashing_rock, 75);
             You_hear(Hallucination ? "a power chord!"

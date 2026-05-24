@@ -108,3 +108,8 @@ changes:
 
 - Add a make_spanning_tree function in the Lua nhlib file, which constructs a
   general spanning tree from a given unweighted graph.
+- Change the semantics of the "arboreal" level flag.
+  - Instead of meaning "rock should appear and behave as trees", it now means
+    "trees should not contain fruit or bees by default".
+  - It is still possible for a level designer to create individual trees that
+    do contain fruit or bees on an arboreal level by using des.terrain.

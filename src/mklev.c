@@ -385,8 +385,7 @@ makerooms(void)
 /* Join rooms a and b together by drawing a corridor and placing doors.
  * If nxcor is TRUE, it will be pickier about whether to draw the corridor at
  * all, and will not create doors in !okdoor() locations.
- * The corridor will be made of CORR terrain unless this is an arboreal level
- * in which case it will use ROOM.
+ * The corridor will be made of CORR terrain.
  * Afterwards, the smeq values of a and b will be set equal to each other.
  * Should this return boolean (success or failure)? */
 staticfn void
@@ -479,8 +478,7 @@ join(int a, int b, boolean nxcor)
     dest.x = tx;
     dest.y = ty;
 
-    if (!dig_corridor(&org, &dest, nxcor,
-                      svl.level.flags.arboreal ? ROOM : CORR, STONE))
+    if (!dig_corridor(&org, &dest, nxcor, CORR, STONE))
         return;
 
     /* We succeeded in digging the corridor.
@@ -1609,7 +1607,6 @@ mineralize(int kelp_pool, int kelp_moat, int goldprob, int gemprob,
        almost all special levels are excluded */
     if (!skip_lvl_checks
         && (In_hell(&u.uz) || In_V_tower(&u.uz)
-            || svl.level.flags.arboreal
             || ((sp = Is_special(&u.uz)) != 0 && !Is_oracle_level(&u.uz)
                 && (!In_mines(&u.uz) || sp->flags.town))))
         return;
