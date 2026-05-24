@@ -227,7 +227,12 @@ des.terrain((floor - realpaths) - stepstones, 'T')
 -- Stairs
 ustair_locs = { 1, 3, 8, 13, 16 }
 shuffle(ustair_locs)
-des.stair("up", left_junctions[ustair_locs[1]].x, left_junctions[ustair_locs[1]].y)
+local usx = left_junctions[ustair_locs[1]].x
+local usy = left_junctions[ustair_locs[1]].y
+des.stair("up", usx, usy)
+-- Scorpion next to the stairs since the quest text mentions one appearing
+local next2stairs = selection.rect(usx-1, usy-1, usx+1, usy+1):filter_mapchar('.')
+des.monster({ id = 'scorpion', coord=next2stairs:rndcoord(), noitem=true })
 
 -- shouldn't be possible to levelport or fall down into this level (except in
 -- wizmode) but just in case...
