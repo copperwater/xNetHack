@@ -61,6 +61,7 @@ Set debugging flags.
 | mongen           | boolean | Do monsters generate
 | hunger           | boolean | Does hero's hunger-state increase
 | overwrite_stairs | boolean | Allow special-file commands overwrite the stairs
+| prevent_pline    | boolean | Prevent messages going out to the UI
 |===
 
 Example:
@@ -118,6 +119,15 @@ command name, if it is not bound to any key.
 Example:
 
  local k = nh.eckey("help");
+
+
+=== flip_level
+
+Flip the level horizontally or vertically.
+
+Example:
+
+ nh.flip_level(1);
 
 
 === getlin
@@ -201,6 +211,7 @@ Returns a table with the following elements:
 | ttyp_name   | text    | name of trap type
 | tseen       | boolean | trap seen by you?
 | madeby_u    | boolean | trap made by you?
+| once        | boolean | trap is deleted once triggered
 | tnote       | integer | note of a squeaky board trap
 | launchx, launchy, launch2x, launch2y | integer | coordinates of a boulder for a rolling boulder trap
 | conjoined   | integer | encoded directions for a [spiked] pit.
@@ -247,6 +258,26 @@ Construct a gerund (a verb formed by appending "ing" to a noun).
 Example:
 
  local str = nh.ing_suffix("foo");
+
+
+=== int_to_objname
+
+Convert integer value to object name and class.
+Returns two strings, the object base name and the class character.
+The returned strings may be empty if an error occurred.
+
+Example:
+
+ local oname, oclass = nh.int_to_objname(45);
+
+
+=== int_to_pmname
+
+Convert integer value to monster type name.
+
+Example:
+
+ local pmname = nh.int_to_pmname(12);
 
 
 === is_genocided
@@ -830,7 +861,7 @@ Example:
 
 === object
 
-Create an object. Returns the object as an <<Obj>> class.
+Create an object and place it somewhere on the map. Returns the object as an <<Obj>> class.
 The table parameter accepts the following:
 
 [options="header"]
@@ -854,8 +885,8 @@ The table parameter accepts the following:
 | greased     | boolean  | Is the object greased?
 | broken      | boolean  | Is the object broken?
 | achievement | boolean  | Is there an achievement attached to the object?
-| x, y        | int      | Coordinates on the level
-| coord       | table    | x,y coordinates in table format
+| x, y        | int      | Coordinates on the level; defaults to a random location.
+| coord       | table    | x,y coordinates in table format; defaults to a random location.
 | montype     | string   | Monster id or class
 | historic    | boolean  | Is statue historic?
 | male        | boolean  | Is statue male?
@@ -1133,6 +1164,16 @@ Example:
  local sel2 = selection.clone(sel);
 
 
+=== describe_size
+
+Return a text describing the size of the selection.
+
+Example:
+
+ local sel = selection.fillrect(1,1, 3,3);
+ local txt = sel:describe_size();
+
+
 === ellipse
 
 Example:
@@ -1317,6 +1358,8 @@ Example:
 === room
 
 Create a selection of locations inside the (current) room.
+Does not include the edges of the room, such as its walls.
+Does not do any check on terrain type, so if there are non-ROOM locations inside the room, they remain part of the selection.
 
 Example:
 
@@ -1347,11 +1390,13 @@ Handling objects via obj-class.
 
 === new
 
-Create a new object via wishing routine.
+Create a new object, either via wishing routine, or specifying object name and class.
+Unlike des.object, does not place the object anywhere.
 
 Example:
 
  local o = obj.new("rock");
+ local o = obj.new({ id = "invisibility", class = "!" });
 
 
 === isnull
@@ -1540,6 +1585,11 @@ These constants are in the `nhc` table.
 |===
 | COLNO | Number of map columns
 | ROWNO | Number of map rows
+| NUMMONS | Number of different monster types
+| LOW_PM  | First monster type id. See <<_int_to_pmname>>.
+| HIGH_PM | Last monster type id. See <<_int_to_pmname>>.
+| FIRST_OBJECT | First object type id. See <<_int_to_objname>>.
+| LAST_OBJECT | Number of object type ids. See <<_int_to_objname>>.
 | DLB   | 1 or 0, depending if NetHack is compiled with DLB
 |===
 

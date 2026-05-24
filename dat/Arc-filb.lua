@@ -10,11 +10,6 @@ XMAX = 76
 YMIN = 0
 YMAX = 19
 
--- SHIM -- g.xstart is 1, usually
-function getmap(x, y)
-   return nh.getmap(x+1, y)
-end
-
 des.level_flags("noflip", "noteleport", "hardfloor", "inaccessibles", "nommap")
 
 -- Non diggable walls
@@ -29,7 +24,7 @@ des.room({ type = "ordinary", lit = 0, x = 28 + nh.rn2(20), y = 1 + nh.rn2(14),
 -- find upstairs location for use later
 local ustairx, ustairy
 selection.area(00,00,75,19):iterate(function(x, y)
-   if getmap(x, y)['typ_name'] == 'stairs' then
+   if nh.getmap(x, y)['typ_name'] == 'stairs' then
       ustairx = x
       ustairy = y
    end
@@ -99,7 +94,7 @@ function findroom(xi, yi, maindir, straightline)
          if x == XMIN or y == YMIN or x == XMAX or y == YMAX then
             invalid = true
          end
-         if getmap(x, y)["typ_name"] ~= "stone" then
+         if nh.getmap(x, y)["typ_name"] ~= "stone" then
             invalid = true
          end
       end)
@@ -139,7 +134,6 @@ for i=1,60 do
    local wallpt = allwalls:rndcoord(1) -- remove this spot from allwalls
    local wx, wy = wallpt.x, wallpt.y
 
-   -- des.terrain({ selection = wallsN, typ="}" })
    local north, south, east, west = false, false, false, false
    local dx, dy = 0, 0
    if wallsN:get(wx, wy) > 0 then

@@ -22,6 +22,7 @@ NHV=$(NHV:"=)
 #SUBMSDIR=submodules      # NetHack git submodules
 PACKAGESDIR=vspackage     # put in vspackage to distinguish
 ROOTDIR=..\..\..\..       # root of NetHack tree relative to project file
+PlatformFileName=$(lowercase $(PlatformShortName))
 
 # Directories we might have to collect things from
 #
@@ -41,6 +42,7 @@ X11     = $(ROOTDIR)\win\X11     # X11 support files
 LIBDIR  = $(ROOTDIR)\lib         # libraries and external bits
 SUBMDIR = $(ROOTDIR)\submodules  # NetHack git submodules
 SndWavDir = $(ROOTDIR)\sound\wav # sound files that get integrated
+DocDir  = $(ROOTDIR)\doc
 
 # Directories we might place collected things
 #
@@ -73,8 +75,8 @@ FILESTOZIP=$(VSBINDIR)\Guidebook.txt $(VSBINDIR)\license \
 DBGSYMS = NetHack.PDB NetHackW.PDB
 PDBTOZIP = ..\NetHack\symbols\$(Configuration)\$(Platform)\NetHack.PDB \
 	   ..\NetHackW\symbols\$(Configuration)\$(Platform)\NetHackW.PDB
-MAINZIP = $(VSPACKAGEDIR)\nethack-$(NHV)-win-$(PlatformShortName).zip
-DBGSYMZIP = $(VSPACKAGEDIR)\nethack-$(NHV)-win-$(PlatformShortName)-debugsymbols.zip
+MAINZIP = $(VSPACKAGEDIR)\nethack-$(NHV)-win-$(PlatformFileName).zip
+DBGSYMZIP = $(VSPACKAGEDIR)\nethack-$(NHV)-win-$(PlatformFileName)-debugsymbols.zip
 
 packageall: packagezip
 
@@ -91,11 +93,11 @@ $(DBGSYMZIP): $(PDBTOZIP)
 $(VSBINDIR)\license: $(BinDir)\license
 	copy /Y $(BinDir)\license $@
 $(VSBINDIR)\Guidebook.txt: $(BinDir)\Guidebook.txt
-	copy /Y $(BinDir)\Guidebook.txt $@
+	copy /Y $(DocDir)\Guidebook.txt $@
 $(VSBINDIR)\NetHack.exe: $(BinDir)\NetHack.exe
 	copy /Y $(BinDir)\NetHack.exe $@
 $(VSBINDIR)\NetHack.txt: $(BinDir)\NetHack.txt
-	copy /Y $(BinDir)\NetHack.txt $@
+	copy /Y $(DocDir)\NetHack.txt $@
 $(VSBINDIR)\NetHackW.exe: $(BinDir)\NetHackW.exe
 	copy /Y $(BinDir)\NetHackW.exe $@
 $(VSBINDIR)\opthelp: $(BinDir)\opthelp

@@ -763,7 +763,7 @@ emit_stop_inverse(void)
 #define tcfmtstr256 "\x1b[38;5;%ldm"
 #else
 #define tcfmtstr24bit "\x1b[38:2:%ld:%ld:%ldm"
-#define tcfmtstr256 "\x1b[38:5:%dm"
+#define tcfmtstr256 "\x1b[38:5:%ldm"
 #endif
 
 void
@@ -771,7 +771,8 @@ emit_start_256color(int u256coloridx)
 {
     DWORD unused;
     static char tcolorbuf[QBUFSZ];
-    Snprintf(tcolorbuf, sizeof tcolorbuf, tcfmtstr256, u256coloridx);
+    Snprintf(tcolorbuf, sizeof tcolorbuf, tcfmtstr256,
+             (long) u256coloridx);
     WriteConsoleA(console.hConOut, (LPCSTR) tcolorbuf,
                   (int) strlen(tcolorbuf), &unused, NULL);
 }
@@ -783,9 +784,9 @@ emit_start_24bitcolor(long color24bit)
     static char tcolorbuf[QBUFSZ];
     uint32 mcolor = COLORVAL(color24bit);
     Snprintf(tcolorbuf, sizeof tcolorbuf, tcfmtstr24bit,
-             ((mcolor >> 16) & 0xFF),   /* red */
-             ((mcolor >>  8) & 0xFF),   /* green */
-             ((mcolor >>  0) & 0xFF));  /* blue */
+             (long) ((mcolor >> 16) & 0xFF),   /* red */
+             (long) ((mcolor >>  8) & 0xFF),   /* green */
+             (long) ((mcolor >>  0) & 0xFF));  /* blue */
     WriteConsoleA(console.hConOut, (LPCSTR) tcolorbuf,
                   (int) strlen(tcolorbuf), &unused, NULL);
 }
@@ -1493,7 +1494,7 @@ console_g_putch(int in_ch)
 #else /* VIRTUAL_TERMINAL_SEQUENCES */
     ccount = 0;
     WCHAR wch[2];
-    boolean usemap = (ch >= 0 && ch < SIZE(console.cpMap));
+    boolean usemap = (ch >= 0 && ((int) ch < SIZE(console.cpMap)));
 #endif /* VIRTUAL_TERMINAL_SEQUENCES */
 
     set_console_cursor(ttyDisplay->curx, ttyDisplay->cury);

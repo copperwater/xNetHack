@@ -16,8 +16,8 @@
 
 int debuggable = 0; /* 1 if we can debug or show a call trace */
 
-ATTRNORETURN void vms_exit(int);
-ATTRNORETURN void vms_abort(void);
+ATTRNORETURN void vms_exit(int) NORETURN;
+ATTRNORETURN void vms_abort(void) NORETURN;
 
 /* first arg should be unsigned long but <lib$routines.h> has unsigned int */
 

@@ -741,8 +741,10 @@ docall(struct obj *obj)
             undiscover_object(obj->otyp);
     } else {
         *uname_p = dupstr(buf);
-        discover_object(obj->otyp, FALSE, TRUE); /* possibly add to disco[] */
+        discover_object(obj->otyp, FALSE, TRUE, TRUE); /* possibly add to disco[] */
     }
+    if (obj->where == OBJ_INVENT || carrying(obj->otyp))
+        update_inventory();
 }
 
 staticfn void
@@ -834,7 +836,7 @@ static const char *const ghostnames[] = {
     "John",    "Jon",           "Karnov",      "Kay",     "Kenny",  "Kevin",
     "Maud",    "Michiel",       "Mike",        "Peter",   "Robert", "Ron",
     "Tom",     "Wilmar",        "Nick Danger", "Phoenix", "Jiro",   "Mizue",
-    "Stephan", "Lance Braccus", "Shadowhawk",  "Dudley"
+    "Stephan", "Lance Braccus", "Shadowhawk",  "Murphy",  "Dudley"
 };
 
 /* ghost names formerly set by x_monnam(), now by makemon() instead */

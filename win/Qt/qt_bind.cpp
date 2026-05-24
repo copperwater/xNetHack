@@ -502,7 +502,7 @@ void NetHackQtBind::qt_update_inventory(int arg UNUSED)
 
     /* doesn't work yet
     if (program_state.something_worth_saving && iflags.perm_invent)
-        display_inventory(NULL, false);
+        repopulate_perminvent();
     */
 }
 
@@ -724,6 +724,10 @@ char NetHackQtBind::qt_more()
         int complain = 0;
         do {
             ch = NetHackQtBind::qt_nhgetch();
+	    if (::program_state.savefile_completed) {
+		retry = false;
+		break;
+	    }
             switch (ch) {
             case '\0': // hypothetical
                 ch = '\033';

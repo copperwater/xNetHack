@@ -1344,7 +1344,8 @@ process_menu_window(winid window, struct WinDesc *cw)
     tty_menu_item *page_start, *page_end, *curr;
     long count;
     int n, attr_n, curr_page, page_lines, resp_len, previous_page_lines;
-    boolean finished, counting, reset_count;
+    boolean finished, counting, reset_count, show_obj_syms,
+            only_if_no_headers = (iflags.menuobjsyms & 4) != 0;
     char *cp, *rp, resp[QBUFSZ], gacc[QBUFSZ], *msave, *morestr, really_morc;
 #define MENU_EXPLICIT_CHOICE 0x7f /* pseudo menu manipulation char */
 
@@ -1391,6 +1392,15 @@ process_menu_window(winid window, struct WinDesc *cw)
 #undef GSELIDX
     }
     resp_len = 0; /* lint suppression */
+
+    show_obj_syms = iflags.use_menu_glyphs;
+    if (only_if_no_headers) {
+        for (curr = cw->mlist; curr; curr = curr->next)
+            if (curr->identifier.a_void == 0) {
+                show_obj_syms = FALSE;
+                break;
+            }
+    }
 
     /* loop until finished */
     while (!finished) {
@@ -1446,7 +1456,7 @@ process_menu_window(winid window, struct WinDesc *cw)
                     if (curr->str[0] && curr->str[1] == ' '
                         && curr->str[2] && strchr("-+#", curr->str[2])
                         && curr->str[3] == ' ')
-                        /* [0]=letter, [1]==space, [2]=[-+#], [3]=space */
+                        /* [0]=letter, [1]=space, [2]=[-+#], [3]=space */
                         attr_n = 4; /* [4:N]=entry description */
 
                     /*
@@ -1468,15 +1478,25 @@ process_menu_window(winid window, struct WinDesc *cw)
                         if (n == attr_n && (color != NO_COLOR
                                             || attr != ATR_NONE))
                             toggle_menu_attr(TRUE, color, attr);
-                        if (n == 2
-                            && curr->identifier.a_void != 0
+                        if (n == 2 && curr->identifier.a_void != 0
                             && curr->selected) {
-                            if (curr->count == -1L)
-                                (void) putchar('+'); /* all selected */
-                            else
-                                (void) putchar('#'); /* count selected */
-                        } else
+                            char c = (curr->count == -1L) ? '*' : '#';
+
+                            /* all selected: '*' vs count selected: '#' */
+                            (void) putchar(c);
+                        } else if (n == 2 && curr->identifier.a_void != 0
+                                   && show_obj_syms
+                                   && curr->glyphinfo.glyph != NO_GLYPH) {
+                            int gcolor = curr->glyphinfo.gm.sym.color;
+
+                            /* tty_print_glyph could be used, but is overkill
+                               and requires referencing the cursor location */
+                            toggle_menu_attr(TRUE, gcolor, ATR_NONE);
+                            (void) putchar(curr->glyphinfo.ttychar);
+                            toggle_menu_attr(FALSE, gcolor, ATR_NONE);
+                        } else {
                             (void) putchar(*cp);
+                        }
                     } /* for *cp */
                     if (n > attr_n && (color != NO_COLOR || attr != ATR_NONE))
                         toggle_menu_attr(FALSE, color, attr);
@@ -2551,8 +2571,8 @@ tty_start_menu(winid window, unsigned long mbehavior)
 void
 tty_add_menu(
     winid window,  /* window to use, must be of type NHW_MENU */
-    const glyph_info *glyphinfo UNUSED, /* glyph info with glyph to
-                                         * display with item */
+    const glyph_info *glyphinfo, /* glyph info with glyph to
+                                  * display with item */
     const anything *identifier, /* what to return if selected */
     char ch,                /* selector letter (0 = pick our own) */
     char gch,               /* group accelerator (0 = no group) */
@@ -2609,6 +2629,7 @@ tty_add_menu(
     item->attr = attr;
     item->color = clr;
     item->str = dupstr(newstr);
+    item->glyphinfo = *glyphinfo;
 
     item->next = cw->mlist;
     cw->mlist = item;
@@ -3616,7 +3637,7 @@ tty_wait_synch(void)
 {
     HUPSKIP();
     /* we just need to make sure all windows are synch'd */
-    if (!ttyDisplay || ttyDisplay->rawprint) {
+    if (WIN_MAP == WIN_ERR || !ttyDisplay || ttyDisplay->rawprint) {
         getret();
         if (ttyDisplay)
             ttyDisplay->rawprint = 0;
@@ -4092,8 +4113,10 @@ tty_nhgetch(void)
     term_curs_set(0);
     if (!i)
         i = '\033'; /* map NUL to ESC since nethack doesn't expect NUL */
-    else if (i == EOF)
+    else if (i == EOF) {
+        iflags.term_gone = 1;
         i = '\033'; /* same for EOF */
+    }
     /* topline has been seen - we can clear the need for --More-- */
     if (ttyDisplay && ttyDisplay->toplin == TOPLINE_NEED_MORE)
         ttyDisplay->toplin = TOPLINE_NON_EMPTY;

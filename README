@@ -57,10 +57,11 @@ considered spoilers:
         level once that square's location becomes known (found or magic
         mapped); goes away once sanctum temple is found (entered or high altar
         mapped)
- -  savefile: add support to deconstruct internal data structures down into
-        their individual fields and save those fields instead of the entire
-        struct
- -  savefile: use little-endian format for fields where that makes a difference
+ -  savefile: add support for a tool to deconstruct data structures,
+        that get stored in a savefile, down into their individual fields and
+        save those individual fields instead of the entire struct. The
+        intention is to provide a way to export and transport savefiles
+        between platforms, architectures and data models. 
 
                         - - - - - - - - - - -
 
@@ -109,8 +110,8 @@ Please read items (1), (2) and (3) BEFORE doing anything with your new code.
 
         Intel Pentium or better running Linux, BSDI
         Intel Pentium or better running Windows 10 or 11
-        Intel-based, or Apple M1, M2, M3 Macs running
-            macOS 10.11 (El Capitan) to macOS 14 (Sonoma)
+        Intel-based, or Apple M1, M2, M3, M4, M5 Macs running
+            macOS 10.11 (El Capitan) to macOS 26 (Tahoe)
             (follow the instructions in sys/unix/NewInstall.unx)
         Intel 80386 or greater running MS-DOS with DPMI
             built via djgpp compiler (native or Linux-hosted cross-compiler)

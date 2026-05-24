@@ -17,6 +17,7 @@ staticfn int gem_accept(struct monst *, struct obj *);
 staticfn boolean toss_up(struct obj *, boolean) NONNULLARG1;
 staticfn void sho_obj_return_to_u(struct obj * obj);
 staticfn void throwit_return(boolean);
+staticfn void swallowit(struct obj *);
 staticfn struct obj *return_throw_to_inv(struct obj *, long, boolean,
                                        struct obj *);
 staticfn void tmiss(struct obj *, struct monst *, boolean);
@@ -340,7 +341,7 @@ throw_obj(struct obj *obj, int shotlimit)
             }
         }
         throwit(otmp, wep_mask, twoweap, oldslot);
-        (void) encumber_msg();
+        encumber_msg();
     }
     gm.m_shot.n = gm.m_shot.i = 0;
     gm.m_shot.o = STRANGE_OBJECT;
@@ -903,7 +904,7 @@ hurtle_step(genericptr_t arg, coordxy x, coordxy y)
                    && bad_rock(gy.youmonst.data, u.ux, y)
                    && bad_rock(gy.youmonst.data, x, u.uy)) {
             boolean too_much = (gi.invent
-                                && (inv_weight() + weight_cap() > 600));
+                       && (inv_weight() + weight_cap() > WT_TOOMUCH_DIAGONAL));
 
             if (bigmonst(gy.youmonst.data) || too_much) {
                 why = "wedging into a narrow crevice";
@@ -1352,7 +1353,14 @@ toss_up(struct obj *obj, boolean hitsroof)
         if (breaktest(obj)) {
             pline("%s hits the %s.", Doname2(obj), ceiling(u.ux, u.uy));
             breakmsg(obj, !Blind);
-            return breakobj(obj, u.ux, u.uy, TRUE, TRUE) ? FALSE : TRUE;
+            /* crackable armor will return True for breaktest() but will
+               usually return False for breakobj() */
+            if (!breakobj(obj, u.ux, u.uy, TRUE, TRUE)) {
+                hitfloor(obj, FALSE);
+                gt.thrownobj = 0;
+                return TRUE;
+            }
+            return FALSE;
         }
         action = "hits";
     } else {
@@ -1435,7 +1443,7 @@ toss_up(struct obj *obj, boolean hitsroof)
                                    &dmg, rn1(18, 2));
 
         if (!dmg) { /* probably wasn't a weapon; base damage on weight */
-            dmg = ((int) obj->owt + 99) / 100;
+            dmg = ((int) obj->owt + (WT_TO_DMG - 1)) / WT_TO_DMG;
             dmg = (dmg <= 1) ? 1 : rnd(dmg);
             if (dmg > 6)
                 dmg = 6;
@@ -1553,9 +1561,20 @@ throwit_return(boolean clear_thrownobj)
         gt.thrownobj = (struct obj *) 0;
 }
 
+staticfn void
+swallowit(struct obj *obj)
+{
+    if (obj != uball) {
+        (void) mpickobj(u.ustuck, obj); /* clears 'gt.thrownobj' */
+        throwit_return(FALSE);
+    } else
+        throwit_return(TRUE);
+}
+
 /* throw an object, NB: obj may be consumed in the process */
 void
-throwit(struct obj *obj,
+throwit(
+    struct obj *obj,
     long wep_mask,       /* used to re-equip returning boomerang */
     boolean twoweap,     /* used to restore twoweapon mode if
                           * wielded weapon returns */
@@ -1563,10 +1582,11 @@ throwit(struct obj *obj,
 {
     struct monst *mon;
     int range, urange;
+    const struct throw_and_return_weapon *arw = autoreturn_weapon(obj);
     boolean crossbowing,
             impaired = (Confusion || Stunned || Blind
                         || Hallucination || Fumbling),
-            tethered_weapon = (obj->otyp == AKLYS && (wep_mask & W_WEP) != 0);
+            tethered_weapon = (arw && arw->tethered && (wep_mask & W_WEP) != 0);
 
     gn.notonhead = FALSE; /* reset potentially stale value */
     if ((obj->cursed || obj->greased) && (u.dx || u.dy) && !rn2(7)) {
@@ -1684,8 +1704,13 @@ throwit(struct obj *obj,
                     range = BOLT_LIM;
                 else
                     range++;
-            } else if (obj->oclass != GEM_CLASS)
+            } else if (obj->oclass != GEM_CLASS) {
                 range /= 2;
+                pline("You aren't wielding %s, so you throw your %s by %s.",
+                      an(skill_name(weapon_type(obj))),
+                      weapon_descr(obj),
+                      body_part(HAND));
+            }
         }
 
         if (Is_airlevel(&u.uz) || Levitation) {
@@ -1703,9 +1728,9 @@ throwit(struct obj *obj,
         else if (is_art(obj, ART_MJOLLNIR))
             range = (range + 1) / 2; /* it's heavy */
         else if (tethered_weapon) /* primary weapon is aklys */
-            /* if an aklys is going to return, range is limited by the
+            /* range of a tethered_weapon is limited by the
                length of the attached cord [implicit aspect of item] */
-            range = min(range, BOLT_LIM / 2);
+            range = min(range, isqrt(arw->range));
         else if (obj == uball && u.utrap && u.utraptype == TT_INFLOOR)
             range = 1;
 
@@ -1761,12 +1786,7 @@ throwit(struct obj *obj,
         if (tethered_weapon)
             tmp_at(DISP_END, 0);
     } else if (u.uswallow && !iflags.returning_missile) {
- swallowit:
-        if (obj != uball) {
-            (void) mpickobj(u.ustuck, obj); /* clears 'gt.thrownobj' */
-            throwit_return(FALSE);
-        } else
-            throwit_return(TRUE);
+        swallowit(obj);
         return;
     } else {
         /* Mjollnir must be wielded to be thrown--caller verifies this;
@@ -1783,7 +1803,7 @@ throwit(struct obj *obj,
                           bimanual(obj) ? makeplural(body_part(HAND))
                                         : body_part(HAND));
                     obj = addinv_before(obj, oldslot);
-                    (void) encumber_msg();
+                    encumber_msg();
                     /* addinv autoquivers an aklys if quiver is empty;
                        if obj is quivered, remove it before wielding */
                     if (obj->owornmask & W_QUIVER)
@@ -1824,8 +1844,10 @@ throwit(struct obj *obj,
                                KILLED_BY);
                     }
 
-                    if (u.uswallow)
-                        goto swallowit;
+                    if (u.uswallow) {
+                        swallowit(obj);
+                        return;
+                    }
                     if (!ship_object(obj, u.ux, u.uy, FALSE))
                         dropy(obj);
                 }
@@ -1843,8 +1865,10 @@ throwit(struct obj *obj,
                    capability back anyway, quivered or not shouldn't matter */
                 pline("%s to return!", Tobjnam(obj, "fail"));
 
-                if (u.uswallow)
-                    goto swallowit;
+                if (u.uswallow) {
+                    swallowit(obj);
+                    return;
+                }
                 /* continue below with placing 'obj' at target location */
             }
         }
@@ -1869,7 +1893,8 @@ throwit(struct obj *obj,
                 || (is_lava(gb.bhitpos.x, gb.bhitpos.y)
                     && !is_flammable(obj))) {
                 Soundeffect(se_splash, 50);
-                pline((weight(obj) > 9) ? "Splash!" : "Plop!");
+                pline((weight(obj) > WT_SPLASH_THRESHOLD)
+                      ? "Splash!" : "Plop!");
             }
         }
         if (flooreffects(obj, gb.bhitpos.x, gb.bhitpos.y, "fall")) {
@@ -1975,7 +2000,7 @@ return_throw_to_inv(
             set_twoweap(TRUE); /* u.twoweap = TRUE */
     }
 
-    (void) encumber_msg();
+    encumber_msg();
     return obj;
 }
 
@@ -2247,7 +2272,7 @@ thitmonst(
                     sho_obj_return_to_u(obj);
                 obj = addinv(obj); /* back into your inventory */
                 nhUse(obj);
-                (void) encumber_msg();
+                encumber_msg();
             }
             return 1; /* caller doesn't need to place it */
         }
@@ -2446,21 +2471,6 @@ gem_accept(struct monst *mon, struct obj *obj)
             } else {
                 Strcat(buf, maybeluck);
                 change_luck(rn2(7) - 3);
-            }
-        } else {
-            Strcat(buf, nogood);
-            goto nopick;
-        }
-
-    /* making guesses */
-    } else if (has_oname(obj) || objects[obj->otyp].oc_uname) {
-        if (is_gem) {
-            if (is_buddy) {
-                Strcat(buf, addluck);
-                change_luck(2);
-            } else {
-                Strcat(buf, maybeluck);
-                change_luck(rn2(3) - 1);
             }
         } else {
             Strcat(buf, nogood);

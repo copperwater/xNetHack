@@ -111,7 +111,7 @@ static struct allopt_t allopt[SIZE(allopt_init)];
 
 /* use rest of file */
 
-extern char configfile[]; /* for messages; files.c */
+/* extern char configfile[]; */ /* for messages; files.c */
 extern const struct symparse loadsyms[];
 #if defined(TOS)
 extern boolean colors_changed;  /* in tos.c */
@@ -259,6 +259,46 @@ static NEARDATA const char *perminv_modes[][3] = {
   /*8*/ { "in-use",    "inuse-only", "subset: items currently in use" },
 };
 
+struct objsymopt {
+    int num;
+    const char *nam;
+    const char *descr;
+};
+
+/*
+ * menuobjsyms:
+ *   Inventory display for the various values of menuobjsyms.
+ *   4' and 5' represent !sortpack which lacks headers; they
+ *   produce the same result.
+ *
+ *   0:                         1:
+ *        Weapons                    Weapons  (')')
+ *        a - 15 darts               a - 15 darts
+ *        Armor                      Armor    ('[')
+ *        b - Hawaiian shirt         b - Hawaiian shirt
+ *   2:                         3:
+ *        Weapons                    Weapons  (')')
+ *        a ) 15 darts               a ) 15 darts
+ *        Armor                      Armor    ('[')
+ *        b [ Hawaiian shirt         b [ Hawaiian shirt
+ *   4:                         5:
+ *        Weapons                    Weapons  (')')
+ *        a - 15 darts               a - 15 darts
+ *        Armor                      Armor    ('[')
+ *        b - Hawaiian shirt         b - Hawaiian shirt
+ *   4':                        5':
+ *        a ) 15 darts               a ) 15 darts
+ *        b [ Hawaiian shirt         b [ Hawaiian shirt
+ */
+static const struct objsymopt objsymvals[] = {
+    { 0, "none",         "don't show object symbols in menus" },
+    { 1, "headers",      "show object symbols in menu header lines" },
+    { 2, "entries",      "show object symbols in individual menu entries" },
+    { 3, "both",         "show object symbols in headers and menu entries" },
+    { 4, "conditional",  "show objsyms in entries if no headers are shown" },
+    { 5, "one-or-other", "show objsyms in header, in entries if no header" },
+};
+
 /*
  * Default menu manipulation command accelerators.  These may _not_ be:
  *
@@ -325,6 +365,7 @@ staticfn void rejectoption(const char *);
 staticfn char *string_for_opt(char *, boolean);
 staticfn char *string_for_env_opt(const char *, char *, boolean);
 staticfn void bad_negation(const char *, boolean);
+staticfn void set_menuobjsyms_flags(int);
 staticfn int change_inv_order(char *);
 staticfn boolean warning_opts(char *, const char *);
 staticfn int feature_alert_opts(char *, const char *);
@@ -371,6 +412,7 @@ staticfn int handler_align_misc(int);
 staticfn int handler_autounlock(int);
 staticfn int handler_disclose(void);
 staticfn int handler_menu_headings(void);
+staticfn int handler_menu_objsyms(void);
 staticfn int handler_menustyle(void);
 staticfn int handler_msg_window(void);
 staticfn int handler_number_pad(void);
@@ -419,8 +461,8 @@ ask_do_tutorial(void)
         boolean norc;
         int n, pass = 0;
 
-        rc = nh_basename(configfile, TRUE);
-        norc = !strcmp(configfile, "/dev/null");
+        rc = nh_basename(get_configfile(), TRUE);
+        norc = !strcmp(get_configfile(), "/dev/null");
         Snprintf(buf, sizeof buf,
                  "Put \"OPTIONS=!tutorial\" in %s to skip this query.",
                  (rc && *rc && !norc) ? rc : "your configuration file");
@@ -776,7 +818,7 @@ freeroleoptvals(void)
 void
 saveoptvals(NHFILE *nhfp)
 {
-    if (perform_bwrite(nhfp)) {
+    if (update_file(nhfp)) {
         char *val;
         unsigned len;
         int i, j;
@@ -785,11 +827,9 @@ saveoptvals(NHFILE *nhfp)
             for (j = 0; j < num_opt_phases; ++j) {
                 val = roleoptvals[i][j];
                 len = val ? Strlen(val) + 1 : 0;
-                if (nhfp->structlevel) {
-                    bwrite(nhfp->fd, (genericptr_t) &len, sizeof len);
-                    if (val)
-                        bwrite(nhfp->fd, (genericptr_t) val, len);
-                }
+                Sfo_unsigned(nhfp, &len, "optvals-len");
+                if (val)
+                    Sfo_char(nhfp, val, "optvals-val", len);
             }
     }
     if (release_data(nhfp))
@@ -808,10 +848,10 @@ restoptvals(NHFILE *nhfp)
         for (i = 0; i < 4; ++i)
             for (j = 0; j < num_opt_phases; ++j) {
                 /* len includes terminating '\0' for non-Null values */
-                mread(nhfp->fd, (genericptr_t) &len, sizeof len);
+                Sfi_unsigned(nhfp, &len, "optvals-len");
                 if (len) {
                     val = roleoptvals[i][j] = (char *) alloc(len);
-                    mread(nhfp->fd, (genericptr_t) val, len);
+                    Sfi_char(nhfp, val, "opvals-val", (int) len);
                 } else {
                     roleoptvals[i][j] = NULL;
                 }
@@ -1239,11 +1279,11 @@ optfn_crash_email(
         return optn_ok;
     }
     if (req == do_set) {
-        if ((op = string_for_opt(opts, FALSE))
-            != empty_optstr) {
-            gc.crash_email = dupstr(op);
-        } else
+        if ((op = string_for_opt(opts, FALSE)) == empty_optstr)
             return optn_err;
+        if (gc.crash_email)
+            free((genericptr_t) gc.crash_email);
+        gc.crash_email = dupstr(op);
         return optn_ok;
     }
     if (req == get_val || req == get_cnf_val) {
@@ -1265,11 +1305,11 @@ optfn_crash_name(
         return optn_ok;
     }
     if (req == do_set) {
-        if ((op = string_for_opt(opts, FALSE))
-            != empty_optstr) {
-            gc.crash_name = dupstr(op);
-        } else
+        if ((op = string_for_opt(opts, FALSE)) == empty_optstr)
             return optn_err;
+        if (gc.crash_name)
+            free((genericptr_t) gc.crash_name);
+        gc.crash_name = dupstr(op);
         return optn_ok;
     }
     if (req == get_val || req == get_cnf_val) {
@@ -1312,6 +1352,7 @@ optfn_crash_urlmax(
     }
     return optn_ok;
 }
+
 #endif /* CRASHREPORT */
 
 #ifdef CURSES_GRAPHICS
@@ -2179,6 +2220,71 @@ optfn_menu_headings(
     }
     if (req == do_handler) {
         return handler_menu_headings();
+    }
+    return optn_ok;
+}
+
+staticfn int
+optfn_menu_objsyms(
+    int optidx, int req,
+    boolean negated,
+    char *opts, char *op)
+{
+    if (req == do_init) {
+        /* set iflags.menu_objsyms to 4, "conditional"; also sets
+           iflags.menu_head_objsym to False and
+           iflags.use_menu_glyphs True */
+        set_menuobjsyms_flags(4);
+        return optn_ok;
+    }
+    if (req == do_set) {
+        unsigned k, l;
+        int i, osyms;
+
+        if (negated) {
+            /* allow '!menu_objsyms' (and '!use_menu_glyphs') as
+               'menu_objsyms:none' (0) */
+            osyms = 0;
+        } else if (op == empty_optstr) {
+            /* treat boolean 'menu_objsyms' as 'menu_objsyms:headers' (1)
+               accept obsolete boolean 'use_menu_glyphs' as a synonym
+               for 'menu_objsyms:entries' (2) */
+            osyms = !strncmp(opts, "use_menu_glyphs", 15) ? 2 : 1;
+        } else if (digit(*op)) {
+            i = atoi(op);
+            if (i >= SIZE(objsymvals)) {
+                config_error_add("Illegal %s parameter '%s'",
+                                 allopt[optidx].name, op);
+                return optn_err;
+            }
+            osyms = i;
+        } else {
+            /* stilted "one-or-other" is used to compress the menu width */
+            static const char alt5[] = "one-or-the-other";
+            unsigned l5 = (unsigned) (sizeof alt5 - sizeof "");
+
+            osyms = 0;
+            k = (unsigned) strlen(op);
+            for (i = 0; i < SIZE(objsymvals); ++i) {
+                l = (unsigned) strlen(objsymvals[i].nam);
+                if (k >= 4)
+                    l = k;
+                if (!strncmpi(objsymvals[i].nam, op, l)
+                    || (i == 5 && !strncmpi(alt5, op, l5))) {
+                    osyms = i;
+                    break;
+                }
+            }
+        }
+        set_menuobjsyms_flags(osyms);
+        return optn_ok;
+    }
+    if (req == get_val || req == get_cnf_val) {
+        Sprintf(opts, "%s", objsymvals[iflags.menuobjsyms].nam);
+        return optn_ok;
+    }
+    if (req == do_handler) {
+        return handler_menu_objsyms();
     }
     return optn_ok;
 }
@@ -5690,6 +5796,43 @@ handler_menu_headings(void)
 }
 
 staticfn int
+handler_menu_objsyms(void)
+{
+    winid tmpwin;
+    anything any;
+    char buf[BUFSZ];
+    menu_item *picklist = (menu_item *) 0;
+    const char sep = iflags.menu_tab_sep ? '\t' : ' ';
+    int i, j, n, clr = NO_COLOR;
+
+    tmpwin = create_nhwindow(NHW_MENU);
+    start_menu(tmpwin, MENU_BEHAVE_STANDARD);
+    any = cg.zeroany;
+    for (i = 0; i < SIZE(objsymvals); ++i) {
+        Snprintf(buf, sizeof buf, "%-12.12s%c%.60s",
+                 objsymvals[i].nam, sep, objsymvals[i].descr);
+        any.a_int = i + 1;
+        j = objsymvals[i].num;
+        add_menu(tmpwin, &nul_glyphinfo, &any, '0' + i, *buf,
+                 ATR_NONE, clr, buf,
+                 (j == iflags.menuobjsyms) ? MENU_ITEMFLAGS_SELECTED
+                                           : MENU_ITEMFLAGS_NONE);
+    }
+    end_menu(tmpwin, "Set object symbols in menus to what?");
+    n = select_menu(tmpwin, PICK_ONE, &picklist);
+    if (n > 0) {
+        i = picklist[0].item.a_int - 1;
+        /* if there are two picks, use the one that wasn't pre-selected */
+        if (n > 1 && i == iflags.menuobjsyms)
+            i = picklist[1].item.a_int - 1;
+        set_menuobjsyms_flags(i);
+        free((genericptr_t) picklist);
+    }
+    destroy_nhwindow(tmpwin);
+    return optn_ok;
+}
+
+staticfn int
 handler_msg_window(void)
 {
 #if PREV_MSGS /* tty or curses */
@@ -6763,10 +6906,10 @@ staticfn void
 rejectoption(const char *optname)
 {
 #ifdef MICRO
-    pline("\"%s\" settable only from %s.", optname, configfile);
+    pline("\"%s\" settable only from %s.", optname, get_configfile());
 #else
     pline("%s can be set only from XNETHACKOPTIONS or %s.", optname,
-          configfile);
+          get_configfile());
 #endif
 }
 
@@ -7091,6 +7234,8 @@ initoptions_init(void)
     boolean have_branch = (nomakedefs.git_branch && *nomakedefs.git_branch);
 
     go.opt_phase = builtin_opt;    /* Did I need to move this here? */
+    /* initialize the function pointers for saving the game */
+    sf_init();
     memcpy(allopt, allopt_init, sizeof(allopt));
     determine_ambiguities();
 
@@ -7143,6 +7288,7 @@ initoptions_init(void)
     flags.pile_limit = PILE_LIMIT_DFLT;  /* 5 */
     flags.runmode = RUN_LEAP;
     iflags.msg_history = 20;
+
     /* msg_window has conflicting defaults for multi-interface binary */
 #ifdef TTY_GRAPHICS
     iflags.prevmsg_window = 's';
@@ -7425,6 +7571,16 @@ initoptions_finish(void)
  *
  *******************************************
  */
+
+/* iflags.menuobjsyms also controls iflags.menu_head_objsym, and
+   iflags.use_menu_glyphs; they affect execution but are no longer options */
+staticfn void
+set_menuobjsyms_flags(int newobjsyms)
+{
+    iflags.menuobjsyms = newobjsyms;
+    iflags.menu_head_objsym = ((newobjsyms & 1) != 0) ? TRUE : FALSE;
+    iflags.use_menu_glyphs = ((newobjsyms & (2 | 4)) != 0) ? TRUE : FALSE;
+}
 
 /*
  * Change the inventory order, using the given string as the new order.
@@ -7740,6 +7896,7 @@ msgtype_free(void)
         tmp2 = tmp->next;
         free((genericptr_t) tmp->pattern);
         regex_free(tmp->regex);
+        tmp->regex = 0;
         free((genericptr_t) tmp);
     }
     gp.plinemsg_types = (struct plinemsg_type *) 0;
@@ -9504,7 +9661,7 @@ option_help(void)
 
     datawin = create_nhwindow(NHW_TEXT);
     Snprintf(buf, sizeof buf,
-             "Set options as OPTIONS=<options> in %s", configfile);
+             "Set options as OPTIONS=<options> in %s", get_configfile());
     opt_intro[CONFIG_SLOT] = (const char *) buf;
     for (i = 0; opt_intro[i]; i++)
         putstr(datawin, 0, opt_intro[i]);

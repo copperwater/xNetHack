@@ -1,7 +1,7 @@
 -- The Abyss filler levels
 -- Most of the level is open air, with a walkable fringe around the top or
--- bottom (only need to implement one) constituting part of a narrow rim hinting
--- at a vast circular gulf.
+-- bottom (only need to implement one due to level flipping) constituting part
+-- of a narrow rim hinting at a vast circular gulf.
 -- Possibly, falling down from any upper level drops you all the way to the
 -- bottom, rather than standard behavior of dropping you to the next one down.
 
@@ -29,14 +29,18 @@ des.map([[
 ...........................................................................
 ]]);
 
-local foo = selection.ellipse(nh.rn2(75),-5, 90, 20, 1);
+-- we must place the ellipse beyond the bottom of the map; using a negative
+-- y-coordinate results in unsigned character underflow and though it doesn't
+-- cause any errors, means the ellipse is so far off the map you just get a
+-- level of empty floor
+local foo = selection.ellipse(nh.rn2(75),22, 90, 20, 1);
 des.replace_terrain({ selection=foo, fromterrain='.', toterrain='A' })
 
 -- assumption is that the ellipse will leave spaces of floor on the left and
 -- right edges
 des.levregion({ region={00,00,00,17}, type="stair-up" })
 des.levregion({ region={74,00,74,17}, type="stair-down" })
-des.levregion({ region={00,17,74,17}, type="branch" })
+des.levregion({ region={00,00,74,17}, type="branch" })
 
 -- Define areas
 local everything = selection.area(00,00,74,19)

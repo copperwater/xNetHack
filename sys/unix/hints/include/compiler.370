@@ -26,6 +26,7 @@ CCFLAGS = -g
 # If these are set on entry, preparation for C++ compiles is affected.
 #    CPLUSPLUS_NEEDED = 1           C++ compile bits included
 #    CPLUSPLUS_NEED17 = 1           C++ -std=c++17 (at least)
+#    CPLUSPLUS_NEED20 = 1           C++ -std=c++20 (at least)
 #    CPLUSPLUS_NEED_DEPSUPPRESS = 1 C++ -Wno-deprecated-copy,
 #                                       -Wno-deprecated-declarations
 
@@ -97,6 +98,7 @@ CXX=clang++ -std=gnu++11
 # clang-specific follows
 CLANGGTEQ12 := $(shell expr `$(CC) -dumpversion | cut -f1 -d.` \>= 12)
 CLANGGTEQ14 := $(shell expr `$(CC) -dumpversion | cut -f1 -d.` \>= 14)
+CLANGGTEQ21 := $(shell expr `$(CC) -dumpversion | cut -f1 -d.` \>= 21)
 ifeq "$(CLANGGTEQ12)" "1"
 CFLAGS+=-Wimplicit-fallthrough
 endif
@@ -107,6 +109,9 @@ endif  # not VIEWDEPRECATIONS
 else
 # older versions complain about things newer ones don't without this
 CFLAGS+=-Wno-missing-field-initializers
+endif
+ifeq "$(CLANGGTEQ21)" "1"
+CFLAGS+=-Wno-deprecated-octal-literals
 endif
 # none
 endif  # clang-specific ends here
@@ -149,6 +154,14 @@ else   # g++ version greater than or equal to 12? (no follows)
 CCXX=g++ -std=c++17
 endif  # g++ version greater than or equal to 12
 endif  # CPLUSPLUS_NEED17
+ifdef CPLUSPLUS_NEED20
+ifeq "$(GPPGTEQ9)" "1"
+CCXX=g++ -std=c++20
+else   # g++ version greater than or equal to 9? (no follows)
+CCXX=g++ -std=c++17
+endif  # g++ version greater than or equal to 9
+endif  # CPLUSPLUS_NEED20
+
 
 else   # g++ or clang++ ?
 
@@ -183,6 +196,11 @@ ifeq "$(CLANGPPGTEQ17)" "1"
 CCXX=clang++ -std=c++17
 endif  # clang++ greater than or equal to 17
 endif  # CPLUSPLUS_NEED17
+ifdef CPLUSPLUS_NEED20
+ifeq "$(CLANGPPGTEQ17)" "1"
+CCXX=clang++ -std=c++20
+endif  # clang++ greater than or equal to 17
+endif  # CPLUSPLUS_NEED20
 endif  # end of clang++-specific section
 CXX=$(CCXX)
 endif  # CPLUSPLUS_NEEDED

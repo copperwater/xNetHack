@@ -197,6 +197,7 @@
     seffect(stone_breaking),
     seffect(stone_crumbling),
     seffect(swoosh),
+    seffect(sword_blade_rings),
     seffect(thud),
     seffect(thump),
     seffect(thunderclap),

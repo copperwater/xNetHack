@@ -10,7 +10,7 @@ function tut_key(command)
       return "Ctrl-" .. m;
    end
 
-   m = s:match("^M-([A-Z])$"); -- M-X is Alt-X
+   m = s:match("^M%-([A-Z])$"); -- M-X is Alt-X
    if (m ~= nil) then
       tut_alt_key = m;
       return "Alt-" .. m;
@@ -32,22 +32,22 @@ des.level_flags("mazelevel", "noflip",
 
 des.map([[
 ---------------------------------------------------------------------------
-|-.--|.......|......|..S....|.F.......|.............|.....................|
+|-.--|.......|......|..S....|.F.......|.............|.......|.............|
 |.-..........|......|--|....|.F.....|.|S-------.....|.....................|
-||.--|.......|..T......|....|.F.....|.|.......|.....|.....................|
-||.|.|.......|......|-.|....|.F.....|.|.......|.....|.....................|
+||.--|.......|..T......|....|.F.....|.|.......|.....|.......|.............|
+||.|.|.......|......|-.|....|.F.....|.|.......|.....|--------.............|
 ||.|.|.......|......||.|-.-----------.-.......|-S----.....................|
 |-+-S---------..---.||........................|...|.......................|
 |......|          |.-------------------.......|...|....--S----............|
 |......|  ######  |.........|      |..S.......|...|....|.....|............|
 |----.-| -+-   #  |.....---.|######+..|.......S...|....|.....|............|
-|----+----.----+---.|.--|.|.|#     ------------...|....|.....|............|
+|----+----.----+---.|.--|.|.|#     ------------...|....|.....F............|
 |........|.|......|.|...F...|#  ........|.....+...|....|.....|............|
-|.P......-S|......|------.---# .........|.....|...|....-------............|
-|..........|......+.|...|.|.S# ..--S-----.....|LLL|.......................|
-|.W......---......|.|.|.|.|.|# ..|......|.....|LLL|.......................|
-|....Z.L.S.F......|.|.|.|.---#   |......+.....|...|.......................|
-|........|--......|...|.....|####+......|.....|...+.......................|
+|.P......-S|......|------.---# .........|.....|...|....-------........----|
+|..........|......+.|...|.|.S# ..--S-----.....|LLL|..................|..| |
+|.W......---......|.|.|.|.|.|# ..|......|.....|LLL|..................|..--|
+|....Z.L.S.F......|.|.|.|.---#   |......+.....|...|..................|..|.|
+|........|--......|...|.....|####+......|.....|...+..................||...|
 ---------------------------------------------------------------------------
 ]]);
 
@@ -80,6 +80,10 @@ local diagmovekeys = tut_key("movesouthwest") .. " " ..
 des.engraving({ coord = { 9,3 }, type = "engrave", text = "Move around with " .. movekeys, degrade = false });
 des.engraving({ coord = { 5,2 }, type = "engrave", text = "Move diagonally with " .. diagmovekeys, degrade = false });
 
+if (u.role == "Knight") then
+   des.engraving({ coord = { 12,1 }, type = "engrave", text = "Knights can jump with '" .. tut_key("jump") .. "'", degrade = false });
+end
+
 --
 
 des.engraving({ coord = { 2,4 }, type = "engrave", text = "Some actions may require multiple tries before succeeding", degrade = false });
@@ -109,6 +113,8 @@ des.engraving({ coord = { 5,12 }, type = "engrave", text = "Look around the map 
 
 des.engraving({ coord = { 10,13 }, type = "engrave", text = "Use '" .. tut_key("search") .. "' to search for secret doors", degrade = false });
 
+des.engraving({ coord = { 10,15 }, type = "engrave", text = "Wrong secret", degrade = false });
+
 --
 
 des.engraving({ coord = { 10,10 }, type = "engrave", text = "Behind this door is a dark corridor", degrade = false });
@@ -126,6 +132,9 @@ for i = 1, 4 do
    des.trap({ type = percent(50) and "sleep gas" or "board",
               coord = locs[i], victim = false });
 end
+
+des.engraving({ coord = { 15,15 }, type = "engrave", text = "Some traps can be disabled with '" .. tut_key("untrap") .. "'", degrade = false });
+des.trap({ coord = { 15,16 }, type = "web", spider_on_web = false });
 
 --
 
@@ -220,10 +229,11 @@ des.door({ coord = { 38,6 }, state = "closed" });
 
 des.engraving({ coord = { 39,6 }, type = "engrave", text = "You loot containers with '" .. tut_key("loot") .. "'", degrade = false });
 
-des.object({ coord = { 42,6 }, id = "large box", broken = true, trapped = false,
+des.object({ coord = { 41,6 }, id = "large box", broken = true, trapped = false,
              contents = function(obj)
                 des.object({ id = "secret door detection", class = "/", spe = 30 }); end
 });
+des.engraving({ coord = { 42,6 }, type = "engrave", text = "Containers can also be emptied with '" .. tut_key("tip") .. "'", degrade = false });
 
 des.engraving({ coord = { 45,6 }, type = "engrave", text = "Magic wands are used with '" .. tut_key("zap") .. "'", degrade = false });
 
@@ -286,6 +296,39 @@ tut_key_help(64, 4);
 des.engraving({ coord = { 65,3 }, type = "burn", text = "UNDER CONSTRUCTION", degrade = false });
 
 des.trap({ type = "magic portal", coord = { 66,2 }, seen = true });
+
+--
+
+-- squeezing through small gaps
+
+des.engraving({ coord = { 69,12 }, type = "burn", text = "Can't get through?  You're carrying too much.", degrade = false });
+
+-- try to squeeze over boulders, find a trap door
+
+des.object({ id = "boulder", coord = {71,16} });
+des.object({ id = "boulder", coord = {72,16} });
+des.object({ id = "boulder", coord = {73,16} });
+des.trap({ type = "trap door", coord = { 73,15 } });
+
+--
+
+des.engraving({ coord = { 60,2 }, type = "engrave", text = "Spellcasting", degrade = false });
+if (u.uenmax < 5) then
+   -- TODO: make sure hero has enough Pw to cast the spell (5 pw) instead?
+   -- TODO: ensure the first cast of this spell succeeds?
+   des.engraving({ coord = { 59,2 }, type = "engrave", text = "Unfortunately you don't have enough energy to cast spells.", degrade = false });
+end
+des.engraving({ coord = { 57,2 }, type = "engrave", text = "Pick up the spellbook with '" .. tut_key("pickup") .. "'", degrade = false });
+des.object({ coord = { 57,2 }, id = "spellbook of light", buc = "blessed" });
+des.engraving({ coord = { 55,2 }, type = "engrave", text = "Read the spellbook with '" .. tut_key("read") .. "'", degrade = false });
+des.engraving({ coord = { 53,2 }, type = "engrave", text = "Use '" .. tut_key("cast") .. "' to cast a spell", degrade = false });
+des.region(selection.area(53,01, 59, 3), "unlit");
+
+--
+
+des.engraving({ coord = { 72,2 }, type = "engrave", text = "You \"quaff\" potions with '" .. tut_key("quaff") .. "'", degrade = false });
+des.object({ coord = { 72,2 }, id = "potion of object detection", buc = "blessed" });
+
 
 ----------------
 

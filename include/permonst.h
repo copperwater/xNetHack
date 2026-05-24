@@ -47,12 +47,6 @@ struct attack {
 
 #define NATTK 6
 
-/*     Weight of human body, elf, dragon
- */
-#define WT_HUMAN 1450U
-#define WT_ELF 800U
-#define WT_DRAGON 4500U
-
 #ifndef ALIGN_H
 #include "align.h"
 #endif
@@ -83,13 +77,9 @@ struct permonst {
     uchar mcolor;               /* color to use */
 };
 
+#define NORMAL_SPEED 12
+
 extern NEARDATA struct permonst mons[NUMMONS + 1]; /* the master list of
                                                     * monster types */
-
-#define VERY_SLOW 3
-#define SLOW_SPEED 9
-#define NORMAL_SPEED 12 /* movement rates */
-#define FAST_SPEED 15
-#define VERY_FAST 24
 
 #endif /* PERMONST_H */

@@ -284,7 +284,7 @@ update_inventory(arg)
 		-- For an argument of 0:
 		   -- Indicate to the window port that the inventory has
 		      been changed.
-		   -- Merely calls display_inventory() for window-ports
+		   -- Merely calls repopulate_perminvent() for window-ports
 		      that leave the window up, otherwise empty.
 		-- or for a non-zero argument:
 		   -- Prompts the user for a menu scrolling action and
@@ -1001,6 +1001,10 @@ char display_inventory(lets, want_reply)
 		-- Calls a start_menu()/add_menu()/select_menu() sequence.
 		   It returns the item selected, or '\0' if none is selected.
 		   Returns '\033' if the menu was canceled.
+void repopulate_perminvent(void)
+                -- a minimal alternative to display_inventory() that
+                   focuses only on repopulating the permanent inventory
+                   window.
 raw_printf(str, ...)
 		-- Like raw_print(), but accepts arguments like printf().  This
 		   routine processes the arguments and then calls raw_print().

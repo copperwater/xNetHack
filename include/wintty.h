@@ -34,6 +34,7 @@ typedef struct tty_mi {
     anything identifier; /* user identifier */
     long count;          /* user count */
     char *str;           /* description string (including accelerator) */
+    glyph_info glyphinfo;    /* glyph */
     int attr;            /* string attribute */
     int color;           /* string color */
     boolean selected;    /* TRUE if selected by user */

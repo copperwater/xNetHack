@@ -2,8 +2,8 @@ Building NetHack using the Visual Studio nmake from the command line
 
 Prerequisite Requirements:
 
-  o Visual Studio Community Edition
-        A copy of Microsoft Visual Studio Community Edition needs to
+  o Visual Studio Community
+        A copy of Microsoft Visual Studio Community needs to
         be installed on your machine. See:
         https://visualstudio.microsoft.com/vs/community/
   o Lua
@@ -43,7 +43,7 @@ You can use one of the following build environments:
                +----------+          +------+      +----+     +----+
                |          |          |      |      |    |     |    |
                |          |          |      |      |    |     |    |
-           lua-5.4.6  pdcursesmod  share windows  tty  win32 lua pdcursesmod
+           lua-5.4.8  pdcursesmod  share windows  tty  win32 lua pdcursesmod
                                                   |
                                                   vs
                                                   |
@@ -54,7 +54,7 @@ You can use one of the following build environments:
 
 /-----------------------------------------------------------\
 | Building From the Command Line Using nmake from one of the |
-| Visual Studio Community Editions                           |
+| Visual Studio Community versions                           |
 \-----------------------------------------------------------/
 
 Building
@@ -62,7 +62,7 @@ Building
 Two different versions of NetHack will be built for Windows from the
 command line using the Makefile approach:
     A tty port utilizing the Win32 Console I/O subsystem Console,
-    and a curses interface in an executabled called NetHack.exe.
+    and a curses interface in an executable called NetHack.exe.
         NetHack
     A Win32 native port built on the Windows API Graphical NetHack,
     and graphical curses in an executable called NetHackW.exe.

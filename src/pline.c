@@ -66,6 +66,9 @@ putmesg(const char *line)
 {
     int attr = ATR_NONE;
 
+    if (iflags.debug_prevent_pline)
+        return;
+
     if ((gp.pline_flags & URGENT_MESSAGE) != 0
         && (windowprocs.wincap2 & WC2_URGENT_MESG) != 0)
         attr |= ATR_URGENT;
@@ -136,7 +139,10 @@ pline_mon(struct monst *mtmp, const char *line, ...)
 {
     va_list the_args;
 
-    set_msg_xy(mtmp->mx, mtmp->my);
+    if (mtmp == &gy.youmonst)
+        set_msg_xy(0, 0);
+    else
+        set_msg_xy(mtmp->mx, mtmp->my);
 
     va_start(the_args, line);
     vpline(line, the_args);
@@ -689,43 +695,6 @@ execplinehandler(const char *line)
     nhUse(line);
 #endif
 }
-
-/*
- * varargs handling for files.c
- */
-staticfn void vconfig_error_add(const char *, va_list);
-
-DISABLE_WARNING_FORMAT_NONLITERAL
-
-void
-config_error_add(const char *str, ...)
-{
-    va_list the_args;
-
-    va_start(the_args, str);
-    vconfig_error_add(str, the_args);
-    va_end(the_args);
-}
-
-staticfn void
-vconfig_error_add(const char *str, va_list the_args)
-{       /* start of vconf...() or of nested block in USE_OLDARG's conf...() */
-    int vlen = 0;
-    char buf[BIGBUFSZ]; /* will be chopped down to BUFSZ-1 if longer */
-
-    vlen = vsnprintf(buf, sizeof buf, str, the_args);
-#if (NH_DEVEL_STATUS != NH_STATUS_RELEASED) && defined(DEBUG)
-    if (vlen >= (int) sizeof buf)
-        panic("%s: truncation of buffer at %zu of %d bytes",
-              "config_error_add", sizeof buf, vlen);
-#else
-    nhUse(vlen);
-#endif
-    buf[BUFSZ - 1] = '\0';
-    config_erradd(buf);
-}
-
-RESTORE_WARNING_FORMAT_NONLITERAL
 
 /* nhassert_failed is called when an nhassert's condition is false */
 void

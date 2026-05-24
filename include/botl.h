@@ -251,7 +251,7 @@ enum hlattribs {
 struct hilite_s {
     enum statusfields fld;
     boolean set;
-    unsigned anytype;
+    enum any_types anytype;
     anything value;
     int behavior;
     char textmatch[MAXVALWIDTH];
@@ -273,7 +273,7 @@ struct istat_s {
     boolean chg; /* need to recalc time? */
     boolean percent_matters;
     short percent_value;
-    unsigned anytype;
+    enum any_types anytype;
     anything a, rawval;
     char *val;
     int valwidth;

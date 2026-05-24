@@ -11,6 +11,8 @@ NHSROOT=..
 
 MAKEDEFS = ../util/makedefs
 
+#STRIPBS ?= ../util/stripbs
+
 # Which version do we want to build?  (XXX These are not used anywhere.)
 GUIDEBOOK = Guidebook		# regular ASCII file
 #GUIDEBOOK = Guidebook.ps	# PostScript file
@@ -21,8 +23,9 @@ GUIDEBOOK = Guidebook		# regular ASCII file
 # recognize the option.  Sigh.
 #
 # col is unnecessary, but harmless, with groff.  See grotty(1).
-COLCMD = col -bx
-#COLCMD = col -b
+COLCMD ?= col -bx
+#COLCMD ?= col -b
+#COLCMD ?= $(STRIPBS)
 
 # The command to use to generate a PostScript file
 # PSCMD = ditroff | psdit
@@ -59,8 +62,8 @@ ONEPAGE_PREFORMAT = cat Gbk-1pg-pfx.mn $(GUIDEBOOK_MN) Gbk-1pg-sfx.mn \
 	| $(NHGREP) | tbl tmac.n -
 
 # the basic guidebook
-Guidebook	: $(GUIDEBOOK_MN) tmac.n tmac.nh $(NEEDMAKEDEFS)
-	$(GUIDECMD) > Guidebook
+Guidebook	: $(GUIDEBOOK_MN) tmac.n tmac.nh $(NEEDMAKEDEFS) $(STRIPBS)
+	-$(GUIDECMD) > Guidebook
 
 # Fancier output for those with ditroff, psdit and a PostScript printer.
 # Could be converted to Guidebook.pdf if tool(s) for that are available.
@@ -80,7 +83,10 @@ Guidebook.dvi	: $(GUIDEBOOK_TEX)
 # (note: 'make makedefs', not 'make $(MAKEDEFS)')
 $(MAKEDEFS)	: ../util/makedefs.c ../include/config.h ../src/mdlib.c \
 		  ../util/mdgrep.h
-	( cd ../util ; make makedefs )
+	( cd .. ; make makedefs )
+
+../util/stripbs: ../util/stripbs.c
+	( cd .. ; $(MAKE) stripbs )
 
 GAME	= xnethack
 MANDIR	?= /usr/man/man6

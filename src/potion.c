@@ -42,6 +42,7 @@ staticfn int dip_hands_ok(struct obj *);
 staticfn void hold_potion(struct obj *, const char *, const char *,
                         const char *);
 staticfn void poof(struct obj *);
+staticfn boolean dip_potion_explosion(struct obj *, int);
 staticfn int potion_dip(struct obj *obj, struct obj *potion);
 
 /* used to indicate whether quaff or dip has skipped an opportunity to
@@ -769,8 +770,7 @@ peffect_restore_ability(struct obj *otmp)
         int i, ii;
 
         /* unlike unicorn horn, overrides Fixed_abil;
-           does not recover temporary strength loss due to hunger
-           or temporary dexterity loss due to wounded legs */
+           does not recover temporary strength loss due to hunger */
         pline("Wow!  This makes you feel %s!",
               (!otmp->blessed) ? "good"
               : unfixable_trouble_count(FALSE) ? "better"
@@ -792,16 +792,63 @@ peffect_restore_ability(struct obj *otmp)
                 i = 0;
         }
 
+        /* allow the potion and not the spell to recover lost maximum HP and
+         * energy (without restoring any _actual_ HP or energy); difficult to
+         * ever get all of a large loss back, but you can get decently close
+         * with multiple potions.
+         * Does not work unless you are at the highest experience level you have
+         * reached in this game.
+         * Otherwise, this enables drain-for-gain shenanigans because peak HP
+         * and energy are not tracked per-level.
+         * Effectively, you get either level restoration (below) or max HP
+         * restoration, but not both at once. */
+        if (otmp->otyp == POT_RESTORE_ABILITY && u.ulevel == u.ulevelpeak) {
+            int gain;
+            int oldhpmax = u.uhpmax;
+            int oldenmax = u.uenmax;
+            /* Half the difference rounding up, +1 extra if potion is blessed */
+            if (u.uhpmax < u.uhppeak) {
+                gain = (u.uhppeak - u.uhpmax + 1) / 2;
+                if (otmp->blessed)
+                    gain++;
+                u.uhpmax = min(u.uhpmax + gain, u.uhppeak);
+            }
+            if (u.uenmax < u.uenpeak) {
+                gain = (u.uenpeak - u.uenmax + 1) / 2;
+                if (otmp->blessed)
+                    gain++;
+                u.uenmax = min(u.uenmax + gain, u.uenpeak);
+            }
+            if (u.uhpmax != oldhpmax || u.uenmax != oldenmax)
+                disp.botl = TRUE;
+        }
+
         /* when using the potion (not the spell) also restore lost levels,
            to make the potion more worth keeping around for players with
            the spell or with a unihorn; this is better than full healing
            in that it can restore all of them, not just half, and a
            blessed potion restores them all at once */
-        if (otmp->otyp == POT_RESTORE_ABILITY && u.ulevel < u.ulevelmax) {
+        if (otmp->otyp == POT_RESTORE_ABILITY && u.ulevel < u.ulevelpeak) {
             do {
                 pluslvl(FALSE);
-            } while (u.ulevel < u.ulevelmax && otmp->blessed);
+            } while (u.ulevel < u.ulevelpeak && otmp->blessed);
         }
+
+        /* also heal wounded legs and most status ailments ("restoring your
+         * faculties"), and even illness if blessed, but not sliming.
+         * Note: spell of restore ability will also cure these (except illness),
+         * but if you're confused or stunned you can't cast it in the first
+         * place. */
+        if (Wounded_legs)
+            heal_legs(0);
+        u.ucreamed = 0;
+        make_blinded(0L, TRUE);
+        make_deaf(0L, TRUE);
+        make_confused(0L, TRUE);
+        make_stunned(0L, TRUE);
+        make_hallucinated(0L, TRUE, 0L);
+        if (otmp->otyp == POT_RESTORE_ABILITY && otmp->blessed)
+            make_sick(0L, (char *) 0, TRUE, SICK_ALL);
     }
 }
 
@@ -940,6 +987,10 @@ peffect_invisibility(struct obj *otmp)
     if (otmp->cursed) {
         pline("For some reason, you feel your presence is known.");
         aggravate();
+
+        /* doing this gives temporary invisibility, but removes permanent
+           invisibility */
+        HInvis &= ~FROMOUTSIDE;
     }
 }
 
@@ -1968,10 +2019,6 @@ potionhit(struct monst *mon, struct obj *obj, int how)
                 cureblind = TRUE;
             if (mon->data == &mons[PM_PESTILENCE])
                 goto do_illness;
-            FALLTHROUGH;
-            /*FALLTHRU*/
-        case POT_RESTORE_ABILITY:
-        case POT_GAIN_ABILITY:
  do_healing:
             angermon = FALSE;
             if (mon->mhp < mon->mhpmax) {
@@ -1981,6 +2028,16 @@ potionhit(struct monst *mon, struct obj *obj, int how)
             }
             if (cureblind)
                 mcureblindness(mon, canseemon(mon));
+            break;
+        case POT_RESTORE_ABILITY:
+        case POT_GAIN_ABILITY:
+            mcureblindness(mon, canseemon(mon));
+            if (mon->mconf || mon->mstun) {
+                mon->mconf = 0;
+                mon->mstun = 0;
+                if (canseemon(mon))
+                    pline("%s looks steady again.", Monnam(mon));
+            }
             break;
         case POT_SICKNESS:
             if (mon->data == &mons[PM_PESTILENCE])
@@ -2756,6 +2813,31 @@ poof(struct obj *potion)
     useup(potion);
 }
 
+/* do dipped potion(s) explode? */
+staticfn boolean
+dip_potion_explosion(struct obj *obj, int dmg)
+{
+    if (obj->cursed || obj->otyp == POT_ACID
+        || (obj->otyp == POT_OIL && obj->lamplit)
+        || !rn2((uarmc && uarmc->otyp == ALCHEMY_SMOCK) ? 30 : 10)) {
+        /* it would be better to use up the whole stack in advance
+           of the message, but we can't because we need to keep it
+           around for potionbreathe() [and we can't set obj->in_use
+           to 'amt' because that's not implemented] */
+        obj->in_use = 1;
+        pline("%sThey explode!", !Deaf ? "BOOM!  " : "");
+        wake_nearto(u.ux, u.uy, (BOLT_LIM + 1) * (BOLT_LIM + 1));
+        exercise(A_STR, FALSE);
+        if (!breathless(gy.youmonst.data) || haseyes(gy.youmonst.data))
+            potionbreathe(obj);
+        useupall(obj);
+        losehp(dmg, /* not physical damage */
+               "alchemic blast", KILLED_BY_AN);
+        return TRUE;
+    }
+    return FALSE;
+}
+
 /* called by dodip() or dip_into() after obj and potion have been chosen */
 staticfn int
 potion_dip(struct obj *obj, struct obj *potion)
@@ -2857,24 +2939,9 @@ potion_dip(struct obj *obj, struct obj *potion)
         useup(potion); /* now gone */
         /* Mixing potions is dangerous...
            KMH, balance patch -- acid is particularly unstable */
-        if (obj->cursed || obj->otyp == POT_ACID
-            || (obj->otyp == POT_OIL && obj->lamplit) || !rn2(10)) {
-            /* it would be better to use up the whole stack in advance
-               of the message, but we can't because we need to keep it
-               around for potionbreathe() [and we can't set obj->in_use
-               to 'amt' because that's not implemented] */
-            int dmg = (amt + rnd(9)) * (Acid_resistance ? 1 : 2);
-            obj->in_use = 1;
-            pline("%sThey explode!", !Deaf ? "BOOM!  " : "");
-            wake_nearto(u.ux, u.uy, (BOLT_LIM + 1) * (BOLT_LIM + 1));
-            exercise(A_STR, FALSE);
-            if (!breathless(gy.youmonst.data) || haseyes(gy.youmonst.data))
-                potionbreathe(obj);
-            useupall(obj);
-            losehp(dmg, /* not physical damage */
-                   "alchemic blast", KILLED_BY_AN);
+        if (dip_potion_explosion(obj,
+                                 (amt + rnd(9)) * (Acid_resistance ? 1 : 2)))
             return ECMD_TIME;
-        }
 
         obj->blessed = obj->cursed = obj->bknown = 0;
         if (Blind || Hallucination)
@@ -3020,31 +3087,60 @@ potion_dip(struct obj *obj, struct obj *potion)
         return ECMD_TIME;
     }
 
-    /* removing erosion from items */
-    if (potion->otyp == POT_RESTORE_ABILITY && !potion->cursed
-        && erosion_matters(obj) && (obj->oeroded || obj->oeroded2)) {
-        obj->oeroded = obj->oeroded2 = 0;
-        pline("%s as good as new!", Yobjnam2(obj, Blind ? "feel" : "look"));
-        if (potion->dknown)
-            makeknown(POT_RESTORE_ABILITY);
-        useup(potion);
-        return ECMD_TIME;
-    }
+    /* Restore ability has many uses.
+     * Like with quaffing it, it generally doesn't have any negative effects
+     * if cursed; it just won't do anything.
+     * If it could do multiple things to an item (rusty -1 weapon for instance),
+     * it will only fix the first case. */
+    if (potion->otyp == POT_RESTORE_ABILITY && !potion->cursed) {
+        boolean did_something = FALSE;
+        boolean learn_it = FALSE;
 
-    /* resetting a cancelled thiefstone */
-    if (potion->otyp == POT_RESTORE_ABILITY
-        && obj->otyp == THIEFSTONE && !thiefstone_ledger_valid(obj)
-        && !In_endgame(&u.uz)) { /* thiefstones can't key to endgame levels */
-        if (potion->cursed) {
-            pline("%s.", Tobjnam(obj, "twitch"));
+        /* removing erosion from items */
+        if (erosion_matters(obj) && (obj->oeroded || obj->oeroded2)) {
+            obj->oeroded = obj->oeroded2 = 0;
+            pline("%s as good as new!", Yobjnam2(obj, Blind ? "feel" : "look"));
+            learn_it = TRUE;
+            did_something = TRUE;
         }
-        else {
+        /* undoing a negative enchantment */
+        else if (spe_means_plus(obj) && obj->spe < 0) {
+            obj->spe = (potion->blessed ? 0 : obj->spe + 1);
+            pline("%s %smore effective.",
+                  Yobjnam2(obj, Blind ? "feel" : "look"),
+                  obj->spe < 0 ? "a little " : "");
+            if (obj->known)
+                learn_it = TRUE;
+            did_something = TRUE;
+        }
+        /* refreshing a faded spellbook */
+        else if (obj->oclass == SPBOOK_CLASS
+                 && obj->otyp != SPE_BOOK_OF_THE_DEAD
+                 && obj->otyp != SPE_BLANK_PAPER && obj->otyp != SPE_NOVEL
+                 && obj->spestudied > 0) {
+            obj->spestudied = 0;
+            if (Blind)
+                pline("The pages of %s feel crisper.", yname(obj));
+            else
+                pline("The ink in %s becomes sharp and fresh again!",
+                      yname(obj));
+            learn_it = TRUE;
+            did_something = TRUE;
+        }
+        /* resetting a cancelled thiefstone */
+        if (obj->otyp == THIEFSTONE && !thiefstone_ledger_valid(obj)
+            && !In_endgame(&u.uz)) { /* thiefstones can't key to endgame levels */
             obj->keyed_ledger = ledger_no(&u.uz);
             set_keyed_loc(obj, u.ux, u.uy);
             pline("%s for an instant.", Tobjnam(obj, "quiver"));
+            did_something = TRUE;
         }
-        poof(potion);
-        return ECMD_TIME;
+        if (learn_it && potion->dknown)
+            makeknown(POT_RESTORE_ABILITY);
+        if (did_something) {
+            poof(potion); /* includes trycall if dknown */
+            return ECMD_TIME;
+        }
     }
  more_dips:
 
@@ -3113,10 +3209,10 @@ potion_dip(struct obj *obj, struct obj *potion)
         else
             singlepotion->cursed = obj->cursed; /* odiluted left as-is */
         singlepotion->bknown = FALSE;
-        if (Blind) {
-            singlepotion->dknown = FALSE;
-        } else {
-            singlepotion->dknown = !Hallucination;
+        singlepotion->dknown = FALSE; /* provisionally */
+        if (!Blind) {
+            if (!Hallucination)
+                observe_object(singlepotion);
             *newbuf = '\0';
             if (mixture == POT_WATER && singlepotion->dknown)
                 Sprintf(newbuf, "clears");
@@ -3136,7 +3232,7 @@ potion_dip(struct obj *obj, struct obj *potion)
                 struct obj fakeobj;
 
                 fakeobj = cg.zeroobj;
-                fakeobj.dknown = 1;
+                fakeobj.dknown = 1; /* no need to observe_object */
                 fakeobj.otyp = old_otyp;
                 fakeobj.oclass = POTION_CLASS;
                 docall(&fakeobj);
@@ -3335,7 +3431,7 @@ djinni_from_bottle(struct obj *obj)
             break;
         }
         FALLTHROUGH;
-        /* else FALLTHRU */
+        /* FALLTHRU */
     case 2:
         verbalize("You freed me!");
         mtmp->mpeaceful = TRUE;

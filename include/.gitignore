@@ -15,3 +15,5 @@ tile.h
 win32api.h
 # really obsolete...
 .cvsignore
+sfproto.h
+

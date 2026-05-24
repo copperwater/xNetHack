@@ -1,4 +1,4 @@
-/* NetHack 3.7	mail.c	$NHDT-Date: 1596498174 2020/08/03 23:42:54 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.47 $ */
+/* NetHack 3.7	mail.c	$NHDT-Date: 1762750699 2025/11/09 20:58:19 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.77 $ */
 /* Copyright (c) Stichting Mathematisch Centrum, Amsterdam, 1985. */
 /*-Copyright (c) Pasi Kallinen, 2018. */
 /* NetHack may be freely redistributed.  See license for details. */
@@ -333,18 +333,21 @@ md_rush(struct monst *md,
         if (fx == tx && fy == ty)
             break;
 
-        SetVoice(md, 0, 80, 0);
-        if ((mon = m_at(fx, fy)) != 0) /* save monster at this position */
-            verbalize1(md_exclamations());
-        else if (u_at(fx, fy))
-            verbalize("Excuse me.");
+        mon = m_at(fx, fy); /* save monster at this position */
+        if (!Deaf) {
+            SetVoice(md, 0, 80, 0);
+            if (mon)
+                verbalize1(md_exclamations());
+            else if (u_at(fx, fy))
+                verbalize("Excuse me.");
+        }
 
         if (mon)
             remove_monster(fx, fy);
         place_monster(md, fx, fy); /* put md down */
         newsym(fx, fy);            /* see it */
         flush_screen(0);           /* make sure md shows up */
-        nh_delay_output();            /* wait a little bit */
+        nh_delay_output();         /* wait a little bit */
 
         /* Remove md from the dungeon.  Restore original mon, if necessary. */
         remove_monster(fx, fy);
@@ -365,8 +368,12 @@ md_rush(struct monst *md,
         remove_monster(fx, fy);
         place_monster(md, fx, fy); /* display md with text below */
         newsym(fx, fy);
-        SetVoice(md, 0, 80, 0);
-        verbalize("This place's too crowded.  I'm outta here.");
+        if (!Deaf) {
+            SetVoice(md, 0, 80, 0);
+            verbalize("This place's too crowded.  I'm outta here.");
+        } else {
+            pline("%s.", Never_mind);
+        }
         remove_monster(fx, fy);
 
         if ((mon->mx != fx) || (mon->my != fy)) /* put mon back */
@@ -406,8 +413,12 @@ newmail(struct mail_info *info)
         goto go_back;
 
     message_seen = TRUE;
-    SetVoice(md, 0, 80, 0);
-    verbalize("%s, %s!  %s.", Hello(md), svp.plname, info->display_txt);
+    if (!Deaf) {
+        SetVoice(md, 0, 80, 0);
+        verbalize("%s, %s!  %s.", Hello(md), svp.plname, info->display_txt);
+    } else {
+        pline("Message:  %s.", info->display_txt);
+    }
 
     if (info->message_typ) {
         struct obj *obj = mksobj(SCR_MAIL, FALSE, FALSE);
@@ -418,8 +429,13 @@ newmail(struct mail_info *info)
             new_omailcmd(obj, info->response_cmd);
 
         if (!m_next2u(md)) {
-            SetVoice(md, 0, 80, 0);
-            verbalize("Catch!");
+            if (!Deaf) {
+                SetVoice(md, 0, 80, 0);
+                verbalize("Catch!");
+            } else {
+                /* don't bother with nonverbal alternative ... */
+                ;
+            }
         }
         display_nhwindow(WIN_MESSAGE, FALSE);
         obj = hold_another_object(obj, "Oops!", (const char *) 0,

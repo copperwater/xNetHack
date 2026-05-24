@@ -261,7 +261,7 @@ glyph_find_core(
                     break;
                 case find_pm:
                     if (glyph_is_monster(glyph)
-                        && monsym(&mons[glyph_to_mon(glyph)])
+                        && mons[glyph_to_mon(glyph)].mlet
                            == findwhat->val)
                         do_callback = TRUE;
                     break;
@@ -578,14 +578,21 @@ apply_customizations(
             }
         }
     }
-    if (at_least_one) {
-        shuffle_customizations();
-    }
+    iflags.pending_customizations = at_least_one;
 }
 
 /* Shuffle the customizations to match shuffled object descriptions,
  * so a red potion isn't displayed with a blue customization, and so on.
  */
+
+void
+maybe_shuffle_customizations(void)
+{
+    if (iflags.pending_customizations) {
+        shuffle_customizations();
+        iflags.pending_customizations = 0;
+    }
+}
 
 #if 0
 staticfn void
@@ -793,6 +800,7 @@ purge_custom_entries(enum graphics_sets which_set)
         gdc->count = 0;
     }
 }
+
 void
 dump_all_glyphids(FILE *fp)
 {
@@ -818,7 +826,7 @@ wizcustom_glyphids(winid win)
             wizcustom_callback(win, glyphnum, id);
         }
     }
- }
+}
 
 staticfn int
 parse_id(
@@ -829,7 +837,7 @@ parse_id(
     int i = 0, j, mnum, glyph,
         pm_offset = 0, oc_offset = 0, cmap_offset = 0,
         pm_count = 0, oc_count = 0, cmap_count = 0;
-    boolean skip_base = FALSE, skip_this_one, dump_ids = FALSE,
+    boolean skip_base = FALSE, skip_this_one = FALSE, dump_ids = FALSE,
             filling_cache = FALSE, is_S = FALSE, is_G = FALSE;
     char buf[4][QBUFSZ];
 

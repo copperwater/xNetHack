@@ -1271,6 +1271,13 @@ spell_would_be_useless(struct monst *mtmp, unsigned int adtyp, int spellnum)
         if (!mcouldseeu && (spellnum == MGC_DARK_SPEECH
                             || spellnum == MGC_SHEER_COLD))
             return TRUE;
+        /* anything on an archfiend's special spell list can get picked
+         * randomly, so exclude hostile spells if they aren't hostile */
+        if (is_archfiend(mtmp->data) && mtmp->mpeaceful
+            && (spellnum == MGC_ENTOMB || spellnum == MGC_DARK_SPEECH
+                || spellnum == MGC_SHEER_COLD || spellnum == MGC_BLIGHT
+                || spellnum == MGC_DISENCHANT))
+            return TRUE;
     } else if (adtyp == AD_CLRC) {
         /* summon insects/sticks to snakes won't be cast by peaceful monsters
          */

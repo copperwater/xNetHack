@@ -662,12 +662,16 @@ really_kick_object(coordxy x, coordxy y)
     /* a box gets a chance of breaking open here */
     if (Is_box(gk.kickedobj)) {
         boolean otrp = gk.kickedobj->otrapped;
+        boolean metal = is_metallic(gk.kickedobj);
 
         if (range < 2)
-            pline("THUD!");
+            pline(metal ? "CLANG!" : "THUD!");
         container_impact_dmg(gk.kickedobj, x, y);
         if (gk.kickedobj->olocked) {
-            if (!rn2(5) || (martial() && !rn2(2))) {
+            if (metal) {
+                pline("The lock doesn't budge.");
+            }
+            else if (!rn2(5) || (martial() && !rn2(2))) {
                 You("break open the lock!");
                 breakchestlock(gk.kickedobj, FALSE);
                 if (otrp)
@@ -1887,22 +1891,27 @@ obj_delivery(boolean near_hero)
         if (nx > 0) {
             if (where == MIGR_THIEFSTONE && Fits_in_container(otmp)) {
                 struct obj* cobj;
-                boolean found_container = FALSE;
-                /* put into a container on this spot, if possible */
+                boolean found_box = FALSE;
+                /* put into a box on this spot, if possible;
+                 * only allow putting into boxes rather than bags because if
+                 * bags are allowed, it creates weirdness like safely nesting a
+                 * bag of holding into another, or putting items into a bag of
+                 * tricks (Is_container is true for them!) from which they
+                 * can't be removed */
                 cobj = svl.level.objects[nx][ny];
                 for (; cobj; cobj = cobj->nexthere) {
-                    if (Is_container(cobj)) {
+                    if (Is_box(cobj)) {
                         if (obj_is_burning(otmp))
                             end_burn(otmp, TRUE);
                         add_to_container(cobj, otmp);
                         cobj->owt = weight(cobj);
                         cobj->cknown = 0; /* contents have changed out of
                                            * sight of the hero */
-                        found_container = TRUE;
+                        found_box = TRUE;
                         break;
                     }
                 }
-                if (found_container)
+                if (found_box)
                     continue;
                 /* if no containers here, continue normally */
             }

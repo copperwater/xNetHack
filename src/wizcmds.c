@@ -37,7 +37,7 @@ wiz_wish(void) /* Unlimited wishes for debug mode by Paul Polderman */
         flags.verbose = FALSE;
         makewish();
         flags.verbose = save_verbose;
-        (void) encumber_msg();
+        encumber_msg();
     } else
         pline(unavailcmd, ecname_from_fn(wiz_wish));
     return ECMD_OK;

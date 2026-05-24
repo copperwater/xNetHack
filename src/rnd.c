@@ -338,7 +338,7 @@ shuffle_int_array(int *indices, int count)
  * generated at game start).
  */
 unsigned int
-coord_hash(int x, int y, int z)
+coord_hash(coordxy x, coordxy y, int z)
 {
     const int magic_number = 0x45d9f3b;
     /* use Cantor pairing to reduce (x,y) to a unique number */

@@ -59,11 +59,15 @@
 static boolean date_via_env = FALSE;
 
 extern unsigned long md_ignored_features(void);
+extern const char *datamodel(int);
 char *version_id_string(char *, size_t, const char *) NONNULL NONNULLPTRS;
 char *bannerc_string(char *, size_t, const char *) NONNULL NONNULLPTRS;
 int case_insensitive_comp(const char *, const char *) NONNULLPTRS;
 
-staticfn void make_version(void);
+#ifndef SFCTOOL
+staticfn
+#endif /* SFCTOOL */
+void make_version(void);
 
 #ifndef HAS_NO_MKSTEMP
 #ifdef _MSC_VER
@@ -231,31 +235,19 @@ static struct soundlib_information soundlib_opts[] = {
 };
 #endif  /* !MAKEDEFS_C */
 
-/*
- * Use this to explicitly mask out features during version checks.
- *
- * ZEROCOMP, RLECOMP, and ZLIB_COMP describe compression features
- * that the port/platform which wrote the savefile was capable of
- * dealing with. Don't reject a savefile just because the port
- * reading the savefile doesn't match on all/some of them.
- * The actual compression features used to produce the savefile are
- * recorded in the savefile_info structure immediately following the
- * version_info, and that is what needs to be checked against the
- * feature set of the port that is reading the savefile back in.
- * That check is done in src/restore.c now.
- *
- */
 unsigned long
 md_ignored_features(void)
 {
     return (0UL
             | (1UL << 19) /* SCORE_ON_BOTL */
-            | (1UL << 27) /* ZEROCOMP */
-            | (1UL << 28) /* RLECOMP */
+            | SFCTOOL_BIT /* stored by SFCTOOL, not NetHack itself */
             );
 }
 
-staticfn void
+#ifndef SFCTOOL
+staticfn
+#endif
+void
 make_version(void)
 {
     int i;
@@ -289,15 +281,6 @@ make_version(void)
 #ifdef SCORE_ON_BOTL
                                            | (1L << 19)
 #endif
-/* data format (27..31)
- * External compression methods such as COMPRESS and ZLIB_COMP
- * do not affect the contents and are thus excluded from here */
-#ifdef ZEROCOMP
-                                           | (1L << 27)
-#endif
-#ifdef RLECOMP
-                                           | (1L << 28)
-#endif
                                                );
     /*
      * Value used for object & monster sanity check.
@@ -310,15 +293,6 @@ make_version(void)
     version.entity_count = (version.entity_count << 12) | (unsigned long) i;
     i = NUMMONS;
     version.entity_count = (version.entity_count << 12) | (unsigned long) i;
-    /*
-     * Value used for compiler (word size/field alignment/padding) check.
-     */
-    version.struct_sizes1 =
-        (((unsigned long) sizeof(struct context_info) << 24)
-         | ((unsigned long) sizeof(struct obj) << 17)
-         | ((unsigned long) sizeof(struct monst) << 10)
-         | ((unsigned long) sizeof(struct you)));
-    version.struct_sizes2 = (((unsigned long) sizeof(struct flag) << 10));
 /* free bits in here */
     return;
 }
@@ -614,12 +588,6 @@ static const char *const build_opts[] = {
 #ifdef VISION_TABLES
     "vision tables",
 #endif
-#ifdef ZEROCOMP
-    "zero-compressed save files",
-#endif
-#ifdef RLECOMP
-    "run-length compression of map in save files",
-#endif
 #ifdef SYSCF
     "system configuration at run-time",
 #endif
@@ -731,6 +699,8 @@ build_options(void)
     STOREOPTTEXT(optbuf);
     optbuf[0] = '\0';
     length = COLNO + 1; /* force 1st item onto new line */
+    Strcat(strcpy(buf, datamodel(0)), " data model,");
+    opt_out_words(buf, &length);
     for (i = 0; i < SIZE(build_opts); i++) {
 #if !defined(MAKEDEFS_C) && defined(FOR_RUNTIME)
 #ifdef WIN32

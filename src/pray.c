@@ -1,4 +1,4 @@
-/* NetHack 3.7	pray.c	$NHDT-Date: 1727250729 2024/09/25 07:52:09 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.220 $ */
+/* NetHack 3.7	pray.c	$NHDT-Date: 1762680996 2025/11/09 01:36:36 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.244 $ */
 /* Copyright (c) Benson I. Margulies, Mike Stephenson, Steve Linhart, 1989. */
 /* NetHack may be freely redistributed.  See license for details. */
 
@@ -81,27 +81,28 @@ static const char *hgodvoices[] = {
  * order to have the values be meaningful.
  */
 
-#define TROUBLE_STONED 15
-#define TROUBLE_SLIMED 14
-#define TROUBLE_STRANGLED 13
-#define TROUBLE_LAVA 12
-#define TROUBLE_SICK 11
-#define TROUBLE_WITHERING 10
-#define TROUBLE_STARVING 9
-#define TROUBLE_REGION 8 /* stinking cloud */
-#define TROUBLE_HIT 7
-#define TROUBLE_LYCANTHROPE 6
-#define TROUBLE_COLLAPSING 5
-#define TROUBLE_STUCK_IN_WALL 4
-#define TROUBLE_CURSED_LEVITATION 3
-#define TROUBLE_UNUSEABLE_HANDS 2
+#define TROUBLE_STONED 16
+#define TROUBLE_SLIMED 15
+#define TROUBLE_STRANGLED 14
+#define TROUBLE_LAVA 13
+#define TROUBLE_SICK 12
+#define TROUBLE_WITHERING 11
+#define TROUBLE_STARVING 10
+#define TROUBLE_REGION 9 /* stinking cloud */
+#define TROUBLE_HIT 8
+#define TROUBLE_LYCANTHROPE 7
+#define TROUBLE_COLLAPSING 6
+#define TROUBLE_STUCK_IN_WALL 5
+#define TROUBLE_CURSED_LEVITATION 4
+#define TROUBLE_UNUSEABLE_HANDS 3
+#define TROUBLE_INTRINSICALLY_BLIND 2 /* permanently blind */
 #define TROUBLE_CURSED_BLINDFOLD 1
 
 #define TROUBLE_PUNISHED (-1)
 #define TROUBLE_FUMBLING (-2)
 #define TROUBLE_CURSED_ITEMS (-3)
 #define TROUBLE_SADDLE (-4)
-#define TROUBLE_BLIND (-5)
+#define TROUBLE_BLIND (-5) /* temporarily blind */
 #define TROUBLE_POISONED (-6)
 #define TROUBLE_WOUNDED_LEGS (-7)
 #define TROUBLE_HUNGRY (-8)
@@ -304,7 +305,7 @@ in_trouble(void)
         return TROUBLE_STARVING;
     if (region_danger())
         return TROUBLE_REGION;
-    if (critically_low_hp(FALSE))
+    if ((!Upolyd || Unchanging) && critically_low_hp(FALSE))
         return TROUBLE_HIT;
     if (u.uhs >= WEAK && nofood)
         return TROUBLE_STARVING;
@@ -328,6 +329,8 @@ in_trouble(void)
             && (!Unchanging || ((otmp = unchanger()) != 0 && otmp->cursed)))
             return TROUBLE_UNUSEABLE_HANDS;
     }
+    if (!PermaBlind && (HBlinded & FROMOUTSIDE))
+        return TROUBLE_INTRINSICALLY_BLIND;
     if (Blindfolded && ublindf->cursed)
         return TROUBLE_CURSED_BLINDFOLD;
 
@@ -637,8 +640,9 @@ fix_worst_trouble(int trouble)
                 disp.botl = TRUE;
             }
         }
-        (void) encumber_msg();
+        encumber_msg();
         break;
+    case TROUBLE_INTRINSICALLY_BLIND:
     case TROUBLE_BLIND: { /* handles deafness as well as blindness */
         char msgbuf[BUFSZ];
         const char *eyes = body_part(EYE);
@@ -967,7 +971,7 @@ gcrownu(void)
                                          * even if hero doesn't know book */
         bless(obj);
         obj->bknown = 1; /* ok to skip set_bknown() */
-        obj->dknown = 1;
+        observe_object(obj);
         at_your_feet(upstart(ansimpleoname(obj)));
         dropy(obj);
         u.ugifts++;
@@ -1015,7 +1019,7 @@ gcrownu(void)
             ; /* already got bonus above */
         } else if (obj && in_hand) {
             Your("%s goes snicker-snack!", xname(obj));
-            obj->dknown = 1;
+            observe_object(obj);
         } else if (!already_exists) {
             obj = mksobj(LONG_SWORD, FALSE, FALSE);
             obj = oname(obj, artiname(ART_VORPAL_BLADE),
@@ -1041,7 +1045,7 @@ gcrownu(void)
             ; /* already got bonus above */
         } else if (obj && in_hand) {
             Your("%s hums ominously!", swordbuf);
-            obj->dknown = 1;
+            observe_object(obj);
         } else if (!already_exists) {
             obj = mksobj(RUNESWORD, FALSE, FALSE);
             obj = oname(obj, artiname(ART_STORMBRINGER),
@@ -1147,7 +1151,8 @@ give_spell(void)
         }
         obfree(otmp, (struct obj *) 0); /* discard the book */
     } else {
-        otmp->dknown = 1; /* not bknown */
+        observe_object(otmp);
+        /* don't set bknown */
         /* discovering blank paper will make it less likely to
            be given again; small chance to arbitrarily discover
            some other book type without having to read it first */
@@ -1358,7 +1363,7 @@ pleased(aligntyp g_align)
             if (ABASE(A_STR) < AMAX(A_STR)) {
                 ABASE(A_STR) = AMAX(A_STR);
                 disp.botl = TRUE; /* before potential message */
-                (void) encumber_msg();
+                encumber_msg();
             }
             if (u.uhunger < 900)
                 init_uhunger();
@@ -1920,7 +1925,7 @@ bestow_artifact(uchar max_giftvalue)
                 unrestrict_weapon_skill(weapon_type(otmp));
             }
             if (!Hallucination && !Blind) {
-                otmp->dknown = 1;
+                observe_object(otmp);
                 makeknown(otmp->otyp);
                 discover_artifact(otmp->oartifact);
             }
@@ -2273,14 +2278,19 @@ pray_revive(void)
     struct obj *otmp;
 
     for (otmp = svl.level.objects[u.ux][u.uy]; otmp; otmp = otmp->nexthere)
-        if (otmp->otyp == CORPSE && has_omonst(otmp)
+        if ((otmp->otyp == CORPSE || otmp->otyp == STATUE)
+            && has_omonst(otmp)
             && OMONST(otmp)->mtame && !OMONST(otmp)->isminion)
             break;
 
     if (!otmp)
         return FALSE;
 
-    return (revive(otmp, TRUE) != NULL);
+    if (otmp->otyp == CORPSE)
+        return (revive(otmp, TRUE) != NULL);
+    else {
+        return (animate_statue(otmp, u.ux, u.uy, ANIMATE_SPELL, NULL) != NULL);
+    }
 }
 
 /* #pray command */
@@ -2297,12 +2307,12 @@ dopray(void)
     if (ParanoidPray) {
         ok = paranoid_query(ParanoidConfirm,
                             "Are you sure you want to pray?");
-
+#if 0
         /* clear command recall buffer; otherwise ^A to repeat p(ray) would
            do so without confirmation (if 'ok') or do nothing (if '!ok') */
         cmdq_clear(CQ_REPEAT);
         cmdq_add_ec(CQ_REPEAT, dopray);
-
+#endif
         if (!ok) /* declined the "are you sure?" confirmation */
             return ECMD_OK;
     }

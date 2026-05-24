@@ -41,6 +41,7 @@
  * and placed there by 'makedefs'.
  */
 
+#ifndef SFCTOOL
 staticfn void unpadline(char *);
 staticfn void init_rumors(dlb *);
 staticfn char *get_rnd_line(dlb *, char *, unsigned, int (*)(int),
@@ -619,10 +620,10 @@ init_oracles(dlb *fp)
     (void) dlb_fgets(line, sizeof line, fp);
     if (sscanf(line, "%5d\n", &cnt) == 1 && cnt > 0) {
         svo.oracle_cnt = (unsigned) cnt;
-        go.oracle_loc = (unsigned long *) alloc((unsigned) cnt * sizeof(long));
+        svo.oracle_loc = (unsigned long *) alloc((unsigned) cnt * sizeof(long));
         for (i = 0; i < cnt; i++) {
             (void) dlb_fgets(line, sizeof line, fp);
-            (void) sscanf(line, "%5lx\n", &go.oracle_loc[i]);
+            (void) sscanf(line, "%5lx\n", &svo.oracle_loc[i]);
         }
     }
     return;
@@ -631,41 +632,45 @@ init_oracles(dlb *fp)
 void
 save_oracles(NHFILE *nhfp)
 {
-    if (perform_bwrite(nhfp)) {
-            if (nhfp->structlevel)
-                bwrite(nhfp->fd, (genericptr_t) &svo.oracle_cnt,
-                       sizeof svo.oracle_cnt);
-            if (svo.oracle_cnt) {
-                if (nhfp->structlevel) {
-                    bwrite(nhfp->fd, (genericptr_t) go.oracle_loc,
-                           svo.oracle_cnt * sizeof (long));
-                }
+    int i;
+
+    if (update_file(nhfp)) {
+        Sfo_unsigned(nhfp, &svo.oracle_cnt, "oracle-oracle_cnt");
+        if (svo.oracle_cnt) {
+            for (i = 0; (unsigned) i < svo.oracle_cnt; ++i) {
+                Sfo_ulong(nhfp, &svo.oracle_loc[i], "oracle-oracle_loc");
             }
+        }
     }
     if (release_data(nhfp)) {
         if (svo.oracle_cnt) {
-            free((genericptr_t) go.oracle_loc);
-            go.oracle_loc = 0, svo.oracle_cnt = 0, go.oracle_flg = 0;
+            svo.oracle_cnt = 0, go.oracle_flg = 0;
+        }
+        if (svo.oracle_loc) {
+            free((genericptr_t) svo.oracle_loc);
+            svo.oracle_loc = 0;
         }
     }
 }
+#endif /* !SFCTOOL */
 
 void
 restore_oracles(NHFILE *nhfp)
 {
-    if (nhfp->structlevel)
-        mread(nhfp->fd, (genericptr_t) &svo.oracle_cnt, sizeof svo.oracle_cnt);
+    int i;
 
+    Sfi_unsigned(nhfp, &svo.oracle_cnt, "oracle-oracle_cnt");
     if (svo.oracle_cnt) {
-        go.oracle_loc = (unsigned long *) alloc(svo.oracle_cnt * sizeof(long));
-        if (nhfp->structlevel) {
-            mread(nhfp->fd, (genericptr_t) go.oracle_loc,
-                  svo.oracle_cnt * sizeof (long));
+        svo.oracle_loc =
+            (unsigned long *) alloc(svo.oracle_cnt * sizeof (unsigned long));
+        for (i = 0; (unsigned) i < svo.oracle_cnt; ++i) {
+            Sfi_ulong(nhfp, &svo.oracle_loc[i], "oracle-oracle_loc");
         }
         go.oracle_flg = 1; /* no need to call init_oracles() */
     }
 }
 
+#ifndef SFCTOOL
 void
 outoracle(boolean special, boolean delphi)
 {
@@ -693,9 +698,9 @@ outoracle(boolean special, boolean delphi)
         if (svo.oracle_cnt <= 1 && !special)
             goto close_oracles; /*(shouldn't happen)*/
         oracle_idx = special ? 0 : rnd((int) svo.oracle_cnt - 1);
-        (void) dlb_fseek(oracles, (long) go.oracle_loc[oracle_idx], SEEK_SET);
+        (void) dlb_fseek(oracles, (long) svo.oracle_loc[oracle_idx], SEEK_SET);
         if (!special) /* move offset of very last one into this slot */
-            go.oracle_loc[oracle_idx] = go.oracle_loc[--svo.oracle_cnt];
+            svo.oracle_loc[oracle_idx] = svo.oracle_loc[--svo.oracle_cnt];
 
         tmpwin = create_nhwindow(NHW_TEXT);
         if (delphi)
@@ -981,5 +986,6 @@ free_CapMons(void)
     }
     CapMonSiz = 0;
 }
+#endif /* !SFCTOOL */
 
 /*rumors.c*/

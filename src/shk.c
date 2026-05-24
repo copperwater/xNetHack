@@ -1065,6 +1065,16 @@ tended_shop(struct mkroom *sroom)
     return !mtmp ? FALSE : (boolean) inhishop(mtmp);
 }
 
+void
+noisy_shop(struct mkroom *sroom)
+{
+    struct monst *mtmp = sroom->resident;
+
+    if (mtmp && inhishop(mtmp)) {
+        wake_nearto(mtmp->mx, mtmp->my, 11 * 11);
+    }
+}
+
 staticfn struct bill_x *
 onbill(struct obj *obj, struct monst *shkp, boolean silent)
 {
@@ -3140,6 +3150,7 @@ set_cost(struct obj *obj, struct monst *shkp)
                 || is_worthless_glass(obj)) {
                 tmp = ((obj->otyp - FIRST_REAL_GEM) % (6 - shkp->m_id % 3));
                 tmp = (tmp + 3) * obj->quan;
+                multiplier = 1L;
                 divisor = 1L;
             }
         } else if (tmp > 1L && !(shkp->m_id % 4))
@@ -3391,7 +3402,7 @@ shk_names_obj(
     char *obj_name, fmtbuf[BUFSZ];
     boolean was_unknown = !obj->dknown;
 
-    obj->dknown = TRUE;
+    observe_object(obj);
     /* Use real name for ordinary weapons/armor, and spell-less
      * scrolls/books (that is, blank and mail), but only if the
      * object is within the shk's area of interest/expertise.

@@ -67,14 +67,14 @@ static char origdir[255] = "";
  *
  * dlb COMMANDoptions arg... files...
  * commands:
- *  dlb x	extract all files
- *  dlb c	build the archive
- *  dlb t	list the archive
+ *  dlb x       extract all files
+ *  dlb c       build the archive
+ *  dlb t       list the archive
  * options:
- *  v		verbose
- *  f file	specify archive file (default DLBFILE)
- *  I file	specify file for list of files (default LIBLISTFILE)
- *  C dir	chdir to dir (used ONCE, not like tar's -C)
+ *  v           verbose
+ *  f file      specify archive file (default DLBFILE)
+ *  I file      specify file for list of files (default LIBLISTFILE)
+ *  C dir       chdir to dir (used ONCE, not like tar's -C)
  */
 
 ATTRNORETURN static void

@@ -1,4 +1,4 @@
-! $NHDT-Date: 1542244983 2018/11/15 01:23:03 $  $NHDT-Branch: NetHack-3.6.2-beta01 $:$NHDT-Revision: 1.20 $
+! $NHDT-Date: 1750598195 2025/06/22 05:16:35 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.27 $
 ! Copyright (c) 2017 by Pasi Kallinen
 ! NetHack may be freely redistributed.  See license for details.
 
@@ -56,7 +56,7 @@ NetHack.tile_file: x11tiles
 !NetHack.tombtext_y: 78
 !NetHack.tombtext_dx: 0
 !NetHack.tombtext_dy: 13
-! The color to use for the text on the hero's tombstone
+! The color to use for the text on the tombstone of the hero (end of game).
 NetHack*rip*foreground: black
 
 ! The icon to use; supported values are nh72, nh56, and nh32; nh72 is the
@@ -80,7 +80,7 @@ NetHack*rip*foreground: black
 !NetHack*autofocus: True
 
 ! If 'slow' is True, setting 'highlight_prompt' to True will cause the line
-! between map and message display that's used for prompting to be "hidden"
+! between map and message display that is used for prompting to be "hidden"
 ! as part of the map when no prompt is active, then invert foreground and
 ! background to stand out when a prompt is issued and waiting for a response.
 ! If 'slow' is False, 'highlight_prompt' will have no effect.
@@ -116,8 +116,8 @@ NetHack*message*translations:	<KeyPress>: input()
 !				!<Key>Down: input(j)
 
 ! Specify the number of rows and columns of the map window.  The default
-! is the standard 80x21 window.  Note: this _does_not_ change nethack's
-! level size, only what you see of it.
+! is the standard 80x21 window.  Note: this _does_not_ change the size of
+! map levels, only what you see of them.
 !NetHack*map*rows:	21
 !NetHack*map*columns:	80
 

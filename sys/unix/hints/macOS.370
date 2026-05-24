@@ -219,17 +219,30 @@ endif
 #-INCLUDE multisnd1-pre.370
 #
 
+# although not currently doing anything for macOS, this is
+# kept in for consistency with layout of linux.370
+ifeq "$(CCISCLANG)" "1"
+# clang-specific starts
+# clang-specific ends
+else
+# gcc-specific starts
+# LIBCFLAGS+=
+# gcc-specific ends
+endif
+
 # WINCFLAGS set from multiw-2.370
 # SNDCFLAGS set from multisnd-pre.370
 CFLAGS+= $(PKGCFLAGS) $(WINCFLAGS)
 CFLAGS+= $(SNDCFLAGS)
 CFLAGS+= $(NHCFLAGS)
+CFLAGS+= $(LIBCFLAGS)
 
 # WINCFLAGS set from multiw-2.370
 # SNDCFLAGS set from multisnd-pre.370
 CCXXFLAGS+= $(WINCFLAGS)
 CCXXFLAGS+= $(SNDCFLAGS)
 CCXXFLAGS+= $(NHCFLAGS)
+CCXXFLAGS+= $(LIBCFLAGS)
 
 VARDATND =
 VARDATND0 =
@@ -268,12 +281,12 @@ WINLIB += $(shell PKG_CONFIG_PATH=$(QTDIR)/lib/pkgconfig \
 		pkg-config Qt5Gui Qt5Widgets Qt5Multimedia --libs)
 endif    # WANT_WIN_QT5
 ifdef WANT_WIN_QT6
-QTCXXFLAGS += -std=c++17 -I $(QTDIR)/include -I $(QTDIR)/include/QtCore \
-		-I $(QTDIR)/include/QtMultimedia
+QTCXXFLAGS += $(sort $(shell PKG_CONFIG_PATH=$(QTDIR)/lib/pkgconfig \
+		pkg-config Qt6Gui Qt6Widgets Qt6Multimedia --cflags))
 MOC = moc
 MOCPATH = $(QTDIR)/share/qt/libexec/moc
-WINLIB += -F $(QTDIR)/Frameworks -framework QtCore -framework QtGui \
-		-framework QtWidgets -framework QtMultimedia
+WINLIB += $(shell PKG_CONFIG_PATH=$(QTDIR)/lib/pkgconfig \
+		pkg-config Qt6Gui Qt6Widgets Qt6Multimedia --libs)
 endif    # WANT_WIN_QT6
 VARDATND0 += nhtiles.bmp rip.xpm nhsplash.xpm
 # XXX if /Developer/qt exists and QTDIR not set, use that
@@ -448,6 +461,9 @@ SYSCONFENSURE = (if ! test -f $(INSTDIR)/sysconf ; then \
 #
 #-INCLUDE multisnd2-pre.370
 #
+#
+#-INCLUDE response.370
+#
 
 ifdef MAKEFILE_TOP
 .PHONY: bundle
@@ -532,13 +548,14 @@ endif
 endif
 
 ifdef WANT_LIBNH
-$(TARGETPFX)libnh.a: $(HOBJ) $(LIBNHSYSOBJ) ../lib/lua/liblua.a
-	$(AR) rcs $@ $(HOBJ) $(LIBNHSYSOBJ) ../lib/lua/liblua.a
+$(TARGETPFX)libnh.a: $(HOBJ) $(LIBNHSYSOBJ) ../lib/lua/liblua-$(LUA_VERSION).a
+	$(AR) rcs $@ $(HOBJ) $(LIBNHSYSOBJ) ../lib/lua/liblua-$(LUA_VERSION).a
 	@echo "$@ built."
 $(TARGETPFX)libnhmain.o : ../sys/libnh/libnhmain.c $(HACK_H)
 	$(CC) $(CFLAGS) -c -o$@ $<
-$(TARGETPFX)winshim.o : ../win/shim/winshim.c $(HACK_H)
-	$(CC) $(CFLAGS) -c -o$@ $<
+# dependency tool added this to Makefile.src
+#$(TARGETPFX)winshim.o : ../win/shim/winshim.c $(HACK_H)
+#	$(CC) $(CFLAGS) -c -o$@ $<
 endif  # WANT_LIBNH
 
 ifdef MAKEFILE_DOC

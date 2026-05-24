@@ -1,4 +1,4 @@
-/* NetHack 3.7	tradstdc.h	$NHDT-Date: 1685522034 2023/05/31 08:33:54 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.54 $ */
+/* NetHack 3.7	tradstdc.h	$NHDT-Date: 1744938651 2025/04/17 17:10:51 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.67 $ */
 /* Copyright (c) Stichting Mathematisch Centrum, Amsterdam, 1985. */
 /*-Copyright (c) Robert Patrick Rankin, 2006. */
 /* NetHack may be freely redistributed.  See license for details. */
@@ -178,14 +178,10 @@ typedef const char *vA;
 typedef genericptr genericptr_t; /* (void *) or (char *) */
 #endif
 
-#if defined(MICRO) || defined(WIN32)
+#ifndef NO_PTR_FMT
 /* We actually want to know which systems have an ANSI run-time library
  * to know which support the %p format for printing pointers.
- * Due to the presence of things like gcc, NHSTDC is not a good test.
- * So we assume microcomputers have all converted to ANSI and bigger
- * computers which may have older libraries give reasonable results with
- * casting pointers to unsigned long int (fmt_ptr() in alloc.c).
- */
+ * Since we require C99 or later, assume the library supports it. */
 #define HAS_PTR_FMT
 #endif
 
@@ -393,6 +389,14 @@ typedef genericptr genericptr_t; /* (void *) or (char *) */
 #define FALLTHROUGH [[fallthrough]]
 /* #warning [[fallthrough]] from C23 */
 #endif  /* __has_c_attribute(fallthrough) */
+/*
+ * maybe_unused
+ */
+#if __has_c_attribute(maybe_unused)
+#ifndef ATTRUNUSED
+#define ATTRUNUSED [[maybe_unused]]
+#endif
+#endif  /* __has_c_attribute(maybe_unused) */
 #endif  /* NH_C >= 202300L */
 
 /*
@@ -420,7 +424,9 @@ typedef genericptr genericptr_t; /* (void *) or (char *) */
 #define PRINTF_F_PTR(f, v) PRINTF_F(f, v)
 #endif
 #if __GNUC__ >= 3
+#ifndef ATTRUNUSED
 #define UNUSED __attribute__((unused))
+#endif
 #ifndef ATTRNORETURN
 #ifndef NORETURN
 #define NORETURN __attribute__((noreturn))
@@ -500,6 +506,9 @@ typedef genericptr genericptr_t; /* (void *) or (char *) */
 #define NH_PRAGMA_MESSAGE 1
 #endif  /* _MSC_VER */
 
+#if !defined(UNUSED) && defined(ATTRUNUSED)
+#define UNUSED ATTRUNUSED
+#endif
 
 /* Fallback implementations */
 #ifndef PRINTF_F
@@ -510,6 +519,9 @@ typedef genericptr genericptr_t; /* (void *) or (char *) */
 #endif
 #ifndef UNUSED
 #define UNUSED
+#endif
+#ifndef ATTRUNUSED
+#define ATTRUNUSED
 #endif
 #ifndef FALLTHROUGH
 #define FALLTHROUGH

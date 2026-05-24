@@ -1934,7 +1934,7 @@ thiefstone_teleport(struct obj* stone, struct obj* obj, boolean dobill)
             /* put into a container on this spot, if possible */
             for (cobj = svl.level.objects[obj->ox][obj->oy]; cobj;
                  cobj = cobj->nexthere) {
-                if (Is_container(cobj)) {
+                if (Is_box(cobj)) {
                     if (obj_is_burning(obj))
                         end_burn(obj, TRUE);
                     add_to_container(cobj, obj);
@@ -1968,7 +1968,12 @@ boolean
 thiefstone_tele_mon(struct obj* stone, struct monst* mon)
 {
     schar ledger = stone->keyed_ledger;
+    boolean samelevel = (ledger == ledger_no(&u.uz));
     coord cc;
+    d_level newlev;
+    boolean fails_levelport_rules = FALSE;
+    boolean fails_teleport_rules = FALSE;
+
     if (!thiefstone_ledger_valid(stone)) {
         if (ledger != THIEFSTONE_LEDGER_CANCELLED) {
             impossible("thiefstone_tele_mon: bad ledger %d", ledger);
@@ -1988,37 +1993,71 @@ thiefstone_tele_mon(struct obj* stone, struct monst* mon)
 
     cc.x = keyed_x(stone);
     cc.y = keyed_y(stone);
+    newlev.dnum = ledger_to_dnum(ledger);
+    newlev.dlevel = ledger_to_dlev(ledger);
+    /* follow mostly same restrictions as levelportation: no traveling between
+     * levels in Gehennom unless you're in the Valley and traveling out of
+     * Gehennom
+     * unlike levelportation, within Sokoban, or into/out of it, is allowed
+     * because you can't obtain a thiefstone keyed to a spot in Sokoban that
+     * you haven't yet reached (though if random gems ever generate in Sokoban,
+     * this would theoretically become possible...) */
+    fails_levelport_rules = (!samelevel && Inhell
+                             && (!Is_valley(&u.uz) || In_hell(&newlev)));
+    fails_teleport_rules = (samelevel && noteleport_level(mon));
 
     if (mon == &gy.youmonst) {
         /* the thiefstone sees you as valuable treasure and steals you away! */
-        if (ledger == ledger_no(&u.uz) && u.ux == cc.x && u.uy == cc.y) {
+        if (samelevel && u.ux == cc.x && u.uy == cc.y) {
             return FALSE; /* already on keyed location */
         }
-        if (u.uhave.amulet) {
-            return FALSE; /* no skipping the ascension run */
+        if (u.uhave.amulet /* no skipping the ascension run */
+            || (In_endgame(&u.uz) && !samelevel)) { /* level is gone */
+            return FALSE;
         }
+        if (fails_levelport_rules || fails_teleport_rules) {
+            pline(
+          "%s attempts to steal you away, but a mysterious force prevents it!",
+                  Tobjnam(stone, "attempt"));
+            return FALSE;
+        }
+
         pline("%s you away!", Tobjnam(stone, "steal"));
-        if (ledger == ledger_no(&u.uz)) {
+        if (samelevel) {
             teleds(cc.x, cc.y, TELEDS_NO_FLAGS);
         } else {
-            d_level newlev;
-            newlev.dnum = ledger_to_dnum(ledger);
-            newlev.dlevel = ledger_to_dlev(ledger);
+            u.gt_x = cc.x;
+            u.gt_y = cc.y;
             goto_level(&newlev, FALSE, FALSE, FALSE);
+            /* FIXME: bug: you appear on a random spot on the level and then move
+             * here, possibly mapping an area of the level you shouldn't have
+             * actually visited.
+             * There are a few ways to solve this:
+             * 1. Refactor goto_level to take an additional boolean (or a set of
+             *    flags, adding a new thiefstone flag) which would require
+             *    changing all existing calls of it.
+             * 2. Use a new utotype flag, to be read in goto_level before it
+             *    gets cleared, and use u.tx and u.ty to send you to those
+             *    coordinates.
+             * 3. Add u.goto_x and u.goto_y fields to struct you, and make
+             *    goto_level respect those coordinates. (Savebreaking.) */
             teleds(cc.x, cc.y, TELEDS_NO_FLAGS);
         }
     }
     else {
-        if (ledger == ledger_no(&u.uz) && mon->mx == cc.x && mon->my == cc.y) {
+        if (samelevel && mon->mx == cc.x && mon->my == cc.y) {
             return FALSE; /* already on keyed location */
         }
         if (mon_has_amulet(mon)) {
             return FALSE; /* no skipping the ascension run */
         }
+        if (fails_levelport_rules || fails_teleport_rules) {
+            return FALSE; /* don't give any special message */
+        }
         boolean couldspot = canspotmon(mon);
         const char *reappears = "";
         char *saved_name = mon_nam(mon);
-        if (ledger == ledger_no(&u.uz)) {
+        if (samelevel) {
             /* same level, just do horizontal teleport */
             if (!goodpos(cc.x, cc.y, mon, 0)) {
                 enexto(&cc, cc.x, cc.y, mon->data);
@@ -2052,7 +2091,6 @@ pickup_object(
     long count, /* if non-zero, pick up a subset of this amount */
     boolean telekinesis) /* not picking it up directly by hand */
 {
-    unsigned save_how_lost;
     int res;
     boolean forbidden = (obj->where == OBJ_FLOOR && Is_styxmarsh(&u.uz) &&
                          is_pool(obj->ox, obj->oy));
@@ -2065,7 +2103,7 @@ pickup_object(
     /* In case of auto-pickup, where we haven't had a chance
        to look at it yet; affects docall(SCR_SCARE_MONSTER). */
     if (!Blind)
-        obj->dknown = 1;
+        observe_object(obj);
 
     if (obj == uchain) { /* do not pick up attached chain */
         return 0;
@@ -2111,16 +2149,12 @@ pickup_object(
         }
     }
 
-    save_how_lost = obj->how_lost;
     /* obj has either already passed autopick_testobj or we are explicitly
-       picking it off the floor, so override obj->how_lost; otherwise we
-       couldn't pick up a thrown, stolen, or dropped item that was split
-       off from a carried stack even while still carrying the rest of the
-       stack unless we have at least one free slot available */
-    obj->how_lost &= ~LOSTOVERRIDEMASK;  /* affects merge_choice() */
+       picking it off the floor, so addinv() will override obj->how_lost;
+       otherwise we couldn't pick up a thrown, stolen, or dropped item that
+       was split off from a carried stack even while still carrying the
+       rest of the stack unless we have at least one free slot available */
     res = lift_object(obj, (struct obj *) 0, &count, telekinesis);
-    obj->how_lost = save_how_lost; /* even when res > 0,
-                                    * in case we call splitobj() below */
     if (res <= 0)
         return res;
 
@@ -2130,7 +2164,6 @@ pickup_object(
     if (obj->quan != count)
         obj = splitobj(obj, count);
 
-    obj->how_lost &= ~LOSTOVERRIDEMASK;
     obj = pick_obj(obj);
 
     if (uwep && uwep == obj)
@@ -2225,10 +2258,9 @@ pickup_prinv(
 }
 
 /*
- * prints a message if encumbrance changed since the last check and
- * returns the new encumbrance value (from near_capacity()).
+ * prints a message if encumbrance changed since the last check
  */
-int
+void
 encumber_msg(void)
 {
     int newcap = near_capacity();
@@ -2273,7 +2305,6 @@ encumber_msg(void)
     }
 
     go.oldcap = newcap;
-    return newcap;
 }
 
 /* Is there a container at x,y. Optional: return count of containers at x,y */
@@ -2306,7 +2337,7 @@ able_to_loot(
         if (u.usteed && P_SKILL(P_RIDING) < P_BASIC)
             rider_cant_reach(); /* not skilled enough to reach */
         else
-            cant_reach_floor(x, y, FALSE, TRUE);
+            cant_reach_floor(x, y, FALSE, TRUE, FALSE);
         return FALSE;
     } else if ((is_pool(x, y) && (looting || !Underwater)) || is_lava(x, y)) {
         /* at present, can't loot in water even when Underwater;
@@ -4739,7 +4770,7 @@ dump_container(struct obj* box, struct obj *targetbox, int msgflags)
         targetbox->owt = weight(targetbox);
 
     if (srcheld || dstheld) {
-        (void) encumber_msg();
+        encumber_msg();
         update_inventory();
     }
 }

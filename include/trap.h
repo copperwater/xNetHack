@@ -26,7 +26,7 @@ struct trap {
     Bitfield(once, 1); /* has the trap been triggered previously? */
     Bitfield(madeby_u, 1); /* So monsters may take offence when you trap
                             * them.  Recognizing who made the trap isn't
-                            * completely unreasonable, everybody has
+                            * completely unreasonable; everybody has
                             * their own style.  This flag is also needed
                             * when you untrap a monster.  It would be too
                             * easy to make a monster peaceful if you could

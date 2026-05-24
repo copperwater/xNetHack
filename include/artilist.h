@@ -45,8 +45,9 @@ static const char *const artifact_names[] = {
 #define     STUN(a,b)   {0,AD_STUN,a,b}         /* magical attack */
 #define     POIS(a,b)   {0,AD_DRST,a,b}         /* poison */
 
-#define DEFAULT_MAT 0 /* use base object's default material */
 /* clang-format on */
+
+#define DEFAULT_MAT 0 /* use base object's default material */
 
 static NEARDATA struct artifact artilist[] = {
 #endif /* MAKEDEFS_C || MDLIB_C */
@@ -123,9 +124,9 @@ static NEARDATA struct artifact artilist[] = {
      *      (handled as special case in spec_dbon()).
      */
     A("Grimtooth", ORCISH_DAGGER, (SPFX_RESTR | SPFX_WARN | SPFX_DFLAG2),
-      0, M2_ELF, PHYS(2, 6), POIS(0, 0),
-      NO_CARY, 0, A_CHAOTIC, NON_PM, PM_ORC,
-      0, 5, 300L, CLR_RED, DEFAULT_MAT, GRIMTOOTH),
+      0, M2_ELF, PHYS(2, 6), POIS(0,0),
+      NO_CARY, FLING_POISON, A_CHAOTIC, NON_PM, PM_ORC,
+      0, 5, 1200L, CLR_RED, DEFAULT_MAT, GRIMTOOTH),
     /*
      *      Orcrist and Sting have same alignment as elves.
      *
@@ -149,11 +150,11 @@ static NEARDATA struct artifact artilist[] = {
       0, 7, 3500L, NO_COLOR, DEFAULT_MAT, MAGICBANE),
 
     A("Frost Brand", SHORT_SWORD, (SPFX_RESTR | SPFX_ATTK | SPFX_DEFN), 0, 0,
-      COLD(5, 0), COLD(0, 0), NO_CARY, 0, A_NONE, NON_PM, NON_PM,
+      COLD(5, 0), COLD(0, 0), NO_CARY, SNOWSTORM, A_NONE, NON_PM, NON_PM,
       0, 9, 3000L, NO_COLOR, DEFAULT_MAT, FROST_BRAND),
 
     A("Fire Brand", SHORT_SWORD, (SPFX_RESTR | SPFX_ATTK | SPFX_DEFN), 0, 0,
-      FIRE(5, 0), FIRE(0, 0), NO_CARY, 0, A_NONE, NON_PM, NON_PM,
+      FIRE(5, 0), FIRE(0, 0), NO_CARY, FIRESTORM, A_NONE, NON_PM, NON_PM,
       0, 5, 3000L, NO_COLOR, DEFAULT_MAT, FIRE_BRAND),
 
     A("Mirror Brand", SHORT_SWORD, (SPFX_RESTR | SPFX_REFLECT), 0, 0,
@@ -203,7 +204,7 @@ static NEARDATA struct artifact artilist[] = {
      *              or the shriek that shrieked he,
      *      As I gnashed my teeth, and from my sheath
      *              I drew my Snickersnee!
-     *                      --Koko, Lord high executioner of Titipu
+     *                      --Ko-Ko, Lord high executioner of Titipu
      *                        (From Sir W.S. Gilbert's "The Mikado")
      */
     A("Snickersnee", KATANA, SPFX_RESTR, 0, 0, PHYS(0, 8), NO_DFNS, NO_CARY,

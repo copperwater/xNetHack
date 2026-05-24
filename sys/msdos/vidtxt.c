@@ -40,10 +40,10 @@ extern int attrib_gr_intense;   /* graphics mode intense attribute */
 
 #if defined(SCREEN_BIOS) && !defined(PC9800)
 static unsigned char cursor_info = 0,
-	             cursor_start_scanline = 6, cursor_end_scanline = 7;
+                     cursor_start_scanline = 6, cursor_end_scanline = 7;
 
 static void get_cursinfo(unsigned char *start, unsigned char *end,
-		         unsigned char *flg);
+                         unsigned char *flg);
 #endif
 
 void
@@ -414,8 +414,8 @@ void txt_get_cursor(int *x, int *y)
     *y = regs.h.dh;
     if (!cursor_info) {
         cursor_start_scanline = regs.h.ch;
-	cursor_end_scanline = regs.h.cl;
-	cursor_info = 1;
+        cursor_end_scanline = regs.h.cl;
+        cursor_info = 1;
     }
 }
 
@@ -464,7 +464,7 @@ get_cursinfo(uchar *start, uchar *end, uchar *flg)
         *end = regs.h.cl;
     } else {
         *start = 6;
-	*end = 7;
+        *end = 7;
     }
     *flg = 1;
 }

@@ -212,6 +212,70 @@ wearmask_to_obj(long wornmask)
     return (struct obj *) 0;
 }
 
+/* convert an armor wornmask to corresponding category */
+int
+wornmask_to_armcat(long mask)
+{
+    int cat = 0;
+
+    switch (mask & W_ARMOR) {
+    case W_ARM:
+        cat = ARM_SUIT;
+        break;
+    case W_ARMC:
+        cat = ARM_CLOAK;
+        break;
+    case W_ARMH:
+        cat = ARM_HELM;
+        break;
+    case W_ARMS:
+        cat = ARM_SHIELD;
+        break;
+    case W_ARMG:
+        cat = ARM_GLOVES;
+        break;
+    case W_ARMF:
+        cat = ARM_BOOTS;
+        break;
+    case W_ARMU:
+        cat = ARM_SHIRT;
+        break;
+    }
+    return cat;
+}
+
+/* convert an armor category to corresponding wornmask */
+long
+armcat_to_wornmask(int cat)
+{
+    long mask = 0L;
+
+    switch (cat) {
+    case ARM_SUIT:
+        mask = W_ARM;
+        break;
+    case ARM_CLOAK:
+        mask = W_ARMC;
+        break;
+    case ARM_HELM:
+        mask = W_ARMH;
+        break;
+    case ARM_SHIELD:
+        mask = W_ARMS;
+        break;
+    case ARM_GLOVES:
+        mask = W_ARMG;
+        break;
+    case ARM_BOOTS:
+        mask = W_ARMF;
+        break;
+    case ARM_SHIRT:
+        mask = W_ARMU;
+        break;
+    }
+    return mask;
+}
+
 /* return a bitmask of the equipment slot(s) a given item might be worn in */
 long
 wearslot(struct obj *obj)
@@ -326,10 +390,12 @@ check_wornmask_slots(void)
            object checking will most likely have already caught this] */
         for (otmp = gi.invent; otmp; otmp = otmp->nobj) {
             if (otmp != o && (otmp->owornmask & m) != 0L
-                /* embedded scales owornmask is W_ARM|I_SPECIAL so would
-                   give a false complaint about item other than uarm having
-                   W_ARM bit set if we didn't screen it out here */
-                && (m != W_ARM || otmp != uskin
+                /* embedded scaled armor owornmask is W_ARM|I_SPECIAL and
+                 * embedded scales owornmask is W_ARMC|I_SPECIAL, so would
+                   give a false complaint about item other than uarm/uarmc
+                   having W_ARM/W_ARMC bit set if we didn't screen it out here */
+                && ((m != W_ARM && m != W_ARMC)
+                    || otmp != uskin
                     || (otmp->owornmask & I_SPECIAL) == 0L)) {
                 Sprintf(whybuf, "%s [0x%08lx] has %s mask 0x%08lx bit set",
                         simpleonames(otmp), otmp->owornmask, wp->w_what, m);
@@ -343,7 +409,15 @@ check_wornmask_slots(void)
         const char *what = "embedded scales";
 
         o = uskin;
-        m = W_ARM | I_SPECIAL;
+        if (Is_dragon_scaled_armor(uskin)) {
+            /* dragon-scaled armor worn in the body armor slot */
+            m = W_ARM | I_SPECIAL;
+            what = "embedded dragon-scaled armor";
+        }
+        else {
+            /* scales worn in the cloak slot when polymorph happened */
+            m = W_ARMC | I_SPECIAL;
+        }
         whybuf[0] = '\0';
         for (otmp = gi.invent; otmp; otmp = otmp->nobj)
             if (otmp == o)
@@ -357,8 +431,8 @@ check_wornmask_slots(void)
         else if ((o->owornmask & ~(m | IGNORE_SLOTS)) != 0L)
             Sprintf(whybuf, "%s wrong bit set in owornmask [0x%08lx]",
                     what, o->owornmask);
-        else if (!Is_dragon_scales(o))
-            Sprintf(whybuf, "%s (%s) %s not dragon scales",
+        else if (!Is_dragon_armor(o))
+            Sprintf(whybuf, "%s (%s) %s not dragon scales or scaled armor",
                     what, simpleonames(o), otense(o, "are"));
         else if (Dragon_armor_to_pm(o) != u.umonnum)
             Sprintf(whybuf, "%s, hero is not %s",
@@ -430,7 +504,7 @@ mon_adjust_speed(
     switch (adjust) {
     case 2:
         mon->permspeed = MFAST;
-        give_msg = FALSE; /* special case monster creation */
+        give_msg = FALSE; /* special-case monster creation */
         break;
     case 1:
         if (mon->permspeed == MSLOW)
@@ -939,7 +1013,7 @@ m_dowear_type(
         }
     }
     update_mon_extrinsics(mon, best, TRUE, creation);
-    /* if couldn't see it but now can, or vice versa, */
+    /* if couldn't see it but now can, or vice versa */
     if (!creation && (sawmon ^ canseemon(mon))) {
         if (mon->minvis && !See_invisible) {
             pline("Suddenly you cannot see %s.", nambuf);
@@ -1378,7 +1452,8 @@ extract_from_minvent(
             if (do_extrinsics) {
                 update_mon_extrinsics(mon, obj, FALSE, silently);
             }
-            mselftouch(mon, NULL, !svc.context.mon_moving);
+            if (unwornmask & W_ARMG)
+                mselftouch(mon, NULL, !svc.context.mon_moving);
         }
         mon->misc_worn_check &= ~unwornmask;
         /* give monster a chance to wear other equipment on its next

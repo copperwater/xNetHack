@@ -267,6 +267,8 @@ curses_init_nhwindows(
 # endif/* DEF_GAME_NAME */
     PDC_set_title(window_title);
     PDC_set_blink(TRUE);        /* Only if the user asks for it! */
+    /* disable the default paste function so control-V works as expected */
+    PDC_set_function_key(FUNCTION_KEY_PASTE, 0);
     timeout(1);
     (void) getch();
     timeout(-1);
@@ -623,7 +625,7 @@ curses_putmixed(winid window, int attr, const char *str)
             /* now send buf to the normal putstr */
             curses_putstr(window, attr, buf);
             done_output = TRUE;
-	}
+        }
     }
 
     if (!done_output) {
@@ -825,11 +827,11 @@ curses_ctrl_nhwindow(
     case request_settings:
         break;
     case set_menu_promptstyle:
-	curses_menu_promptstyle.color = wri->fromcore.menu_promptstyle.color;
+        curses_menu_promptstyle.color = wri->fromcore.menu_promptstyle.color;
         if (curses_menu_promptstyle.color == NO_COLOR)
             curses_menu_promptstyle.color = NONE;
-	attr = wri->fromcore.menu_promptstyle.attr;
-	curses_menu_promptstyle.attr = curses_convert_attr(attr);;
+        attr = wri->fromcore.menu_promptstyle.attr;
+        curses_menu_promptstyle.attr = curses_convert_attr(attr);;
         break;
     default:
         break;

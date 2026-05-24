@@ -274,6 +274,10 @@ extern boolean file_newer(const char *, const char *);
 /* #include "system.h" */
 #endif
 
+#if defined(WIN_CE)
+#define QSORTCALLBACK __cdecl
+#endif
+
 /* Override the default version of nhassert.  The default version is unable
  * to generate a string form of the expression due to the need to be
  * compatible with compilers which do not support macro stringization (i.e.

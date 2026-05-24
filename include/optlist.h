@@ -448,9 +448,9 @@ static int optfn_##a(int, int, boolean, char *, char *);
                 No, Yes, No, No, NoAlias, "jump to the last page in a menu")
     NHOPTC(menu_next_page, Advanced, 4, opt_in, set_in_config,
                 No, Yes, No, No, NoAlias, "go to the next menu page")
-    NHOPTB(menu_objsyms, Advanced, 0, opt_in, set_in_game,
-                Off, Yes, No, No, NoAlias, &iflags.menu_head_objsym,
-           Term_False, "show object symbols in menus")
+    NHOPTC(menu_objsyms, Advanced, 12, opt_in, set_in_game,
+           Yes, Yes, No, Yes, "use_menu_glyphs",
+           "show object symbols in menus")
 #ifdef TTY_GRAPHICS
     NHOPTB(menu_overlay, Advanced, 0, opt_in, set_in_game,
            On, Yes, No, No, NoAlias, &iflags.menu_overlay, Term_False,
@@ -622,6 +622,9 @@ static int optfn_##a(int, int, boolean, char *, char *);
            Off, No, No, No, NoAlias, (boolean *) 0, Term_False,
            (char *)0)
 #endif
+    NHOPTB(reroll, Advanced, 0, opt_in, set_in_config,
+           Off, Yes, No, No, NoAlias, &u.uroleplay.reroll, Term_False,
+           "allow rerolling of starting inventory and items")
     NHOPTB(rest_on_space, Advanced, 0, opt_in, set_in_game, Off,
            Yes, No, No, NoAlias, &flags.rest_on_space, Term_False,
            "space bar is bound to the rest-command")

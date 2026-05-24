@@ -354,7 +354,7 @@ join_map(schar bg_typ, schar fg_typ)
             em.y = croom2->ly + ((croom2->hy - croom2->ly) / 2);
         }
 
-        (void) dig_corridor(&sm, &em, FALSE, fg_typ, bg_typ);
+        (void) dig_corridor(&sm, &em, NULL, FALSE, fg_typ, bg_typ);
 
         /* choose next region to join */
         /* only increment croom if croom and croom2 are non-overlapping */

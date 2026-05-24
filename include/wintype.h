@@ -32,6 +32,8 @@ typedef union any {
     const char *a_string;
     int (*a_nfunc)(void);
     unsigned long a_mask32; /* used by status highlighting */
+    int64 a_int64;
+    uint64 a_uint64;
     /* add types as needed */
 } anything;
 #define ANY_P union any /* avoid typedef in prototypes
@@ -55,7 +57,9 @@ enum any_types {
     ANY_ULPTR,       /* pointer to unsigned long */
     ANY_STR,         /* pointer to null-terminated char string */
     ANY_NFUNC,       /* pointer to function taking no args, returning int */
-    ANY_MASK32       /* 32-bit mask (stored as unsigned long) */
+    ANY_MASK32,      /* 32-bit mask (stored as unsigned long) */
+
+    ANY_INVALID      /* leave this last */
 };
 
 /* menu return list */

@@ -36,7 +36,7 @@ function written_in_Book()
    elseif role == 'Caveman' then
       return 'painted in the Sacred Caves'
    elseif role == 'Healer' then
-      return 'taught in the School'
+      return 'taught in the Schools'
    elseif role == 'Knight' then
       return 'told in the Legends'
    elseif role == 'Monk' then
@@ -44,9 +44,9 @@ function written_in_Book()
    elseif role == 'Priest' then
       return 'catechized in the Temples'
    elseif role == 'Ranger' then
-      return 'remembered in the Grove'
+      return 'remembered in the Groves'
    elseif role == 'Rogue' then
-      return 'whispered in the Secret History'
+      return 'whispered in the Secret Histories'
    elseif role == 'Samurai' then
       return 'illustrated in the Emakimono'
    elseif role == 'Tourist' then
@@ -549,6 +549,7 @@ it to %l for analysis.]],
       guardtalk_before = {
          "\"Did you see Lash LaRue in 'Song of Old Wyoming' the other night?\"",
          "\"Hey, got any potions of hallucination for sale?\"",
+         "\"Hey, got any potions of object detection for sale?\"",
          "\"Did you see the bracelet %l brought back from the last dig?\"",
          "\"So what species do *you* think we evolved from?\"",
          "\"So you're %ls prize pupil!  I don't know what he sees in you.\"",

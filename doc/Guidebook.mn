@@ -1,4 +1,4 @@
-.\" $NHDT-Branch: master $:$NHDT-Revision: 1.596 $ $NHDT-Date: 1735103892 2024/12/25 00:18:12 $
+.\" $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.611 $ $NHDT-Date: 1769271623 2026/01/24 08:20:23 $
 .\"
 .\" This is an excerpt from the 'roff' man page from the 'groff' package.
 .\"+--
@@ -47,7 +47,7 @@
 .ds f0 \*(vr
 .ds f1 \" empty
 .\"DO NOT REMOVE NH_DATESUB .ds f2 Date(%B %-d, %Y)
-.ds f2 December 25, 2024
+.ds f2 January 24, 2026
 .
 .\" A note on some special characters:
 .\" \(lq = left double quote
@@ -131,7 +131,8 @@ will vary with your background and training:
 .pg
 \fIArcheologists\fP understand dungeons pretty well; this enables them
 to move quickly and sneak up on the local nasties.  They start equipped
-with the tools for a proper scientific expedition.
+with the tools for a proper scientific expedition, and are able to read
+ancient languages.
 .pg
 \fIBarbarians\fP are warriors out of the hinterland, hardened to battle.
 They begin their quests with naught but uncommon strength, a trusty hauberk,
@@ -2581,6 +2582,54 @@ Sometimes the bless or curse state of objects is referred to as their
 or \(lq\f(CRBUCX\fP\(rq for Blessed, Uncursed, Cursed, or unknown.
 (The term \fIbeatitude\fP is occasionally used as well.)
 .hn 2
+Artifacts
+.pg
+Some objects have been imbued with special powers and are known as
+\fBArtifacts\fP.
+They have specific types (such as long sword or orcish dagger) and distinct
+names such as \fIGiantslayer\fP or \fIGrimtooth\fP.
+Artifact weapons typically do more damage than their ordinary counterparts.
+Some do extra damage against all monsters, others only against specific
+types of monsters so aren't better than regular weapons against other types.
+Some confer defensive capabilities when wielded or have other powers that
+aren't listed here.
+.pg
+You might find them simply lying on the floor, including but not limited
+to inside shops, or be granted as a reward for \(lq#offer\(rq on an altar
+to your patron deity.
+A few might be dropped by monsters, or might be converted from an ordinary
+object of the same type via assigning the right name.
+.\" should we mention dipping for Excalibur here?
+Or you might wish for them, if you happen to be granted a wish, but such
+wishes can fail.
+.pg
+Some artifacts have a specific alignment, others don't.
+You won't obtain aligned ones that have a different alignment from yours
+via offering and might get a shock if you attempt to wish for any of those
+or find one and attempt to use it.
+.pg
+Each role has a distinct artifact that is contained in the \fIQuest\fP
+dungeon branch.
+These are commonly known as quest artifacts.
+All are aligned and most are non-weapons.
+They won't be found randomly.
+.pg
+The \(oq\f(CR\\\fP\(cq and \(oq\f(CR\`a\fP\(cq commands will list
+artifacts that you have fully identified (knowing the name and item type
+isn't sufficient).
+.hn 2
+Relics
+.pg
+There are three unique items that are named and have limited special
+powers but aren't classified as artifacts.
+Each is guarded by a particular monster and you'll need to collect all
+three for use late in the game.
+They are \fIthe Bell of Opening\fP,
+\fIthe Candelabrum of Invocation\fP, and
+\fIthe Book of the Dead\fP.
+Their corresponding descriptions when not yet identified are
+silver bell, candelabrum, and papyrus spellbook.
+.hn 2
 Weapons (\(oq)\(cq)
 .pg
 Given a chance, most monsters in the Mazes of Menace will gratuitously try to
@@ -2920,8 +2969,16 @@ magic spells on them).
 .pg
 One of the most useful of these is the \fIscroll of identify\fP, which
 can be used to determine what another object is, whether it is cursed or
-blessed, and how many uses it has left.  Some objects of subtle
-enchantment are difficult to identify without these.
+blessed, and how many uses it has left.
+Some objects of subtle enchantment are difficult to identify without these.
+.pg
+A scroll whose label is known can be read even when the hero is blind.
+If a scroll has been discovered, it will be listed in inventory by type
+rather than by label, but the label is known in that situation even though
+it isn't shown.
+.pg
+Many scrolls produce a different effect from usual if they are blessed or
+cursed, or read while the hero is confused.
 .pg
 A mail daemon may run up and deliver mail to you as a
 \fIscroll of mail\fP (on versions compiled with this feature).
@@ -3528,7 +3585,7 @@ is a section marker (the closing \(oq\f(CR]\fP\(cq can be followed
 by whitespace and then an arbitrary comment beginning with \(oq\f(CR#\fP\(cq).
 The text between the square brackets is the section name.
 Section markers are only valid after a CHOOSE directive and their names
-are case insensitive.
+are case-insensitive.
 Lines after a section marker belong to that section up until another
 section starts or a marker without a name is encountered or the file ends.
 Lines within sections are ignored unless a CHOOSE directive has selected
@@ -3656,7 +3713,7 @@ See the \(lqModifying NetHack Symbols\(rq section.
 Example:
 .sd
 \f(CR# replace small punctuation (tick marks) with digits\fP
-\f(CRSYMBOLS=S_boulder:0,S_golem:7\fP
+\f(CRSYMBOLS=S_golem:7\fP
 .ed
 .lp WIZKIT
 Debug mode only:  extra items to add to initial inventory.
@@ -3691,7 +3748,8 @@ OPTIONS=color           # Display things in color if possible
 OPTIONS=lit_corridor    # Show lit corridors differently
 OPTIONS=hilite_pet,hilite_pile
 # Replace small punctuation (tick marks) with digits
-SYMBOLS=S_boulder:0,S_golem:7
+OPTIONS=boulder:0
+SYMBOLS=S_golem:7
 #
 # No startup splash screen. Windows GUI only.
 OPTIONS=!splash_screen
@@ -3780,7 +3838,8 @@ See
 .op role
 for a description of how to use negation to exclude choices.
 .lp ""
-Default is random.
+If \f(CRalign\fP is not specified, there is no default value;
+player will be prompted unless role and/or race forces a choice for alignment.
 Cannot be set with the \(oq\f(CRO\fP\(cq command.
 Persistent.
 .lp autodescribe
@@ -4006,7 +4065,8 @@ See
 .op role
 for a description of how to use negation to exclude choices.
 .lp ""
-Default is random.
+If \f(CRgender\fP is not specified, there is no default value;
+player will be prompted unless role and/or race forces a choice for gender.
 Cannot be set with the \(oq\f(CRO\fP\(cq command.
 Persistent.
 .lp "goldX   "
@@ -4164,8 +4224,38 @@ Default \(oq|\(cq.
 Key to go to the next menu page.
 Default \(oq>\(cq.
 .lp menu_objsyms
-Show object symbols in menu headings in menus where
-the object symbols act as menu accelerators (default off).
+." [originally menu_objsyms was a boolean]
+." Show object symbols in menu headings in menus where
+." the object symbols act as menu accelerators (default off).
+Inventory and other object menus are normally separated by object class
+(weapons, armor, and so forth), with a menu header line at the beginning
+of each group.
+You can have menus add the display symbol for the class of objects for
+each header line.
+You can also add the display symbol for the individual item in each menu
+entry.
+For a tiles map, that would be a small rendition of an object's tile.
+For a text map, it is the same character as is used for the object's
+class, which would be most useful when there are no headers separating
+objects among classes.
+Possible values are
+.PS "5\ -\ One-or-other"
+.PL "0\ -\ None"
+no symbols for either header lines or menu entries;
+.PL "1\ -\ Headers"
+show symbols on header lines but not entries;
+.PL "2\ -\ Entries"
+show symbols on menu entry lines but not headers;
+.PL "3\ -\ Both"
+show symbols on headers and entries;
+.PL "4\ -\ Conditional"
+only show symbols for entries if there are no headers;
+.PL "5\ -\ One-or-other"
+show symbols on headers, or on entries if no headers.
+.PE
+Supported by tty and curses.
+When setting the value, it can be specified by digit or keyword.
+The default value is \f(CRConditional\fP (4).
 .lp menu_overlay
 Do not clear the screen before drawing menus, and align
 menus to the right edge of the screen. Only for the tty port.
@@ -4249,6 +4339,11 @@ the role (that is, by suffixing one of
 If
 .op "\-@"
 is used for the role, then a random one will be automatically chosen.
+.lp ""
+On some systems, the default is the player's user name;
+on others, there is no default and the player will be prompted.
+The former can made to behave like the latter by specifying a generic name
+such as ``player''.
 Cannot be set with the \(oq\f(CRO\fP\(cq command.
 .lp "news    "
 Read the NetHack news file, if present (default on).
@@ -4509,9 +4604,20 @@ See
 .op role
 for a description of how to use negation to exclude choices.
 .lp ""
-Default is random.
+If \f(CRrace\fP is not specified, there is no default value;
+player will be prompted unless role forces a choice for race.
 Cannot be set with the \(oq\f(CRO\fP\(cq command.
 Persistent.
+.lp reroll
+Allows rerolling your character's starting inventory and attributes (default
+false).  Persistent.
+.lp ""
+Note that rerolling your character is not a recommended way to play if aiming
+merely to win (a lucky start has a much smaller influence on whether or not
+you win the game than your actions later in the game).  This option exists
+partly as an acknowledgement that some players will insist on doing so anyway,
+and partly because rerolling may be necessary for certain types of challenge
+games.
 .lp rest_on_space
 Make the space bar a synonym for the \(oq.\(cq (#wait) command (default off).
 Persistent.
@@ -4545,7 +4651,8 @@ option if they're all negations.
 .\" Only one positive value is allowed, and if present, it overrides any
 .\" negations.
 .lp ""
-Default is \f(CRrandom\fP.
+If \f(CRrole\fP is not specified, there is no default value;
+player will be prompted.
 Cannot be set with the \(oq\f(CRO\fP\(cq command.
 Persistent.
 .lp "rlecomp "
@@ -4611,7 +4718,7 @@ or you are making screenshots or streaming video.
 Using the
 .op statuslines:3
 option is recommended so that there will be more room available for
-status information, unless you're using nethack's \fIQt\fP interface
+status information, unless you're using NetHack's \fIQt\fP interface
 or your terminal emulator window displays fewer than 25 lines.
 Persistent.
 .lp "silent  "
@@ -5504,7 +5611,9 @@ change the color or appearance of fields in the status display.
 .pg
 The format for defining status colors is:
 .SD n
-\f(CROPTION=hilite_status:\fIfield-name\fP/\fIbehavior\fP/\fIcolor\fP&\fIattributes\fP\fP
+.\" was "\f(CR...\fI...\fP\fP" but font changes don't nest so final \fP didn't
+.\" restore the pre-\f(CR font; assume that was Roman and explicitly use \fR
+\f(CROPTION=hilite_status:\fIfield-name\fP/\fIbehavior\fP/\fIcolor\fP&\fIattributes\fP\fR
 .ED
 .pg
 For example, the following line in your configuration file will cause
@@ -6070,20 +6179,6 @@ the message as the only parameter.
 .lp
 MAXPLAYERS\ =\ Limit the maximum number of games that can be running
 at the same time.
-.lp
-SAVEFORMAT\ =\ A list of up to two save file formats separated by space.
-The first format in the list will written as well as read. The second format
-will be read only if no save file in the first format exists.
-Valid choices are \(lqhistorical\(rq for binary writing of entire structs,
-\(lqlendian\(rq for binary writing of each field in little-endian order,
-\(lqascii\(rq for writing the save file content in ascii text.
-.lp
-BONESFORMAT\ =\ A list of up to two bones file formats separated by space.
-The first format in the list will written as well as read. The second format
-will be read only if no bones files in the first format exist.
-Valid choices are \(lqhistorical\(rq for binary writing of entire structs,
-\(lqlendian\(rq for binary writing of each field in little-endian order,
-\(lqascii\(rq for writing the bones file content in ascii text.
 .lp
 SUPPORT\ =\ A string explaining how to get local support (no default value).
 .lp

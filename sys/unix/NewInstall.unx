@@ -104,7 +104,8 @@ additional interfaces. See below.
 |          |       |                 | support in your build.               |
 |          |       |                 |                                      |
 |          |       |                 | One possible way:                    |
-|          |       |                 |    brew install Qt                   |
+|          |       |                 |    brew install pkg-config           |
+|          |       |                 |    brew install Qt6                  |
 |----------+-------+-----------------+--------------------------------------|
 | Linux    | tty   | WANT_WIN_TTY    |                                      |
 | (Ubuntu) |       |                 |                                      |

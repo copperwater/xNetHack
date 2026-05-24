@@ -324,6 +324,9 @@ current_holidays(void)
     if (month == 3 && date == 14) {
         retmask |= HOLIDAY_PI_DAY;
     }
+    if (month == 3 && date == 15) {
+        retmask |= HOLIDAY_IDES_OF_MARCH;
+    }
     if (month == 4 && date == 1) {
         retmask |= HOLIDAY_APRIL_FOOLS;
     }

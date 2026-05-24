@@ -320,12 +320,19 @@ invault(void)
     struct obj *otmp;
     boolean spotted;
     int trycount, vaultroom = (int) vault_occupied(u.urooms);
+    int vgdeathcount;
 
     if (!vaultroom) {
         u.uinvault = 0;
         return;
     }
-    ++u.uinvault;
+    /* after a couple of guards don't come back from their trips to
+       the vault, future guards become more reluctant to turn up (even
+       if summoned via whistle) */
+    vgdeathcount = svm.mvitals[PM_GUARD].died;
+    if (vgdeathcount < 2 ||
+        (vgdeathcount < 50 && !rn2(vgdeathcount * vgdeathcount)))
+        ++u.uinvault;
     if (u.uinvault < VAULT_GUARD_TIME
         || (u.uinvault % (VAULT_GUARD_TIME / 2)) != 0)
         return;
@@ -408,6 +415,10 @@ invault(void)
         assign_level(&(EGD(guard)->gdlevel), &u.uz);
         EGD(guard)->vroom = vaultroom;
         EGD(guard)->warncnt = 0;
+
+        /* ensure the guard doesn't respawn again next turn if killed
+           immediately */
+        ++u.uinvault;
 
         reset_faint(); /* if fainted - wake up */
         /* if there are any boulders in the guard's way, destroy them;
@@ -978,6 +989,7 @@ gd_move(struct monst *grd)
                 (void) rloc(grd, RLOC_MSG);
                 levl[m][n].typ = egrd->fakecorr[0].ftyp;
                 levl[m][n].flags = egrd->fakecorr[0].flags;
+                recalc_block_point(m, n); /* guard corridor goes away */
                 del_engr_at(m, n);
                 newsym(m, n);
                 grd->mpeaceful = 0;

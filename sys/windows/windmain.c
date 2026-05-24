@@ -19,9 +19,7 @@
 #endif
 
 static void nhusage(void);
-static char *get_executable_path(void);
 static void early_options(int argc, char **argv);
-char *translate_path_variables(const char *, char *);
 char *exename(void);
 boolean fakeconsole(void);
 void freefakeconsole(void);
@@ -98,17 +96,7 @@ static struct stat hbuf;
 
 extern char orgdir[];
 
-int get_known_folder_path(const KNOWNFOLDERID * folder_id,
-                      char * path, size_t path_size);
-void create_directory(const char * path);
-int build_known_folder_path(const KNOWNFOLDERID * folder_id,
-                      char * path, size_t path_size, boolean versioned);
-void build_environment_path(const char * env_str, const char * folder,
-                      char * path, size_t path_size);
-boolean folder_file_exists(const char * folder, const char * file_name);
-boolean test_portable_config(const char *executable_path,
-             char *portable_device_path, size_t portable_device_path_size);
-void set_default_prefix_locations(const char *programPath);
+extern void set_default_prefix_locations(const char *programPath);
 void copy_sysconf_content(void);
 void copy_config_content(void);
 void copy_hack_content(void);
@@ -218,14 +206,14 @@ _CrtSetReportFile(_CRT_ASSERT, _CRTDBG_FILE_STDERR);*/
 #endif
 #endif
 
-    gh.hname = "xNetHack"; /* used for syntax messages */
+    gh.hname = "NetHack"; /* used for syntax messages */
 
 #if defined(CHDIR) && !defined(NOCWD_ASSUMPTIONS)
     /* Save current directory and make sure it gets restored when
      * the game is exited.
      */
     if (getcwd(orgdir, sizeof orgdir) == (char *) 0)
-        error("xNetHack: current directory path too long");
+        error("NetHack: current directory path too long");
 #endif
     initoptions_init(); // This allows OPTIONS in syscf on Windows.
     set_default_prefix_locations(argv[0]);
@@ -273,19 +261,19 @@ _CrtSetReportFile(_CRT_ASSERT, _CRTDBG_FILE_STDERR);*/
      */
 #ifndef CURSES_GRAPHICS
     if (argc >= 1 && !strcmpi(default_window_sys, "mswin")
-        && (strstri(argv[0], "xnethackw.exe") || GUILaunched))
+        && (strstri(argv[0], "nethackw.exe") || GUILaunched))
         iflags.windowtype_locked = TRUE;
 #endif
     windowtype = default_window_sys;
 
 #ifdef DLB
     if (!dlb_init()) {
-        pline("%s\n%s\n%s\n%s\n\n",
-              copyright_banner_line(1), copyright_banner_line(2),
-              copyright_banner_line(3), copyright_banner_line(4));
-        pline("xNetHack was unable to open the required file \"%s\"",DLBFILE);
+        pline("%s\n%s\n%s\n%s\n\n", copyright_banner_line(1),
+              copyright_banner_line(2), copyright_banner_line(3),
+              copyright_banner_line(4));
+        pline("NetHack was unable to open the required file \"%s\"", DLBFILE);
         if (file_exists(DLBFILE))
-            pline("\nAre you perhaps trying to run xNetHack within a zip "
+            pline("\nAre you perhaps trying to run NetHack within a zip "
                   "utility?");
         error("dlb_init failure.");
     }
@@ -378,6 +366,9 @@ _CrtSetReportFile(_CRT_ASSERT, _CRTDBG_FILE_STDERR);*/
         nethack_exit(EXIT_SUCCESS);
 
     if (getlock_result < 0) {
+        if (program_state.in_self_recover) {
+            program_state.in_self_recover = FALSE;
+        }
         set_savefile_name(TRUE);
     }
     /* Set up level 0 file to keep the game state.
@@ -485,6 +476,9 @@ early_options(int argc, char *argv[])
 #endif
 #endif
         if (argcheck(argc, argv, ARG_DUMPMONGEN) == 2) {
+            nethack_exit(EXIT_SUCCESS);
+        }
+        if (argcheck(argc, argv, ARG_DUMPWEIGHTS) == 2) {
             nethack_exit(EXIT_SUCCESS);
         }
         if (argcheck(argc, argv, ARG_DEBUG) == 1) {
@@ -678,224 +672,6 @@ nhusage(void)
 #undef ADD_USAGE
 }
 
-DISABLE_WARNING_UNREACHABLE_CODE
-
-int
-get_known_folder_path(const KNOWNFOLDERID *folder_id, char *path,
-                      size_t path_size)
-{
-    PWSTR wide_path;
-    if (FAILED(SHGetKnownFolderPath(folder_id, 0, NULL, &wide_path))) {
-        error("Unable to get known folder path");
-        return FALSE;
-    }
-
-    size_t converted;
-    errno_t err;
-
-    err = wcstombs_s(&converted, path, path_size, wide_path, _TRUNCATE);
-
-    CoTaskMemFree(wide_path);
-
-    if (err == STRUNCATE || err == EILSEQ) {
-        // silently handle this problem
-        return FALSE;
-    } else if (err != 0) {
-        error(
-            "Failed folder (%lu) path string conversion, unexpected err = %d",
-            folder_id->Data1, err);
-        return FALSE;
-    }
-
-    return TRUE;
-}
-
-void
-create_directory(const char *path)
-{
-    BOOL dres = CreateDirectoryA(path, NULL);
-
-    if (!dres) {
-        DWORD dw = GetLastError();
-
-        if (dw != ERROR_ALREADY_EXISTS)
-            error("Unable to create directory '%s'", path);
-    }
-}
-
-RESTORE_WARNING_UNREACHABLE_CODE
-
-int
-build_known_folder_path(const KNOWNFOLDERID *folder_id, char *path,
-                        size_t path_size, boolean versioned)
-{
-    if (!get_known_folder_path(folder_id, path, path_size))
-        return FALSE;
-
-    strcat(path, "\\xNetHack\\");
-    create_directory(path);
-    if (versioned) {
-        Sprintf(eos(path), "%d.%d\\", VERSION_MAJOR, VERSION_MINOR);
-        create_directory(path);
-    }
-    return TRUE;
-}
-
-void
-build_environment_path(const char *env_str, const char *folder, char *path,
-                       size_t path_size)
-{
-    path[0] = '\0';
-
-    const char *root_path = nh_getenv(env_str);
-
-    if (root_path == NULL)
-        return;
-
-    strcpy_s(path, path_size, root_path);
-
-    char *colon = strchr(path, ';');
-    if (colon != NULL)
-        path[0] = '\0';
-
-    if (strlen(path) == 0)
-        return;
-
-    append_slash(path);
-
-    if (folder != NULL) {
-        strcat_s(path, path_size, folder);
-        strcat_s(path, path_size, "\\");
-    }
-}
-
-boolean
-folder_file_exists(const char *folder, const char *file_name)
-{
-    char path[MAX_PATH];
-
-    if (folder[0] == '\0')
-        return FALSE;
-
-    strcpy(path, folder);
-    strcat(path, file_name);
-    return file_exists(path);
-}
-
-boolean
-test_portable_config(const char *executable_path, char *portable_device_path,
-                     size_t portable_device_path_size)
-{
-    int lth = 0;
-    const char *sysconf = "sysconf";
-    char tmppath[MAX_PATH];
-    boolean retval = FALSE,
-            save_initoptions_noterminate = iflags.initoptions_noterminate;
-
-    if (portable_device_path
-        && folder_file_exists(executable_path, "sysconf")) {
-        /*
-           There is a sysconf file (not just sysconf.template) present in
-           the exe path, which is not the way NetHack is initially
-           distributed, so assume it means that the admin/installer wants to
-           override something, perhaps set up for a fully-portable
-           configuration that leaves no traces behind elsewhere on this
-           computer's hard drive - delve into that...
-         */
-
-        *portable_device_path = '\0';
-        lth = sizeof tmppath - strlen(sysconf);
-        (void) strncpy(tmppath, executable_path, lth - 1);
-        tmppath[lth - 1] = '\0';
-        (void) strcat(tmppath, sysconf);
-
-        iflags.initoptions_noterminate = 1;
-        /* assure_syscf_file(); */
-        config_error_init(TRUE, tmppath, FALSE);
-        /* ... and _must_ parse correctly. */
-        if (read_config_file(tmppath, set_in_sysconf)
-            && sysopt.portable_device_paths)
-            retval = TRUE;
-        (void) config_error_done();
-        iflags.initoptions_noterminate = save_initoptions_noterminate;
-        sysopt_release(); /* the real sysconf processing comes later */
-    }
-    if (retval) {
-        lth = strlen(executable_path);
-        if (lth <= (int) portable_device_path_size - 1)
-            Strcpy(portable_device_path, executable_path);
-        else
-            retval = FALSE;
-    }
-    return retval;
-}
-
-static char portable_device_path[MAX_PATH];
-
-const char *
-get_portable_device(void)
-{
-    return (const char *) portable_device_path;
-}
-
-void
-set_default_prefix_locations(const char *programPath UNUSED)
-{
-    static char executable_path[MAX_PATH];
-    static char profile_path[MAX_PATH];
-    static char versioned_profile_path[MAX_PATH];
-    static char versioned_user_data_path[MAX_PATH];
-    static char versioned_global_data_path[MAX_PATH];
-    /*    static char versioninfo[20] UNUSED; */
-
-    strcpy(executable_path, get_executable_path());
-    append_slash(executable_path);
-
-    if (test_portable_config(executable_path, portable_device_path,
-                             sizeof portable_device_path)) {
-        gf.fqn_prefix[SYSCONFPREFIX] = executable_path;
-        gf.fqn_prefix[CONFIGPREFIX] = portable_device_path;
-        gf.fqn_prefix[HACKPREFIX] = portable_device_path;
-        gf.fqn_prefix[SAVEPREFIX] = portable_device_path;
-        gf.fqn_prefix[LEVELPREFIX] = portable_device_path;
-        gf.fqn_prefix[BONESPREFIX] = portable_device_path;
-        gf.fqn_prefix[SCOREPREFIX] = portable_device_path;
-        gf.fqn_prefix[LOCKPREFIX] = portable_device_path;
-        gf.fqn_prefix[TROUBLEPREFIX] = portable_device_path;
-        gf.fqn_prefix[DATAPREFIX] = executable_path;
-    } else {
-        if (!build_known_folder_path(&FOLDERID_Profile, profile_path,
-                                     sizeof(profile_path), FALSE))
-            strcpy(profile_path, executable_path);
-
-        if (!build_known_folder_path(&FOLDERID_Profile,
-                                     versioned_profile_path,
-                                     sizeof(profile_path), TRUE))
-            strcpy(versioned_profile_path, executable_path);
-
-        if (!build_known_folder_path(&FOLDERID_LocalAppData,
-                                     versioned_user_data_path,
-                                     sizeof(versioned_user_data_path), TRUE))
-            strcpy(versioned_user_data_path, executable_path);
-
-        if (!build_known_folder_path(
-                &FOLDERID_ProgramData, versioned_global_data_path,
-                sizeof(versioned_global_data_path), TRUE))
-            strcpy(versioned_global_data_path, executable_path);
-
-        gf.fqn_prefix[SYSCONFPREFIX] = versioned_global_data_path;
-        gf.fqn_prefix[CONFIGPREFIX] = profile_path;
-        gf.fqn_prefix[HACKPREFIX] = versioned_profile_path;
-        gf.fqn_prefix[SAVEPREFIX] = versioned_user_data_path;
-        gf.fqn_prefix[LEVELPREFIX] = versioned_user_data_path;
-        gf.fqn_prefix[BONESPREFIX] = versioned_global_data_path;
-        gf.fqn_prefix[SCOREPREFIX] = versioned_global_data_path;
-        gf.fqn_prefix[LOCKPREFIX] = versioned_global_data_path;
-        gf.fqn_prefix[TROUBLEPREFIX] = versioned_profile_path;
-        gf.fqn_prefix[DATAPREFIX] = executable_path;
-    }
-}
-
 /* copy file if destination does not exist */
 void
 copy_file(const char *dst_folder, const char *dst_name,
@@ -1020,7 +796,7 @@ copy_config_content(void)
                 gf.fqn_prefix[DATAPREFIX], CONFIG_TEMPLATE, FALSE);
 
     /* If the required early game file does not exist, copy it */
-    /* NOTE: We never replace .xnethackrc or sysconf */
+    /* NOTE: We never replace .nethackrc or sysconf */
     copy_file(gf.fqn_prefix[CONFIGPREFIX], CONFIG_FILE,
               gf.fqn_prefix[DATAPREFIX], CONFIG_TEMPLATE, FALSE);
 }
@@ -1077,7 +853,9 @@ authorize_explore_mode(void)
     return TRUE; /* no restrictions on explore mode */
 }
 
+#ifndef PATH_SEPARATOR
 #define PATH_SEPARATOR '\\'
+#endif
 
 #if defined(WIN32) && !defined(WIN32CON)
 static char exenamebuf[PATHLEN];
@@ -1143,96 +921,6 @@ void freefakeconsole(void)
     }
 }
 #endif
-
-static boolean path_buffer_set = FALSE;
-static char path_buffer[MAX_PATH];
-
-char *
-get_executable_path(void)
-{
-
-#ifdef UNICODE
-    {
-        TCHAR wbuf[BUFSZ];
-        GetModuleFileName((HANDLE) 0, wbuf, BUFSZ);
-        WideCharToMultiByte(CP_ACP, 0, wbuf, -1, path_buffer, sizeof(path_buffer), NULL, NULL);
-    }
-#else
-    DWORD length = GetModuleFileName((HANDLE) 0, path_buffer, MAX_PATH);
-    if (length == ERROR_INSUFFICIENT_BUFFER) error("Unable to get module name");
-    path_buffer[length] = '\0';
-#endif
-
-    char  * seperator = strrchr(path_buffer, PATH_SEPARATOR);
-    if (seperator)
-        *seperator = '\0';
-
-    path_buffer_set = TRUE;
-    return path_buffer;
-}
-
-char *
-windows_exepath(void)
-{
-    char *p = (char *) 0;
-
-    if (path_buffer_set)
-        p = path_buffer;
-    return p;
-}
-
-char *
-translate_path_variables(const char *str, char *buf)
-{
-    const char *src;
-    char evar[BUFSZ], *dest, *envp, *eptr = (char *) 0;
-    boolean in_evar;
-    size_t ccount, ecount, destcount, slen = str ? strlen(str) : 0;
-
-    if (!slen || !buf) {
-        if (buf)
-            *buf = '\0';
-        return buf;
-    }
-
-    dest = buf;
-    src = str;
-    in_evar = FALSE;
-    destcount = ecount = 0;
-    for (ccount = 0; ccount < slen && destcount < (BUFSZ - 1) &&
-                     ecount < (BUFSZ - 1); ++ccount, ++src) {
-        if (*src == '%') {
-            if (in_evar) {
-                *eptr = '\0';
-                envp = nh_getenv(evar);
-                if (envp) {
-                    size_t elen = strlen(envp);
-
-                    if ((elen + destcount) < (size_t) (BUFSZ - 1)) {
-                        Strcpy(dest, envp);
-                        dest += elen;
-                        destcount += elen;
-                    }
-                }
-            } else {
-                eptr = evar;
-                ecount = 0;
-            }
-            in_evar = !in_evar;
-            continue;
-        }
-        if (in_evar) {
-            *eptr++ = *src;
-            ecount++;
-        } else {
-            *dest++ = *src;
-            destcount++;
-        }
-    }
-    *dest = '\0';
-    return buf;
-}
-
 
 /*ARGSUSED*/
 void
@@ -1449,18 +1137,6 @@ gotlock:
     return prompt_result;
 }
 #endif /* PC_LOCKING */
-
-boolean
-file_exists(const char *path)
-{
-    struct stat sb;
-
-    /* Just see if it's there */
-    if (stat(path, &sb)) {
-        return FALSE;
-    }
-    return TRUE;
-}
 
 RESTORE_WARNING_UNREACHABLE_CODE
 

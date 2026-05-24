@@ -100,7 +100,18 @@ int click_x, click_y, click_button; /* Click position on a map window
 int updated_inventory; /* used to indicate perm_invent updating */
 color_attr X11_menu_promptstyle = { NO_COLOR, ATR_NONE };
 
-static void X11_error_handler(String) NORETURN;
+/* X11/Intrinsic.h prototype has an issue if [[NORETURN]] is used
+ * rather than the old __attribute((noreturn)) under c23 */
+#if defined(__GNUC__) || defined(__clang__)
+#define USE_GNUC_PROTO
+#endif
+
+#ifdef USE_GNUC_PROTO
+static void X11_error_handler(String) __attribute__((noreturn));
+#else
+ATTRNORETURN static XtErrorHandler X11_error_handler(String);
+#endif
+
 static int X11_io_error_handler(Display *);
 
 static int (*old_error_handler)(Display *, XErrorEvent *);
@@ -175,7 +186,7 @@ static void X11_sig_cb(XtPointer, XtSignalId *);
 #endif
 static void d_timeout(XtPointer, XtIntervalId *);
 static void X11_hangup(Widget, XEvent *, String *, Cardinal *);
-static void X11_bail(const char *) NORETURN;
+ATTRNORETURN static void X11_bail(const char *) NORETURN;
 static void askname_delete(Widget, XEvent *, String *, Cardinal *);
 static void askname_done(Widget, XtPointer, XtPointer);
 static void done_button(Widget, XtPointer, XtPointer);
@@ -1284,7 +1295,7 @@ X11_update_inventory(int arg)
         if (program_state.in_moveloop || program_state.gameover) {
             updated_inventory = 1; /* hack to avoid mapping&raising window */
             if (!arg) {
-                (void) display_inventory((char *) 0, FALSE);
+                repopulate_perminvent();
             } else {
                 x11_scroll_perminv(arg);
             }

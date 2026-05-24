@@ -554,7 +554,7 @@ process_options(int argc, char *argv[])
         if (mx_ok)
             gl.locknum = mxplyrs;
         else
-            config_error_add("Invalid MAXPLATERS \"%s\"", argv[1]);
+            config_error_add("Invalid MAXPLAYERS \"%s\"", argv[1]);
 #endif
     }
 #ifdef MAX_NR_OF_PLAYERS
@@ -622,7 +622,7 @@ early_options(int *argc_p, char ***argv_p, char **hackdir_p)
 
     /*
      * Both *argc_p and *argv_p account for the program name as (*argv_p)[0];
-     * local argc and argv impicitly discard that (by starting 'ndx' at 1).
+     * local argc and argv implicitly discard that (by starting 'ndx' at 1).
      * argcheck() doesn't mind, prscore() (via scores_only()) does (for the
      * number of args it gets passed, not for the value of argv[0]).
      */
@@ -659,6 +659,9 @@ early_options(int *argc_p, char ***argv_p, char **hackdir_p)
                 /*NOTREACHED*/
 #endif
             } else if (argcheck(argc, argv, ARG_DUMPMONGEN) == 2) {
+                opt_terminate();
+                /*NOTREACHED*/
+            } else if (argcheck(argc, argv, ARG_DUMPWEIGHTS) == 2) {
                 opt_terminate();
                 /*NOTREACHED*/
             } else {
@@ -703,10 +706,10 @@ early_options(int *argc_p, char ***argv_p, char **hackdir_p)
             break;
         case 's':
             if (argcheck(argc, argv, ARG_SHOWPATHS) == 2) {
-		gd.deferred_showpaths = TRUE;
-		gd.deferred_showpaths_dir = *hackdir_p;
+                gd.deferred_showpaths = TRUE;
+                gd.deferred_showpaths_dir = *hackdir_p;
                 config_error_done();
-		return;
+                return;
             }
             /* check for "-s" request to show scores */
             if (lopt(arg, ((ArgValDisallowed | ArgErrComplain)

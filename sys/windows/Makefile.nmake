@@ -1,5 +1,5 @@
 # NetHack 3.7 Makefile.nmake
-#       Copyright (c) NetHack Development Team 1993-2025
+#       Copyright (c) NetHack Development Team 1993-2026
 #
 #==============================================================================
 # Build Tools Environment
@@ -8,8 +8,8 @@
 #       MS Visual Studio Visual C++ compiler
 #
 #       Visual Studio Compilers Tested:
-#            - Microsoft Visual Studio 2019 Community Edition v 16.11.42
-#            - Microsoft Visual Studio 2022 Community Edition v 17.13.0
+#            - Microsoft Visual Studio Community 2022 v 17.14.25
+#            - Microsoft Visual Studio Community 2026 v 18.2.1
 #
 #==============================================================================
 #   This is used for building two distinct executables of xNetHack:
@@ -107,6 +107,7 @@ GIT_AVAILABLE = N
 
 #TARGET_CPU=x64
 #TARGET_CPU=x86
+#TARGET_CPU=arm64
 
 #==============================================================================
 #======================== End of Modification Section =========================
@@ -141,7 +142,7 @@ Q=@
 SKIP_NETHACKW = N
 
 !IFNDEF LUA_VERSION
-LUAVER=5.4.6
+LUAVER=5.4.8
 !ELSE
 LUAVER=$(LUA_VERSION)
 !ENDIF
@@ -393,6 +394,7 @@ ADD_CURSES = N
 #developer command prompts.
 #VSCMD_ARG_HOST_ARCH=x64
 #VSCMD_ARG_TGT_ARCH=x86
+#VSCMD_ARG_TGT_ARCH=arm64
 
 # We need to do this here, so some output files can
 # incorporate TARGET_CPU into their names.
@@ -404,7 +406,11 @@ ADD_CURSES = N
 !  IF "$(VSCMD_ARG_TGT_ARCH)"=="x64"
 TARGET_CPU=x64
 !  ELSE
+!    IF "$(VSCMD_ARG_TGT_ARCH)"=="arm64"
+TARGET_CPU=arm64
+!    ELSE
 TARGET_CPU=x86
+!    ENDIF
 !  ENDIF
 ! ENDIF
 !ENDIF
@@ -528,9 +534,9 @@ GITBRANCH = -DNETHACK_GIT_BRANCH=\"$(GIT_BRANCH)\"
 GITPREFIX = -DNETHACK_GIT_PREFIX=\"$(GIT_PREFIX)\"
 !ENDIF
 
-#===============-=================================================
+#=================================================================
 # LUA library
-# Official source for Lua is http://www.lua.org/ftp/lua-5.4.6.tar.gz
+# Official source for Lua is http://www.lua.org/ftp/lua-5.4.8.tar.gz
 #
 # Source for the NetHack repository submodule in ../submodules/lua
 # is https://github.com/lua/lua.git
@@ -539,7 +545,7 @@ GITPREFIX = -DNETHACK_GIT_PREFIX=\"$(GIT_PREFIX)\"
 # Location of LUA
 #
 # Original source needs to be obtained from:
-#    http://www.lua.org/ftp/lua-5.4.6.tar.gz
+#    http://www.lua.org/ftp/lua-5.4.8.tar.gz
 #
 #    This build assumes that the LUA sources are located
 #    at the specified location. If they are actually elsewhere
@@ -549,7 +555,7 @@ GITPREFIX = -DNETHACK_GIT_PREFIX=\"$(GIT_PREFIX)\"
 #
 
 !IFNDEF LUAVER
-LUAVER=5.4.6
+LUAVER=5.4.8
 !ENDIF
 
 LUALIB   = $(LIBDIR)lua$(LUAVER)-$(TARGET_CPU)-static.lib
@@ -653,6 +659,7 @@ HACKCSRC = \
 	$(SRC)drawing.c  $(SRC)dungeon.c $(SRC)eat.c      $(SRC)end.c \
 	$(SRC)engrave.c  $(SRC)exper.c   $(SRC)explode.c  $(SRC)files.c \
 	$(SRC)fountain.c $(SRC)getpos.c  $(SRC)glyphs.c   $(SRC)hack.c \
+	$(SRC)iactions.c \
 	$(SRC)insight.c  $(SRC)invent.c  $(SRC)isaac64.c  $(SRC)light.c \
 	$(SRC)lock.c     $(SRC)mail.c    $(SRC)makemon.c  $(SRC)mcastu.c \
 	$(SRC)mdlib.c    $(SRC)mhitm.c   $(SRC)mhitu.c    $(SRC)minion.c \
@@ -665,7 +672,8 @@ HACKCSRC = \
 	$(SRC)potion.c   $(SRC)pray.c    $(SRC)priest.c   $(SRC)quest.c \
 	$(SRC)questpgr.c $(SRC)read.c    $(SRC)rect.c     $(SRC)region.c \
 	$(SRC)restore.c  $(SRC)rip.c     $(SRC)rnd.c      $(SRC)role.c \
-	$(SRC)rumors.c   $(SRC)save.c    $(SRC)selvar.c   $(SRC)sfstruct.c \
+	$(SRC)rumors.c   $(SRC)save.c    $(SRC)selvar.c\
+	$(SRC)sfbase.c   $(SRC)sfstruct.c \
 	$(SRC)shk.c      $(SRC)shknam.c  $(SRC)sit.c      $(SRC)sounds.c \
 	$(SRC)sp_lev.c   $(SRC)spell.c   $(SRC)stairs.c   $(SRC)steal.c \
 	$(SRC)steed.c    $(SRC)symbols.c $(SRC)sys.c      $(SRC)teleport.c \
@@ -677,32 +685,34 @@ HACKCSRC = \
 
 # all .h files except date.h
 HACKINCL = \
-	$(INCL)align.h    $(INCL)artifact.h $(INCL)artilist.h \
-	$(INCL)attrib.h   $(INCL)botl.h     $(INCL)color.h \
-	$(INCL)config.h   $(INCL)config1.h  $(INCL)context.h \
-	$(INCL)coord.h    $(INCL)cstd.h     $(INCL)decl.h \
-	$(INCL)display.h  $(INCL)dlb.h      $(INCL)dungeon.h \
-	$(INCL)engrave.h  $(INCL)extern.h   $(INCL)flag.h \
-	$(INCL)fnamesiz.h $(INCL)func_tab.h $(INCL)global.h \
-	$(INCL)warnings.h $(INCL)hack.h     $(INCL)lint.h \
-	$(INCL)mextra.h   $(INCL)mfndpos.h  $(INCL)micro.h \
-	$(INCL)mkroom.h   $(INCL)monattk.h  $(INCL)mondata.h \
-	$(INCL)monflag.h  $(INCL)monst.h    $(INCL)monsters.h \
-	$(INCL)nhmd4.h    $(INCL)obj.h      $(INCL)objects.h \
-	$(INCL)objclass.h $(INCL)optlist.h  $(INCL)patchlevel.h \
-	$(INCL)pcconf.h   $(INCL)permonst.h $(INCL)prop.h \
-	$(INCL)rect.h     $(INCL)region.h   $(INCL)selvar.h \
-	$(INCL)sym.h      $(INCL)defsym.h   $(INCL)rm.h \
-	$(INCL)sp_lev.h   $(INCL)spell.h    $(INCL)sndprocs.h \
-	$(INCL)seffects.h $(INCL)stairs.h   $(INCL)sys.h \
-	$(INCL)tcap.h     $(INCL)timeout.h  $(INCL)tradstdc.h \
-	$(INCL)trap.h     $(INCL)unixconf.h $(INCL)vision.h \
-	$(INCL)vmsconf.h  $(INCL)wintty.h   $(INCL)wincurs.h \
-	$(INCL)winX.h     $(INCL)winprocs.h $(INCL)wintype.h \
-	$(INCL)you.h      $(INCL)youprop.h
+	$(INCL)align.h      $(INCL)artifact.h $(INCL)artilist.h \
+	$(INCL)attrib.h     $(INCL)botl.h     $(INCL)color.h \
+	$(INCL)config.h     $(INCL)config1.h  $(INCL)context.h \
+	$(INCL)coord.h      $(INCL)cstd.h     $(INCL)decl.h \
+	$(INCL)defsym.h     $(INCL)display.h  $(INCL)dlb.h \
+	$(INCL)dungeon.h    $(INCL)engrave.h  $(INCL)extern.h \
+	$(INCL)flag.h       $(INCL)fnamesiz.h $(INCL)func_tab.h \
+	$(INCL)global.h     $(INCL)warnings.h $(INCL)hack.h \
+	$(INCL)lint.h       $(INCL)mextra.h   $(INCL)micro.h \
+	$(INCL)mfndpos.h    $(INCL)mkroom.h   $(INCL)monattk.h \
+	$(INCL)mondata.h    $(INCL)monflag.h  $(INCL)monst.h \
+	$(INCL)monsters.h   $(INCL)nhmd4.h    $(INCL)obj.h \
+	$(INCL)objects.h    $(INCL)objclass.h $(INCL)optlist.h \
+	$(INCL)patchlevel.h $(INCL)pcconf.h   $(INCL)permonst.h \
+	$(INCL)prop.h       $(INCL)rect.h     $(INCL)region.h \
+	$(INCL)savefile.h   $(INCL)selvar.h   $(INCL)sfprocs.h \
+	$(INCL)sym.h        $(INCL)rm.h       $(INCL)sp_lev.h \
+	$(INCL)spell.h      $(INCL)sndprocs.h $(INCL)seffects.h \
+	$(INCL)stairs.h     $(INCL)sys.h      $(INCL)tcap.h \
+	$(INCL)timeout.h    $(INCL)tradstdc.h $(INCL)trap.h \
+	$(INCL)unixconf.h   $(INCL)vision.h   $(INCL)vmsconf.h \
+	$(INCL)wintty.h     $(INCL)wincurs.h  $(INCL)winX.h \
+	$(INCL)winprocs.h   $(INCL)wintype.h  $(INCL)you.h \
+	$(INCL)youprop.h    $(INCL)weight.h
 
 LUA_FILES = $(DAT)asmodeus.lua $(DAT)baalz.lua $(DAT)bigrm-1.lua \
 	$(DAT)bigrm-10.lua $(DAT)bigrm-11.lua $(DAT)bigrm-12.lua \
+	$(DAT)bigrm-13.lua \
 	$(DAT)bigrm-2.lua $(DAT)bigrm-3.lua $(DAT)bigrm-4.lua \
 	$(DAT)bigrm-5.lua $(DAT)bigrm-6.lua $(DAT)bigrm-7.lua \
 	$(DAT)bigrm-8.lua $(DAT)bigrm-9.lua $(DAT)castle.lua \
@@ -865,34 +875,35 @@ TTYOBJTTY = $(OTTY)topl.o $(OTTY)getline.o  $(OTTY)wintty.o
 COREOBJTTY = \
 	$(OTTY)allmain.o  $(OTTY)alloc.o    $(OTTY)apply.o    $(OTTY)artifact.o \
 	$(OTTY)attrib.o   $(OTTY)ball.o     $(OTTY)bones.o    $(OTTY)botl.o \
-	$(OTTY)calendar.o $(OTTY)cmd.o      $(OTTY)coloratt.o $(OTTY)dbridge.o \
-	$(OTTY)decl.o     $(OTTY)detect.o   $(OTTY)dig.o      $(OTTY)display.o \
-	$(OTTY)do.o       $(OTTY)do_name.o  $(OTTY)do_wear.o  $(OTTY)dog.o \
-	$(OTTY)dogmove.o  $(OTTY)dokick.o   $(OTTY)dothrow.o  $(OTTY)drawing.o \
-	$(OTTY)dungeon.o  $(OTTY)eat.o      $(OTTY)end.o      $(OTTY)engrave.o \
-	$(OTTY)exper.o    $(OTTY)explode.o  $(OTTY)extralev.o $(OTTY)files.o \
-	$(OTTY)fountain.o $(OTTY)getpos.o   $(OTTY)glyphs.o   $(OTTY)hack.o \
-	$(OTTY)insight.o  $(OTTY)invent.o   $(OTTY)isaac64.o  $(OTTY)light.o \
-	$(OTTY)lock.o     $(OTTY)mail.o     $(OTTY)makemon.o  $(OTTY)mcastu.o \
-	$(OTTY)mhitm.o    $(OTTY)mhitu.o    $(OTTY)minion.o   $(OTTY)mklev.o \
-	$(OTTY)mkmap.o    $(OTTY)mkmaze.o   $(OTTY)mkobj.o    $(OTTY)mkroom.o \
-	$(OTTY)mon.o      $(OTTY)mondata.o  $(OTTY)monmove.o  $(OTTY)monst.o \
-	$(OTTY)mplayer.o  $(OTTY)mthrowu.o  $(OTTY)muse.o     $(OTTY)music.o \
-	$(OTTY)o_init.o   $(OTTY)objects.o  $(OTTY)objnam.o   $(OTTY)options.o \
-	$(OTTY)pager.o    $(OTTY)pickup.o   $(OTTY)pline.o    $(OTTY)polyself.o \
-	$(OTTY)potion.o   $(OTTY)pray.o     $(OTTY)priest.o   $(OTTY)quest.o \
-	$(OTTY)questpgr.o $(OTTY)read.o     $(OTTY)rect.o     $(OTTY)region.o \
-	$(OTTY)report.o $(OTTY)restore.o    $(OTTY)rip.o      $(OTTY)rnd.o \
-	$(OTTY)role.o     $(OTTY)rumors.o   $(OTTY)save.o     $(OTTY)selvar.o \
-	$(OTTY)sfstruct.o $(OTTY)shk.o      $(OTTY)shknam.o   $(OTTY)sit.o \
-	$(OTTY)sounds.o   $(OTTY)sp_lev.o   $(OTTY)spell.o    $(OTTY)stairs.o \
-	$(OTTY)steal.o    $(OTTY)steed.o    $(OTTY)strutil.o  $(OTTY)symbols.o \
-	$(OTTY)sys.o      $(OTTY)teleport.o $(OTTY)timeout.o  $(OTTY)topten.o \
-	$(OTTY)track.o    $(OTTY)trap.o     $(OTTY)u_init.o   $(OTTY)uhitm.o \
-	$(OTTY)utf8map.o  $(OTTY)vault.o    $(OTTY)vision.o   $(OTTY)weapon.o \
-	$(OTTY)were.o     $(OTTY)wield.o    $(OTTY)windows.o  $(OTTY)wizard.o \
-	$(OTTY)wizcmds.o   $(OTTY)worm.o     $(OTTY)worn.o    $(OTTY)write.o \
-	$(OTTY)zap.o
+	$(OTTY)calendar.o $(OTTY)cfgfiles.o $(OTTY)cmd.o      $(OTTY)coloratt.o \
+	$(OTTY)dbridge.o  $(OTTY)decl.o     $(OTTY)detect.o   $(OTTY)dig.o \
+	$(OTTY)display.o  $(OTTY)do.o       $(OTTY)do_name.o  $(OTTY)do_wear.o \
+	$(OTTY)dog.o      $(OTTY)dogmove.o  $(OTTY)dokick.o   $(OTTY)dothrow.o \
+	$(OTTY)drawing.o  $(OTTY)dungeon.o  $(OTTY)eat.o      $(OTTY)end.o \
+	$(OTTY)engrave.o  $(OTTY)exper.o    $(OTTY)explode.o  $(OTTY)extralev.o \
+	$(OTTY)files.o    $(OTTY)fountain.o $(OTTY)getpos.o   $(OTTY)glyphs.o \
+	$(OTTY)iactions.o \
+	$(OTTY)hack.o     $(OTTY)insight.o  $(OTTY)invent.o   $(OTTY)isaac64.o \
+	$(OTTY)light.o    $(OTTY)lock.o     $(OTTY)mail.o     $(OTTY)makemon.o \
+	$(OTTY)mcastu.o   $(OTTY)mhitm.o    $(OTTY)mhitu.o    $(OTTY)minion.o \
+	$(OTTY)mklev.o    $(OTTY)mkmap.o    $(OTTY)mkmaze.o   $(OTTY)mkobj.o \
+	$(OTTY)mkroom.o   $(OTTY)mon.o      $(OTTY)mondata.o  $(OTTY)monmove.o \
+	$(OTTY)monst.o    $(OTTY)mplayer.o  $(OTTY)mthrowu.o  $(OTTY)muse.o \
+	$(OTTY)music.o    $(OTTY)o_init.o   $(OTTY)objects.o  $(OTTY)objnam.o \
+	$(OTTY)options.o  $(OTTY)pager.o    $(OTTY)pickup.o   $(OTTY)pline.o \
+	$(OTTY)polyself.o $(OTTY)potion.o   $(OTTY)pray.o     $(OTTY)priest.o \
+	$(OTTY)quest.o    $(OTTY)questpgr.o $(OTTY)read.o     $(OTTY)rect.o \
+	$(OTTY)region.o   $(OTTY)report.o   $(OTTY)restore.o  $(OTTY)rip.o \
+	$(OTTY)rnd.o      $(OTTY)role.o     $(OTTY)rumors.o   $(OTTY)save.o \
+	$(OTTY)selvar.o   $(OTTY)sfbase.o   $(OTTY)sfstruct.o $(OTTY)shk.o \
+	$(OTTY)shknam.o   $(OTTY)sit.o      $(OTTY)sounds.o   $(OTTY)sp_lev.o \
+	$(OTTY)spell.o    $(OTTY)stairs.o   $(OTTY)steal.o    $(OTTY)steed.o \
+	$(OTTY)strutil.o  $(OTTY)symbols.o  $(OTTY)sys.o      $(OTTY)teleport.o \
+	$(OTTY)timeout.o  $(OTTY)topten.o   $(OTTY)track.o    $(OTTY)trap.o \
+	$(OTTY)u_init.o   $(OTTY)uhitm.o    $(OTTY)utf8map.o  $(OTTY)vault.o \
+	$(OTTY)vision.o   $(OTTY)weapon.o   $(OTTY)were.o     $(OTTY)wield.o \
+	$(OTTY)windows.o  $(OTTY)wizard.o   $(OTTY)wizcmds.o  $(OTTY)worm.o \
+	$(OTTY)worn.o     $(OTTY)write.o    $(OTTY)zap.o
 
 OBJSTTY = $(MDLIBTTY) $(COREOBJTTY) $(REGEXTTY) $(RANDOMTTY)
 
@@ -928,34 +939,35 @@ GUIOBJ	= $(OGUI)mhaskyn.o $(OGUI)mhdlg.o \
 COREOBJGUI = \
 	$(OGUI)allmain.o  $(OGUI)alloc.o    $(OGUI)apply.o    $(OGUI)artifact.o \
 	$(OGUI)attrib.o   $(OGUI)ball.o     $(OGUI)bones.o    $(OGUI)botl.o \
-	$(OGUI)calendar.o $(OGUI)cmd.o      $(OGUI)coloratt.o $(OGUI)dbridge.o \
-	$(OGUI)decl.o     $(OGUI)detect.o   $(OGUI)dig.o      $(OGUI)display.o \
-	$(OGUI)do.o       $(OGUI)do_name.o  $(OGUI)do_wear.o  $(OGUI)dog.o \
-	$(OGUI)dogmove.o  $(OGUI)dokick.o   $(OGUI)dothrow.o  $(OGUI)drawing.o \
-	$(OGUI)dungeon.o  $(OGUI)eat.o      $(OGUI)end.o      $(OGUI)engrave.o \
-	$(OGUI)exper.o    $(OGUI)explode.o  $(OGUI)extralev.o $(OGUI)files.o \
-	$(OGUI)fountain.o $(OGUI)getpos.o   $(OGUI)glyphs.o   $(OGUI)hack.o \
-	$(OGUI)insight.o  $(OGUI)invent.o   $(OGUI)isaac64.o  $(OGUI)light.o \
-	$(OGUI)lock.o     $(OGUI)mail.o     $(OGUI)makemon.o  $(OGUI)mcastu.o \
-	$(OGUI)mhitm.o    $(OGUI)mhitu.o    $(OGUI)minion.o   $(OGUI)mklev.o \
-	$(OGUI)mkmap.o    $(OGUI)mkmaze.o   $(OGUI)mkobj.o    $(OGUI)mkroom.o \
-	$(OGUI)mon.o      $(OGUI)mondata.o  $(OGUI)monmove.o  $(OGUI)monst.o \
-	$(OGUI)mplayer.o  $(OGUI)mthrowu.o  $(OGUI)muse.o     $(OGUI)music.o \
-	$(OGUI)o_init.o   $(OGUI)objects.o  $(OGUI)objnam.o   $(OGUI)options.o \
-	$(OGUI)pager.o    $(OGUI)pickup.o   $(OGUI)pline.o    $(OGUI)polyself.o \
-	$(OGUI)potion.o   $(OGUI)pray.o     $(OGUI)priest.o   $(OGUI)quest.o \
-	$(OGUI)questpgr.o $(OGUI)read.o     $(OGUI)rect.o     $(OGUI)region.o \
-	$(OGUI)report.o   $(OGUI)restore.o  $(OGUI)rip.o      $(OGUI)rnd.o \
-	$(OGUI)role.o     $(OGUI)rumors.o   $(OGUI)save.o     $(OGUI)selvar.o \
-	$(OGUI)sfstruct.o $(OGUI)shk.o      $(OGUI)shknam.o   $(OGUI)sit.o \
-	$(OGUI)sounds.o   $(OGUI)sp_lev.o   $(OGUI)spell.o    $(OGUI)stairs.o \
-	$(OGUI)steal.o    $(OGUI)steed.o    $(OGUI)strutil.o  $(OGUI)symbols.o \
-	$(OGUI)sys.o      $(OGUI)teleport.o $(OGUI)timeout.o  $(OGUI)topten.o \
-	$(OGUI)track.o    $(OGUI)trap.o     $(OGUI)u_init.o   $(OGUI)uhitm.o \
-	$(OGUI)utf8map.o  $(OGUI)vault.o    $(OGUI)vision.o   $(OGUI)weapon.o \
-	$(OGUI)were.o     $(OGUI)wield.o    $(OGUI)windows.o  $(OGUI)wizard.o \
-	$(OGUI)wizcmds.o  $(OGUI)worm.o     $(OGUI)worn.o     $(OGUI)write.o \
-	$(OGUI)zap.o
+	$(OGUI)calendar.o $(OGUI)cfgfiles.o $(OGUI)cmd.o      $(OGUI)coloratt.o \
+	$(OGUI)dbridge.o  $(OGUI)decl.o     $(OGUI)detect.o   $(OGUI)dig.o \
+	$(OGUI)display.o  $(OGUI)do.o       $(OGUI)do_name.o  $(OGUI)do_wear.o \
+	$(OGUI)dog.o      $(OGUI)dogmove.o  $(OGUI)dokick.o   $(OGUI)dothrow.o \
+	$(OGUI)drawing.o  $(OGUI)dungeon.o  $(OGUI)eat.o      $(OGUI)end.o \
+	$(OGUI)engrave.o  $(OGUI)exper.o    $(OGUI)explode.o  $(OGUI)extralev.o \
+	$(OGUI)files.o    $(OGUI)fountain.o $(OGUI)getpos.o   $(OGUI)glyphs.o \
+	$(OGUI)iactions.o \
+	$(OGUI)hack.o     $(OGUI)insight.o  $(OGUI)invent.o   $(OGUI)isaac64.o \
+	$(OGUI)light.o    $(OGUI)lock.o     $(OGUI)mail.o     $(OGUI)makemon.o \
+	$(OGUI)mcastu.o   $(OGUI)mhitm.o    $(OGUI)mhitu.o    $(OGUI)minion.o \
+	$(OGUI)mklev.o    $(OGUI)mkmap.o    $(OGUI)mkmaze.o   $(OGUI)mkobj.o \
+	$(OGUI)mkroom.o   $(OGUI)mon.o      $(OGUI)mondata.o  $(OGUI)monmove.o \
+	$(OGUI)monst.o    $(OGUI)mplayer.o  $(OGUI)mthrowu.o  $(OGUI)muse.o \
+	$(OGUI)music.o    $(OGUI)o_init.o   $(OGUI)objects.o  $(OGUI)objnam.o \
+	$(OGUI)options.o  $(OGUI)pager.o    $(OGUI)pickup.o   $(OGUI)pline.o \
+	$(OGUI)polyself.o $(OGUI)potion.o   $(OGUI)pray.o     $(OGUI)priest.o \
+	$(OGUI)quest.o    $(OGUI)questpgr.o $(OGUI)read.o     $(OGUI)rect.o \
+	$(OGUI)region.o   $(OGUI)report.o   $(OGUI)restore.o  $(OGUI)rip.o \
+	$(OGUI)rnd.o      $(OGUI)role.o     $(OGUI)rumors.o   $(OGUI)save.o \
+	$(OGUI)selvar.o   $(OGUI)sfbase.o   $(OGUI)sfstruct.o $(OGUI)shk.o \
+	$(OGUI)shknam.o   $(OGUI)sit.o      $(OGUI)sounds.o   $(OGUI)sp_lev.o \
+	$(OGUI)spell.o    $(OGUI)stairs.o   $(OGUI)steal.o    $(OGUI)steed.o \
+	$(OGUI)strutil.o  $(OGUI)symbols.o  $(OGUI)sys.o      $(OGUI)teleport.o \
+	$(OGUI)timeout.o  $(OGUI)topten.o   $(OGUI)track.o    $(OGUI)trap.o \
+	$(OGUI)u_init.o   $(OGUI)uhitm.o    $(OGUI)utf8map.o  $(OGUI)vault.o \
+	$(OGUI)vision.o   $(OGUI)weapon.o   $(OGUI)were.o     $(OGUI)wield.o \
+	$(OGUI)windows.o  $(OGUI)wizard.o   $(OGUI)wizcmds.o  $(OGUI)worm.o \
+	$(OGUI)worn.o     $(OGUI)write.o    $(OGUI)zap.o
 
 OBJSGUI   = $(MDLIBGUI) $(COREOBJGUI) $(REGEXGUI) $(RANDOMGUI)
 
@@ -1147,8 +1159,8 @@ HACK_H = $(CONFIG_H) $(INCL)align.h $(INCL)artilist.h \
 	$(INCL)skills.h $(INCL)sndprocs.h $(INCL)spell.h \
 	$(INCL)stairs.h $(INCL)sym.h $(INCL)sys.h \
 	$(INCL)timeout.h $(INCL)trap.h $(INCL)vision.h \
-	$(INCL)winprocs.h $(INCL)wintype.h $(INCL)you.h \
-	$(INCL)youprop.h
+	$(INCL)weight.h $(INCL)winprocs.h $(INCL)wintype.h \
+	$(INCL)you.h $(INCL)youprop.h
 
 TILE_H      = $(WSHR)tile.h
 
@@ -1173,7 +1185,7 @@ R_CTAGSDIR=$(LIBDIR)ctags
 CTAGSDIR=$(R_CTAGSDIR)$(BACKSLASH)
 #U_CTAGSDIR=$(CTAGSDIR:\=/)
 !ELSE
-R_CTAGSDIR=..\..\..\ctags
+R_CTAGSDIR=..\lib\ctags
 CTAGSDIR=$(R_CTAGSDIR)$(BACKSLASH)
 #U_CTAGSDIR=$(CTAGSDIR:\=/)
 !ENDIF
@@ -1195,15 +1207,13 @@ rc=Rc.exe
 # is too old or untested.
 #
 # Recently tested versions:
-TESTEDVS2019 = 14.29.30157.0
-TESTEDVS2022 = 14.43.34808.0
+TESTEDVS2022 = 14.44.35222.0
+TESTEDVS2026 = 14.50.35723.0
 
-VS2019CUR = $(TESTEDVS2019:.=)
-VS2022CUR = $(TESTEDVS2022:.=)
-VS2019UP1 = $(VS2019CUR) + 1
-VS2022UP1 = $(VS2022CUR) + 1
-VS20191ST = 1419300000
-VS20221ST = $(VS2019UP1)
+VS20261ST = 1450000000
+VS2026CUR = $(TESTEDVS2026:.=)
+VS2026DN1 = $(VS20261ST) - 1
+VS2026UP1 = $(VS2026CUR) + 1
 
 #!MESSAGE $(MAKEFLAGS)
 #!MESSAGE $(MAKEDIR)
@@ -1215,28 +1225,25 @@ MAKEVERSION=$(MAKEVERSION: =)
 #!MESSAGE $(MAKEVERSION)
 
 VSSPECIAL=
-VSNEWEST=2022
+VSNEWEST=2026
 !IF ($(MAKEVERSION) < 1411000000)
 VSVER=0000		#untested ancient version
-!ELSEIF ($(MAKEVERSION) < $(VS20191ST))
-VSVER=2017
-!ELSEIF ($(MAKEVERSION) > $(VS20191ST)) && ($(MAKEVERSION) < $(VS2019UP1))
-VSVER=2019
-!ELSEIF ($(MAKEVERSION) > $(VS20221ST)) && ($(MAKEVERSION) < $(VS2022UP1))
+!ELSEIF ($(MAKEVERSION) < $(VS20261ST))
 VSVER=2022
-!ELSEIF ($(MAKEVERSION) > $(VS2022CUR))
+!ELSEIF ($(MAKEVERSION) > $(VS20261ST)) && ($(MAKEVERSION) < $(VS2026UP1))
+VSVER=2026
+!ELSEIF ($(MAKEVERSION) > $(VS2026CUR))
 VSVER=2999              #untested future version
 !ENDIF
 
-!IF ($(VSVER) >= 2012)
 !IF ($(VSVER) <= $(VSNEWEST))
-!IF ($(VSVER) == 2017)
-!MESSAGE Autodetected Visual Studio $(VSVER) which we stopped testing with in March 2024
+!IF ($(MAKEVERSION) < $(VS20261ST))
+!MESSAGE Autodetected Visual Studio $(VSVER) or earlier
 !ELSE
 !MESSAGE Autodetected Visual Studio $(VSVER) $(VSSPECIAL)
 !ENDIF
 !ENDIF
-!ENDIF
+
 !IF ($(VSVER) == 2999)
 !MESSAGE The NMAKE version of this Visual Studio $(_NMAKE_VER) is newer than the
 !MESSAGE most recent at the time this Makefile was crafted (Visual Studio $(VSNEWEST)).
@@ -1244,23 +1251,9 @@ VSVER=2999              #untested future version
 !MESSAGE will still work.
 !ELSEIF ($(VSVER) == 0000)
 !MESSAGE The version of Visual Studio appears to be quite old, older
-!MESSAGE than VS2010 which is the oldest supported version by this
+!MESSAGE than VS2010 which is the oldest version confirmed to work with this
 !MESSAGE Makefile, so we'll stop now.
 !ERROR Untested old Visual Studio version with NMAKE $(_NMAKE_VER).
-!ENDIF
-
-!IF ($(VSVER) == 2010)
-# For VS2010 use "setenv /x86" or "setenv /x64" before invoking make process
-# DO NOT DELETE THE FOLLOWING LINE
-!include <win32.mak>
-! ENDIF
-
-!IF ($(VSVER) == 2010)
-CL_RECENT=
-!ELSE
-! IF ($(VSVER) > 2010)
-CL_RECENT=-sdl
-! ENDIF
 !ENDIF
 
 !IF ($(VSVER) >= 2019) && ("$(WANT_ASAN)"=="Y")
@@ -1304,30 +1297,42 @@ scall  = -Gz
 !ELSEIF "$(TARGET_CPU)" == "x64"
 ctmpflags = $(ctmpflags1) -D_AMD64_=1 -DWIN64 -D_WIN64  -DWIN32 -D_WIN32 -W4
 scall  =
+!ELSEIF "$(TARGET_CPU)" == "arm64"
+ctmpflags = $(ctmpflags1) -DWIN64 -D_WIN64  -DWIN32 -D_WIN32 -W4
+scall  =
 !ENDIF
 
 !IF ($(VSVER) >= 2012)
 #
 # 4100 unreferenced formal parameter
+# 4101 'identifier': unreferenced local variable
+# 4102 'label': unreferenced label
 # 4131 old-style declarator
+# 4201 'nonstandard extension used : nameless struct/union'
 # 4244 conversion possible loss of data
 # 4245 conversion from 'char' to 'uchar', signed/unsigned mismatch
 # 4310 a constant value is cast to a smaller type
+# 4324 'structname': structure was padded due to alignment specifier
+# 4431 missing type specifier - int assumed. Note: C no longer supports default-int
 # 4706 assignment within conditional
 # 4774 format string is not a string literal (default is off at W4)
 # 4777 format string requires an argument of type 'type',
 #      but variadic argument 'position' has type 'type'
 # 4820 padding in struct
 # 5262 enable fallthrough warnings that lack [[fallthrough]]
+# 5264 'variable-name': 'const' variable is not used
+# 5266 'const' qualifier on return type has no effect
+# 6001 'Using uninitialized memory'
 #
-ctmpflags = $(ctmpflags:-W3=-W4) -wd4100 -wd4244 -wd4245 -wd4310 -wd4706 -w44777 -wd4820
+#ctmpflags = $(ctmpflags:-W3=-W4) -wd4100 -wd4244 -wd4245 -wd4310 -wd4706
+ctmpflags = $(ctmpflags:-W3=-W4) -wd4244 -wd4245 -wd4310 -wd4706 -w44101 -w44102
 !IF ($(VSVER) >= 2019)
 ctmpflags = $(ctmpflags) -w44774
 !ENDIF
 !IF ($(VSVER) >= 2022)
 !IF ($(MAKEVERSION) >= 1440338120)
 # warning 5262 became available starting in Visual Studio 2022 version 17.4.
-ctmpflags = $(ctmpflags) -w45262 /std:clatest
+ctmpflags = $(ctmpflags) -w45262 -w45264 -w45266 -w44431 -w44777 -wd4820 /std:clatest
 !ENDIF
 !ENDIF
 !ENDIF
@@ -1352,13 +1357,19 @@ DLLENTRY =
 MACHINE=/MACHINE:X64
 !ENDIF
 
+# declarations for use on arm64 systems
+!IF "$(TARGET_CPU)" == "arm64"
+DLLENTRY =
+MACHINE=/MACHINE:arm64
+!ENDIF
+
 # for Windows applications
 conlflags = $(lflags) -subsystem:console
 guilflags = $(lflags) -subsystem:windows
 
 # basic subsystem specific libraries, less the C Run-Time
 baselibs    = kernel32.lib $(optlibs) $(winsocklibs) advapi32.lib gdi32.lib \
-		ole32.lib Shell32.lib dbghelp.lib
+		ole32.lib Shell32.lib UserEnv.lib dbghelp.lib Rpcrt4.lib
 winlibs     = $(baselibs) user32.lib comdlg32.lib winspool.lib
 
 # for Windows applications that use the C Run-Time libraries
@@ -1477,6 +1488,8 @@ DLB =
 #==========================================
 
 {$(R_UTIL)}.c{$(R_OBJUTIL)}.o:
+	echo R_UTIL=$(R_UTIL)
+	echo R_OBJUTIL=$(R_OBJUTIL)
 	$(Q)$(CC) $(CFLAGS) -Fo$@ $<
 
 #==========================================
@@ -1613,8 +1626,8 @@ $(PDCURSES_TOP)curses.h:
 #	git submodule update --remote $(SUBM)$(R_PDCDIST)
 !ENDIF
 !ELSE  # GIT_AVAILABLE no
-CURLLUASRC=https://www.lua.org/ftp/lua-5.4.6.tar.gz
-CURLLUADST=lua-5.4.6.tar.gz
+CURLLUASRC=http://www.lua.org/ftp/lua-5.4.8.tar.gz
+CURLLUADST=lua-5.4.8.tar.gz
 
 #CURLPDCSRC=https://github.com/wmcbrine/PDCurses/archive/refs/tags/3.9.zip
 CURLPDCSRC=https://github.com/Bill-Gray/PDCursesMod/archive/refs/tags/v4.4.0.zip
@@ -1740,6 +1753,7 @@ binary.tag: 	$(DAT)data $(DAT)rumors $(DAT)oracles $(DLB) \
 	if exist $(DAT)symbols copy $(DAT)symbols $(GAMEDIR)symbols
 	if exist $(DOC)guidebook.txt copy $(DOC)guidebook.txt $(GAMEDIR)Guidebook.txt
 	if exist $(DOC)xnethack.txt copy $(DOC)xnethack.txt $(GAMEDIR)xNetHack.txt
+#	if exist $(UTIL)sfctool.pdb copy $(UTIL)sfctool.pdb $(GAMEDIR)sfctool.pdb
 	@if exist $(GAMEDIR)xNetHack.PDB echo NOTE: You may want to remove $(U_GAMEDIR)/xNetHack.PDB to conserve space
 	@if exist $(GAMEDIR)xNetHackW.PDB echo NOTE: You may want to remove $(U_GAMEDIR)/xNetHackW.PDB to conserve space
 	-if exist $(MSWSYS)xnethackrc.template copy $(MSWSYS)xnethackrc.template   $(R_GAMEDIR)
@@ -1784,7 +1798,7 @@ $(OUTL)utility.tag: $(INCL)nhlua.h outldir$(TARGET_CPU).tag $(OUTLHACKLIB) $(U)t
 $(INCL)nhlua.h:
 	@echo  /* nhlua.h - generated by Makefile from Makefile.nmake */ > $@
 	@echo #include "lua.h" >> $@
-	@echo LUA_API int   (lua_error) (lua_State *L) NORETURN; >> $@
+	@echo ATTRNORETURN LUA_API int   (lua_error) (lua_State *L) NORETURN; >> $@
 	@echo #include "lualib.h" >> $@
 	@echo #include "lauxlib.h" >> $@
 	@echo /*nhlua.h*/ >> $@
@@ -1882,6 +1896,14 @@ $(OGUI)date.o: $(HACKINCL) $(HACKSRC) $(HACKOBJ) $(ALLOBJGUI)
 	@echo.>>date.nmk
 	@$(MAKE) /NOLOGO /A -f date.nmk
 !ENDIF
+
+$(OGUI)sfbase.o: sfbase.c $(HACK_H) $(INCL)sfmacros.h
+	$(Q)$(CC) $(CFLAGS) /EP  $(@B).c > $(OGUI)$(@B).c.preproc
+	$(Q)$(CC) $(CFLAGS) -Fo$@ $(@B).c
+
+$(OTTY)sfbase.o: sfbase.c $(HACK_H) $(INCL)sfmacros.h
+	$(Q)$(CC) $(CFLAGS) /EP  $(@B).c > $(OTTY)$(@B).c.preproc
+	$(Q)$(CC) $(CFLAGS) -Fo$@ $(@B).c
 
 #
 #  date.h is not used with NetHack 3.7
@@ -2024,7 +2046,11 @@ cpu.tag:
 !	IF "$(TARGET_CPU)"=="x64"
 	@echo Windows x64 64-bit target build
 !	ELSE
+!          IF "$(TARGET_CPU)"=="arm64"
+	@echo Windows arm64 64-bit target build
+!          ELSE
 	@echo Windows x86 32-bit target build
+!          ENDIF
 !	ENDIF
 	@echo cpu >$@
 
@@ -2038,7 +2064,7 @@ fetch-Lua: fetch-actual-Lua
 fetch-actual-Lua:
 	@if not exist $(LIBDIR)*.* mkdir $(R_LIBDIR)
 	cd $(LIBDIR)
-	curl -R -O https://www.lua.org/ftp/lua-$(LUAVER).tar.gz
+	curl -L -R -O http://www.lua.org/ftp/lua-$(LUAVER).tar.gz
 	tar zxf lua-$(LUAVER).tar.gz
 	if exist lua-$(LUAVER).tar.gz del lua-$(LUAVER).tar.gz
 	if exist lua-$(LUAVER).tar del lua-$(LUAVER).tar
@@ -2050,7 +2076,7 @@ fetch-pdcurses:
 	@if not exist $(LIBDIR)*.* mkdir $(R_LIBDIR)
 	cd $(LIBDIR)
 #	curl -L -R https://codeload.github.com/wmcbrine/PDCurses/zip/master -o pdcurses.zip
-	curl -L -R https://github.com/Bill-Gray/PDCursesMod/archive/refs/tags/v4.3.5.zip -o $(PDCDIST).zip
+	curl -L -R https://github.com/Bill-Gray/PDCursesMod/archive/refs/tags/v4.5.1.zip -o $(PDCDIST).zip
 	powershell -command "Expand-Archive -Path .\$(PDCDIST).zip -DestinationPath ./$(PDCDIST)-temp"
 	if exist .\$(PDCDIST)\* rd .\$(PDCDIST) /s /Q
 	move .\$(PDCDIST)-temp\PDCurses-master .
@@ -2060,6 +2086,54 @@ fetch-pdcurses:
 	cd $(R_SRC)
 	@echo $(PDCDIST) has been fetched into $(LIBDIR)$(PDCDIST)
 !ENDIF
+
+#https://github.com/universal-ctags/ctags/archive/refs/tags/v6.2.1.zip
+CTAGSVER=6.2.1
+CTAGSURL=https://github.com/universal-ctags/ctags/archive/refs/tags/v$(CTAGSVER).zip
+
+fetch-ctags: $(LIBDIR)ctags.zip
+
+build-ctags: $(LIBDIR)ctags\ctags-$(CTAGSVER)\ctags.exe
+
+$(LIBDIR)ctags\ctags-$(CTAGSVER)\ctags.exe: $(LIBDIR)ctags\ctags-$(CTAGSVER)\mk_mvc.mak
+	@ECHO on
+	cd $(LIBDIR)
+	cd ctags\ctags-$(CTAGSVER)
+	copy win32\config_mvc.h config.h
+	copy win32\gnulib_h\langinfo.h gnulib
+	copy win32\gnulib_h\fnmatch.h gnulib
+	nmake -f mk_mvc.mak
+        copy /Y ctags.exe ..\ctags.exe
+	@echo ctags has been compiled into $(LIBDIR)ctags
+	@ECHO off
+	cd ..\..
+	cd $(R_SRC)
+
+$(LIBDIR)ctags.zip:
+	@if not exist $(LIBDIR)*.* mkdir $(R_LIBDIR)
+	cd $(LIBDIR)
+	curl -L -R $(CTAGSURL) -o ctags.zip
+	cd $(R_SRC)
+	@echo ctags source has been fetched into $@
+
+$(LIBDIR)ctags\ctags-$(CTAGSVER)\mk_mvc.mak: $(LIBDIR)ctags.zip
+	@if not exist $(LIBDIR)*.* mkdir $(R_LIBDIR)
+	cd $(LIBDIR)
+	powershell -command "Expand-Archive -Path $(LIBDIR)ctags.zip -DestinationPath $(LIBDIR)ctags"
+	cd $(R_SRC)
+	@echo ctags source has been expanded from zip file into $(LIBDIR)\ctags\ctags-$(CTAGSVER)
+
+clean-ctags:
+	cd $(LIBDIR)
+	rd $(LIBDIR)\ctags\ctags-$(CTAGSVER) /S
+        cd $(R_SRC)
+
+spotless-ctags:
+	cd $(LIBDIR)
+	@if exist ctags\ctags.exe del ctags\ctags.exe
+	@if exist ctags.zip del ctags.zip
+        cd $(R_SRC)
+
 
 #==========================================
 # DLB utility and nhdatNNN file creation
@@ -2479,6 +2553,187 @@ $(DAT)epitaph: $(U)makedefs.exe $(DAT)epitaph.txt
 $(DAT)bogusmon: $(U)makedefs.exe $(DAT)bogusmon.txt
 	$(U)makedefs -3
 
+# This is the universal ctags utility which produces the tags in the
+# format that util/readtags requires.
+# https://github.com/universal-ctags/ctags.git
+
+#===============================================================================
+# sfutil
+#===============================================================================
+SFCTOOLBIN = $(BinDir)sfctool.exe
+!IF "$(SFCTOOL)" == "1"
+SFCTOOLPKG=$(SFCTOOLBIN)
+SFCTOOLBASENAM=sfctool.exe
+SFCTOOLPDBNAM=sfctool.PDB
+SFCTOOLPDBBIN=$(BinDir)sfctool.PDB
+!ELSE
+SFCTOOLPKG=
+SFCTOOLBASENAM=
+SFCTOOLPDBNAM=
+SFCTOOLPDBBIN=
+!ENDIF
+
+!IF "$(SFCTOOLPKG)" != ""
+SFCTOOLOBJS = $(OUTL)sfctool.o \
+	    $(OUTL)sf-alloc.o $(OUTL)sf-artifact.o $(OUTL)sfdata.o \
+	    $(OUTL)sf-date.o $(OUTL)sf-decl.o $(OUTL)sf-calendar.o \
+	    $(OUTL)sf-cfgfiles.o $(OUTL)sf-dungeon.o $(OUTL)sf-end.o \
+	    $(OUTL)sf-engrave.o $(OUTL)sf-files.o $(OUTL)sf-light.o \
+	    $(OUTL)sf-mdlib.o $(OUTL)sf-mkmaze.o $(OUTL)sf-mkroom.o \
+	    $(OUTL)sf-monst.o $(OUTL)sf-nhlua.o $(OUTL)sf-objects.o \
+	    $(OUTL)sf-o_init.o $(OUTL)panic.o $(OUTL)sf-region.o \
+	    $(OUTL)sf-restore.o $(OUTL)sf-rumors.o $(OUTL)sfbase.o \
+	    $(OUTL)sfexpasc.o $(OUTL)sf-struct.o $(OUTL)strutil.o \
+	    $(OUTL)sf-sys.o $(OUTL)sf-timeout.o $(OUTL)sf-track.o \
+	    $(OUTL)sf-version.o $(OUTL)sf-worm.o $(OUTL)sf-windsys.o
+
+SFFLAGS = -DSFCTOOL -DNOPANICTRACE -DNOCRASHREPORT -DNO_CHRONICLE
+
+#CTAGSCMD = $(LIB)\ctags\ctags.exe
+
+#
+#       dependencies for optional sfctool
+#
+# 	$(Q)$(CC) $(CFLAGS) -Fo$@ monst.c
+
+#$(UTIL)sfutil.exe: $(SFCTOOLBIN)
+#$(UTIL)sfctool.exe: $(SFCTOOLBIN)
+
+$(SFCTOOLBIN): $(OUTLHACKLIB) $(SFCTOOLOBJS)
+	$(link) $(lflags) -out:$@ /PDB:$(BinDir)$(@B).PDB $(SFCTOOLOBJS) \
+		$(LIBS) ole32.lib Shell32.lib userenv.lib advapi32.lib $(OUTLHACKLIB)
+	@echo '$(SFCTOOLBIN) is up to date.'
+$(OUTL)sfctool.o: $(UTIL)sfctool.c $(HACK_H) $(INCL)sfprocs.h
+	$(Q)$(CC) $(CFLAGS) $(SFFLAGS) -Fo$@ -c $(UTIL)sfctool.c
+$(OUTL)sfdata.o: $(UTIL)sfdata.c $(HACK_H) $(INCL)sfprocs.h $(INCL)sfproto.h
+	$(Q)$(CC) $(CFLAGS) $(SFFLAGS) -Fo$@ -c $(UTIL)sfdata.c
+$(OUTL)sfexpasc.o: $(UTIL)sfexpasc.c $(HACK_H) $(INCL)sfprocs.h $(INCL)sfproto.h $(INCL)sfmacros.h
+	$(Q)$(CC) $(CFLAGS) $(SFFLAGS) -Fo$@ -c $(UTIL)sfexpasc.c
+$(OUTL)sf-alloc.o: $(SRC)alloc.c $(HACK_H)
+	$(Q)$(CC) $(CFLAGS) $(SFFLAGS) -Fo$@ -c $(SRC)alloc.c
+$(OUTL)sf-date.o: $(SRC)date.c $(HACK_H)
+	$(Q)$(CC) $(CFLAGS) $(SFFLAGS) -Fo$@ -c $(SRC)date.c
+$(OUTL)sf-decl.o: $(SRC)decl.c $(HACK_H)
+	$(Q)$(CC) $(CFLAGS) $(SFFLAGS) -Fo$@ -c $(SRC)decl.c
+$(OUTL)sf-monst.o: $(SRC)monst.c $(HACK_H)
+	$(Q)$(CC) $(CFLAGS) $(SFFLAGS) -Fo$@ -c $(SRC)monst.c
+$(OUTL)sf-objects.o: $(SRC)objects.c $(HACK_H)
+	$(Q)$(CC) $(CFLAGS) $(SFFLAGS) -Fo$@ -c $(SRC)objects.c
+$(OUTL)sfbase.o: $(SRC)sfbase.c $(HACK_H) $(INCL)sfmacros.h
+	$(Q)$(CC) $(CFLAGS) $(SFFLAGS) -Fo$@ -c $(SRC)sfbase.c
+$(OUTL)sf-struct.o: $(SRC)sfstruct.c $(HACK_H) $(INCL)sfmacros.h
+	$(Q)$(CC) $(CFLAGS) $(SFFLAGS) -Fo$@ -c $(SRC)sfstruct.c
+$(OUTL)sf-artifact.o: $(SRC)artifact.c $(HACK_H)
+	$(Q)$(CC) $(CFLAGS) $(SFFLAGS) -Fo$@ -c $(SRC)artifact.c
+$(OUTL)sf-calendar.o: $(SRC)calendar.c $(HACK_H)
+	$(Q)$(CC) $(CFLAGS) $(SFFLAGS) -Fo$@ -c $(SRC)calendar.c
+$(OUTL)sf-cfgfiles.o: $(SRC)cfgfiles.c $(HACK_H)
+	$(Q)$(CC) $(CFLAGS) $(SFFLAGS) -Fo$@ -c $(SRC)cfgfiles.c
+$(OUTL)sf-dungeon.o: $(SRC)dungeon.c $(HACK_H)
+	$(Q)$(CC) $(CFLAGS) $(SFFLAGS) -Fo$@ -c $(SRC)dungeon.c
+$(OUTL)sf-end.o: $(SRC)end.c $(HACK_H)
+	$(Q)$(CC) $(CFLAGS) $(SFFLAGS) -Fo$@ -c $(SRC)end.c
+$(OUTL)sf-engrave.o: $(SRC)engrave.c $(HACK_H)
+	$(Q)$(CC) $(CFLAGS) $(SFFLAGS) -Fo$@ -c $(SRC)engrave.c
+$(OUTL)sf-files.o: $(SRC)files.c $(HACK_H)
+	$(Q)$(CC) $(CFLAGS) $(SFFLAGS) -Fo$@ -c $(SRC)files.c
+$(OUTL)sf-light.o: $(SRC)light.c $(HACK_H)
+	$(Q)$(CC) $(CFLAGS) $(SFFLAGS) -Fo$@ -c $(SRC)light.c
+$(OUTL)sf-mdlib.o: $(SRC)mdlib.c $(HACK_H)
+	$(Q)$(CC) $(CFLAGS) $(SFFLAGS) -Fo$@ -c $(SRC)mdlib.c
+$(OUTL)sf-mkmaze.o: $(SRC)mkmaze.c $(HACK_H)
+	$(Q)$(CC) $(CFLAGS) $(SFFLAGS) -Fo$@ -c $(SRC)mkmaze.c
+$(OUTL)sf-mkroom.o: $(SRC)mkroom.c $(HACK_H)
+	$(Q)$(CC) $(CFLAGS) $(SFFLAGS) -Fo$@ -c $(SRC)mkroom.c
+$(OUTL)sf-o_init.o: $(SRC)o_init.c $(HACK_H)
+	$(Q)$(CC) $(CFLAGS) $(SFFLAGS) -Fo$@ -c $(SRC)o_init.c
+$(OUTL)sf-region.o: $(SRC)region.c $(HACK_H)
+	$(Q)$(CC) $(CFLAGS) $(SFFLAGS) -Fo$@ -c $(SRC)region.c
+$(OUTL)sf-restore.o: $(SRC)restore.c $(HACK_H)
+	$(Q)$(CC) $(CFLAGS) $(SFFLAGS) -Fo$@ -c $(SRC)restore.c
+$(OUTL)sf-rumors.o: $(SRC)\rumors.c $(HACK_H)
+	$(Q)$(CC) $(CFLAGS) $(SFFLAGS) -Fo$@ -c $(SRC)rumors.c
+$(OUTL)sf-timeout.o: $(SRC)timeout.c $(HACK_H)
+	$(Q)$(CC) $(CFLAGS) $(SFFLAGS) -Fo$@ -c $(SRC)timeout.c
+$(OUTL)sf-version.o: $(SRC)version.c $(HACK_H)
+	$(Q)$(CC) $(CFLAGS) $(SFFLAGS) -Fo$@ -c $(SRC)version.c
+$(OUTL)sf-worm.o: $(SRC)worm.c $(HACK_H)
+	$(Q)$(CC) $(CFLAGS) $(SFFLAGS) -Fo$@ -c $(SRC)worm.c
+$(OUTL)sf-nhlua.o: $(SRC)nhlua.c $(HACK_H)
+	$(Q)$(CC) $(CFLAGS) $(SFFLAGS) -Fo$@ -c $(SRC)nhlua.c
+$(OUTL)sf-track.o: $(SRC)track.c $(HACK_H)
+	$(Q)$(CC) $(CFLAGS) $(SFFLAGS) -Fo$@ -c $(SRC)track.c
+$(OUTL)sf-sys.o: $(SRC)sys.c $(HACK_H)
+	$(Q)$(CC) $(CFLAGS) $(SFFLAGS) -Fo$@ -c $(SRC)sys.c
+$(OUTL)sf-windsys.o: $(MSWSYS)windsys.c $(HACK_H)
+	$(Q)$(CC) $(CFLAGS) $(SFFLAGS) -Fo$@ -c $(MSWSYS)windsys.c
+
+$(UTIL)sftags.exe: $(OUTL)sftags.o $(OUTLHACKLIB)
+	$(link) $(LFLAGS) /OUT:$@ $(OUTL)sftags.o $(OUTLHACKLIB)
+$(OUTL)sftags.o: $(UTIL)sftags.c $(HACK_H)
+	$(Q)$(CC) $(CFLAGS) -Fo$@ -c $(UTIL)sftags.c
+$(INCL)sfproto.h: $(UTIL)sftags.exe $(UTIL)sf.tags
+	$(UTIL)sftags.exe
+$(UTIL)sfdata.c: $(UTIL)sftags.exe $(UTIL)sf.tags
+	$(UTIL)sftags.exe
+#       dependencies for sftags
+#       #
+CTAGDEP = $(INCL)align.h  $(INCL)artifact.h $(INCL)artilist.h \
+	  $(INCL)attrib.h $(INCL)context.h  $(INCL)coord.h    \
+	  $(INCL)decl.h   $(INCL)dungeon.h  $(INCL)engrave.h  \
+	  $(INCL)flag.h   $(INCL)func_tab.h $(INCL)global.h   \
+	  $(INCL)hack.h   $(INCL)mextra.h   \
+	  $(INCL)mkroom.h $(INCL)monst.h    \
+	  $(INCL)obj.h    $(INCL)objclass.h $(INCL)prop.h     \
+	  $(INCL)quest.h  $(INCL)rect.h     $(INCL)region.h   \
+	  $(INCL)rm.h     $(INCL)skills.h   $(INCL)spell.h    \
+	  $(INCL)stairs.h $(INCL)sys.h    $(INCL)timeout.h  \
+	  $(INCL)trap.h   $(INCL)you.h    $(INCL)onames.h   \
+	  $(INCL)wintype.h
+#	  $(INCL)permonst.h
+CTAGSOPT = --language-force=c --sort=no -D"Bitfield(x,n)=unsigned x : n" --excmd=pattern
+#
+$(UTIL)sf.tags: $(CTAGSCMD) $(CTAGDEP)
+	$(CTAGSCMD) $(CTAGSOPT) -f $@ $(INCL)align.h
+	$(CTAGSCMD) $(CTAGSOPT) -a -f $@ $(INCL)artifact.h
+	$(CTAGSCMD) $(CTAGSOPT) -a -f $@ $(SRC)artifact.c
+	$(CTAGSCMD) $(CTAGSOPT) -a -f $@ $(INCL)artilist.h
+	$(CTAGSCMD) $(CTAGSOPT) -a -f $@ $(INCL)attrib.h
+	$(CTAGSCMD) $(CTAGSOPT) -a -f $@ $(SRC)bones.c
+	$(CTAGSCMD) $(CTAGSOPT) -a -f $@ $(INCL)context.h
+	$(CTAGSCMD) $(CTAGSOPT) -a -f $@ $(INCL)coord.h
+	$(CTAGSCMD) $(CTAGSOPT) -a -f $@ $(INCL)decl.h
+	$(CTAGSCMD) $(CTAGSOPT) -a -f $@ $(SRC)decl.c
+	$(CTAGSCMD) $(CTAGSOPT) -a -f $@ $(INCL)dungeon.h
+	$(CTAGSCMD) $(CTAGSOPT) -a -f $@ $(INCL)engrave.h
+	$(CTAGSCMD) $(CTAGSOPT) -a -f $@ $(SRC)engrave.c
+	$(CTAGSCMD) $(CTAGSOPT) -a -f $@ $(INCL)flag.h
+	$(CTAGSCMD) $(CTAGSOPT) -a -f $@ $(INCL)func_tab.h
+	$(CTAGSCMD) $(CTAGSOPT) -a -f $@ $(INCL)global.h
+	$(CTAGSCMD) $(CTAGSOPT) -a -f $@ $(INCL)hack.h
+	$(CTAGSCMD) $(CTAGSOPT) -a -f $@ $(INCL)mextra.h
+	$(CTAGSCMD) $(CTAGSOPT) -a -f $@ $(INCL)mkroom.h
+	$(CTAGSCMD) $(CTAGSOPT) -a -f $@ $(INCL)monst.h
+	$(CTAGSCMD) $(CTAGSOPT) -a -f $@ $(INCL)defsym.h
+	$(CTAGSCMD) $(CTAGSOPT) -a -f $@ $(INCL)obj.h
+	$(CTAGSCMD) $(CTAGSOPT) -a -f $@ $(INCL)objclass.h
+#	$(CTAGSCMD) $(CTAGSOPT) -a -f $@ $(INCL)permonst.h
+	$(CTAGSCMD) $(CTAGSOPT) -a -f $@ $(INCL)prop.h
+	$(CTAGSCMD) $(CTAGSOPT) -a -f $@ $(INCL)quest.h
+	$(CTAGSCMD) $(CTAGSOPT) -a -f $@ $(INCL)rect.h
+	$(CTAGSCMD) $(CTAGSOPT) -a -f $@ $(INCL)region.h
+	$(CTAGSCMD) $(CTAGSOPT) -a -f $@ $(INCL)rm.h
+	$(CTAGSCMD) $(CTAGSOPT) -a -f $@ $(INCL)skills.h
+	$(CTAGSCMD) $(CTAGSOPT) -a -f $@ $(INCL)spell.h
+	$(CTAGSCMD) $(CTAGSOPT) -a -f $@ $(INCL)stairs.h
+	$(CTAGSCMD) $(CTAGSOPT) -a -f $@ $(INCL)sys.h
+	$(CTAGSCMD) $(CTAGSOPT) -a -f $@ $(INCL)timeout.h
+	$(CTAGSCMD) $(CTAGSOPT) -a -f $@ $(INCL)trap.h
+	$(CTAGSCMD) $(CTAGSOPT) -a -f $@ $(INCL)you.h
+	$(CTAGSCMD) $(CTAGSOPT) -a -f $@ $(INCL)onames.h
+	$(CTAGSCMD) $(CTAGSOPT) -a -f $@ $(INCL)wintype.h
+!ENDIF
+
 #===============================================================================
 # Integrated sound files
 #===============================================================================
@@ -2549,13 +2804,14 @@ $(SndWavDir)sa2_xplevelup.wav: $(SndWavDir)sa2_xplevelup.uu $(U)uudecode.exe
 #===============================================================================
 
 PKGFILES = xnethackrc.template Guidebook.txt license xNetHack.exe xNetHack.txt \
-	 xNetHackW.exe opthelp nhdat$(NHV) record symbols sysconf.template
+	 xNetHackW.exe opthelp nhdat$(NHV) record symbols \
+	 sysconf.template $(SFCTOOLBASENAM)
 FILESTOZIP = $(BinDir)xnethackrc.template $(BinDir)Guidebook.txt $(BinDir)license \
 	$(BinDir)xNetHack.exe $(BinDir)xNetHack.txt $(BinDir)xNetHackW.exe \
 	$(BinDir)opthelp $(BinDir)nhdat$(NHV) $(BinDir)record \
 	$(BinDir)symbols $(BinDir)sysconf.template
-DBGSYMS = xNetHack.PDB xNetHackW.PDB
-PDBTOZIP = $(BinDir)xNetHack.PDB $(BinDir)xNetHackW.PDB
+DBGSYMS = xNetHack.PDB xNetHackW.PDB $(SFCTOOLPDBNAM)
+PDBTOZIP = $(BinDir)xNetHack.PDB $(BinDir)xNetHackW.PDB $(SFCTOOLPDBBIN)
 MAINZIP = $(PkgDir)nethack-$(NHV)-win-$(TARGET_CPU).zip
 DBGSYMZIP = $(PkgDir)nethack-$(NHV)-win-$(TARGET_CPU)-debugsymbols.zip
 
@@ -2576,7 +2832,7 @@ binary:  envchk.tag libdir.tag ottydir$(TARGET_CPU).tag \
 		$(INCL)nhlua.h $(OUTL)utility.tag \
 		$(DAT)data $(DAT)rumors $(DAT)oracles $(DAT)engrave \
 		$(DAT)epitaph $(DAT)bogusmon $(GAMEDIR)xNetHack.exe \
-		$(GAMEDIR)xNetHackW.exe $(GAMEDIRDLLS) binary.tag
+		$(GAMEDIR)xNetHackW.exe $(SFCTOOLPKG) $(GAMEDIRDLLS) binary.tag
 	@echo NetHack is up to date.
 
 #===============================================================================
@@ -2614,6 +2870,13 @@ spotless: clean
 	if exist opdcdirx64.tag         del opdcdirx64.tag
 	if exist opdccdirx64.tag        del opdccdirx64.tag
 	if exist opdcgdirx64.tag        del opdcgdirx64.tag
+	if exist outldirarm64.tag       del outldirarm64.tag
+	if exist ottydirarm64.tag       del ottydirarm64.tag
+	if exist oguidirarm64.tag       del oguidirarm64.tag
+	if exist oluadirarm64.tag       del oluadirarm64.tag
+	if exist opdcdirarm64.tag       del opdcdirarm64.tag
+	if exist opdccdirarm64.tag      del opdccdirarm64.tag
+	if exist opdcgdirarm64.tag      del opdcgdirarm64.tag
 	if exist libdir.tag             del libdir.tag
 	if exist gamedir.tag            del gamedir.tag
 	if exist $(MSWIN)mnsel.bmp     del $(MSWIN)mnsel.bmp
@@ -2981,6 +3244,7 @@ $(OTTY)ball.o: ball.c $(HACK_H)
 $(OTTY)bones.o: bones.c $(HACK_H)
 $(OTTY)botl.o: botl.c $(HACK_H)
 $(OTTY)calendar.o: calendar.c $(HACK_H)
+$(OTTY)cfgfiles.o: cfgfiles.c $(HACK_H)
 $(OTTY)cmd.o: cmd.c $(HACK_H) $(INCL)func_tab.h
 $(OTTY)coloratt.o: coloratt.c $(HACK_H)
 $(OTTY)dbridge.o: dbridge.c $(HACK_H)
@@ -3014,6 +3278,7 @@ $(OTTY)getpos.o: getpos.c $(HACK_H)
 $(OTTY)glyphs.o: glyphs.c $(HACK_H)
 $(OTTY)hack.o: hack.c $(HACK_H)
 $(OTTY)hacklib.o: hacklib.c $(HACK_H)
+$(OTTY)iactions.o: iactions.c $(HACK_H)
 $(OTTY)insight.o: insight.c $(HACK_H)
 $(OTTY)invent.o: invent.c $(HACK_H)
 $(OTTY)isaac64.o: isaac64.c $(CONFIG_H) $(INCL)isaac64.h
@@ -3086,7 +3351,9 @@ $(OTTY)role.o: role.c $(HACK_H)
 $(OTTY)rumors.o: rumors.c $(HACK_H) $(INCL)dlb.h
 $(OTTY)save.o: save.c $(HACK_H)
 $(OTTY)selvar.o: selvar.c $(HACK_H) $(INCL)sp_lev.h
-$(OTTY)sfstruct.o: sfstruct.c $(HACK_H)
+$(OTTY)sfstruct.o: sfstruct.c $(HACK_H) $(INCL)sfmacros.h
+	$(Q)$(CC) $(CFLAGS) /EP  $(@B).c > $(OTTY)$(@B).c.preproc
+	$(Q)$(CC) $(CFLAGS) -Fo$@ $(@B).c
 $(OTTY)shk.o: shk.c $(HACK_H)
 $(OTTY)shknam.o: shknam.c $(HACK_H)
 $(OTTY)sit.o: sit.c $(HACK_H) $(INCL)artifact.h
@@ -3357,6 +3624,7 @@ $(OGUI)ball.o: ball.c $(HACK_H)
 $(OGUI)bones.o: bones.c $(HACK_H)
 $(OGUI)botl.o: botl.c $(HACK_H)
 $(OGUI)calendar.o: calendar.c $(HACK_H)
+$(OGUI)cfgfiles.o: cfgfiles.c $(HACK_H)
 $(OGUI)cmd.o: cmd.c $(HACK_H) $(INCL)func_tab.h
 $(OGUI)coloratt.o: coloratt.c $(HACK_H)
 $(OGUI)dbridge.o: dbridge.c $(HACK_H)
@@ -3390,6 +3658,7 @@ $(OGUI)getpos.o: getpos.c $(HACK_H)
 $(OGUI)glyphs.o: glyphs.c $(HACK_H)
 $(OGUI)hack.o: hack.c $(HACK_H)
 $(OGUI)hacklib.o: hacklib.c $(HACK_H)
+$(OGUI)iactions.o: iactions.c $(HACK_H)
 $(OGUI)insight.o: insight.c $(HACK_H)
 $(OGUI)invent.o: invent.c $(HACK_H)
 $(OGUI)isaac64.o: isaac64.c $(CONFIG_H) $(INCL)isaac64.h
@@ -3461,7 +3730,9 @@ $(OGUI)role.o: role.c $(HACK_H)
 $(OGUI)rumors.o: rumors.c $(HACK_H) $(INCL)dlb.h
 $(OGUI)save.o: save.c $(HACK_H)
 $(OGUI)selvar.o: selvar.c $(HACK_H) $(INCL)sp_lev.h
-$(OGUI)sfstruct.o: sfstruct.c $(HACK_H)
+$(OGUI)sfstruct.o: sfstruct.c $(HACK_H) $(INCL)sfmacros.h
+	$(Q)$(CC) $(CFLAGS) /EP  $(@B).c > $(OGUI)$(@B).c.preproc
+	$(Q)$(CC) $(CFLAGS) -Fo$@ $(@B).c
 $(OGUI)shk.o: shk.c $(HACK_H)
 $(OGUI)shknam.o: shknam.c $(HACK_H)
 $(OGUI)sit.o: sit.c $(HACK_H) $(INCL)artifact.h

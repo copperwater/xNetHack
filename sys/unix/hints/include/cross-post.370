@@ -49,6 +49,7 @@ dospkg: dodata dosfonts $(GAMEBIN) $(TARGETPFX)recover.exe ../dat/nhtiles.bmp
 	mkdir -p $(TARGETPFX)pkg
 	cp $(GAMEBIN) $(TARGETPFX)pkg/NETHACK.EXE
 	cp $(TARGETPFX)recover.exe $(TARGETPFX)pkg/RECOVER.EXE
+	-cp $(SFCTOOLBIN) $(TARGETPFX)pkg/SFCTOOL.EXE
 	cp ../dat/nhdat $(TARGETPFX)pkg/NHDAT
 	cp ../dat/license $(TARGETPFX)pkg/LICENSE
 	cp ../dat/nhtiles.bmp $(TARGETPFX)pkg/NHTILES.BMP
@@ -56,14 +57,14 @@ dospkg: dodata dosfonts $(GAMEBIN) $(TARGETPFX)recover.exe ../dat/nhtiles.bmp
 	cp ../sys/share/NetHack.cnf $(TARGETPFX)pkg/NETHACK.CNF
 	cp ../sys/msdos/sysconf $(TARGETPFX)pkg/SYSCONF
 	cp ../doc/nethack.txt $(TARGETPFX)pkg/NETHACK.TXT
-	cp $(DOSFONT)/ter-u16b.psf $(TARGETPFX)pkg/TER-U16B.PSF
-	cp $(DOSFONT)/ter-u16v.psf $(TARGETPFX)pkg/TER-U16V.PSF
-	cp $(DOSFONT)/ter-u18b.psf $(TARGETPFX)pkg/TER-U18B.PSF
-	cp $(DOSFONT)/ter-u20b.psf $(TARGETPFX)pkg/TER-U20B.PSF
-	cp $(DOSFONT)/ter-u22b.psf $(TARGETPFX)pkg/TER-U22B.PSF
-	cp $(DOSFONT)/ter-u24b.psf $(TARGETPFX)pkg/TER-U24B.PSF
-	cp $(DOSFONT)/ter-u28b.psf $(TARGETPFX)pkg/TER-U28B.PSF
-	cp $(DOSFONT)/ter-u32b.psf $(TARGETPFX)pkg/TER-U32B.PSF
+	-cp $(DOSFONT)/ter-u16b.psf $(TARGETPFX)pkg/TER-U16B.PSF
+	-cp $(DOSFONT)/ter-u16v.psf $(TARGETPFX)pkg/TER-U16V.PSF
+	-cp $(DOSFONT)/ter-u18b.psf $(TARGETPFX)pkg/TER-U18B.PSF
+	-cp $(DOSFONT)/ter-u20b.psf $(TARGETPFX)pkg/TER-U20B.PSF
+	-cp $(DOSFONT)/ter-u22b.psf $(TARGETPFX)pkg/TER-U22B.PSF
+	-cp $(DOSFONT)/ter-u24b.psf $(TARGETPFX)pkg/TER-U24B.PSF
+	-cp $(DOSFONT)/ter-u28b.psf $(TARGETPFX)pkg/TER-U28B.PSF
+	-cp $(DOSFONT)/ter-u32b.psf $(TARGETPFX)pkg/TER-U32B.PSF
 	cp  ../lib/djgpp/cwsdpmi/bin/CWSDPMI.EXE $(TARGETPFX)pkg/CWSDPMI.EXE
 	( if [ -f ../lib/djgpp/target/bin/symify.exe ]; then \
 	      cp  ../lib/djgpp/target/bin/symify.exe $(TARGETPFX)pkg/SYMIFY.EXE; \
@@ -246,14 +247,16 @@ ifdef MAKEFILE_UTL
 $(TARGETPFX)recover.o: recover.c $(CONFIG_H)
 	$(TARGET_CC) $(TARGET_CFLAGS) $(CSTD) -c recover.c -o $@
 ifdef CROSS_TO_MSDOS
-$(TARGETPFX)recover.exe : $(TARGETPFX)recover.o $(TARGETPFX)hacklib.a
+$(TARGETPFX)recover.exe : $(TARGETPFX)recover.o $(TARGETPFX)rversion.o $(TARGETPFX)hacklib.a
 	$(TARGET_LINK) $(TARGET_LFLAGS) \
-	$(TARGETPFX)recover.o $(TARGETPFX)hacklib.a -o $@
+	$(TARGETPFX)recover.o $(TARGETPFX)rversion.o $(TARGETPFX)hacklib.a -o $@
 else
-$(TARGETPFX)recover : $(TARGETPFX)recover.o $(TARGETPFX)hacklib.a
+$(TARGETPFX)recover : $(TARGETPFX)recover.o $(TARGETPFX)rversion.o $(TARGETPFX)hacklib.a
 	$(TARGET_LINK) $(TARGET_LFLAGS) \
-	$(TARGETPFX)recover.o $(TARGETPFX)hacklib.a -o $@
+	$(TARGETPFX)recover.o $(TARGETPFX)rversion.o $(TARGETPFX)hacklib.a -o $@
 endif
+$(TARGETPFX)rversion.o: ../src/version.c $(HACK_H)
+	$(TARGET_CC) $(TARGET_CFLAGS) -DMINIMAL_FOR_RECOVER  $(CSTD) -c ../src/version.c -o $@
 endif  # MAKEFILE_UTL
 endif  # CROSS
 

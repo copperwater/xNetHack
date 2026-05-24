@@ -1,4 +1,4 @@
-/* NetHack 3.7	lock.c	$NHDT-Date: 1718745135 2024/06/18 21:12:15 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.137 $ */
+/* NetHack 3.7	lock.c	$NHDT-Date: 1741793439 2025/03/12 07:30:39 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.145 $ */
 /* Copyright (c) Stichting Mathematisch Centrum, Amsterdam, 1985. */
 /*-Copyright (c) Robert Patrick Rankin, 2011. */
 /* NetHack may be freely redistributed.  See license for details. */
@@ -212,7 +212,8 @@ picklock(void)
              * conceivably trap themselves in part of the level with no keys to
              * escape with */
             set_door_iron(gx.xlock.door, FALSE);
-            newsym(doorx, doory);
+            feel_newsym(doorx, doory);
+            recalc_block_point(doorx, doory);
             useup(gx.xlock.pick);
             reset_pick();
         }
@@ -286,6 +287,7 @@ breakchestlock(struct obj *box, boolean destroyit)
 staticfn int
 forcelock(void)
 {
+    boolean crystal_chest = (gx.xlock.box->material == GLASS);
     if ((gx.xlock.box->ox != u.ux) || (gx.xlock.box->oy != u.uy))
         return ((gx.xlock.usedtime = 0)); /* you or it moved */
 
@@ -293,16 +295,50 @@ forcelock(void)
         You("give up your attempt to force the lock.");
         if (gx.xlock.usedtime >= 50) /* you made the effort */
             exercise((gx.xlock.picktyp) ? A_DEX : A_STR, TRUE);
+        if (crystal_chest)
+            pline("The lock seems to be magical and immune to mundane damage.");
         return ((gx.xlock.usedtime = 0));
     }
 
     if (gx.xlock.picktyp) { /* blade */
-        if (rn2(1000 - (int) uwep->spe) > (992 - greatest_erosion(uwep) * 10)
-            && !uwep->cursed && !(uwep->material == GLASS && uwep->oerodeproof)
+        int roll = rn2(1000 - (int) uwep->spe);
+        int threshold = (992
+                         - (greatest_erosion(uwep) * 10)
+                         /* metal boxes are much more likely to be tougher than
+                          * your weapon */
+                         - (is_metallic(gx.xlock.box) ? 40 : 0));
+        /* for a +0 weapon, probability that it survives an unsuccessful
+         * attempt to force the lock is (.992)^50 = .67
+         */
+        int wep_mat_adjustment;
+        switch (uwep->material) {
+        case MITHRIL:
+            wep_mat_adjustment = 6;
+            break;
+        case COPPER:
+            wep_mat_adjustment = -2;
+            break;
+        case SILVER:
+            wep_mat_adjustment = -4;
+            break;
+        case GOLD:
+        case WOOD:
+        case PLASTIC:
+        case MINERAL:
+            wep_mat_adjustment = -10;
+            break;
+        case GLASS:
+            /* note that if it's shatterproof, it'll never break due to the if
+             * clause below */
+            wep_mat_adjustment = -40;
+            break;
+        default: /* iron etc. */
+            break;
+        }
+        threshold += wep_mat_adjustment;
+        if (roll > threshold
+            && !(uwep->material == GLASS && uwep->oerodeproof)
             && !obj_resists(uwep, 0, 99)) {
-            /* for a +0 weapon, probability that it survives an unsuccessful
-             * attempt to force the lock is (.992)^50 = .67
-             */
             pline("%sour %s broke!", (uwep->quan > 1L) ? "One of y" : "Y",
                   xname(uwep));
             useup(uwep);
@@ -310,10 +346,18 @@ forcelock(void)
             exercise(A_DEX, TRUE);
             return ((gx.xlock.usedtime = 0));
         }
-    } else             /* blunt */
+    } else {           /* blunt */
         wake_nearby(FALSE); /* due to hammering on the container */
+        if (is_crackable(uwep) && !rn2(20) && !obj_resists(uwep, 0, 99)) {
+            /* 5% chance per turn of cracking, which stops you from trying
+             * further */
+            breakobj(uwep, u.ux, u.uy, TRUE, TRUE);
+            You("stop trying to force the lock.");
+            return ((gx.xlock.usedtime = 0));
+        }
+    }
 
-    if (rn2(100) >= gx.xlock.chance)
+    if (rn2(100) >= gx.xlock.chance || crystal_chest)
         return 1; /* still busy */
 
     You("succeed in forcing the lock.");
@@ -506,14 +550,6 @@ pick_lock(
         boolean it;
         int count;
 
-        /*
-         * FIXME:
-         *  (chest->otrapped && chest->tknown) is handled, to skip
-         *  checking for a trap and continue with asking about disarm;
-         *  (chest->tknown && !chest->otrapped) ignores tknown and will
-         *  ask about checking for non-existant trap.
-         */
-
         if (u.dz < 0 && !autounlock) { /* beware stale u.dz value */
             There("isn't any sort of lock up %s.",
                   Levitation ? "here" : "there");
@@ -552,7 +588,8 @@ pick_lock(
 
                 if (autounlock && (flags.autounlock & AUTOUNLOCK_UNTRAP) != 0
                     && could_untrap(FALSE, TRUE)
-                    && (c = ynq(safe_qbuf(qbuf, "Check ", " for a trap?",
+                    && (c = otmp->tknown ? (otmp->otrapped ? 'y' : 'n')
+                            : ynq(safe_qbuf(qbuf, "Check ", " for a trap?",
                                           otmp, yname, ysimple_name, "this")))
                        != 'n') {
                     if (c == 'q')
@@ -584,7 +621,13 @@ pick_lock(
                         continue; /* try next box */
                 }
 
-                if (otmp->obroken) {
+                if (otmp->material == MINERAL) {
+                    pline("It has no mechanism for you to lock or unlock.");
+                    return PICKLOCK_LEARNED_SOMETHING;
+                } else if (otmp->material == GLASS) {
+                    pline("The lock here seems magical, not physical.");
+                    return PICKLOCK_LEARNED_SOMETHING;
+                } else if (otmp->obroken) {
                     You_cant("fix its broken lock with %s.",
                              ansimpleoname(pick));
                     return PICKLOCK_LEARNED_SOMETHING;
@@ -804,7 +847,7 @@ doforce(void)
         return ECMD_OK;
     }
     if (!can_reach_floor(TRUE)) {
-        cant_reach_floor(u.ux, u.uy, FALSE, TRUE);
+        cant_reach_floor(u.ux, u.uy, FALSE, TRUE, FALSE);
         return ECMD_OK;
     }
 
@@ -1164,7 +1207,7 @@ boxlock(struct obj *obj, struct obj *otmp) /* obj *is* a box */
     switch (otmp->otyp) {
     case WAN_LOCKING:
     case SPE_WIZARD_LOCK:
-        if (!obj->olocked) { /* lock it; fix if broken */
+        if (!obj->olocked && obj->material != MINERAL) { /* lock it; fix if broken */
             Soundeffect(se_klunk, 50);
             pline("Klunk!");
             obj->olocked = 1;

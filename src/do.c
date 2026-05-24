@@ -301,7 +301,7 @@ flooreffects(
          * noise.  Stuff dropped near fountains always misses */
         if ((Blind || (Levitation || Flying)) && !Deaf && u_at(x, y)) {
             if (!Underwater) {
-                if (weight(obj) > 9) {
+                if (weight(obj) > WT_SPLASH_THRESHOLD) {
                     pline("Splash!");
                 } else if (Levitation || Flying) {
                     pline("Plop!");
@@ -912,7 +912,7 @@ dropz(struct obj *obj, boolean with_impact)
             map_object(obj, 0);
         newsym(u.ux, u.uy); /* remap location under self */
     }
-    (void) encumber_msg();
+    encumber_msg();
 }
 
 /* obj_drops_at: routine for dropping items that aren't necessarily on the
@@ -1735,7 +1735,6 @@ goto_level(
         }
         reseed_random(rn2);
         reseed_random(rn2_on_display_rng);
-        minit(); /* ZEROCOMP */
         getlev(nhfp, svh.hackpid, new_ledger);
         close_nhfile(nhfp);
         oinit(); /* reassign level dependent obj probabilities */
@@ -1771,6 +1770,10 @@ goto_level(
             seetrap(ttrap);
             u_on_newpos(ttrap->tx, ttrap->ty);
         }
+    } else if (u.gt_x) {
+        /* caller wants to be placed at a specific coordinate */
+        u_on_newpos(u.gt_x, u.gt_y);
+        u.gt_x = u.gt_y = 0;
     } else if (at_stairs && !In_endgame(&u.uz)) {
         if (up) {
             stairway *stway = stairway_find_from(&u.uz0, ga.at_ladder);
@@ -2289,7 +2292,7 @@ revive_corpse(struct obj *corpse, boolean moldy)
             } else if (container_where == OBJ_INVENT) {
                 Strcpy(sackname, an(xname(container)));
                 pline("%s %s out of %s in your pack!", mnam,
-                      locomotion(mtmp->data, "writhes"), sackname);
+                      vtense(mnam, locomotion(mtmp->data, "writhe")), sackname);
             } else if (container_where == OBJ_FLOOR
                        && cansee(corpsex, corpsey)) {
                 Strcpy(sackname, an(xname(container)));
@@ -2615,7 +2618,7 @@ set_wounded_legs(long side, int timex)
        direct assignment instead of bitwise-OR so getting wounded in
        one leg mysteriously healed the other */
     EWounded_legs |= side;
-    (void) encumber_msg();
+    encumber_msg();
 }
 
 void
@@ -2654,7 +2657,7 @@ heal_legs(
            more when steed becomes healthy, then possible floor
            feedback, then able to carry less when back on foot]. */
         if (how == 0)
-            (void) encumber_msg();
+            encumber_msg();
     }
 }
 

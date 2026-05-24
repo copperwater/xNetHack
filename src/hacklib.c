@@ -45,12 +45,9 @@
         const char *    ordin           (int)
         char *          sitoa           (int)
         int             sgn             (int)
-        int             distmin         (int, int, int, int)
-        int             dist2           (int, int, int, int)
-        boolean         online2         (int, int)
-        unsigned int    coord_hash      (int, int, int)
-        unsigned int    hash1           (int)
-        int             int_hash1       (int)
+        int             distmin         (coordxy, coordxy, coordxy, coordxy)
+        int             dist2           (coordxy, coordxy, coordxy, coordxy)
+        boolean         online2         (coordxy, coordxy)
         int             strncmpi        (const char *, const char *, int)
         char *          strstri         (const char *, const char *)
         boolean         fuzzymatch      (const char *, const char *,
@@ -714,7 +711,7 @@ online2(coordxy x0, coordxy y0, coordxy x1, coordxy y1)
 }
 
 #ifndef STRNCMPI
-/* case insensitive counted string comparison */
+/* case-insensitive counted string comparison */
 /*{ aka strncasecmp }*/
 int
 strncmpi(
@@ -738,7 +735,7 @@ strncmpi(
 #endif /* STRNCMPI */
 
 #ifndef STRSTRI
-/* case insensitive substring search */
+/* case-insensitive substring search */
 char *
 strstri(const char *str, const char *sub)
 {
@@ -956,5 +953,55 @@ copy_bytes(int ifd, int ofd)
     } while (nfrom == BUFSIZ);
     return TRUE;
 }
+#define MAX_D 5
+struct datamodel_information {
+    int sz[MAX_D];
+    const char *datamodel;
+    const char *dmplatform;
+};
 
+static struct datamodel_information dm[] = {
+    { { (int) sizeof(short), (int) sizeof(int), (int) sizeof(long),
+        (int) sizeof(long long), (int) sizeof(genericptr_t) },
+      "", "" },
+    { { 2, 4, 4, 8, 4 }, "ILP32LL64", "x86 32-bit" }, /* Windows or Unix */
+    { { 2, 4, 4, 8, 8 }, "IL32LLP64", "Windows x64 64-bit" },
+    { { 2, 4, 8, 8, 8 }, "I32LP64", "Unix 64-bit"},
+    { { 2, 8, 8, 8, 8 }, "ILP64", "Unix ILP64"},      /* HAL, SPARC64 */
+};
+
+const char *
+datamodel(int retidx)
+{
+    int i, j, matchcount;
+    static const char *unknown = "Unknown";
+
+    for (i = 1; i < SIZE(dm); ++i) {
+        matchcount = 0;
+        for (j = 0; j < MAX_D; ++j) {
+            if (dm[0].sz[j] == dm[i].sz[j])
+                ++matchcount;
+        }
+        if (matchcount == MAX_D)
+            return (retidx == 0) ? dm[i].datamodel : dm[i].dmplatform;
+    }
+    return unknown;
+}
+
+const char *
+what_datamodel_is_this(int retidx, int szshort, int szint, int szlong, int szll,
+                       int szptr)
+{
+    int i;
+    static const char *unknown = "Unknown";
+
+    for (i = 1; i < SIZE(dm); ++i) {
+        if (szshort == dm[i].sz[0] && szint == dm[i].sz[1]
+            && szlong == dm[i].sz[2] && szll == dm[i].sz[3]
+            && szptr == dm[i].sz[4])
+            return (retidx == 0) ? dm[i].datamodel : dm[i].dmplatform;
+    }
+    return unknown;
+}
+#undef MAX_D
 /*hacklib.c*/

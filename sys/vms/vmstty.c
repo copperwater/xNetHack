@@ -459,7 +459,7 @@ void
 settty(const char *s)
 {
     if (!bombing)
-        end_screen();
+        term_end_screen();
     if (s)
         raw_print(s);
     if (settty_needed) {

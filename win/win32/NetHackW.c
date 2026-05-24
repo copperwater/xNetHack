@@ -70,10 +70,6 @@ int GUILaunched = TRUE;     /* We tell shared startup code in windmain.c
 #define _strdup(s1) strdup(s1)
 #endif
 
-// Forward declarations of functions included in this code module:
-extern boolean main(int, char **);
-//static void __cdecl mswin_moveloop(void *);
-
 #define MAX_CMDLINE_PARAM 255
 
 #ifdef _MSC_VER
@@ -191,7 +187,7 @@ WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine,
         Sprintf(buf2, "Cannot load common control library.\n%s\n%s",
                 "For further information, refer to the installation notes at",
                 INSTALL_NOTES);
-        panic(buf2);
+        panic("%s", buf2);
     }
     if (major < MIN_COMCTLMAJOR
         || (major == MIN_COMCTLMAJOR && minor < MIN_COMCTLMINOR)) {
@@ -201,7 +197,7 @@ WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine,
                 MIN_COMCTLMINOR,
                 "For further information, refer to the installation notes at",
                 INSTALL_NOTES);
-        panic(buf2);
+        panic("%s", buf2);
     }
     ZeroMemory(&InitCtrls, sizeof(InitCtrls));
     InitCtrls.dwSize = sizeof(InitCtrls);

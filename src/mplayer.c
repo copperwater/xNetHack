@@ -69,7 +69,7 @@ dev_name(void)
 }
 
 staticfn void
-get_mplname(struct monst* mtmp, char *nam)
+get_mplname(struct monst *mtmp, char *nam)
 {
     boolean fmlkind = is_female(mtmp->data);
     const char *devnam;

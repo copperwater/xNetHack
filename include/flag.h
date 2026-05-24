@@ -1,4 +1,4 @@
-/* NetHack 3.7	flag.h	$NHDT-Date: 1715979826 2024/05/17 21:03:46 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.246 $ */
+/* NetHack 3.7	flag.h	$NHDT-Date: 1744860497 2025/04/16 19:28:17 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.251 $ */
 /* Copyright (c) Stichting Mathematisch Centrum, Amsterdam, 1985. */
 /*-Copyright (c) Michael Allison, 2006. */
 /* NetHack may be freely redistributed.  See license for details. */
@@ -243,18 +243,24 @@ enum debug_fuzzer_states {
  * and probably warrant a structure of their own elsewhere some day.
  */
 struct instance_flags {
-    boolean query_menu;    /* use a menu for yes/no queries */
-    boolean showdamage;
     boolean defer_plname;  /* X11 hack: askname() might not set svp.plname */
+    boolean fuzzerpending; /* fuzzing requested on command line but not active
+                            * yet (to allow interactive initialization prior
+                            * to input becoming taken over);
+                            * True => enable fuzzer when entering moveloop */
     boolean herecmd_menu;  /* use menu when mouseclick on yourself */
     boolean invis_goldsym; /* gold symbol is ' '? */
     boolean in_lua;        /* executing a lua script */
     boolean lua_testing;   /* doing lua tests */
+    boolean term_gone;     /* terminal is gone, abort abort abort */
     boolean nofollowers;   /* level change ignores pets (for tutorial) */
     boolean partly_eaten_hack; /* extra flag for xname() used when it's called
                                 * indirectly so we can't use xname_flags() */
+    boolean query_menu;    /* use a menu for yes/no queries */
     boolean remember_getpos; /* save getpos() positioning in do-again queue */
     boolean sad_feeling;   /* unseen pet is dying */
+    boolean showdamage;    /* extra message reporting damage hero has taken */
+    boolean pending_customizations; /* at least one custom. was specified */
     xint8 debug_fuzzer;    /* fuzz testing */
     int at_midnight;       /* only valid during end of game disclosure */
     int at_night;          /* also only valid during end of game disclosure */
@@ -266,6 +272,8 @@ struct instance_flags {
     int getloc_filter;     /* GFILTER_foo */
     int in_lava_effects;   /* hack for Boots_off() */
     int last_msg;          /* indicator of last message player saw */
+    int menuobjsyms;       /* value of 'menu_objsyms' option;
+                            * ought to be in flags rather than iflags */
     int override_ID;       /* true to force full identification of objects */
     int parse_config_file_src;  /* hack for parse_config_line() */
     int purge_monsters;    /* # of dead monsters still on fmon list */
@@ -292,6 +300,7 @@ struct instance_flags {
     boolean debug_overwrite_stairs; /* debug: allow overwriting stairs */
     boolean debug_mongen;  /* debug: prevent monster generation */
     boolean debug_hunger;  /* debug: prevent hunger */
+    boolean debug_prevent_pline;  /* debug: prevent pline going to UI */
     boolean mon_polycontrol; /* debug: control monster polymorphs */
     boolean mon_telecontrol; /* debug: control monster teleports */
     boolean in_dumplog;    /* doing the dumplog right now? */
@@ -303,13 +312,13 @@ struct instance_flags {
      */
     unsigned msg_history; /* hint: # of top lines to save */
     int getpos_coords;    /* show coordinates when getting cursor position */
-    int menuinvertmode;  /* 0 = invert toggles every item;
-                            1 = invert skips 'all items' item */
+    int menuinvertmode;   /* 0 = invert toggles every item;
+                           * 1 = invert skips 'all items' item */
     color_attr menu_headings;    /* CLR_ and ATR_ for menu headings */
     uint32_t colorcount;    /* store how many colors terminal is capable of */
     boolean use_truecolor;  /* force use of truecolor */
 #ifdef ALTMETA
-    boolean altmeta;      /* Alt-c sends ESC c rather than M-c */
+    boolean altmeta;        /* Alt+c sends ESC c rather than M-c */
 #endif
     boolean autodescribe;     /* autodescribe mode in getpos() */
     boolean cbreak;           /* in cbreak mode, rogue format */
@@ -318,7 +327,8 @@ struct instance_flags {
     boolean echo;             /* 1 to echo characters */
     boolean force_invmenu;    /* always menu when handling inventory */
     boolean hilite_pile;      /* mark piles of objects with a hilite */
-    boolean menu_head_objsym; /* Show obj symbol in menu headings */
+    boolean menu_head_objsym; /* Show obj symbol in menu headings; controlled
+                               * by 'menuobjsyms' */
     boolean menu_overlay;     /* Draw menus over the map */
     boolean menu_requested;   /* Flag for overloaded use of 'm' prefix
                                * on some non-move commands */
@@ -337,6 +347,8 @@ struct instance_flags {
     boolean tux_penalty;      /* True iff hero is a monk and wearing a suit */
     boolean use_background_glyph; /* use background glyph when appropriate */
     boolean use_menu_color;   /* use color in menus; only if wc_color */
+    boolean use_menu_glyphs;  /* use object glyphs in menus, if the port
+                               * supports it; controlled by 'menuobjsyms' */
 #ifdef STATUS_HILITES
     long hilite_delta;        /* number of moves to leave a temp hilite lit */
     long unhilite_deadline; /* time when oldest temp hilite should be unlit */
@@ -481,7 +493,7 @@ struct instance_flags {
 };
 
 /*
- * Old deprecated names
+ * Old, deprecated names
  */
 #ifdef TTY_GRAPHICS
 #define eight_bit_tty wc_eight_bit_input

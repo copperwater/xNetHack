@@ -1,4 +1,4 @@
-/* NetHack 3.7	objects.h	$NHDT-Date: 1725653011 2024/09/06 20:03:31 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.26 $ */
+/* NetHack 3.7	objects.h	$NHDT-Date: 1749097644 2025/06/04 20:27:24 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.30 $ */
 /* Copyright (c) Mike Threepoint, 1989.                           */
 /* NetHack may be freely redistributed.  See license for details. */
 
@@ -232,7 +232,7 @@ WEAPON("short sword", NoDes,
        1, 0, 0,  8,  30,  10,  6,  8, 0, P,   P_SHORT_SWORD, IRON, HI_METAL,
                                                         SHORT_SWORD),
 WEAPON("elven short sword", "runed short sword",
-       0, 0, 0,  2,  30,  10,  8,  8, 0, P,   P_SHORT_SWORD, WOOD, HI_WOOD,
+       0, 0, 0,  2,  30,  10,  8,  8, 0, P,   P_SHORT_SWORD, COPPER, HI_COPPER,
                                                         ELVEN_SHORT_SWORD),
 WEAPON("orcish short sword", "crude short sword",
        0, 0, 0,  3,  30,  10,  5,  8, 0, P,   P_SHORT_SWORD, IRON, CLR_BLACK,
@@ -702,7 +702,7 @@ RING("fire resistance", "iron",
      FIRE_RES,                 200, 1, 0,  5, IRON, HI_METAL,
                                                         RIN_FIRE_RESISTANCE),
 RING("cold resistance", "brass",
-     COLD_RES,                 150, 1, 0,  4, COPPER, HI_COPPER,
+     COLD_RES,                 150, 1, 0,  4, COPPER, HI_BRASS,
                                                         RIN_COLD_RESISTANCE),
 RING("shock resistance", "copper",
      SHOCK_RES,                150, 1, 0,  3, COPPER, HI_COPPER,
@@ -777,12 +777,12 @@ AMULET("amulet of flying",              "cubical", FLYING, 60,
 OBJECT(OBJ("cheap plastic imitation of the Amulet of Yendor",
            "Amulet of Yendor"),
        BITS(0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, PLASTIC),
-       0, AMULET_CLASS, 0, 0, 20, 0, 0, 0, 0, 0, 1, HI_METAL,
+       0, AMULET_CLASS, 0, 0, 20, 0, 0, 0, 0, 0, 1, CLR_BRIGHT_MAGENTA,
                                                 FAKE_AMULET_OF_YENDOR),
 OBJECT(OBJ("Amulet of Yendor", /* note: description == name */
            "Amulet of Yendor"),
        BITS(0, 0, 1, 0, 1, 0, 1, 1, 0, 0, 0, 0, MITHRIL),
-       0, AMULET_CLASS, 0, 0, 20, 30000, 0, 0, 0, 0, 20, HI_METAL,
+       0, AMULET_CLASS, 0, 0, 20, 30000, 0, 0, 0, 0, 20, CLR_BRIGHT_MAGENTA,
                                                 AMULET_OF_YENDOR),
 MARKER(LAST_AMULET, AMULET_OF_YENDOR)
 #undef AMULET
@@ -836,11 +836,11 @@ TOOL("tallow candle",   "candle", 0, 1, 0, 0, 20,  2, 10, WAX, CLR_WHITE,
                                                                 TALLOW_CANDLE),
 TOOL("wax candle",      "candle", 0, 1, 0, 0,  5,  2, 20, WAX, CLR_WHITE,
                                                                 WAX_CANDLE),
-TOOL("lantern",            NoDes, 1, 0, 0, 0, 30, 30, 12, COPPER, CLR_YELLOW,
+TOOL("lantern",            NoDes, 1, 0, 0, 0, 30, 30, 12, COPPER, HI_BRASS,
                                                                 LANTERN),
-TOOL("oil lamp",          "lamp", 0, 0, 0, 0, 45, 20, 10, COPPER, CLR_YELLOW,
+TOOL("oil lamp",          "lamp", 0, 0, 0, 0, 45, 20, 10, COPPER, HI_BRASS,
                                                                 OIL_LAMP),
-TOOL("magic lamp",        "lamp", 0, 0, 1, 0, 15, 20,500, COPPER, CLR_YELLOW,
+TOOL("magic lamp",        "lamp", 0, 0, 1, 0, 15, 20,500, COPPER, HI_BRASS,
                                                                 MAGIC_LAMP),
 /* other tools */
 TOOL("expensive camera",    NoDes, 1, 0, 0, 1, 15, 12,200, PLASTIC, CLR_BLACK,
@@ -857,7 +857,7 @@ EYEWEAR("lenses",           NoDes, 1,       0,  5,  3, 80, GLASS, HI_GLASS,
                                                                 LENSES),
 EYEWEAR("blindfold",        NoDes, 1, BLINDED, 50,  2, 20, CLOTH, CLR_BLACK,
                                                                 BLINDFOLD),
-EYEWEAR("towel",            NoDes, 1, BLINDED, 50,  2, 50, CLOTH, CLR_MAGENTA,
+EYEWEAR("towel",            NoDes, 1, BLINDED, 50,  5, 50, CLOTH, CLR_MAGENTA,
                                                                 TOWEL),
 #undef EYEWEAR
 
@@ -908,7 +908,7 @@ TOOL("magic harp",        "harp", 0, 0, 1, 1,  2, 30, 200, WOOD, HI_WOOD,
                                                                 MAGIC_HARP),
 TOOL("bell",                NoDes, 1, 0, 0, 0,  2, 30, 50, COPPER, HI_COPPER,
                                                                 BELL),
-TOOL("bugle",               NoDes, 1, 0, 0, 0,  4, 10, 15, COPPER, HI_COPPER,
+TOOL("bugle",               NoDes, 1, 0, 0, 0,  4, 10, 15, COPPER, HI_BRASS,
                                                                 BUGLE),
 TOOL("leather drum",      "drum", 0, 0, 0, 0,  4, 25, 25, LEATHER, HI_LEATHER,
                                                                 LEATHER_DRUM),
@@ -1375,7 +1375,7 @@ WAND("make invisible", "marble", 45, 150, 1, IMMEDIATE, MINERAL, HI_MINERAL,
                                                     WAN_MAKE_INVISIBLE),
 WAND("slow monster",      "tin", 50, 150, 1, IMMEDIATE, METAL, HI_METAL,
                                                     WAN_SLOW_MONSTER),
-WAND("speed monster",   "brass", 50, 150, 1, IMMEDIATE, COPPER, HI_COPPER,
+WAND("speed monster",   "brass", 50, 150, 1, IMMEDIATE, COPPER, HI_BRASS,
                                                     WAN_SPEED_MONSTER),
 WAND("undead turning", "copper", 50, 150, 1, IMMEDIATE, COPPER, HI_COPPER,
                                                     WAN_UNDEAD_TURNING),
@@ -1427,7 +1427,7 @@ COIN("gold piece", 1000, GOLD, 1, GOLD_PIECE),
     OBJECT(OBJ(name, desc),                                             \
            BITS(0, 1, 0, 0, 0, 0, 0, 0, 0,                              \
                 HARDGEM(mohs), 0, -P_SLING, glass),                     \
-           0, GEM_CLASS, prob, 0, 1, gval, 3, 3, 0, 0, nutr, color, sn)
+           0, GEM_CLASS, prob, 0, wt, gval, 3, 3, 0, 0, nutr, color, sn)
 #define ROCK(name,desc,kn,prob,wt,gval,sdam,ldam,mgc,nutr,mohs,mrg,uskn,\
              glass,colr,sn)                                             \
     OBJECT(OBJ(name, desc),                                             \

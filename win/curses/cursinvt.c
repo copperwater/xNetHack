@@ -96,7 +96,7 @@ curs_update_invt(int arg)
         /* ask core to display full inventory in a PICK_NONE menu;
            instead of setting up an ordinary menu, it will indirectly
            call curs_add_invt() for each line (including class headers) */
-        display_inventory(NULL, FALSE);
+        repopulate_perminvent();
         curs_invt_updated(win);
 
     } else {

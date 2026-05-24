@@ -127,7 +127,7 @@ init_uhunger(void)
     u.uhs = NOT_HUNGRY;
     if (ATEMP(A_STR) < 0) {
         ATEMP(A_STR) = 0;
-        (void) encumber_msg();
+        encumber_msg();
     }
 }
 
@@ -1604,8 +1604,6 @@ consume_tin(const char *mesg)
     /* if you've eaten tin itself, chance to not eat contents gets bypassed */
     boolean always_eat = metallivorous(gy.youmonst.data);
     struct obj *tin = svc.context.tin.tin;
-    boolean tblessed = tin->blessed,
-            tcursed = tin->cursed;
 
     r = tin_variety(tin, FALSE);
     if (tin->otrapped || (tin->cursed && r != HOMEMADE_TIN && !rn2(8))) {
@@ -1624,10 +1622,13 @@ consume_tin(const char *mesg)
     pline1(mesg); /* "You succeed in opening the tin." */
 
     if (r != SPINACH_TIN) {
+        boolean bless = tin->blessed;
+        boolean curse = tin->cursed;
         mnum = tin->corpsenm;
         if (mnum == NON_PM) {
             pline("It turns out to be empty.");
-            tin->dknown = tin->known = 1;
+            observe_object(tin);
+            tin->known = 1;
             tin = costly_tin(COST_OPEN);
             use_up_tin(tin);
             if (always_eat)
@@ -1659,8 +1660,10 @@ consume_tin(const char *mesg)
             if (y_n("Eat it?") == 'n') {
                 if (flags.verbose)
                     You("discard the open tin.");
-                if (!Hallucination)
-                    tin->dknown = tin->known = 1;
+                if (!Hallucination) {
+                    observe_object(tin);
+                    tin->known = 1;
+                }
                 tin = costly_tin(COST_OPEN);
                 use_up_tin(tin);
                 return;
@@ -1674,7 +1677,8 @@ consume_tin(const char *mesg)
 
         eating_conducts(&mons[mnum]);
 
-        tin->dknown = tin->known = 1;
+        observe_object(tin);
+        tin->known = 1;
         /* charge for one at pre-eating cost */
         tin = svc.context.tin.tin = costly_tin(COST_OPEN);
 
@@ -1717,8 +1721,8 @@ consume_tin(const char *mesg)
 
         if (!strcmp(tintxts[r].txt, "szechuan") && rn2(2)) {
             struct obj* cookie = mksobj(FORTUNE_COOKIE, TRUE, FALSE);
-            cookie->blessed = tblessed;
-            cookie->cursed = tcursed;
+            cookie->blessed = bless;
+            cookie->cursed = curse;
             pline("There is a free fortune cookie inside!");
             hold_another_object(cookie, "It falls to the floor.", NULL, NULL);
         }
@@ -1728,7 +1732,8 @@ consume_tin(const char *mesg)
                   Blind ? "" : " ", Blind ? "" : hcolor(NH_GREEN));
         } else {
             pline("It contains spinach.");
-            tin->dknown = tin->known = 1;
+            observe_object(tin);
+            tin->known = 1;
         }
 
         if (!always_eat && y_n("Eat it?") == 'n') {
@@ -2401,7 +2406,8 @@ eataccessory(struct obj *otmp)
         if (u.uhp <= 0)
             return; /* died from sink fall */
     }
-    otmp->known = otmp->dknown = 1; /* by taste */
+    observe_object(otmp);
+    otmp->known = 1; /* by taste */
     if (!rn2(otmp->oclass == RING_CLASS ? 3 : 5)) {
         switch (otmp->otyp) {
         default:

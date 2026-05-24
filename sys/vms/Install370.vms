@@ -16,7 +16,7 @@ Last tested with VSI C x86-64 V7.5-009 (GEM 50XBR) on OpenVMS x86_64 V9.2-2.
         [.dat]           -- data files
         [.doc]           -- documentation files
         [.include]       -- C header files
-        [.lib.lua546]    -- Lua distribution from https://www.lua.org/
+        [.lib.lua548]    -- Lua distribution from https://www.lua.org/
         [.src]           -- primary source files
         [.sys]           -- parent for [.sys.*]
         [.sys.share]     -- files shared by several ports, including VMS

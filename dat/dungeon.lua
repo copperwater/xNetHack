@@ -79,7 +79,7 @@ dungeon = {
             base = 13,
             range = 3,
             chance = 40,
-            nlevels = 14
+            nlevels = 15
          },
          {
             name = "medusa",
@@ -397,7 +397,7 @@ dungeon = {
       name = "The Wizard's Tower",
       bonetag = "W",
       base = 3,
-      flags = { "mazelike" },
+      flags = { "mazelike", "hellish" },
       alignment = "unaligned",
       entry = -1,
       levels = {

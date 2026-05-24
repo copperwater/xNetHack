@@ -196,7 +196,7 @@ for i = 1, 3 do
       end
    end })
 end
-des.object({ id='chest', locked=1, coord=lootspots[4], material='iron', contents=function()
+des.object({ id='chest', locked=1, coord=lootspots[4], material='glass', contents=function()
    if nh.is_wish_archfiend('Asmodeus') then
       des.object({ class='/', id='wishing', spe=1 })
    else

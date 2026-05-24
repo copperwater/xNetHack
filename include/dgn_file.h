@@ -43,7 +43,7 @@ struct tmpbranch {
 };
 
 /*
- *    Values for type for tmpbranch structure.
+ *    Values for type in tmpbranch structure.
  */
 #define TBR_STAIR 0   /* connection with both ends having a staircase */
 #define TBR_NO_UP 1   /* connection with no up staircase */

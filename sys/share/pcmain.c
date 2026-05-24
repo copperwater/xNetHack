@@ -429,8 +429,7 @@ _CrtSetReportFile(_CRT_ASSERT, _CRTDBG_FILE_STDERR);*/
         raw_print("Cannot create lock file");
     } else {
         svh.hackpid = 1;
-        if (nhfp->structlevel)
-            write(nhfp->fd, (genericptr_t) &svh.hackpid, sizeof(svh.hackpid));
+        Sfo_int(nhfp, &svh.hackpid, "svh.hackpid");
         close_nhfile(nhfp);
     }
 

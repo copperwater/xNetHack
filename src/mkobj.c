@@ -1,4 +1,4 @@
-/* NetHack 3.7	mkobj.c	$NHDT-Date: 1737528890 2025/01/21 22:54:50 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.315 $ */
+/* NetHack 3.7	mkobj.c	$NHDT-Date: 1764044196 2025/11/24 20:16:36 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.326 $ */
 /* Copyright (c) Stichting Mathematisch Centrum, Amsterdam, 1985. */
 /*-Copyright (c) Derek S. Ray, 2015. */
 /* NetHack may be freely redistributed.  See license for details. */
@@ -314,9 +314,13 @@ mkbox_cnts(struct obj *box)
         break;
     case CHEST:
         n = box->olocked ? 7 : 5;
+        if (box->material == GLASS)
+            n += 2;
         break;
     case LARGE_BOX:
         n = box->olocked ? 5 : 3;
+        if (box->material == GLASS)
+            n += 2;
         break;
     case SACK:
     case OILSKIN_SACK:
@@ -469,8 +473,11 @@ splitobj(struct obj *obj, long num)
 {
     struct obj *otmp;
 
+    /* can't split containers */
     if (obj->cobj || num <= 0L || obj->quan <= num)
-        panic("splitobj"); /* can't split containers */
+        panic("splitobj [cobj=%s num=%ld quan=%ld]",
+              obj->cobj ? "non-empty container" : "(null)", num, obj->quan);
+
     otmp = newobj();
     *otmp = *obj; /* copies whole structure */
     otmp->oextra = (struct oextra *) 0;
@@ -846,6 +853,8 @@ static const char dknowns[] = { WAND_CLASS,   RING_CLASS, POTION_CLASS,
 void
 clear_dknown(struct obj *obj)
 {
+    /* note: this is an unobserving not an observing, so don't call
+       observe_object even if dknown is being set to 1 */
     obj->dknown = strchr(dknowns, obj->oclass) ? 0 : 1;
     if ((obj->otyp >= ELVEN_SHIELD && obj->otyp <= ORCISH_SHIELD)
         || obj->otyp == SHIELD_OF_REFLECTION
@@ -911,6 +920,9 @@ maybe_festive_fruit(void)
     if (holiday & HOLIDAY_PI_DAY) {
         foods[idx++] = "irrational pie";
         foods[idx++] = "perfectly circular pie";
+    }
+    if (holiday & HOLIDAY_IDES_OF_MARCH) {
+        foods[idx++] = "Caesar salad";
     }
     if (holiday & HOLIDAY_EASTER) {
         foods[idx++] = "easter egg";
@@ -1078,6 +1090,7 @@ mksobj_init(struct obj **obj, boolean artif)
                we initialize glob->owt explicitly so weight() doesn't
                need to perform any fix up and returns glob->owt as-is */
             otmp->owt = objects[otmp->otyp].oc_weight;
+            /* dknown, but not observed */
             otmp->known = otmp->dknown = 1;
             otmp->corpsenm = PM_GRAY_OOZE + (otmp->otyp - GLOB_OF_GRAY_OOZE);
             start_glob_timeout(otmp, 0L);
@@ -1127,6 +1140,10 @@ mksobj_init(struct obj **obj, boolean artif)
         case CHEST:
         case LARGE_BOX:
             otmp->olocked = !!(rn2(5));
+            if (otmp->material == MINERAL)
+                otmp->olocked = 0;
+            else if (otmp->material == GLASS)
+                otmp->olocked = 1;
             otmp->otrapped = !(rn2(10));
             otmp->tknown = otmp->otrapped && !rn2(100); /* obvious trap */
             FALLTHROUGH;
@@ -1297,6 +1314,8 @@ mksobj_init(struct obj **obj, boolean artif)
     }
 
     mkobj_erosions(otmp);
+    if (permapoisoned(otmp))
+        otmp->opoisoned = 1;
 }
 
 /* mksobj(): create a specific type of object; result is always non-Null */
@@ -1382,6 +1401,42 @@ mksobj(int otyp, boolean init, boolean artif)
     }
     otmp->owt = weight(otmp);
     return otmp;
+}
+
+/* potential mimic shapes that should be undone by stone-to-flesh;
+   not used for objects that will be transformed when hit by stone-to-flesh */
+boolean
+stone_object_type(unsigned mappearance)
+{
+    int otyp = (int) mappearance;
+
+    /* we exclude wands, rings, and gems even though some qualify as stone;
+       there aren't any weapons or armor classified as made out of stone */
+    return (otyp == BOULDER || otyp == STATUE || otyp == FIGURINE);
+}
+
+/* possible mimic shapes that are affected by stone-to-flesh;
+   mappearance for furniture is a display symbol rather than a terrain type */
+boolean
+stone_furniture_type(unsigned mappearance)
+{
+    int sym = (int) mappearance;
+
+    switch (sym) {
+    case S_upstair:
+    case S_dnstair:
+    case S_brupstair:
+    case S_brdnstair:
+    case S_altar:
+    case S_throne:
+    case S_sink: /* stone sink is iffy; metal might be more appropriate */
+        return TRUE;
+    default:
+        if (sym >= S_vwall && sym <= S_trwall)
+            return TRUE;
+        break;
+    }
+    return FALSE;
 }
 
 /*
@@ -1779,7 +1834,7 @@ shrink_glob(
     }
     if (updinv) {
         update_inventory();
-        (void) encumber_msg();
+        encumber_msg();
     }
 }
 
@@ -2230,6 +2285,18 @@ rnd_treefruit_at(coordxy x, coordxy y)
     return mksobj_at(ROLL_FROM(treefruits), x, y, TRUE, FALSE);
 }
 
+/* for describing objects embedded in trees */
+boolean
+is_treefruit(struct obj *otmp)
+{
+    int fruitidx;
+
+    for (fruitidx = 0; fruitidx < SIZE(treefruits); ++fruitidx)
+        if (treefruits[fruitidx] == otmp->otyp)
+            return TRUE;
+    return FALSE;
+}
+
 /* create a stack of N gold pieces; never returns Null */
 struct obj *
 mkgold(long amount, coordxy x, coordxy y)
@@ -2412,6 +2479,7 @@ save_mtraits(struct obj *obj, struct monst *mtmp)
         mtmp2->nmon = (struct monst *) 0;
         mtmp2->data = (struct permonst *) 0;
         mtmp2->minvent = (struct obj *) 0;
+        MON_NOWEP(mtmp2); /* mtmp2->mw = (struct obj *) 0; */
         if (mtmp->mextra)
             copy_mextra(mtmp2, mtmp);
         /* if mtmp is a long worm with segments, its saved traits will
@@ -2526,7 +2594,8 @@ is_flammable(struct obj *otmp)
 boolean
 is_rottable(struct obj *otmp)
 {
-    return (boolean) (otmp->material <= WOOD && otmp->material != LIQUID);
+    return (boolean) ((otmp->material <= WOOD && otmp->material != LIQUID)
+                      || otmp->material == DRAGON_HIDE);
 }
 
 /*
@@ -2756,7 +2825,7 @@ remove_object(struct obj *otmp)
     coordxy y = otmp->oy;
 
     if (otmp->where != OBJ_FLOOR)
-        panic("remove_object: obj not on floor");
+        panic("remove_object: obj where=%d, not on floor", otmp->where);
     extract_nexthere(otmp, &svl.level.objects[x][y]);
     extract_nobj(otmp, &fobj);
     if (otmp->otyp == BOULDER)
@@ -2840,7 +2909,7 @@ obj_extract_self(struct obj *obj)
         panic("trying to extract object from trap with no trap info");
         break;
     default:
-        panic("obj_extract_self");
+        panic("obj_extract_self, where=%d", obj->where);
         break;
     }
 }
@@ -2904,7 +2973,7 @@ add_to_minv(struct monst *mon, struct obj *obj)
     struct obj *otmp;
 
     if (obj->where != OBJ_FREE)
-        panic("add_to_minv: obj not free");
+        panic("add_to_minv: obj where=%d, not free", obj->where);
 
     /* merge if possible */
     for (otmp = mon->minvent; otmp; otmp = otmp->nobj)
@@ -2932,7 +3001,7 @@ add_to_container(struct obj *container, struct obj *obj)
     struct obj *otmp;
 
     if (obj->where != OBJ_FREE)
-        panic("add_to_container: obj not free");
+        panic("add_to_container: obj where=%d, not free", obj->where);
     if (container->where != OBJ_INVENT && container->where != OBJ_MINVENT)
         obj_no_longer_held(obj);
 
@@ -2952,7 +3021,7 @@ void
 add_to_migration(struct obj *obj)
 {
     if (obj->where != OBJ_FREE)
-        panic("add_to_migration: obj not free");
+        panic("add_to_migration: obj where=%d, not free", obj->where);
 
     if (obj->unpaid) /* caller should have changed unpaid item to stolen */
         impossible("unpaid object migrating to another level? [%s]",
@@ -2974,7 +3043,7 @@ void
 add_to_buried(struct obj *obj)
 {
     if (obj->where != OBJ_FREE)
-        panic("add_to_buried: obj not free");
+        panic("add_to_buried: obj where=%d, not free", obj->where);
 
     obj->where = OBJ_BURIED;
     obj->nobj = svl.level.buriedobjlist;
@@ -3053,10 +3122,15 @@ dealloc_obj(struct obj *obj)
         obj->where = OBJ_LUAFREE;
         return;
     }
-    /* mark object as deleted, put it into queue to be freed */
-    obj->where = OBJ_DELETED;
-    obj->nobj = go.objs_deleted;
-    go.objs_deleted = obj;
+    if (!program_state.freeingdata) {
+        /* mark object as deleted, put it into queue to be freed */
+        obj->where = OBJ_DELETED;
+        obj->nobj = go.objs_deleted;
+        go.objs_deleted = obj;
+    } else {
+        /* when saving, there's no need to stage deletions on objs_deleted */
+        dealloc_obj_real(obj);
+    }
 }
 
 /* actually deallocate the object */
@@ -3082,12 +3156,12 @@ dobjsfree(void)
     struct obj *otmp;
 
     while (go.objs_deleted) {
-        otmp = go.objs_deleted->nobj;
-        if (go.objs_deleted->where != OBJ_DELETED)
-            panic("dobjsfree: obj where is not OBJ_DELETED");
-        obj_extract_self(go.objs_deleted);
-        dealloc_obj_real(go.objs_deleted);
-        go.objs_deleted = otmp;
+        otmp = go.objs_deleted;
+        go.objs_deleted = otmp->nobj;
+        if (otmp->where != OBJ_DELETED)
+            panic("dobjsfree: obj where=%d, not OBJ_DELETED", otmp->where);
+        obj_extract_self(otmp);
+        dealloc_obj_real(otmp);
     }
 }
 
@@ -3134,6 +3208,7 @@ hornoplenty(
         pline("%s %s out.", what, vtense(what, "spill"));
         obj->blessed = horn->blessed;
         obj->cursed = horn->cursed;
+        obj->bknown = horn->bknown;
         obj->owt = weight(obj);
         /* using a shop's horn of plenty entails a usage fee and also
            confers ownership of the created item to the shopkeeper */
@@ -3161,7 +3236,7 @@ hornoplenty(
             /* item still in magic horn was weightless; when it's now in
                a carried container, hero's encumbrance could change */
             if (carried(targetbox)) {
-                (void) encumber_msg();
+                encumber_msg();
                 update_inventory(); /* for contents count or wizweight */
             }
         } else {
@@ -3464,7 +3539,7 @@ mon_obj_sanity(struct monst *monlist, const char *mesg)
     for (mon = monlist; mon; mon = mon->nmon) {
         if (DEADMONSTER(mon))
             continue;
-        mwep = MON_WEP(mon);
+        mwep = MON_WEP(mon); /* mon->mw */
         if (mwep) {
             if (!mcarried(mwep))
                 insane_object(mwep, mfmt1, mesg, mon);
@@ -3484,6 +3559,18 @@ mon_obj_sanity(struct monst *monlist, const char *mesg)
             if (obj->in_use || obj->bypass || obj->nomerge
                 || (obj->otyp == BOULDER && obj->next_boulder))
                 insane_obj_bits(obj, mon);
+            if (obj == mwep)
+                mwep = (struct obj *) 0;
+        }
+        if (mwep) {
+            /* this is a monster check rather than an object check, but doing
+               it here avoids making an extra pass through mon's minvent;
+               if the full pass through that list hasn't reset mwep to Null,
+               then mwep isn't in that list where it should be */
+            impossible("monst (%s: %u) wielding %s (%u) not in %s inventory",
+                       pmname(mon->data, Mgender(mon)), mon->m_id,
+                       safe_typename(mwep->otyp), mwep->o_id, mhis(mon));
+
         }
     }
 }
@@ -4135,6 +4222,7 @@ choose_thiefstone_loc(coord *cc)
             }
             if (levl[x][y].typ == ROOM || levl[x][y].typ == CORR ||
                 levl[x][y].typ == SCORR) {
+                struct obj *otmp;
                 /* other terrain might be walkable but we don't want to put it
                  * on another feature */
                 quality += 2;
@@ -4145,8 +4233,14 @@ choose_thiefstone_loc(coord *cc)
                     && levl[x][y].is_niche) {
                     quality += 20;
                 }
-                if (container_at(x, y, FALSE)) {
-                    quality += 15;
+                /* modified version of container_at that ignores bags because
+                 * thiefstone can't put items into bags */
+                for (otmp = svl.level.objects[x][y]; otmp;
+                     otmp = otmp->nexthere) {
+                    if (Is_box(otmp)) {
+                        quality += 15;
+                        break;
+                    }
                 }
             }
             if (levl[x][y].typ == STAIRS) {
@@ -4211,12 +4305,12 @@ init_thiefstone(struct obj *stone)
 /* Object material probabilities. */
 /* for objects which are normally iron or metal */
 static const struct icp metal_materials[] = {
-    {74, 0}, /* default to base type, iron or metal */
-    { 5, IRON},
-    { 5, WOOD},
-    { 5, SILVER},
-    { 3, COPPER},
-    { 3, MITHRIL},
+    {75, 0}, /* default to base type, iron or metal */
+    { 6, IRON},
+    { 6, WOOD},
+    { 5, COPPER},
+    { 2, SILVER},
+    { 1, MITHRIL},
     { 1, GOLD},
     { 1, BONE},
     { 1, GLASS},
@@ -4227,9 +4321,11 @@ static const struct icp metal_materials[] = {
 /* for objects which are normally wooden */
 static const struct icp wood_materials[] = {
     {80, WOOD},
-    {10, MINERAL},
+    { 5, MINERAL},
     { 5, IRON},
     { 3, BONE},
+    { 3, GLASS},
+    { 2, METAL},
     { 1, COPPER},
     { 0, GOLD}, /* can exist in certain special levels but not randomly
                  * generated */
@@ -4343,9 +4439,11 @@ static const struct icp statue_materials[] = {
     { 1, GOLD}
 };
 static const struct icp figurine_materials[] = {
-    {45, MINERAL},
-    {35, WOOD},
-    {10, PLASTIC},
+    {40, MINERAL},
+    {30, WOOD},
+    {10, BONE},
+    { 5, PLASTIC},
+    { 5, GLASS},
     { 5, METAL},
     { 4, COPPER},
     { 1, GOLD}
@@ -4534,6 +4632,16 @@ nonsensical_obj_material(struct obj *obj, uchar mat)
 
     /* elven gear that somehow generates as iron... */
     if (is_elven_obj(obj) && mat == IRON) {
+        return TRUE;
+    }
+
+    /* a large, sealed container made out of bones... */
+    if (mat == BONE && Is_box(obj)) {
+        return TRUE;
+    }
+
+    /* a launcher made out of a brittle material... */
+    if ((mat == GLASS || mat == MINERAL) && is_launcher(obj)) {
         return TRUE;
     }
 
