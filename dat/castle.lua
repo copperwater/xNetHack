@@ -149,7 +149,7 @@ des.object(object[4],54,11)
 des.object(object[4],55,11)
 -- THE WAND OF WISHING in 1 of the 4 towers
 local loc = place:rndcoord(1);
-local mat = percent(25) and "glass" or (percent(50) and "iron" or "wood")
+local mat = percent(25) and "glass" or (percent(50) and "iron" or "wooden")
 des.object({ id = "chest", trapped = 0, locked = 1, coord = loc, material = mat,
              contents = function()
                 des.object({ class = "/", id = "wishing", spe = 1 });
