@@ -9,7 +9,6 @@
 /* croom->lx etc are schar (width <= int), so % arith ensures that */
 /* conversion of result to int is reasonable */
 
-staticfn int mkmonst_in_room(struct mkroom *);
 staticfn boolean generate_stairs_room_good(struct mkroom *, int);
 staticfn struct mkroom *generate_stairs_find_room(void);
 staticfn void generate_stairs(void);
@@ -1275,15 +1274,20 @@ fill_ordinary_room(
 
     /* put traps and mimics inside */
     x = 8 - (level_difficulty() / 6);
-    if (x < 2)
+    if (x <= 1)
         /* maxes out at level_difficulty() == 36 */
         x = 2;
     while (!rn2(x) && (++trycnt < 1000))
         mktrap(0, MKTRAP_NOFLAGS, croom, (coord *) 0);
 
     /* maybe put a monster inside */
-    if (u.uhave.amulet || !rn2(2)) {
-        mkmonst_in_room(croom);
+    if ((u.uhave.amulet || !rn2(3)) && somexyspace(croom, &pos)) {
+        struct monst *tmonst = makemon((struct permonst *) 0,
+                                       pos.x, pos.y, MM_NOGRP);
+        /* always put a web with a spider */
+        if (tmonst && tmonst->data == &mons[PM_GIANT_SPIDER]
+            && !occupied(pos.x, pos.y))
+            (void) maketrap(pos.x, pos.y, WEB);
     }
 
     /* maybe put some gold inside */
@@ -2575,28 +2579,6 @@ generate_stairs(void)
         }
         mkstairs(pos.x, pos.y, 1, croom, FALSE); /* up */
     }
-}
-
-/* Return number of monsters created. */
-staticfn int
-mkmonst_in_room(struct mkroom *croom)
-{
-    int num_monst = 1;
-    struct monst *tmonst; /* always put a web with a spider */
-    coord pos;
-    if (!somexyspace(croom, &pos)) {
-        return 0; /* can't place any monsters */
-    }
-    tmonst = makemon((struct permonst *) 0, pos.x, pos.y, MM_NOGRP);
-    if (tmonst && tmonst->data == &mons[PM_GIANT_SPIDER]
-        && !occupied(pos.x, pos.y)) {
-        (void) maketrap(pos.x, pos.y, WEB);
-    }
-    /* maybe place another monster in the same room */
-    if(!rn2(3)) {
-        num_monst += mkmonst_in_room(croom);
-    }
-    return num_monst;
 }
 
 void
