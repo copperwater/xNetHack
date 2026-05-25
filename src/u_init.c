@@ -168,11 +168,13 @@ static const struct trobj Valkyrie[] = {
     { 0, 0, 0, 0, 0, 0 }
 };
 static struct trobj Wizard[] = {
-    { QUARTERSTAFF, 1, WEAPON_CLASS, 1, 1, 1},
+    { QUARTERSTAFF, 1, WEAPON_CLASS, 1, 1, 1 },
     { CLOAK_OF_MAGIC_RESISTANCE, 0, ARMOR_CLASS, 1, 1, UNDEF_BLESS },
+    { UNDEF_TYP, UNDEF_SPE, WAND_CLASS, 1, 1, UNDEF_BLESS },
+    { UNDEF_TYP, UNDEF_SPE, RING_CLASS, 2, 2, UNDEF_BLESS },
+    { UNDEF_TYP, UNDEF_SPE, POTION_CLASS, 3, 3, UNDEF_BLESS },
+    { UNDEF_TYP, UNDEF_SPE, SCROLL_CLASS, 3, 3, UNDEF_BLESS },
     { SPE_FORCE_BOLT, 0, SPBOOK_CLASS, 1, 1, 1 },
-    { SPE_MAGIC_MISSILE, 0, SPBOOK_CLASS, 1, 1, 1 },
-    { UNDEF_TYP, UNDEF_SPE, SPBOOK_CLASS, 1, 1, UNDEF_BLESS },
     { UNDEF_TYP, UNDEF_SPE, SPBOOK_CLASS, 1, 1, UNDEF_BLESS },
     { MAGIC_MARKER, 19, TOOL_CLASS, 1, 1, 0 }, /* actually spe = 18 + d4 */
     { 0, 0, 0, 0, 0, 0 }

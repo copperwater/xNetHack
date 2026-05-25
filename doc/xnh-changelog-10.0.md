@@ -166,6 +166,10 @@ changes:
   time.
 - The FIQHack-inspired energy regeneration formula is reset to NetHack 5.0's
   formula.
+- Wizards once again start with a random wand, two random rings, three random
+  potions and scrolls, and one random spellbook in addition to their force bolt
+  spellbook, the same as in NetHack 5.0. They no longer start with a guaranteed
+  magic missile book and extra random spellbook.
 
 ### Interface changes
 
