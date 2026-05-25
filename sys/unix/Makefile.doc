@@ -1,5 +1,5 @@
 #      NetHack Documentation Makefile.
-# NetHack 3.7  Makefile.doc    $NHDT-Date: 1700788000 2023/11/24 01:06:40 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.28 $
+# NetHack 5.0  Makefile.doc    $NHDT-Date: 1700788000 2023/11/24 01:06:40 $  $NHDT-Branch: NetHack-5.0 $:$NHDT-Revision: 1.28 $
 # Copyright (c) 2015 by Kenneth Lorber, Kensington, Maryland
 # NetHack may be freely redistributed.  See license for details.
 
@@ -9,14 +9,24 @@ NHSROOT=..
 # for Atari
 # SHELL=E:/GEMINI2/MUPFEL.TTP
 
-MAKEDEFS = ../util/makedefs
+MAKEDEFS ?= ../util/makedefs
+# Only generate output for the current configuration:
+NHGREP ?= $(MAKEDEFS) --grep --input - --output -
+NEEDMAKEDEFS ?= $(MAKEDEFS)
+# Generate output for all configurations:
+#NHGREP ?= $(MAKEDEFS) --grep --input - --output - --grep-define ALLDOCS
+#NEEDMAKEDEFS ?= $(MAKEDEFS)
+# Fallback:
+#NHGREP ?= cat
+#NEEDMAKEDEFS ?=
 
-#STRIPBS ?= ../util/stripbs
+NROFF ?= nroff
+# NROFF_FLAGS comes from a hints file, or is empty
 
 # Which version do we want to build?  (XXX These are not used anywhere.)
-GUIDEBOOK = Guidebook		# regular ASCII file
-#GUIDEBOOK = Guidebook.ps	# PostScript file
-#GUIDEBOOK = Guidebook.dvi	# TeX device-independent file
+GUIDEBOOK ?= Guidebook		# regular ASCII file
+#GUIDEBOOK ?= Guidebook.ps	# PostScript file
+#GUIDEBOOK ?= Guidebook.dvi	# TeX device-independent file
 
 # Some versions of col need -x to keep them from converting spaces to tabs;
 # some versions of col don't do the conversion by default and don't
@@ -28,39 +38,34 @@ COLCMD ?= col -bx
 #COLCMD ?= $(STRIPBS)
 
 # The command to use to generate a PostScript file
-# PSCMD = ditroff | psdit
-PSCMD = groff
+# PSCMD ?= ditroff | psdit
+PSCMD ?= groff
 
+GUIDEBOOK_MN_SRC ?= Guidebook.mn
+GUIDEBOOK_MN ?= $(GUIDEBOOK_MN_SRC)
+
+GUIDE_PREFORMAT ?= cat $(GUIDEBOOK_MN) | $(NHGREP) | tbl tmac.n -
+# for Guidebook.dat, unpaginated version of Guidebook.txt
+ONEPAGE_PREFORMAT ?= cat Gbk-1pg-pfx.mn $(GUIDEBOOK_MN) Gbk-1pg-sfx.mn \
+	| $(NHGREP) | tbl tmac.n -
+ONEPAGECMD ?= $(ONEPAGE_PREFORMAT) | $(NROFF) -c -Tascii $(NROFF_FLAGS) | $(COLCMD)
 # Use the "cat" GUIDECMD if nroff and/or tbl and/or col are not installed
 # Not appropriate for creating Guidebook.txt.
-# GUIDECMD = cat Guidebook.txt
+# GUIDECMD ?= cat Guidebook.txt
 #
 # Single page. Might need adjustment to .pl value
-# GUIDECMD= $(GUIDE_PREFORMAT) | perl -pe 's/^(.mt)$$/.pl 4720v\n.in 0\n.po 8\n.ll 64m\n$$1/' | nroff -c -Tascii | $(COLCMD)
+# PLVALUE='s/^(.mt)$$/.pl 4720v\n.in 0\n.po 8\n.ll 64m\n$$1/'
+# GUIDECMD ?= $(GUIDE_PREFORMAT) | perl -pe $(PLVALUE) | $(NROFF) -c -Tascii | $(COLCMD)
 #
-GUIDECMD = $(GUIDE_PREFORMAT) | nroff -c -Tascii $(NROFF_FLAGS) | $(COLCMD)
-ONEPAGECMD = $(ONEPAGE_PREFORMAT) | nroff -c -Tascii $(NROFF_FLAGS) | $(COLCMD)
+GUIDECMD ?= $(GUIDE_PREFORMAT) | $(NROFF) -c -Tascii $(NROFF_FLAGS) | $(COLCMD)
+GUIDEBOOK_TEX_SRC ?= Guidebook.tex
+GUIDEBOOK_TEX ?= $(GUIDEBOOK_TEX_SRC)
 
-# Only generate output for the current configuration:
-NHGREP = $(MAKEDEFS) --grep --input - --output -
-NEEDMAKEDEFS = $(MAKEDEFS)
-# Generate output for all configurations:
-#NHGREP = $(MAKEDEFS) --grep --input - --output - --grep-define ALLDOCS
-#NEEDMAKEDEFS = $(MAKEDEFS)
-# Fallback:
-#NHGREP = cat
-#NEEDMAKEDEFS =
+#STRIPBS ?= ../util/stripbs
+# STRIPBS often comes from a hints file, or is empty
 
-GUIDEBOOK_MN_SRC = Guidebook.mn
-GUIDEBOOK_MN = $(GUIDEBOOK_MN_SRC)
-GUIDEBOOK_TEX_SRC = Guidebook.tex
-GUIDEBOOK_TEX = $(GUIDEBOOK_TEX_SRC)
-
-GUIDE_PREFORMAT = cat $(GUIDEBOOK_MN) | $(NHGREP) | tbl tmac.n -
-# for Guidebook.dat, unpaginated version of Guidebook.txt
-ONEPAGE_PREFORMAT = cat Gbk-1pg-pfx.mn $(GUIDEBOOK_MN) Gbk-1pg-sfx.mn \
-	| $(NHGREP) | tbl tmac.n -
-
+# targets
+#
 # the basic guidebook
 Guidebook	: $(GUIDEBOOK_MN) tmac.n tmac.nh $(NEEDMAKEDEFS) $(STRIPBS)
 	-$(GUIDECMD) > Guidebook
@@ -91,20 +96,22 @@ $(MAKEDEFS)	: ../util/makedefs.c ../include/config.h ../src/mdlib.c \
 GAME	= xnethack
 MANDIR	?= /usr/man/man6
 MANEXT	= 6
-NROFF ?= nroff
+MANDIRPREP ?=  true
 
 # manual installation for most BSD-style systems
 GAMEMANCREATE = cat xnethack.6 | $(NHGREP) >
 RCVRMANCREATE = cat recover.6 | $(NHGREP) >
 DLBMANCREATE = cat dlb.6 | $(NHGREP) >
 MDMANCREATE = cat makedefs.6 | $(NHGREP) >
+
 # manual installation for most SYSV-style systems
-# GAMEMANCREATE = cat xnethack.6 | $(NHGREP) | nroff -man - >
-# RCVRMANCREATE = cat recover.6 | $(NHGREP) | nroff -man - >
-# DLBMANCREATE = cat dlb.6 | $(NHGREP) | nroff -man - >
-# MDMANCREATE = cat makedefs.6 | $(NHGREP) | nroff -man - >
+# GAMEMANCREATE = cat xnethack.6 | $(NHGREP) | $(NROFF) -man - >
+# RCVRMANCREATE = cat recover.6 | $(NHGREP) | $(NROFF) -man - >
+# DLBMANCREATE = cat dlb.6 | $(NHGREP) | $(NROFF) -man - >
+# MDMANCREATE = cat makedefs.6 | $(NHGREP) | $(NROFF) -man - >
 
 manpages: $(PREMANPAGES)
+	-$(MANDIRPREP)
 	-$(GAMEMANCREATE) $(MANDIR)/$(GAME).$(MANEXT)
 	-$(RCVRMANCREATE) $(MANDIR)/recover.$(MANEXT)
 	-$(DLBMANCREATE) $(MANDIR)/dlb.$(MANEXT)

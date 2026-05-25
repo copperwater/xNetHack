@@ -1,4 +1,4 @@
-/* NetHack 3.7	wield.c	$NHDT-Date: 1707525193 2024/02/10 00:33:13 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.110 $ */
+/* NetHack 5.0	wield.c	$NHDT-Date: 1707525193 2024/02/10 00:33:13 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.110 $ */
 /* Copyright (c) Stichting Mathematisch Centrum, Amsterdam, 1985. */
 /*-Copyright (c) Robert Patrick Rankin, 2009. */
 /* NetHack may be freely redistributed.  See license for details. */
@@ -92,10 +92,15 @@ setuwep(struct obj *obj)
 
     if (obj == uwep)
         return; /* necessary to not set gu.unweapon */
-    /* This message isn't printed in the caller because it happens
-     * *whenever* Sunsword is unwielded, from whatever cause.
-     */
     setworn(obj, W_WEP);
+    /* handle Ogresmasher before Sunsword; even though they can't be happening
+       at the same time, botl flag update should come before pline message */
+    if (uwep == obj
+        && ((uwep && uwep->oartifact == ART_OGRESMASHER)
+            || (olduwep && olduwep->oartifact == ART_OGRESMASHER)))
+        disp.botl = TRUE; /* gaining or losing Con bonus */
+    /* This message isn't printed in the caller because it happens
+     * *whenever* Sunsword is unwielded, from whatever cause. */
     if (uwep == obj && artifact_light(olduwep) && olduwep->lamplit) {
         end_burn(olduwep, FALSE);
         if (!Blind)
@@ -840,7 +845,11 @@ drop_uswapwep(void)
 void
 set_twoweap(boolean on_off)
 {
-    u.twoweap = on_off;
+    if (on_off != u.twoweap) {
+        u.twoweap = on_off;
+        if (flags.weaponstatus)
+            disp.botl = TRUE;
+    }
     if (uswapwep && uswapwep->oartifact) {
         set_artifact_intrinsic(uswapwep, on_off, W_SWAPWEP);
     }

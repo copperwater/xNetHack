@@ -1,4 +1,4 @@
-/* NetHack 3.7	rm.h	$NHDT-Date: 1745114235 2025/04/19 17:57:15 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.120 $ */
+/* NetHack 5.0	rm.h	$NHDT-Date: 1745114235 2025/04/19 17:57:15 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.120 $ */
 /* Copyright (c) Stichting Mathematisch Centrum, Amsterdam, 1985. */
 /*-Copyright (c) Pasi Kallinen, 2017. */
 /* NetHack may be freely redistributed.  See license for details. */
@@ -94,7 +94,20 @@ enum levl_typ_types {
     CLOUD     = 38,
 
     MAX_TYPE  = 39,
+    /* for special levels */
     MATCH_WALL = 40,
+
+    /* these aren't levl[][].typ values, they're additional indices
+       into terrain_descr[] for status feedback */
+    xFLOOR     = 41,
+    xGROUND    = 42,
+    xOPENDOOR  = 43,
+    xSHUTDOOR  = 44,
+    xSWAMP     = 45,
+    xSUBMERGED = 46,
+    xSEA       = 47,
+    xWATERWALL = 48,
+
     INVALID_TYPE = 127
 };
 
@@ -500,6 +513,7 @@ struct levelflags {
 
     /* 4 free bits */
     schar temperature;         /* +1 == hot, -1 == cold */
+    long stasis_until;         /* wand of stasis effect lasts until when? */
 };
 
 /* values for nommap, which is a slightly awkward name since it is no longer a

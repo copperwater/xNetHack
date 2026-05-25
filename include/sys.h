@@ -1,4 +1,4 @@
-/* NetHack 3.7	sys.h	$NHDT-Date: 1693083207 2023/08/26 20:53:27 $  $NHDT-Branch: keni-crashweb2 $:$NHDT-Revision: 1.41 $ */
+/* NetHack 5.0	sys.h	$NHDT-Date: 1693083207 2023/08/26 20:53:27 $  $NHDT-Branch: keni-crashweb2 $:$NHDT-Revision: 1.41 $ */
 /* Copyright (c) Kenneth Lorber, Kensington, Maryland, 2008. */
 /* NetHack may be freely redistributed.  See license for details. */
 
@@ -30,6 +30,7 @@ struct sysopt_s {
                        * -1: getenv() didn't find a value for DEBUGFILES.
                        */
     int maxplayers;
+    int maxrerollrate;
     int seduce;
     int check_save_uid; /* restoring savefile checks UID? */
     int check_plname; /* use plname for checking wizards/explorers/shellers */

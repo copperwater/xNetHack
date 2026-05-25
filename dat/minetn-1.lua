@@ -1,4 +1,4 @@
--- NetHack 3.7	mines minetn-1.lua	$NHDT-Date: 1652196030 2022/05/10 15:20:30 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.8 $
+-- NetHack 5.0	mines minetn-1.lua	$NHDT-Date: 1652196030 2022/05/10 15:20:30 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.8 $
 --	Copyright (c) 1989-95 by Jean-Christophe Collet
 --	Copyright (c) 1991-95 by M. Stephenson
 -- NetHack may be freely redistributed.  See license for details.
@@ -82,7 +82,7 @@ des.replace_terrain({ region={07,12,11,14}, fromterrain="|", toterrain=".", chan
 des.replace_terrain({ region={28,12,28,14}, fromterrain="|", toterrain=".", chance=33 })
 
 -- Rubble!
-for i=1,9 + d(2,5) do
+for i = 1, math.random(10,19) do
   if percent(90) then
     des.object("boulder")
   end
@@ -133,7 +133,7 @@ des.monster({ id = "watch captain", dead = 1 })
 
 -- the Orcish Army
 
-for i=1,5 + d(10) do
+for i = 1, math.random(5,15) do
    if percent(50) then
       des.monster({ id = "orc-captain", coord = inside:rndcoord(1), peaceful=0 });
    else
@@ -145,11 +145,14 @@ for i=1,5 + d(10) do
    end
 end
 -- shamans can be hanging out in/near the temple
-for i=1,d(2,3) do
-   des.monster({ id = "orc shaman", coord = near_temple:rndcoord(0), peaceful=0 });
+-- one of the shamans is higher level
+for i = 1, math.random(1,6) do
+   des.monster({ id = "orc shaman", coord = near_temple:rndcoord(0), peaceful=0,
+                 m_lev_adj = (i == 1) and 3 or 0 });
 end
--- these are not such a big deal to run into outside the bars
-for i=1,9 + d(2,5) do
+-- these are not such a big deal
+-- to run into outside the bars
+for i = 1, math.random(10,19) do
    if percent(90) then
       des.monster({ id = "hill orc", peaceful = 0 })
    else

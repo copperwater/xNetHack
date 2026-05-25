@@ -1,5 +1,5 @@
 /* vim:set cin ft=c sw=4 sts=4 ts=8 et ai cino=Ls\:0t0(0 : -*- mode:c;fill-column:80;tab-width:8;c-basic-offset:4;indent-tabs-mode:nil;c-file-style:"k&r" -*-*/
-/* NetHack 3.7 cursinit.c */
+/* NetHack 5.0 cursinit.c */
 /* Copyright (c) Karl Garrison, 2010. */
 /* NetHack may be freely redistributed.  See license for details. */
 
@@ -742,6 +742,12 @@ curses_character_dialog(const char **choices, const char *prompt)
 void
 curses_init_options(void)
 {
+#ifdef PDCURSES
+    int display_height = 0, display_width = 0;
+#if defined(WIN32) && !defined(WIN32CON)
+    int alt_display_height = 0, alt_display_width = 0;
+#endif
+#endif
     /* change these from set_gameview to set_in_game */
     set_wc_option_mod_status(WC_ALIGN_MESSAGE | WC_ALIGN_STATUS, set_in_game);
 
@@ -757,11 +763,18 @@ curses_init_options(void)
        terminal size programmatically.  If the user does not specify a
        size in the config file, we will set it to a nice big 32x110 to
        take advantage of some of the nice features of this windowport. */
-    if (iflags.wc2_term_cols == 0)
-        iflags.wc2_term_cols = 110;
-    if (iflags.wc2_term_rows == 0)
-        iflags.wc2_term_rows = 32;
 
+    getmaxyx(base_term, display_height, display_width);
+#if defined(WIN32) && !defined(WIN32CON)
+    alt_display_width = get_approx_display_cols();
+    alt_display_height = get_approx_display_rows();
+    display_width = min(230, alt_display_width);
+    display_height = min(66, alt_display_height);
+#endif
+    if (iflags.wc2_term_cols == 0)
+        iflags.wc2_term_cols = display_width;
+    if (iflags.wc2_term_rows == 0)
+        iflags.wc2_term_rows = display_height;
     resize_term(iflags.wc2_term_rows, iflags.wc2_term_cols);
     getmaxyx(base_term, term_rows, term_cols);
 

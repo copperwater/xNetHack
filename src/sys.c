@@ -1,4 +1,4 @@
-/* NetHack 3.7	sys.c	$NHDT-Date: 1717449153 2024/06/03 21:12:33 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.64 $ */
+/* NetHack 5.0	sys.c	$NHDT-Date: 1717449153 2024/06/03 21:12:33 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.64 $ */
 /* Copyright (c) Kenneth Lorber, Kensington, Maryland, 2008. */
 /* NetHack may be freely redistributed.  See license for details. */
 
@@ -71,6 +71,7 @@ sys_early_init(void)
     sysopt.genericusers = (char *) 0;
     sysopt.msghandler = (char *) 0;
     sysopt.maxplayers = 0; /* XXX eventually replace MAX_NR_OF_PLAYERS */
+    sysopt.maxrerollrate = 0;
     sysopt.bones_pools = 0;
     sysopt.livelog = LL_NONE;
 

@@ -1,3 +1,8 @@
+-- NetHack 5.0	hellfill.des	$NHDT-Date: 1432512783 2015/05/25 00:13:03 $  $NHDT-Branch: master $:$NHDT-Revision: 1.25 $
+--	Copyright (c) 2022 by Pasi Kallinen
+-- NetHack may be freely redistributed.  See license for details.
+-- 
+--
 -- Gehennom "fill" level template for when no specific level occupies the space
 -- There are a few possible concepts for this, one is a simple cavern fill with
 -- lava and lots of demons and traps, with demon dens burrowed into the walls;

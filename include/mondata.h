@@ -1,4 +1,4 @@
-/* NetHack 3.7	mondata.h	$NHDT-Date: 1703845738 2023/12/29 10:28:58 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.63 $ */
+/* NetHack 5.0	mondata.h	$NHDT-Date: 1703845738 2023/12/29 10:28:58 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.63 $ */
 /* Copyright (c) 1989 Mike Threepoint                             */
 /* NetHack may be freely redistributed.  See license for details. */
 

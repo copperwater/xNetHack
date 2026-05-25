@@ -549,8 +549,8 @@ static void parseExtensionFields (struct tagstruct *tmptag, char *buf)
             if (colon == (char *)0) {
                 tmptag->tagtype = *field;
             } else {
-                const char *key = field;
-                const char *value = colon + 1;
+                char *key = field;
+                char *value = colon + 1;
                 *colon = '\0';
                 if ((strcmp (key, "struct") == 0) ||
                     (strcmp (key, "union") == 0)) {
@@ -1845,14 +1845,15 @@ static char *
 bfsize(const char *str)
 {
     static char buf[128];
-    const char *c1;
-    char *c2, *subst;
+    char *copy_str, *c1, *c2, *subst;
+    char *retval = buf;
 
     if (!str)
         return (char *)0;
 
+    copy_str = dupstr(str);
     /* kludge */
-    subst = strstr(str, ",$/");
+    subst = strstr(copy_str, ",$/");
     if (subst != 0) {
         subst++;
         *subst++ = ' ';
@@ -1860,7 +1861,7 @@ bfsize(const char *str)
     }
 
     c2 = buf;
-    c1 = str;
+    c1 = copy_str;
     while (*c1) {
         if (*c1 == ',')
             break;
@@ -1874,9 +1875,10 @@ bfsize(const char *str)
         }
         *c2 = '\0';
     } else {
-        return (char *)0;
+        retval = (char *) 0; 
     }
-    return buf;
+    free((genericptr_t) copy_str);
+    return retval;
 }
 
 /* Read one line from input, up to and including the next newline

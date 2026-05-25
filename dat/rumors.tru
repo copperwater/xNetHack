@@ -18,6 +18,7 @@ A candelabrum affixed with seven candles shows the way with a magical light.
 A certain scroll might make your weapon glow.  Glowing weapons are good, right?
 A cream pie has two uses: food, and entertainment.
 A crystal plate mail will not rust.
+A dead body may protect your live body.  But only an item can protect an item.
 A dwarf knows digging.
 A food ration is really just ten pureed bananas.
 A hacker named Kirby once swallowed his foes and gained their abilities.
@@ -65,7 +66,6 @@ Be careful what you wish for.
 Be careful when throwing a boomerang - you might hit the back of your head.
 Be careful!  The Wizard may plan an ambush!
 Be nice to a nurse:  Put away your weapon and take off your clothes.
-Being digested is a painfully slow process.
 Beware a big room.
 Beware of the snake in the grass!
 Blind?  Catch a floating eye!
@@ -96,6 +96,7 @@ Dragons breathe a lot more than just fire.
 Dragons never whip their children; they wouldn't feel it!
 Drinking a potion of sleeping will soon make you rest in peace.
 Dropped your gear in the Styx marshes?  Well, good luck getting /that/ back.
+Dwarves use their cloaks to keep their drinks cool.
 Eat your carrots.  They're good for your eyes.
 Eating a blue jelly is like eating a yeti.
 Eating a chameleon can help you change your life.
@@ -110,11 +111,12 @@ Elves are the world's greatest insomniacs.
 Elves can help you feel less tired.
 Enchanting your gear to +10 is crazy talk.
 Even evil players have a guardian angel.
+Even the most powerful heroes sometimes need to quaff away their injuries.
 Even the most ridiculously false lies may carry a grain of truth.
 Ever fought with an enchanted tooth?
 Ever tried reading while confused?
 Ever tried to enchant a "weapon" that's really a musical instrument?
-Ever tried to lock a troll in a large box?
+Ever tried to lock a troll inside a large box?
 Ever wondered why one would want to dip something in a potion?
 Expensive cameras have penetrating flash lights.
 Extra staircases lead to extra levels.
@@ -141,6 +143,7 @@ Guy Montag keeps his scrolls in a bag.
 Handle your flasks carefully -- there might be a ghost inside!
 Hanging out with a gas spore can be a real blast!
 Having trouble casting spells? Try holding a magic wand!
+Heavy-duty boots can protect more than just your feet.
 Help!  My potions are haunted!
 Holy water has many uses.
 Horses trust their riders, even when not so deserved.
@@ -173,6 +176,7 @@ If you're blind, don't expect your dog to become a seeing-eye dog.
 If you're going through hell, keep going... until you find the Amulet of Yendor, then come back up.
 If you're lost, try buying a map next time you're in a shop.
 If your hands are greasy, why not wash them?
+If your items get destroyed, you weren't wearing the right ring.
 Inside a shop you better take a look at the price tags before buying anything.
 It's easy to fool an enchant weapon scroll - it thinks anything you wield is a weapon!
 It's worth reading the label on tins; it might even say what's inside.
@@ -186,7 +190,7 @@ It is the letter 'c' and not 'e' that changes status to statue.
 It might be a good idea to toss the unicorn a ruby.
 It takes ten geckos to make a pureed tin of gecko, but only one to make a homemade tin.
 It would be peculiarly sad were your dog turned to stone.
-It's a `d' eats `d' world.
+It's a 'd' eats 'd' world.
 It's never too late to retire and set up as a shopkeeper in an empty room.
 Junk for some is food for others.
 Just because it says READ ME doesn't mean you should.
@@ -234,6 +238,7 @@ One data file always tells the truth; the other always lies.
 One does not simply kill the Wizard of Yendor.
 One does not simply walk into Gehennom.
 Only female monsters can lay eggs.
+Only the most confused adventurers would read cursed destroy armor scrolls.
 Opening a tin is difficult, especially when you attempt it bare handed!
 Orcs and killer bees share their lifestyle.
 Pets don't respond well to being disciplined - try positive reinforcement.
@@ -283,6 +288,7 @@ Stay clear of the Abyss.
 Stop smashing that Mjollnir around!  You'll wake the dead with all the racket!
 Surviving the full extent of the mines could mean that your luck is changing.
 Tainted meat is even more sickening than poison!
+Take your healing potions to the next level!
 Telepathy is just a trick:  once you know how to do it, it's easy.
 That fountain was demon-possessed!
 That nymph may be pretty, but remember -- she only wants you for your stuff.
@@ -301,6 +307,7 @@ The gods appreciate honesty; only blessed things will always speak truth.
 The gods don't appreciate needy adventurers.
 The gods will get angry if you kill your dog.
 The good thing about being in a dungeon is you almost certainly won't be hit by a meteor.
+The less magic in your armor, the more you can add.
 The magic marker is mightier than the sword.
 The meek shall inherit your bones files.
 The mines are lovely, dark and deep / But I have promises to keep / And levels to go before I sleep.
@@ -326,13 +333,13 @@ They say if you exterminate bugs, you'll get snakes on a plane.
 They say knights can get their sword blessed easier than anyone else.
 They say the dungeon is an elaborate way to transfer gold from leprechauns to priests.
 They say no dog was ever charged with theft.
+They say that 'Elbereth' is often written about.
 They say that Croesus is a popular name around these parts.
 They say that Itlachiayaque is all just smoke and mirrors.
-They say that Juiblex is afraid of a wand of digging.
+They say that Juiblex is somewhat afraid of a wand of digging.
 They say that Medusa would like to put you on a pedestal.
 They say that Ogresmasher can smash plenty of other things too.
 They say that Tartarus is like the /dev/null of the dungeon.
-They say that Vlad lives!!! ... in the mazes.
 They say that Vlad used to make various shortcuts down the dungeon.
 They say that Vlad will take you down a level.
 They say that a bag of holding can't hold everything.
@@ -376,6 +383,7 @@ They say that a wand of cancellation is not like a wand of polymorph.
 They say that a wand of locking can close more than just doors.
 They say that a wand of polymorph can change your game.
 They say that a werewolf is never alone.
+They say that a wise choice of donations lets you choose your blessings.
 They say that a wizard is even more powerful the second time around.
 They say that a xorn knows of no obstacles when pursuing you.
 They say that abusing a credit card could shock you sooner or later.
@@ -408,6 +416,7 @@ They say that eating a bat corpse will make you batty, for a while.
 They say that eating a cram ration is a smart move.
 They say that eating a newt may make you a more powerful wizard.
 They say that eating blue jelly is cool if you don't fight the feeling.
+They say that elven armor can hold the most magic.
 They say that escaping the dungeon is only the beginning of the end.
 They say that feeling an unexpected draft of air is sort of a breakthrough.
 They say that finding a cursed gray stone is always bad luck.
@@ -422,6 +431,7 @@ They say that gremlins can make you feel cooler than you are now.
 They say that grid bugs only exist in a strictly Cartesian sense.
 They say that hackers often feel jumpy about eating nymphs.
 They say that having polymorph control won't shock you.
+They say that healing potions often come in pairs.
 They say that if it's hard getting your food down another bite could kill.
 They say that if you don't wear glasses why bother with carrots?
 They say that if you notice a loose board beneath you, don't step on it.
@@ -472,6 +482,7 @@ They say that shopkeepers often have a large amount of money in their purses.
 They say that shopkeepers often remember things that you might forget.
 They say that sinks and armor don't mix; take your cloak off now!
 They say that sinks run hot and cold and many flavors in between.
+They say that sitting on a vampire's throne is worth the danger.
 They say that slime is waterproof, but not fireproof.
 They say that snake charmers aren't charismatic, just musical.
 They say that soldiers are always prepared and usually protected.
@@ -493,18 +504,21 @@ They say that that which was stolen once can be stolen again. Ask any nymph.
 They say that the DevTeam thinks of everything.
 They say that the Dungeons of Doom are quite dangerous.
 They say that the Horsemen of the Apocalypse are camera shy.
+They say that the best way to fix your injuries is a potion.
 They say that the gods are happy when they drop objects at your feet.
 They say that the idea of invisible Nazgul has a certain ring to it.
 They say that the lady of the lake now lives in a fountain somewhere.
 They say that the local shopkeeper frowns upon the rude tourist.
 They say that the only door to the vampire's tower is on its lowest level.
 They say that the only good djinni is a grateful djinni.
+They say that the right wand may help you chase a nymph.
 They say that the thing about genocide is that it works both ways.
 They say that the unicorn horn rule is if it ain't broke then don't fix it.
 They say that the view from a fog cloud is really very moving.
 They say that the walls in shops are made of extra hard material.
 They say that there are at least 15 ways to lose a pair of levitation boots.
 They say that throwing glass gems is the same as throwing rocks.
+They say that to block a shocking sphere, you need the right shield.
 They say that trespassing a boulder is probably beneath you.
 They say that true power comes from within...except when it doesn't.
 They say that unicorns are fond of precious gems.
@@ -515,6 +529,7 @@ They say that with a floating eye you could see in the dark.
 They say that you are lucky if you can get a unicorn to catch an emerald.
 They say that you are what you eat.
 They say that you can find named weapons at an altar if you're lucky.
+They say that you can give potions of extra healing new energy.
 They say that you can safely touch cockatrice eggs but why bother?
 They say that you can train your dog with meatballs.
 They say that you can't break an amulet of reflection.
@@ -558,6 +573,7 @@ Vault guards never disturb their Lords.
 Vegetarians enjoy lichen and seaweed.
 Violence against your computer won't hurt the monsters.
 Vlad's practical jokes aren't very sophisticated - only the gullible will fall for them.
+Want to heal faster?  Dip your potions of healing in a potion of speed!
 Want to maximize your one-hit-kill ratio?  I have a bridge to sell you!
 Watch out, the Wizard might come back.
 Watch out for the mummies.  They'll shrivel you to dust if they get their hands on you.
@@ -584,6 +600,7 @@ Yeenoghu likes to give Baalzebub a swat whenever they pass by each other.
 You are probably going to die down here.
 You can't bribe soldier ants.
 You can't leave a shop through the back door:  there isn't one!
+You can't reflect explosions.  But you might resist them.
 You can get high on a levitation potion but it's easy to sink back down and crash.
 You may discover a fine spirit inside a potion bottle.
 You may want to dip into a potion of bottled blessings.

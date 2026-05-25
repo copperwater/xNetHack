@@ -1,6 +1,6 @@
-$ ! vms/vmsbuild.com -- compile and link NetHack 3.7.*			[pr]
-$	version_number = "3.7.0"
-$ ! $NHDT-Date: 1687541093 2023/06/23 17:24:53 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.39 $
+$ ! vms/vmsbuild.com -- compile and link NetHack 5.0.*			[pr]
+$	version_number = "5.0.0"
+$ ! $NHDT-Date: 1687541093 2023/06/23 17:24:53 $  $NHDT-Branch: NetHack-5.0 $:$NHDT-Revision: 1.39 $
 $ ! Copyright (c) 2018 by Robert Patrick Rankin
 $ ! NetHack may be freely redistributed.  See license for details.
 $ !
@@ -10,7 +10,7 @@ $ !   $ @[-.sys.vms]vmsbuild  [compiler-option]  [link-option]  [cc-switches] -
 $ !			      [linker-switches]  [interface]
 $ ! options:
 $ !     compiler-option :  either "VSIC", "VAXC", "DECC",
-$ !                        "GNUC" or "" or "fetchlua" !default in 3.7 is VSIC
+$ !                        "GNUC" or "" or "fetchlua" !default in 5.0 is VSIC
 $ !	link-option	:  either "SHARE[able]" or "LIB[rary]"	!default SHARE
 $ !	cc-switches	:  optional qualifiers for CC (such as "/noOpt/Debug")
 $ !     linker-switches :  optional qualifiers for LINK (/Debug or /noTraceback)
@@ -291,7 +291,7 @@ $	if f$search("[-.include]nhlua.h").nes."" then -
 $ milestone " (wiped existing [-.include]nhlua.h)"
 $ exit
 $!
-$! 3.7 runtime LUA level parser/loader
+$! 5.0 runtime LUA level parser/loader
 $!
 $buildlua:
 $ if f$search("[-.lib]lua.dir;").eqs."" then -
@@ -406,7 +406,7 @@ $ gosub compile_list
 $ link makedefs.obj,[-.src]panic.obj,'nethacklib'/Lib,[-.src]ident.opt/Opt,[-.src]crtl/Opt
 $ milestone "makedefs"
 $! create some build-time files
-$! 3.7 does not require these
+$! 5.0 does not require these
 $! makedefs -p	!pm.h
 $! makedefs -o	!onames.h
 $! makedefs -v	!date.h
@@ -431,7 +431,7 @@ $ c_list = "hack,hacklib,iactions,insight,invent,light,lock,mail,makemon" -
 	+ ",music"
 $ gosub compile_list
 $!
-$! Files added in 3.7 for Lua glue
+$! Files added in 5.0 for Lua glue
 $!
 $ c_list = "nhlua,nhlobj,nhlsel"
 $ gosub compile_list

@@ -1,4 +1,4 @@
-/* NetHack 3.7	pray.c	$NHDT-Date: 1762680996 2025/11/09 01:36:36 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.244 $ */
+/* NetHack 5.0	pray.c	$NHDT-Date: 1762680996 2025/11/09 01:36:36 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.244 $ */
 /* Copyright (c) Benson I. Margulies, Mike Stephenson, Steve Linhart, 1989. */
 /* NetHack may be freely redistributed.  See license for details. */
 
@@ -753,15 +753,15 @@ god_zaps_you(aligntyp resp_god)
          */
         if (uarms && !(EReflecting & W_ARMS)
             && !(EDisint_resistance & W_ARMS))
-            (void) destroy_arm(uarms);
+            (void) disintegrate_arm(uarms);
         if (uarmc && !(EReflecting & W_ARMC)
             && !(EDisint_resistance & W_ARMC))
-            (void) destroy_arm(uarmc);
+            (void) disintegrate_arm(uarmc);
         if (uarm && !(EReflecting & W_ARM) && !(EDisint_resistance & W_ARM)
             && !uarmc)
-            (void) destroy_arm(uarm);
+            (void) disintegrate_arm(uarm);
         if (uarmu && !uarm && !uarmc)
-            (void) destroy_arm(uarmu);
+            (void) disintegrate_arm(uarmu);
         if (!Disint_resistance) {
             fry_by_god(resp_god, TRUE);
             monstunseesu(M_SEEN_DISINT);

@@ -1,4 +1,4 @@
-/* NetHack 3.7	extern.h	$NHDT-Date: 1764044196 2025/11/24 20:16:36 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.1509 $ */
+/* NetHack 5.0	extern.h	$NHDT-Date: 1778886716 2026/05/15 15:11:56 $  $NHDT-Branch: NetHack-5.0 $:$NHDT-Revision: 1.1558 $ */
 /* Copyright (c) Steve Creps, 1988.                               */
 /* NetHack may be freely redistributed.  See license for details. */
 
@@ -105,7 +105,6 @@ extern void stop_occupation(void);
 extern void init_sound_disp_gamewindows(void);
 extern void newgame(void);
 extern void welcome(boolean);
-extern int argcheck(int, char **, enum earlyarg);
 extern long timet_to_seconds(time_t);
 extern long timet_delta(time_t, time_t);
 
@@ -281,6 +280,8 @@ extern void max_rank_sz(void);
 extern long botl_score(void);
 #endif
 extern int describe_level(char *, int);
+extern char *weapon_status(char *) NONNULL NONNULLARG1;
+extern char *armor_status(char *) NONNULL NONNULLARG1;
 extern void status_initialize(boolean);
 extern void status_finish(void);
 extern boolean exp_percent_changing(void);
@@ -341,12 +342,30 @@ extern boolean parse_conf_file(FILE *fp, boolean (*proc)(char *arg));
 extern void set_configfile_name(const char *);
 extern char *get_configfile(void);
 extern const char *get_default_configfile(void);
+extern void rcfile(void);
+extern void rcfile_interface_options(void);
+extern void rcfile_only_this_option(enum opt);
+extern void heed_all_config_statements(void);
+extern void disregard_all_config_statements(void);
+extern void heed_this_config_statement(int);
+extern void disregard_this_config_statement(int);
+extern boolean config_unmatched_ignored(void);
+extern void clear_ignore_errors_on_unmatched(void);
+extern void set_ignore_errors_on_unmatched(void);
+extern void rcfile_only_this_statement(int);
+#ifdef WIN32
+extern boolean check_for_portable_config(void);
+#endif
+#ifdef MSWIN_GRAPHICS
+extern void disregard_some_mswin_options(void);
+extern void rcfile_only_some_mswin_options(void);
+#endif
 
 /* ### coloratt.c ### */
 
 extern char *color_attr_to_str(color_attr *);
 extern boolean color_attr_parse_str(color_attr *, char *);
-extern int32 colortable_to_int32(struct nethack_color *);
+extern int32 colortable_to_int32(const struct nethack_color *);
 extern int query_color(const char *, int) NO_NNARGS;
 extern int query_attr(const char *, int) NO_NNARGS;
 extern boolean query_color_attr(color_attr *, const char *) NONNULLARG1;
@@ -375,6 +394,8 @@ extern void change_palette(void);
 
 /* ### cmd.c ### */
 
+extern void cmdbind_freeall(void);
+extern int dotoggleoption(void);
 extern void set_move_cmd(int, int);
 extern int do_move_west(void);
 extern int do_move_northwest(void);
@@ -455,10 +476,10 @@ extern int doextlist(void);
 extern int extcmd_via_menu(void);
 extern int enter_explore_mode(void);
 extern boolean bind_mousebtn(int, const char *);
-extern boolean bind_key(uchar, const char *);
+extern boolean bind_key(uchar, const char *, boolean);
 extern void dokeylist(void);
-extern int xytod(coordxy, coordxy);
-extern void dtoxy(coord *, int);
+extern int xytodir(int, int);
+extern void dirtocoord(coord *, int);
 extern int movecmd(char, int);
 extern int dxdy_moveok(void);
 extern int getdir(const char *);
@@ -507,6 +528,7 @@ extern void destroy_drawbridge(coordxy, coordxy);
 
 /* ### decl.c ### */
 
+extern void program_state_init(void);
 extern void decl_globals_init(void);
 extern void sa_victual(volatile struct victual_info *);
 
@@ -689,7 +711,8 @@ extern void free_mgivenname(struct monst *) NONNULLARG1;
 extern void new_oname(struct obj *, int) NONNULLARG1;
 extern void free_oname(struct obj *) NONNULLARG1;
 extern const char *safe_oname(struct obj *) NONNULLARG1;
-extern struct monst *christen_monst(struct monst *, const char *) NONNULLARG1;
+extern struct monst *christen_monst(struct monst *, const char *) NONNULL
+                                                                   NONNULLARG1;
 extern struct obj *weapon_oname(struct obj *) NONNULLARG1;
 extern struct obj *oname(struct obj *, const char *, unsigned) NONNULLPTRS;
 extern boolean objtyp_is_callable(int);
@@ -793,7 +816,8 @@ extern struct obj *unchanger(void);
 extern void reset_remarm(void);
 extern int doddoremarm(void);
 extern int remarm_swapwep(void);
-extern int destroy_arm(struct obj *);
+extern int disintegrate_arm(struct obj *);
+extern int destroy_arm(void);
 extern void adj_abon(struct obj *, schar) NONNULLARG1;
 extern boolean inaccessible_equipment(struct obj *, const char *, boolean);
 extern int ringbon(short);
@@ -857,6 +881,7 @@ extern void hurtle(int, int, int, boolean);
 extern void mhurtle(struct monst *, int, int, int) NONNULLARG1;
 extern boolean harmless_missile(struct obj *) NONNULLARG1;
 extern boolean throwing_weapon(struct obj *) NONNULLARG1;
+extern boolean throwit_mon_hit(struct obj *, struct monst *) NONNULLARG1;
 extern void throwit(struct obj *, long, boolean, struct obj *) NONNULLARG1;
 extern int omon_adj(struct monst *, struct obj *, boolean) NONNULLPTRS;
 extern boolean should_mulch_missile(struct obj *);
@@ -948,6 +973,14 @@ extern const char *endgamelevelname(char *, int);
 extern boolean sokoban_solved(d_level *);
 extern boolean undiscovered_bones(void);
 
+/* ### earlyarg.c ### */
+
+extern int argcheck(int, char **, enum earlyarg);
+extern void early_options(int *argc_p, char ***argv_p, char **hackdir_p);
+#ifdef WIN32
+int windows_early_options(const char *);
+#endif
+
 /* ### eat.c ### */
 
 extern void eatmupdate(void);
@@ -998,7 +1031,7 @@ extern int done2(void);
 extern void format_monkiller(struct monst *) NONNULLARG1;
 extern void done_in_by(struct monst *, int) NONNULLARG1;
 extern void done_object_cleanup(void);
-extern void NH_abort(char *);
+extern void NH_abort(const char *);
 #endif /* !MAKEDEFS_C && MDLIB_C && !CPPREGEX_C */
 #if !defined(CPPREGEX_C)
 ATTRNORETURN extern void panic(const char *, ...) PRINTF_F(1, 2) NORETURN;
@@ -1141,6 +1174,8 @@ extern boolean Death_quote(char *, int) NONNULLARG1;
 extern void livelog_add(long ll_type, const char *) NONNULLARG2;
 ATTRNORETURN extern void do_deferred_showpaths(int) NORETURN;
 extern boolean contains_directory(const char *);
+extern void get_nhuuid(void);
+extern void free_nhuuid(void);
 
 /* ### fountain.c ### */
 
@@ -1232,6 +1267,7 @@ extern void runmode_delay_output(void);
 extern void overexert_hp(void);
 extern boolean overexertion(void);
 extern void invocation_message(void);
+extern void classify_terrain(void);
 extern void switch_terrain(void);
 extern void set_uinwater(int);
 extern boolean pooleffects(boolean);
@@ -1248,8 +1284,6 @@ extern int monster_nearby(void);
 extern void end_running(boolean);
 extern void nomul(int);
 extern void unmul(const char *);
-extern boolean saving_grace_would_trigger(int);
-extern int saving_grace(int);
 extern void showdamage(int);
 extern void losehp(int, const char *, schar) ;
 extern int weight_cap(void);
@@ -1468,7 +1502,7 @@ extern int doopen_indir(coordxy, coordxy);
 extern int doclose(void);
 extern boolean demogorgon_special_door(struct rm *door);
 
-#ifdef MAC
+#ifdef MACOS9
 /* outdated functions removed */
 /* ### macfile.c ### */
 /* ### macmain.c ### */
@@ -1593,7 +1627,7 @@ extern int msummon(struct monst *);
 extern void summon_minion(aligntyp, boolean);
 extern boolean boss_entrance(struct monst *) NONNULLARG1;
 extern int demon_talk(struct monst *) NONNULLARG1;
-extern long bribe(struct monst *) NONNULLARG1;
+extern long bribe(struct monst *, const char *) NONNULLARG12;
 extern int dprince(aligntyp);
 extern int dlord(aligntyp);
 extern int llord(void);
@@ -2058,7 +2092,7 @@ extern long filesize(char *);
 #endif /* MSDOS */
 extern char *foundfile_buffer(void);
 #endif /* __GO32__ */
-extern void chdrive(char *);
+extern void chdrive(const char *);
 #ifndef TOS
 extern void disable_ctrlP(void);
 extern void enable_ctrlP(void);
@@ -2227,7 +2261,7 @@ extern void tutorial(boolean);
 
 #if !defined(MAKEDEFS_C) && !defined(MDLIB_C) && !defined(CPPREGEX_C)
 
-/* ### consoletty.c ### */
+/* ### consoletty.c  ### */
 
 #ifdef WIN32
 extern void get_scr_size(void);
@@ -2240,7 +2274,10 @@ void console_g_putch(int in_ch);
 extern void set_output_mode(int);
 extern void synch_cursor(void);
 extern void nethack_enter_consoletty(void);
-extern void consoletty_exit(void);
+/* body in consoletty.c and mhmain.c */
+extern int get_approx_display_cols(void);
+extern int get_approx_display_rows(void);
+extern void console_exit(void);
 extern int set_keyhandling_via_option(void);
 #ifdef ENHANCED_SYMBOLS
 extern void tty_utf8graphics_fixup(void);
@@ -2379,6 +2416,7 @@ extern char *get_option_value(const char *, boolean) NONNULLARG1;
 extern int doset_simple(void);
 extern int doset(void);
 extern int dotogglepickup(void);
+extern int toggle_bool_option(const char *);
 extern void option_help(void);
 extern void all_options_strbuf(strbuf_t *) NONNULLARG1;
 extern void next_opt(winid, const char *) NONNULLARG2;
@@ -2405,6 +2443,11 @@ extern int msgtype_type(const char *, boolean) NONNULLARG1;
 extern void hide_unhide_msgtypes(boolean, int);
 extern void msgtype_free(void);
 extern void options_free_window_colors(void);
+extern void heed_all_options(void);
+extern void disregard_all_options(void);
+extern void heed_this_option(enum opt);
+extern void disregard_this_option(enum opt);
+extern void clear_ignore_errors_on_unmatched(void);
 #ifdef TTY_PERM_INVENT
 extern void check_perm_invent_again(void);
 #endif
@@ -2432,12 +2475,13 @@ extern int dowhatdoes(void);
 extern char *dowhatdoes_core(char, char *) NONNULLARG2; /*might return NULL*/
 extern int dohelp(void);
 extern int dohistory(void);
+void allopt_array_init(void);
 
 /* ### xxmain.c ### */
 
-#if defined(MICRO) || defined(WIN32)
+#if defined(UNIX) || defined(MICRO) || defined(WIN32)
 #ifdef CHDIR
-extern void chdirx(char *, boolean);
+extern void chdirx(const char *, boolean);
 #endif /* CHDIR */
 extern boolean authorize_wizard_mode(void);
 extern boolean authorize_explore_mode(void);
@@ -2821,6 +2865,9 @@ void restore_gamelog(NHFILE *);
 boolean restgamestate(NHFILE *);
 void restore_msghistory(NHFILE *);
 #endif
+extern void rest_adjust_levelflags(void);
+extern void moves_to_relative_time(long *);
+extern void relative_time_to_moves(long *);
 
 /* ### rip.c ### */
 
@@ -2979,6 +3026,8 @@ extern void bclose(int);
 /* setpaid() has a conditional code block near the end of the
    function, where arg1 is tested for NULL, preventing NONNULLARG1 */
 extern void setpaid(struct monst *) NO_NNARGS;
+extern void record_price_quote(int, unsigned long, boolean);
+extern void append_price_quote(char *, char **, int) NONNULLARG12;
 extern long money2mon(struct monst *, long) NONNULLARG1;
 extern void money2u(struct monst *, long) NONNULLARG1;
 extern void shkgone(struct monst *) NONNULLARG1;
@@ -3393,6 +3442,7 @@ extern void set_utrap(unsigned, unsigned);
 extern void reset_utrap(boolean);
 extern boolean strip_poison_resistance(struct monst *mtmp) NONNULLARG1;
 extern boolean strip_cold_resistance(struct monst *mtmp) NONNULLARG1;
+extern boolean wearing_metal_shoes(struct monst *);
 extern boolean m_harmless_trap(struct monst *, struct trap *) NONNULLPTRS;
 extern void dotrap(struct trap *, unsigned) NONNULLARG1;
 extern char *trapnote(struct trap *, boolean) NONNULLARG1;
@@ -3596,8 +3646,8 @@ extern void append_slash(char *) NONNULLARG1;
 extern boolean check_user_string(const char *) NONNULLARG1;
 extern char *get_login_name(void);
 extern unsigned long sys_random_seed(void);
-ATTRNORETURN extern void after_opt_showpaths(const char *) NORETURN;
 #endif /* UNIX */
+ATTRNORETURN extern void after_opt_showpaths(const char *) NORETURN;
 
 /* ### unixtty.c ### */
 
@@ -4011,6 +4061,8 @@ extern void wizcustom_callback(winid win, int glyphnum, char *id);
 #if (NH_DEVEL_STATUS != NH_STATUS_RELEASED) || defined(DEBUG)
 extern int wiz_display_macros(void);
 extern int wiz_mon_diff(void);
+extern int wiz_objprobs(void);
+extern int wiz_show_nhuuid(void);
 #endif
 extern void sanity_check(void);
 
@@ -4053,7 +4105,7 @@ extern int wornmask_to_armcat(long);
 extern long armcat_to_wornmask(int);
 extern long wearslot(struct obj *) NONNULLARG1;
 extern void check_wornmask_slots(void);
-extern void mon_set_minvis(struct monst *) NONNULLARG1;
+extern void mon_set_minvis(struct monst *, boolean) NONNULLARG1;
 extern void mon_adjust_speed(struct monst *, int, struct obj *) NONNULLARG1;
 extern void update_mon_extrinsics(struct monst *, struct obj *, boolean,
                                   boolean) NONNULLARG12;
@@ -4123,16 +4175,17 @@ extern int spell_damage_bonus(int);
 extern const char *exclam(int force) NONNULL;
 extern void hit(const char *, struct monst *, const char *) NONNULLPTRS;
 extern void miss(const char *, struct monst *) NONNULLPTRS;
-extern struct monst *bhit(coordxy, coordxy, int, enum bhit_call_types,
+extern struct monst *bhit(int, int, int, enum bhit_call_types,
                           int(*)(struct monst *, struct obj *),
                           int(*)(struct obj *, struct obj *),
                           struct obj **) NONNULLARG7;
-extern struct monst *boomhit(struct obj *, coordxy, coordxy) NONNULLARG1;
+extern struct monst *boomhit(struct obj *, int, int) NONNULLARG1;
 extern int zhitm(struct monst *, int, int, struct obj **) NONNULLPTRS;
 extern int burn_floor_objects(coordxy, coordxy, boolean, boolean);
 extern void ubuzz(int, int);
 extern void buzz(int, int, coordxy, coordxy, int, int);
-extern void dobuzz(int, int, coordxy, coordxy, int, int, boolean, boolean);
+extern void dobuzz(int, int, coordxy, coordxy, int, int,
+                   boolean, boolean, boolean);
 extern void melt_ice(coordxy, coordxy, const char *) NO_NNARGS;
 extern void start_melt_ice_timeout(coordxy, coordxy, long);
 extern void melt_ice_away(union any *, long) NONNULLARG1;
@@ -4148,6 +4201,8 @@ extern boolean inventory_resistance_check(struct monst *, int);
 extern char *item_what(int);
 extern int destroy_items(struct monst *, int, int) NONNULLARG1;
 extern int resist(struct monst *, char, int, int) NONNULLARG1;
+extern void wish_history_add(char *);
+extern void wish_history_flush(void);
 extern void makewish(void);
 extern const char *flash_str(int, boolean) NONNULL;
 
@@ -4159,6 +4214,8 @@ extern char *get_port_id(char *);
 #ifdef RUNTIME_PASTEBUF_SUPPORT
 extern void port_insert_pastebuf(char *);
 #endif
+extern void get_nhuuid(void);
+extern void free_nhuuid(void);
 
 #endif /* !MAKEDEFS_C && !MDLIB_C */
 

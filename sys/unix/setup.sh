@@ -1,5 +1,5 @@
 #!/bin/sh
-# NetHack 3.7  setup.sh	$NHDT-Date: 1596498296 2020/08/03 23:44:56 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.17 $
+# NetHack 5.0  setup.sh	$NHDT-Date: 1596498296 2020/08/03 23:44:56 $  $NHDT-Branch: NetHack-5.0 $:$NHDT-Revision: 1.17 $
 # Copyright (c) Kenneth Lorber, Kensington, Maryland, 2007.
 # NetHack may be freely redistributed.  See license for details.
 #
@@ -31,8 +31,15 @@ x)      hints=/dev/null
         ;;
 esac
 
-/bin/sh ./mkmkfile.sh Makefile.top TOP ../../Makefile $hints $hfile
-/bin/sh ./mkmkfile.sh Makefile.dat DAT ../../dat/Makefile $hints $hfile
-/bin/sh ./mkmkfile.sh Makefile.doc DOC ../../doc/Makefile $hints $hfile
-/bin/sh ./mkmkfile.sh Makefile.src SRC ../../src/Makefile $hints $hfile
-/bin/sh ./mkmkfile.sh Makefile.utl UTL ../../util/Makefile $hints $hfile
+# is make gnu or bsd?
+if make --version 2>/dev/null | grep -q "GNU"; then
+    whichmake=gnu
+else
+    whichmake=bsd
+fi
+
+/bin/sh ./mkmkfile.sh Makefile.top TOP ../../Makefile $hints $hfile $whichmake
+/bin/sh ./mkmkfile.sh Makefile.dat DAT ../../dat/Makefile $hints $hfile $whichmake
+/bin/sh ./mkmkfile.sh Makefile.doc DOC ../../doc/Makefile $hints $hfile $whichmake
+/bin/sh ./mkmkfile.sh Makefile.src SRC ../../src/Makefile $hints $hfile $whichmake
+/bin/sh ./mkmkfile.sh Makefile.utl UTL ../../util/Makefile $hints $hfile $whichmake

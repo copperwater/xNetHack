@@ -1,4 +1,4 @@
-/* NetHack 3.7  mdlib.c  $NHDT-Date: 1701499945 2023/12/02 06:52:25 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.51 $ */
+/* NetHack 5.0  mdlib.c  $NHDT-Date: 1701499945 2023/12/02 06:52:25 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.51 $ */
 /* Copyright (c) Stichting Mathematisch Centrum, Amsterdam, 1985. */
 /*-Copyright (c) Kenneth Lorber, Kensington, Maryland, 2015. */
 /* Copyright (c) M. Stephenson, 1990, 1991.                       */
@@ -96,7 +96,7 @@ staticfn void opt_out_words(char *, int *) NONNULLPTRS;
 staticfn void build_savebones_compat_string(void);
 
 static int idxopttext, done_runtime_opt_init_once = 0;
-#define MAXOPT 60 /* 3.7: currently 40 lines get inserted into opttext[] */
+#define MAXOPT 60 /* 5.0: currently 40 lines get inserted into opttext[] */
 static char *opttext[MAXOPT] = { 0 };
 #define STOREOPTTEXT(line) \
     ((void) ((idxopttext < MAXOPT)                      \
@@ -145,16 +145,17 @@ static struct win_information window_opts[] = {
 #ifdef SHIM_GRAPHICS
     { "shim", "NetHack Library Windowing Shim", TRUE },
 #endif
+#ifdef AMIGA_INTUITION
+    { "amii", "Amiga Intuition (text)", TRUE },
+    { "amiv", "Amiga Intuition (tiles)", TRUE },
+#endif
 
 #if 0  /* remainder have been retired */
 #ifdef GNOME_GRAPHICS /* unmaintained/defunct */
     { "Gnome", "Gnome", TRUE },
 #endif
-#ifdef MAC /* defunct OS 9 interface */
+#ifdef MACOS9 /* defunct OS 9 interface */
     { "mac", "Mac", TRUE },
-#endif
-#ifdef AMIGA_INTUITION /* unmaintained/defunct */
-    { "amii", "Amiga Intuition", TRUE },
 #endif
 #ifdef GEM_GRAPHICS /* defunct Atari interface */
     { "Gem", "Gem", TRUE },
@@ -358,14 +359,16 @@ bannerc_string(char *outbuf, size_t bufsz, const char *build_date)
     subbuf[0] = ' ';
     Strcpy(&subbuf[1], PORT_SUB_ID);
 #endif
+
 #if (NH_DEVEL_STATUS != NH_STATUS_RELEASED)
 #if (NH_DEVEL_STATUS == NH_STATUS_BETA)
-    Strcat(subbuf, " Beta");
-#else
-    Strcat(subbuf, " Work-in-progress");
+    Strcpy(subbuf, " Beta");
+#elif (NH_DEVEL_STATUS == NH_STATUS_WIP)
+    Strcpy(subbuf, " Work-in-progress");
+#elif (NH_DEVEL_STATUS == NH_STATUS_POSTRELEASE)
+    Strcpy(subbuf, " post-release");
 #endif
-#endif
-
+#endif  /* !NH_STATUS_RELEASED */
     Snprintf(outbuf, bufsz, "         Version %s %s%s, %s %s.",
             mdlib_version_string(versbuf, "."), PORT_ID, subbuf,
             date_via_env ? "revised" : "built", build_date);
@@ -536,7 +539,7 @@ static const char *const build_opts[] = {
     "screen clipping",
 #endif
 #ifdef NO_TERMS
-#ifdef MAC
+#ifdef MACOS9
     "screen control via mactty",
 #endif
 #ifdef SCREEN_BIOS
@@ -801,7 +804,7 @@ build_options(void)
 #if defined(MAKEDEFS_C) || defined(FOR_RUNTIME)
     {
         static const char *const lua_info[] = {
- "", "NetHack 3.7.* uses the 'Lua' interpreter to process some data:", "",
+ "", "NetHack 5.0.* uses the 'Lua' interpreter to process some data:", "",
  "    :LUACOPYRIGHT:", "",
  /*        1         2         3         4         5         6         7
   1234567890123456789012345678901234567890123456789012345678901234567890123456

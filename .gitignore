@@ -52,6 +52,7 @@ Makefile.gcc
 Makefile-orig
 Makefile.bcc-orig
 Makefile.gcc-orig
+make.prefs
 *.suo
 *.pdb
 *.ilk
@@ -99,3 +100,4 @@ bundle/*
 util/*.lib
 util/*.exp
 submodules/CHKSUMS.tmp
+sys/amiga/regex/

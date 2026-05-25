@@ -1,4 +1,4 @@
-/* NetHack 3.7	mhmain.c	$NHDT-Date: 1596498352 2020/08/03 23:45:52 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.76 $ */
+/* NetHack 5.0	mhmain.c	$NHDT-Date: 1596498352 2020/08/03 23:45:52 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.76 $ */
 /* Copyright (C) 2001 by Alex Kompel  */
 /* NetHack may be freely redistributed.  See license for details. */
 
@@ -1193,6 +1193,13 @@ mswin_select_map_mode(int mode)
     data =
         (PNHMainWindow) GetWindowLongPtr(GetNHApp()->hMainWnd, GWLP_USERDATA);
 
+    if (!data) {
+#if (NH_DEVEL_STATUS != NH_STATUS_RELEASED && NH_DEVEL_STATUS != NH_STATUS_POSTRELEASE)
+        impossible("data is null in %s:%d", __func__, __LINE__);
+#endif
+        return;
+    }
+
     /* set map mode menu mark */
     if (IS_MAP_ASCII(mode)) {
         CheckMenuRadioItem(
@@ -1349,6 +1356,19 @@ nh_compose_ascii_screenshot(void)
     }
     return retval;
 }
+
+int
+get_approx_display_cols(void)
+{
+    return GetSystemMetrics(SM_CXSCREEN) / 8;
+}
+
+int
+get_approx_display_rows(void)
+{
+    return GetSystemMetrics(SM_CYSCREEN) / 12;
+}
+
 
 #ifdef ENHANCED_SYMBOLS
 // returns malloc() created pointer - callee assumes the ownership

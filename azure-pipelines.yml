@@ -24,10 +24,15 @@ strategy:
       imageName: 'macOS-15'
       toolchainName: clang
       buildTargetName: all
-    windows-visualstudio:
+    windows-x64-vstudio:
       imageName: 'windows-latest'
       toolchainName: vs
       buildTargetName: all
+    windows-arm64-vstudio:
+      imageName: 'windows-latest'
+      toolchainName: vs
+      buildTargetName: all
+      buildPlatform: 'ARM64' # Targeting Snapdragon
     windows-mingw:
       imageName: 'windows-2025'
       toolchainName: mingw
@@ -95,7 +100,7 @@ steps:
     echo "CXX: $CXX"
   displayName: 'Echoing variables'
 
-- checkout: git://NetHack/NetHack@NetHack-3.7
+- checkout: git://NetHack/NetHack@NetHack-5.0
   submodules: true
   path: $(netHackPath) # $(Agent.BuildDirectory)/$(netHackPath)
 
@@ -174,7 +179,7 @@ steps:
 
 - bash: |
     cd sys/unix
-    sh setup.sh hints/linux.370
+    sh setup.sh hints/linux.500
     cd ../..
     make fetch-lua
     make WANT_WIN_ALL=1 QT_SELECT=5 MOC=moc all
@@ -216,7 +221,7 @@ steps:
 - bash: |
     brew install groff
     cd sys/unix
-    sh setup.sh hints/macos.370
+    sh setup.sh hints/macos.500
     cd ../..
     make fetch-lua
     make WANT_MACSOUND=1 all
@@ -229,7 +234,7 @@ steps:
     export GCCVER=gcc1220
     export IN_CI=SKIP_FONTS_IN_CI=1
     cd sys/unix
-    sh setup.sh hints/linux.370
+    sh setup.sh hints/linux.500
     cd ../..
     make fetch-lua
     sys/msdos/fetch-cross-compiler.sh

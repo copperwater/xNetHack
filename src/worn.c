@@ -1,4 +1,4 @@
-/* NetHack 3.7	worn.c	$NHDT-Date: 1736530208 2025/01/10 09:30:08 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.116 $ */
+/* NetHack 5.0	worn.c	$NHDT-Date: 1770949988 2026/02/12 18:33:08 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.119 $ */
 /* Copyright (c) Stichting Mathematisch Centrum, Amsterdam, 1985. */
 /*-Copyright (c) Robert Patrick Rankin, 2013. */
 /* NetHack may be freely redistributed.  See license for details. */
@@ -139,6 +139,9 @@ setworn(struct obj *obj, long mask)
         /* tux -> tuxedo -> "monkey suit" -> monk's suit */
         iflags.tux_penalty = (uarm && Role_if(PM_MONK));
     }
+    if ((flags.weaponstatus && (mask & W_WEP) != 0L)
+        || (flags.armorstatus && (mask & W_ARMOR) != 0L))
+        disp.botl = TRUE;
     update_inventory();
     recalc_telepat_range();
 }
@@ -150,6 +153,7 @@ setnotworn(struct obj *obj)
 {
     const struct worn *wp;
     int p;
+    long unworn = 0L;
 
     if (!obj)
         return;
@@ -162,6 +166,7 @@ setnotworn(struct obj *obj)
             cancel_doff(obj, wp->w_mask);
 
             *(wp->w_obj) = (struct obj *) 0;
+            unworn |= wp->w_mask;
             p = armor_provides_extrinsic(obj);
             u.uprops[p].extrinsic = u.uprops[p].extrinsic & ~wp->w_mask;
             monstunseesu_prop(p); /* remove this extrinsic from seenres */
@@ -178,6 +183,9 @@ setnotworn(struct obj *obj)
         }
     if (!uarm)
         iflags.tux_penalty = FALSE;
+    if ((flags.weaponstatus && (unworn & W_WEP) != 0L)
+        || (flags.armorstatus && (unworn & W_ARMOR) != 0L))
+        disp.botl = TRUE;
     update_inventory();
     recalc_telepat_range();
 }
@@ -480,11 +488,13 @@ check_wornmask_slots(void)
 } /* check_wornmask_slots() */
 
 void
-mon_set_minvis(struct monst *mon)
+mon_set_minvis(
+    struct monst *mon,
+    boolean cursed_potion)
 {
-    mon->perminvis = 1;
+    mon->perminvis = !cursed_potion ? 1 : 0;
     if (!mon->invis_blkd) {
-        mon->minvis = 1;
+        mon->minvis = mon->perminvis;
         newsym(mon->mx, mon->my); /* make it disappear */
         if (mon->wormno)
             see_wsegs(mon); /* and any tail too */

@@ -1,4 +1,4 @@
-/* NetHack 3.7	u_init.c	$NHDT-Date: 1769398807 2026/01/25 19:40:07 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.121 $ */
+/* NetHack 5.0	u_init.c	$NHDT-Date: 1769398807 2026/01/25 19:40:07 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.121 $ */
 /* Copyright (c) Stichting Mathematisch Centrum, Amsterdam, 1985. */
 /*-Copyright (c) Robert Patrick Rankin, 2017. */
 /* NetHack may be freely redistributed.  See license for details. */
@@ -604,8 +604,10 @@ knows_class(char sym)
      */
 
     for (ct = svb.bases[(uchar) sym]; ct < svb.bases[(uchar) sym + 1]; ct++) {
-        /* not flagged as magic but shouldn't be pre-discovered */
-        if (ct == CORNUTHAUM || ct == DUNCE_CAP)
+        /* not flagged as magic but shouldn't be pre-discovered
+           (small shields look the same as two types of magical shield;
+           cornuthaum / dunce cap look the same as each other) */
+        if (ct == CORNUTHAUM || ct == DUNCE_CAP || ct == SMALL_SHIELD)
             continue;
         if (sym == WEAPON_CLASS) {
             odummy.otyp = ct; /* update 'o' */
@@ -1299,12 +1301,12 @@ ini_inv_use_obj(struct obj *obj)
 
     if (obj->oclass == ARMOR_CLASS) {
         if (is_shield(obj) && !uarms && !(uwep && bimanual(uwep))) {
-            setworn(obj, W_ARMS);
             /* Prior to 3.6.2 this used to unset uswapwep if it was set,
                but wearing a shield doesn't prevent having an alternate
                weapon ready to swap with the primary; just make sure we
                aren't two-weaponing (academic; no one starts that way) */
             set_twoweap(FALSE); /* u.twoweap = FALSE */
+            setworn(obj, W_ARMS);
         } else if (is_helmet(obj) && !uarmh)
             setworn(obj, W_ARMH);
         else if (is_gloves(obj) && !uarmg)

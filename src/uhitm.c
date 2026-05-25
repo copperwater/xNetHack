@@ -1,4 +1,4 @@
-/* NetHack 3.7	uhitm.c	$NHDT-Date: 1752823766 2025/07/17 23:29:26 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.477 $ */
+/* NetHack 5.0	uhitm.c	$NHDT-Date: 1752823766 2025/07/17 23:29:26 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.477 $ */
 /* Copyright (c) Stichting Mathematisch Centrum, Amsterdam, 1985. */
 /*-Copyright (c) Robert Patrick Rankin, 2012. */
 /* NetHack may be freely redistributed.  See license for details. */
@@ -30,6 +30,7 @@ staticfn void hmon_hitmon_barehands(struct _hitmon_data *,
                              struct monst *) NONNULLARG12;
 staticfn void hmon_hitmon_weapon_ranged(struct _hitmon_data *, struct monst *,
                              struct obj *) NONNULLARG123;
+staticfn boolean backstabbable(struct monst *) NONNULLARG1;
 staticfn void hmon_hitmon_weapon_melee(struct _hitmon_data *, struct monst *,
                              struct obj *) NONNULLARG123;
 staticfn void hmon_hitmon_weapon(struct _hitmon_data *, struct monst *,
@@ -719,7 +720,7 @@ should_cleave(void)
     int i;
     boolean bystanders = FALSE;
     /* find the direction toward primary target */
-    int dir = xytod(u.dx, u.dy);
+    int dir = xytodir(u.dx, u.dy);
     if (dir > 7) {
         impossible("should_cleave: unknown target direction");
         return FALSE; /* better safe than sorry */
@@ -774,7 +775,7 @@ hitum_cleave(
     int count, umort, x = u.ux, y = u.uy;
 
     /* find the direction toward primary target */
-    i = xytod(u.dx, u.dy);
+    i = xytodir(u.dx, u.dy);
     if (i == DIR_ERR) {
         impossible("hitum_cleave: unknown target direction [%d,%d,%d]?",
                    u.dx, u.dy, u.dz);
@@ -1076,6 +1077,20 @@ hmon_hitmon_weapon_ranged(
     }
 }
 
+/* can monster be stabbed in the back? */
+staticfn boolean
+backstabbable(struct monst *mon)
+{
+    return !amorphous(mon->data)
+        && !is_whirly(mon->data)
+        && !noncorporeal(mon->data)
+        && mon->data->mlet != S_BLOB
+        && mon->data->mlet != S_EYE
+        && mon->data->mlet != S_FUNGUS
+        && canseemon(mon)
+        && (mon->mflee || helpless(mon));
+}
+
 staticfn void
 hmon_hitmon_weapon_melee(
     struct _hitmon_data *hmd,
@@ -1090,6 +1105,13 @@ hmon_hitmon_weapon_melee(
     hmd->dmg = dmgval(obj, mon);
     /* a minimal hit doesn't exercise proficiency */
     hmd->train_weapon_skill = (hmd->dmg > 1);
+
+    /* Healer with anatomy knowledge */
+    if (Role_if(PM_HEALER) && hmd->hand_to_hand
+        && obj->oclass == WEAPON_CLASS
+        && objects[obj->otyp].oc_skill == P_KNIFE)
+        hmd->dmg += min(3, svm.mvitals[monsndx(mon->data)].died / 6);
+
     /* special attack actions */
     if (!hmd->train_weapon_skill || mon == u.ustuck || u.twoweap
         /* Cleaver can hit up to three targets at once so don't
@@ -1158,7 +1180,7 @@ hmon_hitmon_weapon_melee(
         }
         /* arrow will be destroyed but we can't break it here */
         hmd->defer_breakwep = TRUE;
-    } else if (mon->mflee && Role_if(PM_ROGUE) && !Upolyd
+    } else if (Role_if(PM_ROGUE) && backstabbable(mon) && !Upolyd
                /* multi-shot throwing is too powerful here */
                && hmd->hand_to_hand) {
         /* Cap the contribution of ulevel based on skill level.
@@ -1844,12 +1866,12 @@ hmon_hitmon_jousting(
         first_weapon_hit(obj);
 
     if (hmd->jousting < 0) {
-        pline("%s shatters on impact!", Yname2(obj));
         /* (must be either primary or secondary weapon to get here) */
         set_twoweap(FALSE); /* sets u.twoweap = FALSE;
                              * untwoweapon() is too verbose here */
         if (obj == uwep)
             uwepgone(); /* set gu.unweapon */
+        pline("%s shatters on impact!", Yname2(obj));
         /* minor side-effect: broken lance won't split puddings */
         useup(obj);
         obj = (struct obj *) 0;
@@ -2473,7 +2495,7 @@ steal_it(struct monst *mdef, struct attack *mattk)
     if (ustealo) { /* we will be taking everything */
         char heshe[20];
 
-        /* 3.7: this uses hero's base gender rather than nymph femininity
+        /* 5.0: this uses hero's base gender rather than nymph femininity
            but was using hardcoded pronouns She/her for target monster;
            switch to dynamic pronoun */
         if (gender(mdef) == (int) u.mfemale
@@ -4756,7 +4778,7 @@ mhitm_ad_ston(
                     return; /* no hiss = no stoning */
                 }
                 /*
-                 * 3.7:  New moon is no longer overridden by carrying a
+                 * 5.0:  New moon is no longer overridden by carrying a
                  * lizard corpse.  Having the moon's impact on terrestrial
                  * activity be affected by carrying a dead critter felt
                  * silly.

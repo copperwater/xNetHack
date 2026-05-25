@@ -1,4 +1,4 @@
-# NetHack 3.7 sysconf $NHDT-Date: 1704043695 2023/12/31 17:28:15 $ $NHDT-Branch: keni-luabits2 $:$NHDT-Revision: 1.44 $
+# NetHack 5.0 sysconf $NHDT-Date: 1777240863 2026/04/26 22:01:03 $ $NHDT-Branch: to500 $:$NHDT-Revision: 1.47 $
 # Copyright (c) 2015 by Kenneth Lorber, Kensington, Maryland
 # NetHack may be freely redistributed.  See license for details.
 #
@@ -54,6 +54,10 @@ EXPLORERS=nobody
 # Setting this to any other value constructs the lock files with
 # letter and "lock" (eg. alock, block, ...)
 MAXPLAYERS=0
+
+# Limit the number of rerolls per second when using the reroll option.
+# 0 means that there is no limit on how quickly the user can reroll.
+MAX_REROLL_RATE=0
 
 # If not null, added to string "To get local support, " in the support
 # information help.
@@ -138,7 +142,7 @@ LIVELOG=0x11FFF
 # Only available if NetHack was compiled with DUMPLOG
 # Allows following placeholders:
 #   %% literal '%'
-#   %v version (eg. "3.7.0-0")
+#   %v version (eg. "NetHack 5.0.0-0")
 #   %u game UID
 #   %t game start time, UNIX timestamp format
 #   %T current time, UNIX timestamp format
@@ -177,7 +181,7 @@ PANICTRACE_GDB=1
 PANICTRACE_LIBC=2
 
 # URL loaded for creating reports to the NetHack DevTeam
-#CRASHREPORTURL=https://nethack.org/links/cr-37BETA.html
+#CRASHREPORTURL=https://nethack.org/links/cr-5.0.0.html
 
 # 'portable_device_paths' is only supported for Windows.  Starting with
 # 3.6.3, nethack on Windows treats the folder containing nethack.exe and

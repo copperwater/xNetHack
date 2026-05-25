@@ -1,4 +1,4 @@
-/* NetHack 3.7	engrave.c	$NHDT-Date: 1737345573 2025/01/19 19:59:33 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.165 $ */
+/* NetHack 5.0	engrave.c	$NHDT-Date: 1737345573 2025/01/19 19:59:33 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.165 $ */
 /* Copyright (c) Stichting Mathematisch Centrum, Amsterdam, 1985. */
 /*-Copyright (c) Robert Patrick Rankin, 2012. */
 /* NetHack may be freely redistributed.  See license for details. */
@@ -599,6 +599,7 @@ doengrave_sfx_item_WAN(struct _doengrave_ctx *de)
         /* NODIR wands */
     case WAN_LIGHT:
     case WAN_SECRET_DOOR_DETECTION:
+    case WAN_STASIS:
     case WAN_CREATE_MONSTER:
     case WAN_WISHING:
     case WAN_ENLIGHTENMENT:

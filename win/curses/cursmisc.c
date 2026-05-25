@@ -1,5 +1,5 @@
 /* vim:set cin ft=c sw=4 sts=4 ts=8 et ai cino=Ls\:0t0(0 : -*- mode:c;fill-column:80;tab-width:8;c-basic-offset:4;indent-tabs-mode:nil;c-file-style:"k&r" -*-*/
-/* NetHack 3.7 cursmisc.c */
+/* NetHack 5.0 cursmisc.c */
 /* Copyright (c) Karl Garrison, 2010. */
 /* NetHack may be freely redistributed.  See license for details. */
 
@@ -34,16 +34,40 @@ int
 curses_getch(void)
 {
     int ch;
+    boolean timeoutset = FALSE;
 
-    if (iflags.debug_fuzzer)
+    if (iflags.debug_fuzzer) {
         ch = randomkey();
-    else
+    } else if (iflags.idlecheckpoint) {
+        boolean done_a_checkpoint = FALSE;
+
+        timeout(IDLECHECKPOINT_WAIT_TIME * 1000);
+        timeoutset = TRUE;
+
+        while (1) {
+            ch = getch();
+            if (ch == ERR && !done_a_checkpoint) {
+#ifdef INSURANCE
+                save_currentstate();
+#endif /* INSURANCE */
+                done_a_checkpoint = TRUE;
+                timeout(-1);
+                timeoutset = FALSE;
+            } else {
+                if (timeoutset) {
+                    timeout(-1);
+                    timeoutset = FALSE;
+                }
+                break;
+            }
+        }
+    } else {
         ch = getch();
+    }
     return ch;
 }
 
 /* Read a character of input from the user */
-
 int
 curses_read_char(void)
 {

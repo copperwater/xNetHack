@@ -1,4 +1,4 @@
-/* NetHack 3.7	minion.c	$NHDT-Date: 1762727599 2025/11/09 14:33:19 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.81 $ */
+/* NetHack 5.0	minion.c	$NHDT-Date: 1762727599 2025/11/09 14:33:19 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.81 $ */
 /* Copyright (c) Stichting Mathematisch Centrum, Amsterdam, 1985. */
 /*-Copyright (c) Robert Patrick Rankin, 2008. */
 /* NetHack may be freely redistributed.  See license for details. */
@@ -533,7 +533,7 @@ demon_talk(struct monst *mtmp)
         if (cash < 1)
             pline("But you have no money.");
         else
-            offer = bribe(mtmp);
+            offer = bribe(mtmp, "How much will you offer?");
 
         if (offer >= demand) {
             verbalize("Very well, mortal. I shall not impede thy quest.");
@@ -574,13 +574,13 @@ demon_talk(struct monst *mtmp)
 }
 
 long
-bribe(struct monst *mtmp)
+bribe(struct monst *mtmp, const char *prompt)
 {
     char buf[BUFSZ] = DUMMY;
     long offer;
     long umoney = money_cnt(gi.invent);
 
-    getlin("How much will you offer?", buf);
+    getlin(prompt, buf);
     if (sscanf(buf, "%ld", &offer) != 1)
         offer = 0L;
 

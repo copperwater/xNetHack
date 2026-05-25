@@ -1,5 +1,5 @@
 .\"DO NOT REMOVE NH_DATESUB .TH XNETHACK 6 "DATE(%-d %B %Y)" XNETHACK
-.TH XNETHACK 6 "26 January 2025" XNETHACK
+.TH XNETHACK 6 "25 May 2026" XNETHACK
 .\"DO NOT REMOVE NH_DATESUB .ds Nd DATE(%Y)
 .ds Nd 2025
 .de NB
@@ -8,7 +8,7 @@
 .de NR
 .ds Nr \\$2
 ..
-.NB $NHDT-Branch: NetHack-3.7 $
+.NB $NHDT-Branch: master $
 .NR $NHDT-Revision: 1.31 $
 .\" groff and AT&T-descended troffs use different hyphenation patterns.
 .\" Don't hyphenate the last word on a page or column, or
@@ -16,134 +16,124 @@
 .ie \n(.g .hy 12
 .el       .hy 14
 .ds Na Robert Patrick Rankin
+.\" DWB, Solaris 10, and Plan 9 troffs don't support `\(ti`, `\(oq`, or
+.\" `\(cq`.  Assume the best, then detect these older troffs and fall
+.\" back as needed.
+.\"
+.\" Put NO SPACE between special character and comment escape sequences.
+.ds ~  \(ti\" The name "ti" is taken by *roff's `ti` request.
+.ds oq \(oq
+.ds cq \(cq
+.if !\n(.g \{\
+.  ds ~  ~
+.  ds oq `
+.  ds cq '
+.\}
+.\" Define string to exercise groff's hyphenless break point feature.
+.ie \n(.g .ds : \:
+.el       .ds : \" empty
+.\" Define string to exercise groff's adjustable, unbreakable space.
+.ie \n(.g .ds _ \~
+.el       .ds _ \ \" backslash, space
+.\" Define local versions of groff's "an-ext.tmac" macros if needed.
+.ds %% \" empty
+.if \n(.g .ig %%
+.\" Add supplementary paragraph tag on its own line after TP.
+.de TQ
+.  br
+.  ns
+.  \" Do not quote the argument to `TP`; the user might specify
+.  \" their own quotes for multi-word tags or to exercise AT&T troff
+.  \" quoting rules.
+.  TP \\$1\"
+..
+.%%
 .SH NAME
 xnethack \- Exploring The Mazes of Menace
 .SH SYNOPSIS
+.HP
+.nr sA \n(.j \" Save the adjustment mode.
 .na
-.hy 0
-.\" Some options ordering is explicit (-d first, -u before -D), others
-.\" have been arranged to fit within an 80-column page with nearly full
-.\" lines while avoiding splitting "[" and "-opt ]" or "[ -opt" and "]"
-.\" across line boundaries.  It would be better to do that with 'roff magic.
 .B xnethack
-[
-.BR \-d | \-\-directory
-.I directory
+.RI [ role-option ]
+.RB [ \-d | \-\-directory\*_\c
+.IR directory ]
+.RB [ \-w | \-\-windowtype\*_\c
+.IR interface ]
+\%[\c
+.BI \-\-xnethackrc: rc-file\c
+|\c
+.B \-\-no\-xnethackrc\c
 ]
-.\" '.B token newline .I token' will include a space between the two tokens;
-.\" '.BI token token' will not.  Likewise for .BR, .RB, &c.
-[
-.BR \-w | \-\-windowtype
-.I interface
-]
-.br 1
-[
-.BI \-\-xnethackrc: RC-file
-|
-.B \-\-no\-xnethackrc
-]
-[
-.B \-n
-]
-[
-.BR \-dec " | " \-ibm
-]
-.br 1
-[
-.B \-u
-.I playername
-]
-[
-.BR \-X " | " \-D
-]
-[
-.B \-p
-.I profession
-]
-[
-.B \-r
-.I race
-]
-[
-.B \-\@
-]
+.RB [ \-n ]
+.RB [ \-dec | \-ibm ]
+.RB [ \-u\*_\c
+.IR player-name ]
+.RB [ \-X | \-D ]
+.RB [ \-p\*_\c
+.IR profession ]
+.RB [ \-r\*_\c
+.IR race ]
+.RB [ \-@ ]
 .PP
-Also
-[
+.I role-option
+can be any of the following.
+.PP
+.RS
+.nf
 .BR \-A | \-Arc
-|
 .BR \-B | \-Bar
-|
 .BR \-C | \-Cav
-|
 .BR \-H | \-Hea
-|
 .BR \-K | \-Kni
-|
 .BR \-M | \-Mon
-|
 .BR \-P | \-Pri
-|
 .BR \-R | \-Rog
-|
-.BR \-Ran
-|
+.B \-Ran
 .BR \-S | \-Sam
-|
 .BR \-T | \-Tou
-|
 .BR \-V | \-Val
-|
 .BR \-W | \-Wiz
-]
+.fi
+.RE
+.HP
+.B xnethack
+.RB { \-s | \-\-scores }
+.RB [ \-d | \-\-directory\*_\c
+.IR directory ]
+.RB [ \-v ]
+.RB [ \-p\*_\c
+.IR profession ]
+.RB [ \-r\*_\c
+.IR race ]
+.RI [ player-name\*_\c
+\&.\|.\|.]
 .PP
 .B xnethack
-[
-.BR \-d | \-\-directory
-.I directory
-]
-.BR \-s | \-\-scores
-[
-.B \-v
-]
-.br 1
-[
-.B \-p
-.I profession
-]
-[
-.B \-r
-.I race
-]
-[
-.I playernames
-]
+.RB { \-\-usage | \-\-help }
 .PP
 .B xnethack
-[
-.B \-\-usage
-|
-.B \-\-help
-]
-[
-.BR \-\-showpaths
-]
-.\" force line wrap now rather than have that happen after the opening brace
-.br
-[
-.BR \-\-version [ :copy | :dump | :show ]
-]
-.ad
-.hy 14
+.B \-\-showpaths
+.PP
+.B xnethack
+.BR \-\-version [ :copy | :dump\c
+.RB | :show ]
+.ad \n(sA \" Restore the adjustment mode.
 .\" Make sure path is not hyphenated below
 .hw xnethackdir
 .SH DESCRIPTION
-.PP
 .I xNetHack
-is a display oriented Dungeons & Dragons(tm) - like game.
-The standard tty display and command structure resemble rogue.
+is a fantasy-themed game of survival,
+exploration,
+and combat
+set in the Mazes of Menace,
+an elaborate underground complex.
 .PP
-Other, more graphical display options exist for most platforms.
+Traditionally,
+the game's interface uses a Unix terminal connection,
+depicting the interface on a grid of character cells
+and responding to keyboard-entered commands.
+Other interface options exist for most platforms.
 .PP
 To get started you really only need to know two commands.
 The command
@@ -201,17 +191,17 @@ below).
 On other systems, the default may be different, possibly xNetHack.cnf.
 On MS-DOS, the name is defaults.nh in xNetHack's directory (folder),
 while
-.\" on the Macintosh or BeOS, it is \(lqxNetHack Defaults\(rq, and
+.\" on the Macintosh or BeOS, it is \*(lqxNetHack Defaults\*(rq, and
 on VMS|OpenVMS it is xnethack.ini in your home directory.
 The default configuration file may be overridden via the
-.BI \-\-xnethackrc: "rc-file"
+.BI \-\-xnethackrc: rc-file
 command line option or by setting XNETHACKOPTIONS in your environment
 to a string consisting of an @ character followed by the path and filename.
 .PP
 The
 .B \-u
-.I playername
-option supplies the answer to the question "Who are you?".
+.I player-name
+option supplies the answer to the question \*(lqWho are you?\*(rq.
 It overrides any name from the options or configuration file, USER, LOGNAME,
 or getlogin(), which will otherwise be tried in order.
 If none of these provides a useful name, the player will be asked for one.
@@ -220,31 +210,34 @@ so you can have several saved games under different names.
 Conversely, you must use the appropriate player name to restore a saved game.
 .PP
 A
-.I playername
+.I player-name
 suffix can be used to specify the profession, race, alignment and/or gender
-of the character.  The full syntax of the playername that includes a
-suffix is "name-ppp-rrr-aaa-ggg".  "ppp" are at least the first three letters
+of the character.
+The full syntax of a
+.I player-name
+including a suffix is \*(lqname\-ppp\-rrr\-aaa\-ggg\*(rq.
+\*(lqppp\*(rq are at least the first three letters
 of the profession (this can also be specified using a separate
 .B \-p
 .I profession
-option).  "rrr" are at least the first three letters of the character's
+option).
+\*(lqrrr\*(rq are at least the first three letters of the character's
 race (this can also be specified using a separate
 .B \-r
 .I race
-option).  "aaa" are at least the first three letters of the character's
-alignment, and "ggg" are at least the first three letters of the
-character's gender.  Any of the parts of the suffix may be left out.
+option).
+\*(lqaaa\*(rq are at least the first three letters of the character's
+alignment, and \*(lqggg\*(rq are at least the first three letters of the
+character's gender.
+Any of the parts of the suffix may be left out.
 .PP
 .B \-p
 .I profession
 can be used to determine the character profession, also known as the role.
 You can specify either the male or female name for the character role, or
 the first three characters of the role as an abbreviation.
-.\" .B "\-p \@"
+.\" .B "\-p @"
 .\" has been retained to explicitly request that a random role be chosen.
-.\" It may need to be quoted with a backslash (\\@) if @
-.\" is the "kill" character (see "stty") for the terminal, in order
-.\" to prevent the current input line from being cleared.
 .PP
 Likewise,
 .B \-r
@@ -270,7 +263,7 @@ The
 |
 .BR \-R | \-Rog
 |
-.BR \-Ran
+.B \-Ran
 |
 .BR \-S | \-Sam
 |
@@ -289,8 +282,8 @@ is already used for the
 .I Rogue
 role.
 .PP
-.B \-\@
-tells xnethack to choose any omitted characteristics (profession/role, race,
+.B \-@
+tells xNetHack to choose any omitted characteristics (profession/role, race,
 gender, alignment) randomly without prompting.
 Otherwise, leaving out any of these characteristics will result in you
 being prompted during game startup for the information.
@@ -305,19 +298,31 @@ option will start the game in a special non-scoring discovery mode
 (also known as explore mode).
 .B \-D
 will start the game in debug mode (also known as wizard mode) after
-changing the character name to \(lqwizard\(rq, if the player is allowed.
+changing the character name to \*(lqwizard\*(rq,
+if the player is allowed.
 Otherwise it will switch to
 .BR \-X .
 Control of who is allowed to use debug mode is done via the
-.RI "\(lq" WIZARDS= "\(rq line in xnethack's " sysconf " file."
+.\" The `lq` and `rq` strings are not reliable in macro calls, because
+.\" some nroffs interpolate `"` for them, messing up macro argument
+.\" delimitation.  Use an (initially) uglier method than `RI`.
+.\".RI "\*(lq" WIZARDS= "\*(rq line in xNetHack's " sysconf " file."
+\*(lq\c
+.I WIZARDS=\c
+\*(rq
+line in
+xNetHack's
+.I sysconf
+file.
 .PP
 The
 .BR \-d " or " \-\-directory
 option, which must be the first argument if it appears,
 supplies a directory which is to serve as the playground.
-It overrides the value from NETHACKDIR, HACKDIR,
+It overrides the value from XNETHACKDIR, HACKDIR,
 or the directory specified by the game administrator during compilation
-(usually /usr/games/lib/nethackdir).
+(usually
+.IR /usr/\*:games/\*:lib/\*:xnethackdir ).
 This option is usually only useful to the game administrator.
 The playground must contain several auxiliary files such as help files,
 the list of top scorers, and a subdirectory
@@ -335,17 +340,14 @@ specified in the run-time configuration file.
 xNetHack's #version command shows available interfaces.
 .PP
 The
-.BI \-\-xnethackrc: RC-file
+.BI \-\-xnethackrc: rc-file
 option will use
-.I RC-file
+.I rc-file
 instead of the default run-time configuration file
-.RI "(typically " \(ti/.xnethackrc ")"
+.RI "(typically " \*~/.xnethackrc )
 and the
 .B \-\-no\-xnethackrc
 option can be used to skip any run-time configuration file.
-.PP
-.\" extra blank line
-.br 1
 .PP
 Some options provide feedback and then exit rather than play the game:
 .PP
@@ -355,7 +357,7 @@ option alone will print out the list of your scores on the current version.
 An immediately following
 .B \-v
 reports on all versions present in the score file.
-.RB \(oq \-s | \-s\~\-v \(cq
+.RB \*(oq \-s | \-s\*_\-v \*(cq
 may also be followed by arguments
 .B \-p
 .I profession
@@ -367,7 +369,7 @@ Either can be specified multiple times to include more than one role
 or more than one race.
 When both are specified, score entries which match either the role or the
 race (or both) are printed rather than just entries which match both.
-.RB \(oq \-s | \-s\~\-v \(cq
+.RB \*(oq \-s | \-s\*_\-v \*(cq
 may be followed by one or more player names to print the scores of the
 players mentioned, by 'all' to print out all scores, or by a number to print
 that many top scores.
@@ -406,10 +408,9 @@ customize aspects of how the game operates.
 .BR \-\-usage " or " \-\-help
 will display information similar to this manual page, then exit.
 Use
-.RB \(oq "xnethack \-\-usage | more" \(cq
+.RB \*(oq "xnethack \-\-usage | more" \*(cq
 to read it a page at a time.
 .SH AUTHORS
-.PP
 Jay Fenlason (+ Kenny Woodland, Mike Thome and Jon Payne) wrote the
 original hack, very much like rogue (but full of bugs).
 .PP
@@ -427,160 +428,240 @@ development by the Usenet.
 Andries Brouwer has made this request for the
 distinction, as he may eventually release a new version of his own.
 .SH FILES
-.PP
 Run-time configuration options were discussed above and use a platform
 specific name for a file in a platform specific location.
 For Unix, the
-name is '.xnethackrc' in the user's home directory.
-
-.br
+name is
+.I .xnethackrc
+in the user's home directory.
+.PP
 All other files are in the playground directory,
-normally /usr/games/lib/xnethackdir.
-If DLB was defined during the compile, the data files and special levels
-will be inside a larger file, normally nhdat, instead of being separate
-files.
-
-.br
-.DT
-.\" continuation lines begin with <backslash><space><tab>
-.ta \w'cmdhelp, opthelp, wizhelp\ \ \ 'u
-xnethack		The program itself.
-.br
-Guidebook\ |\ Guidebook.txt	xNetHack's user manual.
-.br
-data, oracles, rumors	Data files used by xNetHack.
-.br
-bogusmon 	Another data file.
-.br
-engrave, epitaph, tribute	Still more data files.
-.br
-symbols	Data file holding sets of specifications
-.br
-\ 	for how to display monsters, objects, and
-.br
-\ 	map features.
-.br
-options	Data file containing a description of the
-.br
-\ 	build-time option settings.
-.br
-help,\ hh,\ cmdhelp	Help data files.
-('cmdhelp' is obsolete.)
-.br
-opthelp,\ optmenu,\ wizhelp	More help data files.
-.br
-keyhelp,\ usagehlp	Even more help data files.
-.br
-*.lua	Predefined special levels, dungeon control
-.br
-\ 	for special levels, quest texts.
-.br
-history	A short history of NetHack.
-.br
-license	Rules governing redistribution.
-.br
-record	The list of top scorers.
-.br
-logfile	An extended list of games played
-.br
-\ 	(optional).
-.br
-xlogfile	A more detailed version of 'logfile'
-.br
-\ 	(also optional).
-.br
-paniclog	Record of exceptional conditions
-.br
-\ 	discovered during program execution.
-.br
-xlock.nn	Description of dungeon level 'nn' of
-.br
-\ 	active game 'x' if there's a limit on the
-.br
-\ 	number of simultaneously active games.
-.br
-UUcccccc.nn	Alternate form for dungeon level 'nn'
-.br
-\ 	of active game by user 'UU' playing
-.br
-\ 	character named 'cccccc' when there's no
-.br
-\ 	limit on number of active games.
-.br
-perm	Lock file for xlock.0 or UUcccccc.0.
-.br
-bonD0.nn	Descriptions of the ghost and belongings
-.br
-\ 	of a deceased adventurer who met his or
-.br
-\ 	her demise on level 'nn'.
+normally
+.IR /usr/\*:games/\*:lib/\*:xnethackdir .
+If DLB was defined during the compile,
+the data files and special levels will be inside a larger file,
+normally
+.IR nhdat ,
+instead of being separate files.
+.TP
+.I xnethack
+The program itself.
+.TP
+.I Guidebook
+.TQ
+.I Guidebook.txt
+xNetHack's user manual.
+.TP
+.I data
+.TQ
+.I oracles
+.TQ
+.I rumors
+Data files used by xNetHack.
+.TP
+.I bogusmon
+Another data file.
+.TP
+.I engrave
+.TQ
+.I epitaph
+.TQ
+.I tribute
+Still more data files.
+.TP
+.I symbols
+Data file holding sets of specifications
+for how to display monsters, objects, and
+map features.
+.TP
+.I options
+Data file containing a description of the
+build-time option settings.
+.TP
+.I help
+.TQ
+.I hh
+.TQ
+.I cmdhelp
+Help data files.
+.RI ( cmdhelp
+is obsolete.)
+.TP
+.I opthelp
+.TQ
+.I optmenu
+.TQ
+.I wizhelp
+More help data files.
+.TP
+.I keyhelp
+.TQ
+.I usagehlp
+Even more help data files.
+.TP
+.RI * .lua
+Predefined special levels, dungeon control
+for special levels, quest texts.
+.TP
+.I history
+A short history of xNetHack.
+.TP
+.I license
+Rules governing redistribution.
+.TP
+.I record
+The list of top scorers.
+.TP
+.I logfile
+An extended list of games played
+(optional).
+.TP
+.I xlogfile
+A more detailed version of
+.I logfile
+(also optional).
+.TP
+.I paniclog
+Record of exceptional conditions
+discovered during program execution.
+.TP
+.RI x lock. nn
+Description of dungeon level
+.I nn
+of active game
+.I x
+if there's a limit on the
+number of simultaneously active games.
+.TP
+.RI UUcccccc . nn
+Alternate form for dungeon level
+.I nn
+of active game by user
+.I UU
+playing character named
+.I cccccc
+when there's no
+limit on number of active games.
+.TP
+.I perm
+Lock file for
+.RI x lock.0
+or
+.RI UUcccccc .0 .
+.TP
+.IR bonD0. nn
+Descriptions of the ghost and belongings
+of a deceased adventurer who met his or
+her demise on level
+.IR nn .
 A subsequent
-.br
-\ 	character might encounter this old level.
-.br
-.\"following line should contain <backslash><space><tab>
-\
-.br
-save/	A subdirectory containing saved games.
-.br
-.\"following line should contain <backslash><space><tab>
-\
-.br
-sysconf	System-wide options.  Required if
-.br
-\ 	program is built with 'SYSCF' option
-.br
-\ 	enabled, ignored if not.
-.br
-
-The location of 'sysconf' is specified at build time and can't be changed
-except by updating source file "config.h" and rebuilding the program.
-.br
-
+character might encounter this old level.
+.TP
+.I save/
+Subdirectory containing saved games.
+.TP
+.I sysconf
+System-wide options.
+Required if
+program is built with 'SYSCF' option
+enabled, ignored if not.
+.PP
+The location of
+.I sysconf
+is specified at build time and can't be changed
+except by updating source file
+.\" We do the following in an ugly and non-idiomatic way to work around
+.\" a DWB 3.3 nroff bug.
+.\"   troff: if-else overflow.; doc/xnethack.6:623
+.\"   stack: }S }S }S }S }S }S }S }S }S }S }S }S }S }S }S }S RI
+.\" Even at that, DWB insists on setting the period in roman.
+"\c
+.I config.h\c
+"
+and rebuilding the program.
+.PP
 xNetHack's Guidebook might not be present if whoever packaged or installed
 the program distribution neglected to include it.
-.br
-
-In a perfect world, 'paniclog' would remain empty.
+.PP
+In a perfect world,
+.I paniclog
+would remain empty.
 .SH ENVIRONMENT
-.DT
-.ta \w'NETHACKDIR or HACKDIR\ \ \ 'u
-USER or LOGNAME	Your login name.
-.br
-HOME		Your home directory.
-.br
-SHELL		Your shell.
-.br
-TERM		The type of your terminal.
-.br
-HACKPAGER or PAGER	Replacement for default pager.
-.br
-MAIL	Mailbox file.
-.br
-MAILREADER	Replacement for default reader
-.br
-\ 	(probably /bin/mail or /usr/ucb/mail).
-.br
-NETHACKDIR or HACKDIR	Playground.
-.br
-XNETHACKOPTIONS	String predefining several xNetHack options.
-.br
-
-If the same option is specified in both XNETHACKOPTIONS and .xnethackrc,
-the value assigned in XNETHACKOPTIONS takes precedence.
-.br
-
-SHOPTYPE and SPLEVTYPE can be used in debugging (wizard) mode.
-.br
-DEBUGFILES can be used if the program was built with 'DEBUG' enabled.
+In some cases,
+.I xNetHack
+attempts to access multiple environment variables in sequence
+(via
+.IR getenv (3)
+or similar)
+to determine information.
+.TP 16n \" "XNETHACKOPTIONS" + 2n
+.I USER
+.TQ
+.I
+LOGNAME
+Your login name.
+.TP
+.I HOME
+Your home directory.
+.TP
+.I SHELL
+Your login shell
+(not necessarily the one running when you started
+.IR xNetHack ).
+.TP
+.I TERM
+Your terminal type.
+.TP
+.I HACKPAGER
+.TQ
+.I PAGER
+Replacement for default pager.
+.TP
+.I MAIL
+Mailbox file.
+.TP
+.I MAILREADER
+Replacement for default reader
+(probably
+.I /bin/\*:mail
+or
+.IR /usr/\*:ucb/\*:mail ).
+.TP
+.I XNETHACKDIR
+.TQ
+.I HACKDIR
+Playground.
+.TP
+.I XNETHACKOPTIONS
+Predefined
+.I xNetHack
+options.
+.PP
+If the same option is specified in both
+.I \%XNETHACKOPTIONS
+and
+.IR \%.xnethackrc ,
+the value assigned in
+.I \%XNETHACKOPTIONS
+takes precedence.
+.PP
+.I SHOPTYPE
+and
+.I \%SPLEVTYPE
+can be used in debugging (wizard) mode.
+.I \%DEBUGFILES
+can be used if the program was built with 'DEBUG' enabled.
 .SH "SEE ALSO"
-.PP
-recover(6)
+.IR recover (6)
 .SH BUGS
-.PP
 Probably infinite.
 .SH COPYRIGHT
-This file is Copyright (C) \*(Na, \*(Nd for version \*(Nb:\*(Nr.
-xNetHack may be freely redistributed.  See license for details.
-.PP
-Dungeons & Dragons is a Trademark of Wizards of the Coast, Inc.
+.\" All troffs and nroffs support `\(co` except Plan 9 nroff, but Plan 9
+.\" offers no test for special character availability, and its feature
+.\" set too closely resembles DWB 3.3 to test for it.  Use a string with
+.\" any nroff-mode formatter not claiming groff compatiblity.
+.ds co \(co
+.if !\n(.g .if n .ds co (C)\" in principle, should be just "c"
+This file is Copyright \*(co \*(Na, \*(Nd for version \*(Nb:\*(Nr.
+xNetHack may be freely redistributed.
+See license for details.

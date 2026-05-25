@@ -1,4 +1,4 @@
-# NetHack 3.7  bogusmon.txt       $NHDT-Date: 1596498237 2020/08/03 23:43:57 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.10 $
+# NetHack 5.0  bogusmon.txt       $NHDT-Date: 1596498237 2020/08/03 23:43:57 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.10 $
 # Copyright (c) 2016 by Pasi Kallinen
 # NetHack may be freely redistributed.  See license for details.
 #
@@ -514,6 +514,78 @@ Vorlon
 # King Arthur
 questing beast
 
+# Movie
+Predator
+
+# Harry Potter
+dementor
+
+# common pest
+mother-in-law
+
+# Actual creatures
+praying mantis
+beluga whale
+chicken
+coelacanth
+star-nosed mole
+lungfish
+slow loris
+sea cucumber
+tapeworm
+liger
+velociraptor
+corpulent porpoise
+quokka
+potoo
+lemming
+dhole
+
+# european cryptids
+wolpertinger
+elwedritsche
+skvader
++Nessie
+tatzelwurm
+dahu
+
+# fictitious beasts
+dropbear
+wild haggis
+jackalope
+flying monkey
+flying pig
+hippocampus
+hippogriff
+kelpie
+catoblepas
+phoenix
+amphisbaena
+
+# Unusually animate body parts
+bouncing eye
+floating nose
+wandering eye
+
+# Computerese
+buffer overflow
+dangling pointer
+walking disk drive
+floating point
+regex engine
+netsplit
+wiki
+peer
+COBOL
+wire shark
+stray tab
+
+# bugs
+bohrbug
+mandelbug
+schroedinbug
+heisenbug
+
 # DooM
 cacodemon
 scrag
@@ -579,6 +651,7 @@ kitten prospecting robot
 +Magical Trevor
 +Strong Bad
 +Trogdor
+quest sprout
 
 # Girl Genius
 smakken
@@ -894,6 +967,10 @@ walking mushroom
 dungeon rabbit
 Lord of the Dungeon
 
+# Magic: The Gathering
+lhurgoyf
+phelddagrif
+
 ## Section 4 - miscellaneous non-reference things
 
 # Actual creatures
@@ -924,6 +1001,7 @@ sea cucumber
 slow loris
 star-nosed mole
 tapeworm
+tiktaalik
 velociraptor
 
 # european cryptids
@@ -992,6 +1070,7 @@ segfault
 segmentation fault
 spaghetti code
 stack overflow
+stray tab
 technical difficulty
 walking disk drive
 wiki
@@ -1090,6 +1169,7 @@ Ghost of Christmas Past
 Mexican jumping bean
 Sheriff of Nottingham
 acid worm
+acorn
 angry mariachi
 angry onion
 animated chainsaw
@@ -1117,6 +1197,7 @@ care bear
 cheese golem
 chiasmus
 chimney sweep
+choplet
 chronomancer
 cliche
 clone of yourself
@@ -1137,6 +1218,7 @@ disapproving parent
 disembodied hand
 disillusioner
 door-to-door salesman
+doozer
 drakon
 drider
 drunken driver
@@ -1233,6 +1315,7 @@ omnibus
 outsourcing partner
 overclocked microwave
 overused trope
+owlpug
 pain in the butt
 paint blob
 paparazzi
@@ -1242,12 +1325,15 @@ pillar of salt
 pilot
 pink elephant
 pink panther
+poison cackler
+pommelbug
 pop culture reference
 possessed waffle iron
 poultrygeist
 professional wrestler
 protagonist
 pterodactyl
+pugasus
 pumpkin king
 purple haze
 puzzle fiend
@@ -1256,10 +1342,13 @@ rabble-rouser
 raging nerd
 railgun enthusiast
 random monster
+rapier tapir
 rat king
 reanimator
+red dot
 red light
 rhinovirus
+robot chicken
 rot grub
 runaway shopping cart
 salt golem
@@ -1288,6 +1377,7 @@ tapeworm
 tax collector
 teenager
 telemarketer
+third eye
 tofurkey
 toothsayer
 trainspotter
@@ -1304,4 +1394,5 @@ wax statue
 weapon of mass destruction
 wee green blobbie
 wereshopkeeper
+weremoustache
 zombo

@@ -1,4 +1,4 @@
-/* NetHack 3.7	winami.h	$NHDT-Date: 1596498569 2020/08/03 23:49:29 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.9 $ */
+/* NetHack 5.0	winami.h	$NHDT-Date: 1596498569 2020/08/03 23:49:29 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.9 $ */
 /* Copyright (c) Kenneth Lorber, Bethesda, Maryland, 1991. */
 /* Copyright (c) Gregg Wonderly, Naperville, Illinois, 1992, 1993. */
 /* NetHack may be freely redistributed.  See license for details. */
@@ -22,6 +22,7 @@ typedef struct amii_mi {
     char gselector;      /* Group selector */
     char canselect;      /* Can user select this entry. */
     char attr;           /* Attribute for the line. */
+    int color;           /* Color for the line (from menucolors). */
     char *str;           /* The text of the item. */
 } amii_menu_item;
 
@@ -31,6 +32,7 @@ struct amii_menu {
     const char *query;     /* Query string */
     int count;             /* Number of strings. */
     char chr;              /* Character to assign for accelerator */
+    boolean has_glyphs;    /* Any item carries a real glyph (AMIV) */
 };
 
 /* descriptor for Amiga Intuition-based windows.  If we decide to cope with
@@ -57,16 +59,8 @@ struct amii_WinDesc {
     char *morestr;      /* string to display instead of default */
                         /* amiga stuff */
     struct Window *win; /* Intuition window pointer */
-#ifdef INTUI_NEW_LOOK
-    struct ExtNewWindow *newwin; /* NewWindow alloc'd */
-#else
-    struct NewWindow *newwin; /* ExtNewWindow alloc'd */
-#endif
-#ifdef INTUI_NEW_LOOK
+    struct ExtNewWindow *newwin;        /* NewWindow alloc'd */
     struct TagItem wintags[MAXWINTAGS]; /* Tag items for this window */
-#else
-    long wintags[MAXWINTAGS * 2];
-#endif
     void *hook;         /* Hook structure pointer for tiles version */
 #define FLMAP_INGLYPH 1 /* An NHW_MAP window is in glyph mode */
 #define FLMAP_CURSUP 2  /* An NHW_MAP window has the cursor displayed */
@@ -115,8 +109,8 @@ typedef struct WEVENT {
 /* port specific variable declarations */
 extern winid WIN_BASE;
 extern winid WIN_OVER;
-#define NHW_BASE 6
-#define NHW_OVER 7 /* overview window */
+#define NHW_BASE (NHW_LAST_TYPE + 1)
+#define NHW_OVER (NHW_LAST_TYPE + 2) /* overview window */
 
 extern struct amii_WinDesc *amii_wins[MAXWIN + 1];
 

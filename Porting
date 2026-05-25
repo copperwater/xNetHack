@@ -1,4 +1,4 @@
-  NetHack Porting Guidelines		v 3.7			2023-04-23
+  NetHack Porting Guidelines		v 5.0			2023-04-23
 
 
      1.0	Introduction
@@ -229,7 +229,7 @@ libraries.
 
      5.0	Design Updates
 
-The following design updates were introduced in NetHack 3.7.
+The following design updates were introduced in NetHack 5.0.
 
      5.1  Quest text files
 

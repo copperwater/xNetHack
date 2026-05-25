@@ -1,4 +1,4 @@
-/* NetHack 3.7	cfgfiles.c	$NHDT-Date: 1740532826 2025/02/25 17:20:26 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.417 $ */
+/* NetHack 5.0	cfgfiles.c	$NHDT-Date: 1740532826 2025/02/25 17:20:26 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.417 $ */
 /* Copyright (c) Stichting Mathematisch Centrum, Amsterdam, 1985. */
 /*-Copyright (c) Derek S. Ray, 2015. */
 /* NetHack may be freely redistributed.  See license for details. */
@@ -9,7 +9,7 @@
 #include "dlb.h"
 #include <errno.h>
 
-#if (!defined(MAC) && !defined(O_WRONLY) && !defined(AZTEC_C)) \
+#if (!defined(MACOS9) && !defined(O_WRONLY) && !defined(AZTEC_C)) \
     || defined(USE_FCNTL)
 #include <fcntl.h>
 #endif
@@ -34,7 +34,10 @@ staticfn void free_config_sections(void);
 staticfn char *is_config_section(char *);
 staticfn boolean handle_config_section(char *);
 boolean parse_config_line(char *);
-staticfn char *find_optparam(const char *);
+staticfn char *find_optparam(char *);
+#ifdef WIN32
+staticfn boolean portable_sysconf_only_this_statement(int);
+#endif
 #ifndef SFCTOOL
 staticfn boolean cnf_line_OPTIONS(char *);
 staticfn boolean cnf_line_AUTOPICKUP_EXCEPTION(char *);
@@ -73,6 +76,7 @@ staticfn boolean cnf_line_CHECK_PLNAME(char *);
 staticfn boolean cnf_line_SEDUCE(char *);
 staticfn boolean cnf_line_HIDEUSAGE(char *);
 staticfn boolean cnf_line_MAXPLAYERS(char *);
+staticfn boolean cnf_line_MAX_REROLL_RATE(char *);
 staticfn boolean cnf_line_PERSMAX(char *);
 staticfn boolean cnf_line_PERS_IS_UID(char *);
 staticfn boolean cnf_line_ENTRYMAX(char *);
@@ -113,8 +117,10 @@ staticfn void cnf_parser_init(struct _cnf_parser_state *parser);
 staticfn void cnf_parser_done(struct _cnf_parser_state *parser);
 staticfn void parse_conf_buf(struct _cnf_parser_state *parser,
                            boolean (*proc)(char *arg));
-/* next one is in extern.h; why here too? */
+    /* next one is in extern.h; why here too? */
 boolean parse_conf_str(const char *str, boolean (*proc)(char *arg));
+static boolean ignore_errors_on_unmatched = FALSE,
+               ignore_statement_errors = FALSE;
 
 #ifdef SFCTOOL
 #ifdef wait_synch
@@ -130,7 +136,7 @@ static const char *default_configfile =
 #ifdef UNIX
     ".xnethackrc";
 #else
-#if defined(MAC) || defined(__BEOS__)
+#if defined(MACOS9) || defined(__BEOS__)
     "xNetHack Defaults";
 #else
 #if defined(MSDOS) || defined(WIN32)
@@ -248,8 +254,8 @@ fopen_config_file(const char *filename, int src)
         set_configfile_name(filename);
 #ifdef UNIX
         if (!strncmp(configfile, "~/", 2) && (envp = nh_getenv("HOME")) != 0) {
-            /* support for command line '--nethackrc=~/path' (or for
-               NETHACKOPTIONS='@~/path'; we don't support ~user/path) */
+            /* support for command line '--xnethackrc=~/path' (or for
+               XNETHACKOPTIONS='@~/path'; we don't support ~user/path) */
             Snprintf(tmp_config, sizeof tmp_config, "%s/%s",
                      envp, configfile + 2); /* insert $HOME/ and remove ~/ */
             set_configfile_name(tmp_config);
@@ -279,7 +285,7 @@ fopen_config_file(const char *filename, int src)
     }
     /* fall through to standard names */
 
-#if defined(MICRO) || defined(MAC) || defined(__BEOS__) || defined(WIN32)
+#if defined(MICRO) || defined(MACOS9) || defined(__BEOS__) || defined(WIN32)
     set_configfile_name(fqname(default_configfile, CONFIGPREFIX, 0));
     if ((fp = fopen(configfile, "r")) != (FILE *) 0) {
         return fp;
@@ -302,10 +308,10 @@ fopen_config_file(const char *filename, int src)
 /* constructed full path names don't need fqname() */
 #ifdef VMS
     /* no punctuation, so might be a logical name */
-    set_configfile_name("nethackini");
+    set_configfile_name("xnethackini");
     if ((fp = fopen(configfile, "r")) != (FILE *) 0)
         return fp;
-    set_configfile_name("sys$login:nethack.ini");
+    set_configfile_name("sys$login:xnethack.ini");
     if ((fp = fopen(configfile, "r")) != (FILE *) 0)
         return fp;
 
@@ -370,7 +376,7 @@ fopen_config_file(const char *filename, int src)
         wait_synch();
     }
 #endif /* !VMS => Unix */
-#endif /* !(MICRO || MAC || __BEOS__ || WIN32) */
+#endif /* !(MICRO || MACOS9 || __BEOS__ || WIN32) */
     return (FILE *) 0;
 }
 
@@ -588,7 +594,7 @@ handle_config_section(char *buf)
 
 /* find the '=' or ':' */
 staticfn char *
-find_optparam(const char *buf)
+find_optparam(char *buf)
 {
     char *bufp, *altp;
 
@@ -977,6 +983,19 @@ cnf_line_MAXPLAYERS(char *bufp)
 }
 
 staticfn boolean
+cnf_line_MAX_REROLL_RATE(char *bufp)
+{
+    int n = atoi(bufp);
+
+    if (n < 0 || n > 255) {
+        config_error_add("Illegal value in MAX_REROLL_RATE (maximum is 255)");
+        n = 10;
+    }
+    sysopt.maxrerollrate = n;
+    return TRUE;
+}
+
+staticfn boolean
 cnf_line_PERSMAX(char *bufp)
 {
     int n = atoi(bufp);
@@ -1240,7 +1259,8 @@ cnf_line_SYMBOLS(char *bufp)
         switch_symbols(TRUE);
         return TRUE;
     }
-    config_error_add("Error in SYMBOLS definition '%s'", bufp);
+    if (!config_unmatched_ignored())
+        config_error_add("Error in SYMBOLS definition '%s'", bufp);
     return FALSE;
 }
 
@@ -1332,7 +1352,7 @@ typedef boolean (*config_line_stmt_func)(char *);
 /* normal, alias */
 #define CNFL_NA(n, l, f) { #n, l, FALSE, FALSE, cnf_line_##f }
 /* sysconf only */
-#define CNFL_S(n, l) { #n, l, TRUE, FALSE,  cnf_line_##n }
+#define CNFL_S(n, l) { #n, l, TRUE, FALSE, cnf_line_##n }
 
 static const struct match_config_line_stmt {
     const char *name;
@@ -1382,6 +1402,7 @@ static const struct match_config_line_stmt {
     CNFL_S(SEDUCE, 6),
     CNFL_S(HIDEUSAGE, 9),
     CNFL_S(MAXPLAYERS, 10),
+    CNFL_S(MAX_REROLL_RATE, 10),
     CNFL_S(PERSMAX, 7),
     CNFL_S(PERS_IS_UID, 11),
     CNFL_S(ENTRYMAX, 8),
@@ -1420,6 +1441,8 @@ static const struct match_config_line_stmt {
 #undef CNFL_NA
 #undef CNFL_S
 
+static boolean disregarded_config_lines[SIZE(config_line_stmt)];
+
 boolean
 parse_config_line(char *origbuf)
 {
@@ -1445,7 +1468,8 @@ parse_config_line(char *origbuf)
     /* find the '=' or ':' */
     bufp = find_optparam(buf);
     if (!bufp) {
-        config_error_add("Not a config statement, missing '='");
+        if (!ignore_statement_errors)
+            config_error_add("Not a config statement, missing '='");
         return FALSE;
     }
     /* skip past '=', then space between it and value, if any */
@@ -1462,11 +1486,13 @@ parse_config_line(char *origbuf)
                           config_line_stmt[i].len)) {
             char *parm = config_line_stmt[i].origbuf ? origbuf : bufp;
 
-            return config_line_stmt[i].fn(parm);
+            if (!disregarded_config_lines[i])
+                return config_line_stmt[i].fn(parm);
         }
     }
 
-    config_error_add("Unknown config statement");
+    if (!ignore_errors_on_unmatched)
+        config_error_add("Unknown config statement");
     return FALSE;
 }
 
@@ -1921,6 +1947,280 @@ vconfig_error_add(const char *str, va_list the_args)
     config_erradd(buf);
 }
 
+#ifndef SFCTOOL
+void
+rcfile(void)
+{
+    char *opts = 0, *xtraopts = 0;
+    const char *envname, *namesrc, *nameval;
+
+    go.opt_phase = environ_opt;
+    /* getenv() instead of nhgetenv(): let total length of options be long;
+       parseoptions() will check each individually */
+    envname = "XNETHACKOPTIONS";
+    opts = getenv(envname);
+    if (!opts) {
+        /* fall back to original name; discouraged */
+        envname = "HACKOPTIONS";
+        opts = getenv(envname);
+    }
+
+    if (gc.cmdline_rcfile) {
+        namesrc = "command line";
+        nameval = gc.cmdline_rcfile;
+        xtraopts = opts;
+        if (opts && (*opts == '/' || *opts == '\\' || *opts == '@'))
+            xtraopts = 0; /* XNETHACKOPTIONS is a file name; ignore it */
+    } else if (opts && (*opts == '/' || *opts == '\\' || *opts == '@')) {
+        /* XNETHACKOPTIONS is a file name; use that instead of the default */
+        if (*opts == '@')
+            ++opts; /* @filename */
+        namesrc = envname;
+        nameval = opts;
+        xtraopts = 0;
+    } else {
+        /* either no XNETHACKOPTIONS or it wasn't a file name;
+           read the default configuration file */
+        nameval = namesrc = 0;
+        xtraopts = opts;
+    }
+
+    go.opt_phase = rc_file_opt;
+    /* seemingly arbitrary name length restriction is to prevent error
+       messages, if any were to be delivered while accessing the file,
+       from potentially overflowing buffers */
+    if (nameval && (int) strlen(nameval) >= BUFSZ / 2) {
+        config_error_init(TRUE, namesrc, FALSE);
+        config_error_add(
+            "nethackrc file name \"%.40s\"... too long; using default",
+            nameval);
+        config_error_done();
+        nameval = namesrc = 0; /* revert to default nethackrc */
+    }
+
+    config_error_init(TRUE, nameval, nameval ? CONFIG_ERROR_SECURE : FALSE);
+    (void) read_config_file(nameval, set_in_config);
+    config_error_done();
+    if (xtraopts) {
+        /* XNETHACKOPTIONS is present and not a file name */
+        go.opt_phase = environ_opt;
+        config_error_init(FALSE, envname, FALSE);
+        (void) parseoptions(xtraopts, TRUE, FALSE);
+        config_error_done();
+    }
+
+    if (gc.cmdline_rcfile)
+        free((genericptr_t) gc.cmdline_rcfile), gc.cmdline_rcfile = 0;
+    /*[end of xnethackrc handling]*/
+}
+
+
+void
+heed_all_config_statements(void)
+{
+    int i;
+
+    for (i = 0; i < SIZE(disregarded_config_lines); i++) {
+        disregarded_config_lines[i] = FALSE;
+    }
+}
+void
+disregard_all_config_statements(void)
+{
+    int i;
+
+    for (i = 0; i < SIZE(disregarded_config_lines); i++) {
+        disregarded_config_lines[i] = TRUE;
+    }
+}
+void
+heed_this_config_statement(int statement_idx)
+{
+    if (statement_idx >= 0 && statement_idx < SIZE(disregarded_config_lines))
+        disregarded_config_lines[statement_idx] = FALSE;
+}
+void
+disregard_this_config_statement(int statement_idx)
+{
+    if (statement_idx >= 0 && statement_idx < SIZE(disregarded_config_lines))
+        disregarded_config_lines[statement_idx] = TRUE;
+}
+
+void
+clear_ignore_errors_on_unmatched(void)
+{
+    ignore_errors_on_unmatched = FALSE;
+}
+void
+set_ignore_errors_on_unmatched(void)
+{
+    ignore_errors_on_unmatched = TRUE;
+}
+boolean
+config_unmatched_ignored(void)
+{
+    if (ignore_errors_on_unmatched)
+        return TRUE;
+    return FALSE;
+}
+void
+rcfile_interface_options(void)
+{
+    allopt_array_init();
+    disregard_all_options();
+    disregard_all_config_statements();
+    heed_this_option(opt_windowtype);
+    heed_this_option(opt_soundlib);
+    set_ignore_errors_on_unmatched();
+    ignore_statement_errors = TRUE;
+    rcfile();
+    heed_all_config_statements();
+    heed_all_options();
+    disregard_this_option(opt_windowtype);
+    disregard_this_option(opt_soundlib);
+    clear_ignore_errors_on_unmatched();
+    ignore_statement_errors = FALSE;
+}
+
+void
+rcfile_only_this_option(enum opt heeded_option)
+{
+    allopt_array_init();
+    disregard_all_options();
+    disregard_all_config_statements();
+    heed_this_option(heeded_option);
+    set_ignore_errors_on_unmatched();
+    ignore_statement_errors = TRUE;
+    rcfile();
+    heed_all_config_statements();
+    heed_all_options();
+    clear_ignore_errors_on_unmatched();
+    ignore_statement_errors = FALSE;
+}
+
+void
+rcfile_only_this_statement(int statementid)
+{
+    allopt_array_init();
+    disregard_all_options();
+    disregard_all_config_statements();
+    heed_this_config_statement(statementid);
+    set_ignore_errors_on_unmatched();
+    ignore_statement_errors = TRUE;
+    rcfile();
+    heed_all_config_statements();
+    heed_all_options();
+    clear_ignore_errors_on_unmatched();
+    ignore_statement_errors = FALSE;
+}
+
+#ifdef WIN32
+extern char portable_device_path[_MAX_PATH]; /* windsys.c */
+extern boolean portable;
+
+staticfn boolean
+portable_sysconf_only_this_statement(int statementid)
+{
+    const char *exepath;
+    char portable_sysconf[_MAX_PATH];
+
+    exepath = windows_exepath();
+    if (exepath) {
+        Snprintf(portable_sysconf, sizeof portable_sysconf, "%s/sysconf",
+                 exepath);
+        if (portable_sysconf[0] && file_exists(portable_sysconf)) {
+#ifdef SYSCF
+#ifdef SYSCF_FILE
+            allopt_array_init();
+            disregard_all_options();
+            disregard_all_config_statements();
+            heed_this_config_statement(statementid);
+            set_ignore_errors_on_unmatched();
+            ignore_statement_errors = TRUE;
+
+            config_error_init(TRUE, portable_sysconf, FALSE);
+            go.opt_phase = syscf_opt;
+            (void) read_config_file(portable_sysconf, set_in_sysconf);
+            config_error_done();
+            heed_all_config_statements();
+            heed_all_options();
+            clear_ignore_errors_on_unmatched();
+            ignore_statement_errors = FALSE;
+            if (sysopt.portable_device_paths) {
+                Snprintf(portable_device_path, sizeof portable_device_path,
+                         "%s\\", exepath);
+                return TRUE;
+            }
+#endif
+#endif /* SYSCF */
+        }
+    }
+    return FALSE;
+}
+
+boolean
+check_for_portable_config(void)
+{
+    int i, target_index = -1;
+
+    for (i = 0; i < SIZE(config_line_stmt); i++) {
+        if (!strcmp(config_line_stmt[i].name, "PORTABLE_DEVICE_PATHS")) {
+            target_index = i;
+            break;
+        }
+    }
+    if (target_index >= 0) {
+        return portable_sysconf_only_this_statement(target_index);
+    }
+    return FALSE;
+}
+#endif
+
+#ifdef MSWIN_GRAPHICS
+void
+disregard_some_mswin_options(void)
+{
+    /* later for these */
+    disregard_this_option(opt_map_mode);
+    disregard_this_option(opt_font_map);
+    disregard_this_option(opt_font_menu);
+    disregard_this_option(opt_font_message);
+    disregard_this_option(opt_font_status);
+
+    disregard_this_option(opt_font_size_map);
+    disregard_this_option(opt_font_size_menu);
+    disregard_this_option(opt_font_size_message);
+    disregard_this_option(opt_font_size_status);
+}
+
+void
+rcfile_only_some_mswin_options(void)
+{
+    allopt_array_init();
+    disregard_all_options();
+    disregard_all_config_statements();
+    heed_this_option(opt_map_mode);
+    heed_this_option(opt_font_map);
+    heed_this_option(opt_font_menu);
+    heed_this_option(opt_font_message);
+    heed_this_option(opt_font_status);
+
+    heed_this_option(opt_font_size_map);
+    heed_this_option(opt_font_size_menu);
+    heed_this_option(opt_font_size_message);
+    heed_this_option(opt_font_size_status);
+    set_ignore_errors_on_unmatched();
+    ignore_statement_errors = TRUE;
+    rcfile();
+    heed_all_config_statements();
+    heed_all_options();
+    clear_ignore_errors_on_unmatched();
+    ignore_statement_errors = FALSE;
+}
+#endif /* MSWIN_GRAPHICS */
+
+#endif /* SFCTOOL */
+
 #ifdef SYSCF
 #ifdef SYSCF_FILE
 void
@@ -1947,9 +2247,9 @@ assure_syscf_file(void)
 #else
     fd = open(SYSCF_FILE, O_RDONLY);
 #endif
-#else
+#else   /* VMS */
     fd = open(SYSCF_FILE, O_RDONLY, 0);
-#endif
+#endif  /* VMS */
     if (fd >= 0) {
         /* readable */
         close(fd);

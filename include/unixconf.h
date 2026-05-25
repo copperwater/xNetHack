@@ -1,4 +1,4 @@
-/* NetHack 3.7	unixconf.h	$NHDT-Date: 1711213886 2024/03/23 17:11:26 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.57 $ */
+/* NetHack 5.0	unixconf.h	$NHDT-Date: 1778686773 2026/05/13 15:39:33 $  $NHDT-Branch: NetHack-5.0 $:$NHDT-Revision: 1.60 $ */
 /* Copyright (c) Stichting Mathematisch Centrum, Amsterdam, 1985. */
 /*-Copyright (c) Pasi Kallinen, 2018. */
 /* NetHack may be freely redistributed.  See license for details. */
@@ -170,7 +170,7 @@
 #ifdef AMS
 #define AMS_MAILBOX "/Mailbox"
 #else
-#if defined(__FreeBSD__) || defined(__OpenBSD__)
+#if defined(__FreeBSD__) || defined(__OpenBSD__) || defined(__NetBSD__)
 #define DEF_MAILREADER "/usr/bin/mail"
 #else
 #define DEF_MAILREADER "/usr/ucb/Mail"
@@ -331,8 +331,16 @@
 #include <sys/wait.h>
 #endif
 
+#if defined(__NetBSD__) || defined(__FreeBSD__) || defined(__OpenBSD__)
+#define tparm2(s, x)	tparm(s,x,0,0,0,0,0,0,0,0)
+#else
+#define tparm2(s, x)	tparm(s,x)
+#endif
+
 #if defined(BSD) || defined(ULTRIX)
-#if !defined(DGUX) && !defined(SUNOS4)
+#if !defined(DGUX) && !defined(SUNOS4) \
+	&& !defined(__NetBSD__) && !defined(__FreeBSD__) \
+	&& !defined(__OpenBSD__)
 #define memcpy(d, s, n) bcopy(s, d, n)
 #define memcmp(s1, s2, n) bcmp(s2, s1, n)
 #endif

@@ -1,4 +1,4 @@
-/* NetHack 3.7	worm.c	$NHDT-Date: 1652689653 2022/05/16 08:27:33 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.56 $ */
+/* NetHack 5.0	worm.c	$NHDT-Date: 1652689653 2022/05/16 08:27:33 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.56 $ */
 /* Copyright (c) Stichting Mathematisch Centrum, Amsterdam, 1985. */
 /*-Copyright (c) Robert Patrick Rankin, 2009. */
 /* NetHack may be freely redistributed.  See license for details. */
@@ -224,7 +224,7 @@ worm_move(struct monst *worm)
             wgrowtime[wnum] = svm.moves + rnd(5);
         } else {
             int mmove = mcalcmove(worm, FALSE),
-                /* prior to 3.7.0, next-grow increment was 3..17 but since
+                /* prior to 5.0.0,, next-grow increment was 3..17 but since
                    it got checked every 4th turn when the speed 3 worm got
                    to move, it was effectively 0..5; also, its usage was
                    'wgrowtime += incr', so often 'wgrowtime' would be

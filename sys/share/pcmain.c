@@ -1,4 +1,4 @@
-/* NetHack 3.7	pcmain.c	$NHDT-Date: 1693359605 2023/08/30 01:40:05 $  $NHDT-Branch: keni-crashweb2 $:$NHDT-Revision: 1.133 $ */
+/* NetHack 5.0	pcmain.c	$NHDT-Date: 1693359605 2023/08/30 01:40:05 $  $NHDT-Branch: keni-crashweb2 $:$NHDT-Revision: 1.133 $ */
 /* Copyright (c) Stichting Mathematisch Centrum, Amsterdam, 1985. */
 /*-Copyright (c) Derek S. Ray, 2015. */
 /* NetHack may be freely redistributed.  See license for details. */
@@ -12,7 +12,7 @@
 #include <signal.h>
 #endif
 
-#if !defined(AMIGA) && !defined(__DJGPP__)
+#if !defined(AMIGA) && !defined(__DJGPP__) && !defined(__MINT__)
 #include <sys\stat.h>
 #else
 #include <sys/stat.h>
@@ -27,14 +27,13 @@ char orgdir[PATHLEN]; /* also used in pcsys.c, amidos.c */
 
 #ifdef TOS
 boolean run_from_desktop = TRUE; /* should we pause before exiting?? */
-#ifdef __GNUC__
-long _stksize = 16 * 1024;
-#endif
+/* _stksize is owned by sys/atari/tos.c for the 5.0 GEM build. */
 #endif
 
 #ifdef AMIGA
 extern int bigscreen;
 void preserve_icon(void);
+void amiga_self_assign(void);
 #endif
 
 static void process_options(int argc, char **argv);
@@ -118,7 +117,6 @@ _CrtSetReportFile(_CRT_ASSERT, _CRTDBG_FILE_STDERR);*/
 #endif
 
 #ifdef TOS
-    long clock_time;
     if (*argv[0]) { /* only a CLI can give us argv[0] */
         gh.hname = argv[0];
         run_from_desktop = FALSE;
@@ -127,6 +125,7 @@ _CrtSetReportFile(_CRT_ASSERT, _CRTDBG_FILE_STDERR);*/
         gh.hname = "NetHack"; /* used for syntax messages */
 
     choose_windows(DEFAULT_WINDOW_SYS);
+
 
 #if !defined(AMIGA) && !defined(GNUDOS)
     /* Save current directory and make sure it gets restored when
@@ -146,6 +145,10 @@ _CrtSetReportFile(_CRT_ASSERT, _CRTDBG_FILE_STDERR);*/
 #ifdef EXEPATH
     if (dir == (char *) 0)
         dir = exepath(argv[0]);
+#endif
+#if defined(AMIGA) && defined(HACKDIR)
+    if (dir == (char *) 0)
+        dir = HACKDIR;
 #endif
 #ifdef _MSC_VER
     if (IsDebuggerPresent()) {
@@ -250,6 +253,8 @@ _CrtSetReportFile(_CRT_ASSERT, _CRTDBG_FILE_STDERR);*/
 #endif
     }
 #ifdef AMIGA
+    /* Point NetHack: at our program directory; covers CLI and WB launch. */
+    amiga_self_assign();
 #ifdef CHDIR
     /*
      * If we're dealing with workbench, change the directory.  Otherwise
@@ -334,10 +339,6 @@ _CrtSetReportFile(_CRT_ASSERT, _CRTDBG_FILE_STDERR);*/
 /*
  * It seems you really want to play.
  */
-#ifdef TOS
-    if (comp_times((long) time(&clock_time)))
-        error("Your clock is incorrectly set!");
-#endif
     if (!dlb_init()) {
         pline(
             "%s\n%s\n%s\n%s\n\nNetHack was unable to open the required file "
@@ -665,7 +666,7 @@ nhusage(void)
 
 #ifdef CHDIR
 void
-chdirx(char *dir, boolean wr)
+chdirx(const char *dir, boolean wr)
 {
 #ifdef AMIGA
     static char thisdir[] = "";
@@ -743,6 +744,48 @@ exepath(char *str)
 }
 #endif /* EXEPATH */
 
+#if defined(CROSS_TO_ATARI) || defined(CROSS_TO_AMIGA) \
+    || defined(CROSS_TO_MSDOS)
+/* Generate an RFC 4122 v4 UUID for this game.  Draw bytes from the
+   core's ISAAC64 RNG, which init_random() seeded before we get here. */
+void
+get_nhuuid(void)
+{
+    uchar bytes[16];
+    int i;
+
+    if (svn.nhuuid[0])
+        return;
+
+    for (i = 0; i < 16; i++)
+        bytes[i] = (uchar) rn2(256);
+    /* RFC 4122: version=4 (random), variant=10. */
+    bytes[6] = (bytes[6] & 0x0F) | 0x40;
+    bytes[8] = (bytes[8] & 0x3F) | 0x80;
+
+    Snprintf(svn.nhuuid, sizeof svn.nhuuid,
+             "%02x%02x%02x%02x-%02x%02x-%02x%02x-%02x%02x-"
+             "%02x%02x%02x%02x%02x%02x",
+             bytes[0], bytes[1], bytes[2], bytes[3],
+             bytes[4], bytes[5],
+             bytes[6], bytes[7],
+             bytes[8], bytes[9],
+             bytes[10], bytes[11], bytes[12], bytes[13],
+             bytes[14], bytes[15]);
+}
+
+void
+free_nhuuid(void)
+{
+    int i;
+
+    for (i = 0; i < SIZE(svn.nhuuid); i++) {
+        svn.nhuuid[i] = 0;
+    }
+}
+#endif
+
+#if defined(CROSS_TO_AMIGA) || defined(CROSS_TO_ATARI)
 #ifdef CROSS_TO_AMIGA
 void msmsg
 VA_DECL(const char *, fmt)
@@ -754,6 +797,18 @@ VA_DECL(const char *, fmt)
     VA_END();
     return;
 }
+#endif
+#ifdef CROSS_TO_ATARI
+void
+msmsg(const char *fmt, ...)
+{
+    va_list ap;
+    va_start(ap, fmt);
+    vprintf(fmt, ap);
+    va_end(ap);
+    fflush(stdout);
+}
+#endif
 
 unsigned long
 sys_random_seed(void)

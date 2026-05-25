@@ -1,4 +1,4 @@
-/* NetHack 3.7	vision.c	$NHDT-Date: 1724939600 2024/08/29 13:53:20 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.70 $ */
+/* NetHack 5.0	vision.c	$NHDT-Date: 1777205478 2026/04/26 04:11:18 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.75 $ */
 /* Copyright (c) Dean Luick, with acknowledgements to Dave Cohrs, 1990. */
 /* NetHack may be freely redistributed.  See license for details.       */
 
@@ -58,7 +58,7 @@ const coordxy circle_start[] = {
     /* 4*/ 10,
     /* 5*/ 15,
     /* 6*/ 21,
-    /* 7*/ 38,
+    /* 7*/ 28,
     /* 8*/ 36,
     /* 9*/ 45,
     /*10*/ 55,
@@ -752,7 +752,18 @@ vision_recalc(int control)
                 if ((old_row[col] & IN_SIGHT)
                     || ((next_row[col] & COULD_SEE)
                         ^ (old_row[col] & COULD_SEE)))
+                {
+                    /*
+                     * TEMPORARY?  Sometimes we get here with col==0 and
+                     * newsym()'s impossible() for !isok() is being
+                     * triggered, so avoid calling it for <0,y>; other bad
+                     * coordinates will produce a panic() as they should.
+                     */
+                    if (col != 0)
+                    /*
+                     */
                     newsym(col, row);
+                }
             }
 
         } /* end for col . . */

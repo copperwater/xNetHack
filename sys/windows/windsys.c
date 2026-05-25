@@ -1,4 +1,4 @@
-/* NetHack 3.7	windsys.c	$NHDT-Date: 1710949760 2024/03/20 15:49:20 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.95 $ */
+/* NetHack 5.0	windsys.c	$NHDT-Date: 1710949760 2024/03/20 15:49:20 $  $NHDT-Branch: NetHack-5.0 $:$NHDT-Revision: 1.95 $ */
 /* Copyright (c) NetHack PC Development Team 1993, 1994 */
 /* NetHack may be freely redistributed.  See license for details. */
 
@@ -28,6 +28,7 @@
 #include <errno.h>
 
 #ifdef WIN32
+#include <rpc.h>
 #include <VersionHelpers.h>
 #include <UserEnv.h>
 
@@ -43,10 +44,11 @@
  *
  */
 
-static char portable_device_path[MAX_PATH];
+char portable_device_path[_MAX_PATH];
 
 static boolean path_buffer_set = FALSE;
 static char path_buffer[MAX_PATH];
+extern boolean portable;
 
 #ifndef SFCTOOL
 /* runtime cursor display control switch */
@@ -73,7 +75,6 @@ static HWND GetConsoleHwnd(void);
 extern void backsp(void);
 #endif
 int windows_console_custom_nhgetch(void);
-extern void safe_routines(void);
 int windows_early_options(const char *window_opt);
 unsigned long sys_random_seed(void);
 #if 0
@@ -88,9 +89,7 @@ int build_known_folder_path(const KNOWNFOLDERID *folder_id, char *path,
 void build_environment_path(const char *env_str, const char *folder,
                             char *path, size_t path_size);
 boolean folder_file_exists(const char *folder, const char *file_name);
-boolean test_portable_config(const char *executable_path,
-                             char *portable_device_path,
-                             size_t portable_device_path_size);
+
 /* The function pointer nt_kbhit contains a kbhit() equivalent
  * which varies depending on which window port is active.
  * For the tty port it is tty_kbhit() [from consoletty.c]
@@ -179,7 +178,7 @@ filesize(char *file)
  * Chdrive() changes the default drive.
  */
 void
-chdrive(char *str)
+chdrive(const char *str)
 {
     char *ptr;
     char drive;
@@ -293,10 +292,6 @@ win32_abort(void)
             exit_nhwindows((char *) 0);
         iflags.window_inited = FALSE;
     }
-#ifdef WIN32CON
-    if (!WINDOWPORT(mswin) && !WINDOWPORT(safestartup))
-        safe_routines();
-#endif
     if (wizard) {
         raw_print("Execute debug breakpoint wizard?");
         if ((c = nhgetch()) == 'y' || c == 'Y')
@@ -522,16 +517,7 @@ nethack_exit(int code)
      * GUILaunched is defined and set in consoletty.c.
      */
 
-
-#ifdef WIN32CON
-    if (!GUILaunched) {
-        windowprocs = *get_safe_procs(1);
-        /* use our custom version which works
-           a little cleaner than the stdio one */
-        windowprocs.win_nhgetch = windows_console_custom_nhgetch;
-    } else
-#endif
-    if (getreturn_enabled) {
+    if (getreturn_enabled && !program_state.exiting) {
         raw_print("\n");
         if (iflags.window_inited)
             wait_synch();
@@ -541,7 +527,44 @@ nethack_exit(int code)
 #ifdef MSWIN_GRAPHICS
     free_winmain_stuff();
 #endif
+#ifdef WIN32CON
+#ifdef CURSES_GRAPHICS
+    if (WINDOWPORT(curses)) {
+        console_exit();
+    }
+#endif
+#endif
     exit(code);
+}
+
+void
+get_nhuuid(void)
+{
+    UUID binuuid;
+    unsigned char *stmp;
+    RPC_STATUS rpcstatus;
+
+    if (svn.nhuuid[0])
+        return;
+
+    rpcstatus = UuidCreate(&binuuid);
+    if (rpcstatus == RPC_S_OK) {
+        rpcstatus = UuidToStringA(&binuuid, &stmp);
+        if (rpcstatus == RPC_S_OK) {
+            Snprintf(svn.nhuuid, sizeof svn.nhuuid, "%s", (char *) stmp);
+            RpcStringFree(&stmp);
+        }
+    }
+}
+
+void
+free_nhuuid(void)
+{
+    int i;
+
+    for (i = 0; i < SIZE(svn.nhuuid); i++) {
+        svn.nhuuid[i] = 0;
+    }
 }
 
 #ifdef WIN32CON
@@ -580,10 +603,6 @@ getreturn(const char *str)
    initializing the window port */
 void nethack_enter_windows(void)
 {
-#ifdef WIN32CON
-    if (WINDOWPORT(tty))
-        nethack_enter_consoletty();
-#endif
 }
 
 /* CP437 to Unicode mapping according to the Unicode Consortium */
@@ -665,7 +684,7 @@ BOOL winos_font_support_cp437(HFONT hFont)
 
     DWORD size = (size_t) GetFontUnicodeRanges(hdc, NULL);
     if (size) {
-        GLYPHSET *glyphSet = (GLYPHSET *) malloc((size_t) size);
+        GLYPHSET *glyphSet = (GLYPHSET *) alloc((size_t) size);
         if (glyphSet != NULL) {
 #ifdef _MSC_VER
 #pragma warning( push )
@@ -1029,9 +1048,8 @@ set_default_prefix_locations(const char *programPath UNUSED)
     append_slash(executable_path);
 
 #ifndef SFCTOOL
-    if (test_portable_config(executable_path, portable_device_path,
-                             sizeof portable_device_path)) {
-        gf.fqn_prefix[SYSCONFPREFIX] = executable_path;
+    if (portable || (portable = check_for_portable_config())) {
+        gf.fqn_prefix[SYSCONFPREFIX] = portable_device_path;
         gf.fqn_prefix[CONFIGPREFIX] = portable_device_path;
         gf.fqn_prefix[HACKPREFIX] = portable_device_path;
         gf.fqn_prefix[SAVEPREFIX] = portable_device_path;
@@ -1040,7 +1058,7 @@ set_default_prefix_locations(const char *programPath UNUSED)
         gf.fqn_prefix[SCOREPREFIX] = portable_device_path;
         gf.fqn_prefix[LOCKPREFIX] = portable_device_path;
         gf.fqn_prefix[TROUBLEPREFIX] = portable_device_path;
-        gf.fqn_prefix[DATAPREFIX] = executable_path;
+        gf.fqn_prefix[DATAPREFIX] = portable_device_path;
     } else {
 #endif /* SFCTOOL */
         if (!build_known_folder_path(&FOLDERID_Profile, profile_path,
@@ -1097,53 +1115,6 @@ append_slash(char *name)
 }
 
 void set_default_prefix_locations(const char *programPath);
-boolean
-test_portable_config(const char *executable_path, char *portable_device_path,
-                     size_t portable_device_path_size)
-{
-    int lth = 0;
-    const char *sysconf = "sysconf";
-    char tmppath[MAX_PATH];
-    boolean retval = FALSE,
-            save_initoptions_noterminate = iflags.initoptions_noterminate;
-
-    if (portable_device_path
-        && folder_file_exists(executable_path, "sysconf")) {
-        /*
-           There is a sysconf file (not just sysconf.template) present in
-           the exe path, which is not the way NetHack is initially
-           distributed, so assume it means that the admin/installer wants to
-           override something, perhaps set up for a fully-portable
-           configuration that leaves no traces behind elsewhere on this
-           computer's hard drive - delve into that...
-         */
-
-        *portable_device_path = '\0';
-        lth = sizeof tmppath - strlen(sysconf);
-        (void) strncpy(tmppath, executable_path, lth - 1);
-        tmppath[lth - 1] = '\0';
-        (void) strcat(tmppath, sysconf);
-
-        iflags.initoptions_noterminate = 1;
-        /* assure_syscf_file(); */
-        config_error_init(TRUE, tmppath, FALSE);
-        /* ... and _must_ parse correctly. */
-        if (read_config_file(tmppath, set_in_sysconf)
-            && sysopt.portable_device_paths)
-            retval = TRUE;
-        (void) config_error_done();
-        iflags.initoptions_noterminate = save_initoptions_noterminate;
-        sysopt_release(); /* the real sysconf processing comes later */
-    }
-    if (retval) {
-        lth = strlen(executable_path);
-        if (lth <= (int) portable_device_path_size - 1)
-            Strcpy(portable_device_path, executable_path);
-        else
-            retval = FALSE;
-    }
-    return retval;
-}
 
 const char *
 get_portable_device(void)
@@ -1338,8 +1309,8 @@ printf("E2: M=%s e=%d\n",msg,errnum);
 
 int
 win32_cr_gettrace(int maxframes USED_IF_BACKTRACE,
-		  char *out USED_IF_BACKTRACE,
-		  int outsize USED_IF_BACKTRACE)
+                  char *out USED_IF_BACKTRACE,
+                  int outsize USED_IF_BACKTRACE)
 {
 #ifdef USE_BACKTRACE
     userstate.error_count = 0;

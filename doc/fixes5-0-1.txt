@@ -1,0 +1,216 @@
+NHDT-Branch: NetHack-5.0 $:$NHDT-Revision: 1.20 $ $NHDT-Date: 1779581008 2026/05/24 00:03:28 $
+	
+General Fixes and Modified Features
+-----------------------------------
+fix some cross-compile package filenames that still referenced 370 instead
+	of 500
+Use NHV macro (NHV=500) for filenames in Makefiles and/or hints files to make
+	it less likely to overlook or miss them next time
+early startup options such as --showpaths could be run non-interactively, so 
+	ensure that getret() doesn't prompt and wait for user input
+fix issue where the new game startup message was stating 'Work-in-progress'
+	even when NH_DEVEL_STATUS was set to NH_STATUS_POSTRELEASE
+if 'mention_decor' was set in config file or NETHACKOPTIONS,
+	starting the game told you that "you are standing on stairs which lead
+	out of the dungeon", even when the player entered the tutorial where
+	that wasn't true
+when a vault guard was moved off the map, an impossible about trying to update
+	map location <0,0> was issued
+doc: use full URL for nethack.org in Guidebook.mn
+doc: fix a paste error in Guidebook.tex
+doc: fix spelling correction in nethack.6
+spelling: "Flanian Pobble Bead" to "Flainian Pobble Bead"
+obey statue type gender (gnome king statue in minetn-5)
+fix statue and figurine genders in special levels in general
+fix buffer overflow in update_topl when handling multiple items in a
+	container
+fix random attended shrines in irregular rooms
+fix experience-level up/down hilighting
+cherry-pick a pair of core fixes from the m68k-wip branch to add menu
+	glyphs to shop bills and container tip/loot menus (pr #1539
+	by ingpaschke)
+tiles: make the tile for magic flute and mundane flute be exactly the
+	same; do the same thing for drum of earthquake and leather drum
+fix a buffer overflow in reroll processing that was introduced in a
+	post-release 5.0.0 commit
+ensure a checkpoint, aka a save_currentstate() call, isn't done before
+	the game is ready
+add ANY_INT16 to any_types and use it for u.ux/uy/tx/ty and uz dlevel/dnum;
+	those are coordxy (int16_t) but the Lua bindings were treating them
+	as 1-byte fields, so on big-endian m68k Lua read the high byte (0)
+	instead of the actual value. Symptom: place_object off map <0,0>
+	in the tutorial.
+
+
+Platform- and/or Interface-Specific Fixes
+-----------------------------------------
+Amiga: fall back to text mode when tile mode is not viable
+Amiga: Detect Workbench depth, display-database MaxDepth, and free chip RAM
+	if any signals AMIV can't run (e.g. A1000 with 4-colour WB)
+Amiga: swap windowprocs to amii_procs before opening any screens
+Amiga: disable SYSCF, drop sysconf from package; assure_syscf_file() was
+	killing the binary when run outside NetHack: was breaking normal
+	launches
+Amiga: honor __stack under libnix; reference __stkinit so the linker pulls
+	swapstack.o from libnix.a; without it the program runs on the
+	inherited shell stack and crashes inside Lua / level-gen
+Amiga: provide a real v4 UUID via get_nhuuid
+Amiga: ship as a NetHack drawer with drawer icon and README
+Amiga: ship Workbench icons for the binary and text files
+Amiga: fix misleading fallback warning and stale comment
+Amiga: stop rendering CLR_BLACK and CLR_WHITE as inverse video
+Amiga: default number_pad:1 in shipped nethack.cnf
+Amiga: promote AMIGA_INTUITION to supported so it shows up in version info
+Amiga: wire altmeta option to sysflags.altmeta
+Amiga: restore glyph icons in menus
+Amiga: sys/amiga/README.amiga stated "Extract NH50AMI.ZIP" but it could
+	be named something else; added a note about the potential suffix
+Amiga: `amiv_lprint_glyph` used an uninitialized `base` in tile-offset math
+Amiga: `amii_clear_nhwindow` overview window never got cleared with the map
+Amiga: `amii_sethipens` fell through from `NHW_TEXT` into `case -2`, clobbering
+	text-window pens
+Amiga: `NHW_BASE`/`NHW_OVER` collided with `NHW_PERMINVENT=6`; renumbered
+	off `NHW_LAST_TYPE`, matching the `wintty.h` convention
+Amiga: `make_menu_items` sized its output array by
+	`sizeof(amii_menu_item)` instead of `sizeof(menu_item)`
+Amiga: `DoMenuScroll` could deref a NULL `amip` on the `SELECTUP` path
+Amiga: `GlyphToIcon`'s ASCII passthrough used `> 10000` instead of `>=`
+Amiga: `fopenp`'s buffer-bound check fired one byte too late
+Amiga: fix port_help double-prefix path
+Amiga: replace WINVERS_AMI* strcmp with WINDOWPORT() id compare
+Amiga: route port paths through fqname()
+Amiga: drop redundant 'either windowtype' guards
+Amiga: deduplicate amii_procs and amiv_procs
+Amiga: route non-menu messages from DoMenuScroll to ProcessMessage
+Amiga: delete outdated/sys/amiga/
+Amiga: graphical tombstone RTG-screen fallback
+Amiga: fix extended-command menu mouse-pick
+Amiga: clamp amii_numcolors and guard tile CMAP loop
+Amiga: fix --more-- infinite loop on overlong words
+Amiga: bound BufferQueueChar; move CloseWindow out of Forbid()
+Amiga: defensive NULL/bounds guards in menus and window creation
+Amiga: tighten input/dialog buffer bounds
+Amiga: header hygiene and palette-size constants
+Amiga: drop UNTESTED AROS path; tighten fopenp separator write
+Amiga: harden host-side bmp/xpm to iff converters
+Amiga: tighten two minor issues from review
+Amiga: fix bitmap/IFF resource handling in winchar.c
+Amiga: fix overview-window crashes
+Amiga: fix latent issue found in code review: fname[18]/sprintf risks
+	overflow for >=10 in any version field; switch to snprintf into
+	a wider static buffer
+Amiga: fix latent issue found in code review: (1L << i) for i==31 (or
+	shifting into the depth-loop terminator) is undefined for signed
+	long;use 1UL
+Amiga: fix latent issue found in code review: Drop unused cnt= from
+	amii_display_nhwindow's DoMenuScroll call; the menu return value
+	is consumed elsewhere, not here
+curses on Windows: the number of columns was being capped by default
+	at 110 in cursinit.c; try to use the console width if no explicit
+	setting was specified in the config file; impacted both wincon
+	and wingui curses
+curses on Windows: some early data is alloc'd for the windows console
+	settings in both tty and curses (pdcursesmod) prior to the
+	window port initialization, but only tty was freeing it; call
+	console_exit() in nethack_exit if window port is curses
+curses on Windows: dialogs pertaining to the need for self-recover
+	were not visible and therefore the player had no idea that
+	answers were expected or why
+gcc-16: tiletext.c [-Wdiscarded-qualifiers] warning suppression
+libnh: update get_nhuuid() for libnhmain
+libnh: sys/libnh/libnhmain.c: drop `static` on `whoami()`
+libnh: rewrote sys/unix/hints/macOS.500: rewrote the libnh.a rule. The
+	`ar rcs libnh.a $(HOBJ) $(LIBNHSYSOBJ) liblua-$(LUA_VERSION).a` had
+	four problems: (a) ar archives liblua.a as a single opaque member
+	that macOS ld can't dereference, (b) date.o (DATE_O, kept separate
+	from HOBJ) was never archived, so `populate_nomakedefs` and
+	`nomakedefs` were missing, (c) hacklib.a was likewise omitted, and
+	(d) HOBJ already contains $(SYSOBJ) (with unixmain.o) and $(WINOBJ)
+	(the tty windowport), which duplicated symbols from libnhmain.o /
+	winshim.o.
+libnh: sys/libnh/libnhmain.c: gate the emscripten-only code in get_nhuuid
+       with `#ifdef __EMSCRIPTEN__` instead of `#ifdef NHUUID`
+libnh: sys/unix/hints/macOS.500 in the WANT_LIBNH block, add an explicit
+	`recover: lua_support` dependency (gated by MAKEFILE_TOP).  When 
+	$(GAME) is overridden to empty, the regular `recover: $(GAME)` chain
+	no longer triggers `lua_support`, so include/nhlua.h never gets
+	generated and recover.c's transitive #include of hack.h fails
+Linux: add WANT_SYSTEM_LUA=1 support to the linux.500 hints files and
+	its included files, making it possible to avoid the 'fetch-lua'
+	step and the subsequent compiling of Lua; it tries to use use
+	the Lua5.4 package that is already installed on the system
+macOS: fix ncurses build with Homebrew
+musl: musl libc does not have __sighandler_t so don't use it in the
+	macro definition for SIG_RET_TYPE with musl
+WASM: resolve some build failures in 'make CROSS_TO_WASM=1'
+WASM: hints file cross-pre2.500 update to CFLAGS to include -DNHUUID
+Windows: don't demand keypress on intentional exit
+Windows: correct a NetHack 5.0.0 packaging error if visual studio was
+	used; a remnant hard-coded 370 was in package.nmake
+Windows: setting any map_mode option in the config file could trigger
+	an app failure on launch by dereferencing a null pointer
+Windows: a Windows console debug line began showing up after the sources
+	switched patchlevel.h NH_DEVEL_STATUS from NH_STATUS_RELEASED to 
+	NH_STATUS_POSTRELEASE; make it only ever show if (wizard) is true
+tty: allow custom glyph colors if they're basic 16 nethack colors
+	on terminals with less than 256 colors
+
+
+General New Features
+--------------------
+sysconf option MAX_REROLL_RATE to limit rate at which rerolls are performed
+idlecheckpoint config file option to update checkpoint files whenever an
+	input request isn't responded to within IDLECHECKPOINT_WAIT_TIME
+	seconds; helps ensure that a recover operation, if it turns out
+	to be needed, is much more current than the last level change;
+	support added for Windows console, Qt, and curses
+
+
+Platform- and/or Interface-Specific New Features
+------------------------------------------------
+
+
+NetHack Community Patches (or Variation) Included
+-------------------------------------------------
+NCURSES_CFLAGS was being ignored when using hints/linux.500 with only
+	WANT_WIN_TTY=1 and not WANT_WIN_CURSES=1  (pr #1522 by torakoya)
+added a hints file netbsd.500 for NetBSD (pr #1519 by SirWumpus)
+
+
+Code Cleanup and Reorganization
+-------------------------------
+add Contributing.md with some guidelines for making a pull request that
+	is in an acceptable format
+Make all top-level .md files subject to nhsub substitutions
+Fix subst for luahelper
+Amiga: delete dead files and dead-macro code
+Amiga: delete the .p prototype headers
+Amiga: drop #if 0 dead-code blocks
+Amiga: drop TESTING dev toggle in winchar.c
+Amiga: collapse #ifndef CROSS_TO_AMIGA include forks
+Amiga: clean up amiconf.h
+Amiga: drop OPT_DISPMAP / display_map / fast_map machinery
+Amiga: correct command-line flag doc in amii.hlp
+Amiga: delete outdated/sys/amiga/ source folder tree
+Amiga: drop legacy non-gcc compiler guards
+Amiga: remove remnants of support for compiling on Amiga (the old
+	compilers couldn't cope with such a large codebase anymore)
+Amiga: remove old conditionals for running on OS 1.3
+Amiga: remove miscellaneous unused code like TTY/BBS support, commented
+	out test code etc
+Amiga: make INTUI_NEW_LOOK unconditional
+Amiga: drop SHAREDLIB dead build flavor
+Amiga: make amigapkg depend on $(GAMEBIN)
+unix hints: consolidate all the bsd flavours into a single sys/unix/bsd.500
+	hints file to ease maintenance going forward; use bsd make
+	conditional logic to carry out steps unique to NetBSD, OpenBSD,
+	FreeBSD, GhostBSD
+unix hints: the Makefiles distributed by sys/unix/setup.sh will now check
+	for the presence of a make.prefs at the top of the NetHack tree,
+	and will include it if it exists; make.prefs must contain valid 
+	Makefile syntax and can be used to set preferences instead of
+	placing them on the make command line; Use GNU make syntax for GNU
+	make, and use bsd make syntax for bsd make
+share a single copy of nhuuid generation code between Amiga, Atari, and msdos
+	by way of sys/share/pcmain.c (cherry-pick from pr #1541 by ingpaschke)
+

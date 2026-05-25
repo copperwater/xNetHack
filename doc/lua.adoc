@@ -100,7 +100,7 @@ Only available if NetHack was compiled with DUMPLOG.
 | %T | current time, timestamp
 | %d | game start, YYYYMMDDhhmmss
 | %D | current time, YYYYMMDDhhmmss
-| %v | game version, eg. '3.7.0-0'
+| %v | game version, eg. '5.0.0-0'
 | %u | UID
 | %n | player name
 | %N | first character of player name
@@ -818,6 +818,7 @@ The hash parameter accepts the following keys:
 | stunned        | boolean |
 | confused       | boolean |
 | waiting        | boolean | monster will wait until hero gets next to it
+| m_lev_adj      | integer | monster's level adjustment
 | tail           | boolean | generate worm without a tail?
 | group          | boolean | generate a group of monsters?
 | adjacentok     | boolean | is adjacent location ok, if given one is not suitable?

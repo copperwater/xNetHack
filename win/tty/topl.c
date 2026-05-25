@@ -1,4 +1,4 @@
-/* NetHack 3.7	topl.c	$NHDT-Date: 1717967339 2024/06/09 21:08:59 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.89 $ */
+/* NetHack 5.0	topl.c	$NHDT-Date: 1717967339 2024/06/09 21:08:59 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.89 $ */
 /* Copyright (c) Stichting Mathematisch Centrum, Amsterdam, 1985. */
 /*-Copyright (c) Michael Allison, 2009. */
 /* NetHack may be freely redistributed.  See license for details. */
@@ -267,7 +267,8 @@ update_topl(const char *bp)
     n0 = strlen(bp);
     if ((ttyDisplay->toplin == TOPLINE_NEED_MORE || skip)
         && cw->cury == 0
-        && n0 + (int) strlen(gt.toplines) + 3 < CO - 8 /* room for --More-- */
+        /* room for --More-- */
+        && n0 + (int) strlen(gt.toplines) + 3 < min(CO - 8, TBUFSZ)
         && (notdied = strncmp(bp, "You die", 7)) != 0) {
         Strcat(gt.toplines, "  ");
         Strcat(gt.toplines, bp);

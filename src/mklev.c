@@ -1,4 +1,4 @@
-/* NetHack 3.7	mklev.c	$NHDT-Date: 1737387068 2025/01/20 07:31:08 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.194 $ */
+/* NetHack 5.0	mklev.c	$NHDT-Date: 1737387068 2025/01/20 07:31:08 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.194 $ */
 /* Copyright (c) Stichting Mathematisch Centrum, Amsterdam, 1985. */
 /*-Copyright (c) Alex Smith, 2017. */
 /* NetHack may be freely redistributed.  See license for details. */
@@ -333,6 +333,10 @@ add_room(coordxy lowx, coordxy lowy, coordxy hix, coordxy hiy,
 {
     struct mkroom *croom;
 
+#ifdef DEBUG
+    if (svn.nroom >= MAXNROFROOMS)
+        panic("level has too many rooms");
+#endif /*DEBUG*/
     croom = &svr.rooms[svn.nroom];
     do_room_or_subroom(croom, lowx, lowy, hix, hiy, lit, rtype, special,
                        (boolean) TRUE);
@@ -353,6 +357,12 @@ add_subroom(struct mkroom *proom,
 {
     struct mkroom *croom;
 
+#ifdef DEBUG
+    if (gn.nsubroom >= MAXNROFROOMS)
+        panic("level has too many subrooms");
+    if (proom->nsubrooms >= MAX_SUBROOMS)
+        panic("room has too many subrooms");
+#endif /*DEBUG*/
     croom = &gs.subrooms[gn.nsubroom];
     do_room_or_subroom(croom, lowx, lowy, hix, hiy, lit, rtype, special,
                        (boolean) FALSE);
@@ -1177,6 +1187,7 @@ clear_level_structures(void)
     svl.level.flags.noautosearch = 0;
     svl.level.flags.fumaroles = 0;
     svl.level.flags.stormy = 0;
+    svl.level.flags.stasis_until = 0L;
     svl.level.flags.outdoors = 0;
     svl.level.flags.visited_after_event = 0;
 

@@ -1,4 +1,4 @@
-/* NetHack 3.7	mkroom.c	$NHDT-Date: 1613086701 2021/02/11 23:38:21 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.52 $ */
+/* NetHack 5.0	mkroom.c	$NHDT-Date: 1613086701 2021/02/11 23:38:21 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.52 $ */
 /* Copyright (c) Stichting Mathematisch Centrum, Amsterdam, 1985. */
 /*-Copyright (c) Robert Patrick Rankin, 2011. */
 /* NetHack may be freely redistributed.  See license for details. */
@@ -798,6 +798,7 @@ mkswamp(void) /* Michiel Huisjes & Fred de Wilde */
 /* Return the position within a room at which its altar should be placed, if it
  * is to be a temple. It will be the exact center of the room, unless the center
  * isn't actually a square, in which case it'll be offset one space to the side.
+ * If the center is blocked, return a random free location.
  */
 staticfn coord *
 shrine_pos(int roomno)
@@ -819,6 +820,14 @@ shrine_pos(int roomno)
     buf.y = troom->ly + delta / 2;
     if ((delta % 2) && (roomno & 2))
         buf.y++;
+
+    /* irregular room or the location is blocked */
+    if (roomno != (int) levl[buf.x][buf.y].roomno
+        || (levl[buf.x][buf.y].typ != ROOM
+            && levl[buf.x][buf.y].typ != ICE
+            && levl[buf.x][buf.y].typ != CLOUD))
+        (void) somexyspace(troom, &buf);
+
     return &buf;
 }
 

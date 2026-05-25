@@ -1,4 +1,4 @@
-/* NetHack 3.7	patchlevel.h	$NHDT-Date: 1753856387 2025/07/29 22:19:47 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.288 $ */
+/* NetHack 5.0	patchlevel.h	$NHDT-Date: 1753856387 2025/07/29 22:19:47 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.288 $ */
 /* Copyright (c) Stichting Mathematisch Centrum, Amsterdam, 1985. */
 /*-Copyright (c) Michael Allison, 2012. */
 /* NetHack may be freely redistributed.  See license for details. */
@@ -30,7 +30,7 @@
 /*
  * Development status of this NetHack version.
  */
-#define NH_DEVEL_STATUS NH_STATUS_WIP
+#define NH_DEVEL_STATUS NH_STATUS_POSTRELEASE
 
 #ifndef DEBUG  /* allow tool chains to define without causing warnings */
 #define DEBUG
@@ -74,10 +74,15 @@
  */
 
 /****************************************************************************/
-/* Version 3.7.x */
+/* Version 5.0.x */
 
 /*
- *  NetHack 3.7.0, <insert date here>
+ *  NetHack 5.0.0, May 2, 2026
+ *
+ *  Sources changed to be compliant with the C99 standard.
+ *  level compiler, dungeon compiler, and quest text all replaced with
+ *    Lua alternatives.
+ *  Refer to doc/fixes5-0-0.txt for a complete list of fixes and changes.
  *
  */
 
@@ -87,7 +92,7 @@
 /*  Patch 7, February 16, 2023
  *
  *  during engraving, spaces were counted instead of non-space (cherry-pick of
- *      4e0a1e04 from NetHack-3.7)
+ *      4e0a1e04 from NetHack WIP)
  *  avoid potential buffer overflow in append_str()
  *  resolve missing dependency in NetHack.sln
  *  code in include/tradstdc.h was trying to suppress warn_unused result by
@@ -107,7 +112,7 @@
  *      the official 3.6.6 binary was built.
  *  windows: switch from using keyhandling dll's to incorporating the three
  *      variations (default, ray, 340) in sys/winnt/nttty.c
- *  curses: cherry-picked selectsaved code from 3.7 for menu of save files
+ *  curses: cherry-picked selectsaved code from 5.0 for menu of save files
  *  NetHackW: fix delayed rendering of cursor when using farlook
  */
 
