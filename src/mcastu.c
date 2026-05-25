@@ -58,10 +58,15 @@ staticfn void mcast_spell(struct monst *, int, int);
 staticfn boolean is_undirected_spell(int);
 staticfn boolean spell_would_be_useless(struct monst *, int);
 /* xNetHack additions: */
+staticfn void mcast_entomb(void);
+staticfn void mcast_tport_away(struct monst *);
+staticfn void mcast_dark_speech(struct monst *);
+staticfn void mcast_sheer_cold(int *);
+staticfn void mcast_blight(void);
+staticfn void mcast_disenchant(struct monst *);
 staticfn boolean has_special_spell_list(struct permonst *);
 staticfn int choose_special_spell(struct monst *);
 staticfn boolean is_entombed(coordxy, coordxy);
-staticfn void sheer_cold(int *dmg);
 
 /* feedback when frustrated monster couldn't cast a spell */
 staticfn void
@@ -370,7 +375,7 @@ castmu(
         mon_spell_hits_spot(mtmp, AD_FIRE, u.ux, u.uy);
         break;
     case AD_COLD:
-        sheer_cold(&dmg);
+        mcast_sheer_cold(&dmg);
         break;
     case AD_ELEC:
         if (Shock_resistance)
@@ -923,6 +928,204 @@ mcast_confuse_you(struct monst *mtmp)
     }
 }
 
+/* entomb you in rocks (and maybe a couple diggable walls) to delay you and
+ * allow some time for the caster to get away */
+staticfn void
+mcast_entomb(void)
+{
+    coordxy x, y;
+    pline_The("ground shakes violently%s!",
+              Blind ? "" : " and twists into walls");
+    if (!Blind)
+        pline("Boulders fall from above!");
+    for (x = u.ux - 1; x <= u.ux + 1; ++x) {
+        for (y = u.uy - 1; y <= u.uy + 1; ++y) {
+            if (!SPACE_POS(levl[x][y].typ))
+                continue;
+            if (x == u.ux && y == u.uy)
+                continue;
+            /* Only create actual walls where there is no monster or object
+             * or trap in the way. */
+            if (!rn2(6) && levl[x][y].typ == ROOM && !m_at(x, y)
+                && !svl.level.objects[x][y] && !t_at(x, y)) {
+                levl[x][y].typ = rn2(2) ? HWALL : VWALL;
+                levl[x][y].wall_info &= ~W_NONDIGGABLE;
+                block_point(x, y);
+                newsym(x, y);
+            }
+            else {
+                if (rn2(5))
+                    drop_boulder_on_monster(x, y, FALSE, FALSE);
+                if (rn2(3))
+                    drop_boulder_on_monster(x, y, FALSE, FALSE);
+            }
+        }
+    }
+    if (rn2(4))
+        drop_boulder_on_player(FALSE, FALSE, FALSE, FALSE);
+}
+
+staticfn void
+mcast_tport_away(struct monst *mtmp)
+{
+    /* this is better than reimplementing the logic of rloc to pick a random
+     * spot that is sufficiently far away from (mux, muy) */
+    xint8 tries = 3;
+    do {
+        rloc(mtmp, RLOC_MSG);
+    } while (--tries
+                && dist2(mtmp->mx, mtmp->my, mtmp->mux, mtmp->muy) < 10);
+}
+
+staticfn void
+mcast_dark_speech(struct monst * mtmp)
+{
+    if (Blind) {
+        if (Deaf)
+            ; /* nothing */
+        else
+            pline("Something intones a terrible chant!");
+    }
+    else {
+        pline("%s raises a %s towards you and %s", Monnam(mtmp),
+                mbodypart(mtmp, HAND),
+                Deaf ? "appears to chant something."
+                    : "intones a terrible chant!");
+    }
+    pline("Dark energy surrounds you...");
+    switch (rn2(5)) {
+    case 0:
+        attrcurse();
+        break;
+    case 1:
+        mcast_blight();
+        break;
+    case 2:
+        Your("mind twists!");
+        losehp(d((Deaf ? 4 : 8), 6), "hearing the Dark Speech", KILLED_BY);
+        make_confused((HConfusion & TIMEOUT) + rnd(30), FALSE);
+        make_stunned((HStun & TIMEOUT) + rnd(30), TRUE);
+        break;
+    case 3:
+        You("are overwhelmed with a sense of doom...");
+        if (Doomed)
+            change_luck(-2);
+        else
+            set_itimeout(&Doomed, rn1(2000, 500));
+        break;
+    case 4:
+        {
+            boolean was_blind_before = Blind;
+            /* this handles all the vision recalc stuff */
+            make_blinded(1L, FALSE);
+            HBlinded |= FROMOUTSIDE;
+            if (!Blind)
+                /* wearing Eyes of the Overworld - no effect, undo it */
+                HBlinded &= ~FROMOUTSIDE;
+            else if (!was_blind_before)
+                You("can no longer see.");
+            break;
+        }
+    }
+}
+
+/* extracted from castmu; if the corresponding flame spell is ever used and
+ * treated as one of several possible spells in a demon lord's repertoire, it
+ * should also probably be extracted.
+ * The function expects *dmg to be the already rolled amount of damage the spell
+ * will deliver by default. It may adjust *dmg in the process; the caller should
+ * anticipate this. */
+staticfn void
+mcast_sheer_cold(int *dmg)
+{
+    int orig_dmg = *dmg;
+    pline("You're covered in frigid frost.");
+    if (Cold_resistance) {
+        shieldeff(u.ux, u.uy);
+        pline("You partially resist the effects.");
+        monstseesu(M_SEEN_COLD);
+        *dmg /= 4;
+    }
+    else {
+        monstunseesu(M_SEEN_COLD);
+    }
+    destroy_items(&gy.youmonst, AD_COLD, orig_dmg);
+}
+
+/* this is also one of dark speech's effects */
+staticfn void
+mcast_blight(void)
+{
+    You("%s rapidly decomposing!", Withering ? "continue" : "begin");
+    incr_itimeout(&HWithering, rn1(40, 100));
+}
+
+/* 40% chance of zapping enchantment from current wielded weapon
+ * 45% chance from random piece of worn gear
+ * 15% chance of taking it from a random charged ring, charged tool, wand, or
+ * unequipped weapon or armor */
+staticfn void
+mcast_disenchant(struct monst *mtmp)
+{
+    struct obj *targ = (struct obj *) 0;
+    short loss = rnd(3);
+    const schar MIN_SPE1 = -7; /* for worn gear */
+    const schar MIN_SPE2 = 0;  /* for tools & wands */
+    schar floor = MIN_SPE1;
+    if (uwep && uwep->spe > MIN_SPE1 && percent(40))
+        targ = uwep;
+    else if ((targ = some_armor(&gy.youmonst)) && targ->spe > MIN_SPE1
+             && percent(75))
+        ; /* targ already selected */
+    else {
+        struct obj *otmp;
+        int choices = 0;
+        for (otmp = gi.invent; otmp; otmp = otmp->nobj) {
+            short oclass = objects[otmp->otyp].oc_class;
+            if ((oclass == RING_CLASS && objects[otmp->otyp].oc_charged)
+                || (oclass == TOOL_CLASS && is_weptool(otmp))) {
+                /* weptools and charged rings use the same rules for weapons and
+                 * armor */
+                if (otmp->spe > MIN_SPE1 && !rn2(++choices)) {
+                    targ = otmp;
+                    floor = MIN_SPE1;
+                }
+            }
+            else if (oclass == WAND_CLASS
+                     || (oclass == TOOL_CLASS
+                         && objects[otmp->otyp].oc_charged
+                         && objects[otmp->otyp].oc_magic)) {
+                /* wands and charged tools do not use the same rules since
+                 * negative spe doesn't make sense for them (well, it does for
+                 * wands, but that would mix this up with cancellation) */
+                if (otmp->spe > MIN_SPE2 && !rn2(++choices)) {
+                    targ = otmp;
+                    floor = MIN_SPE2;
+                    /* account for tools and wands which have a higher number of
+                     * charges than normal, or have been recharged beyond their
+                     * normal amount */
+                    loss = max(loss, otmp->spe / 3);
+                }
+            }
+        }
+    }
+    if (!targ)
+        /* couldn't find anything to disenchant... */
+        return;
+    if (targ->spe > 0) {
+        pline("%s absorbs magic energies from %s!", Monnam(mtmp),
+              yname(targ));
+        mtmp->mspec_used = max(mtmp->mspec_used - loss, 0);
+        floor = 0;
+    }
+    else {
+        pline("%s glows black.", Yname2(targ));
+    }
+    targ->spe = max(floor, targ->spe - loss);
+    if (targ->spe < 0)
+        curse(targ);
+}
+
 /*
    If dmg is zero, then the monster is not casting at you.
    If the monster is intentionally not casting at you, we have previously
@@ -1020,179 +1223,29 @@ mcast_spell(struct monst *mtmp, int dmg, int spellnum)
     case MCAST_OPEN_WOUNDS:
         dmg = mcast_open_wounds(dmg);
         break;
-    case MCAST_TPORT_AWAY: {
-        /* this is better than reimplementing the logic of rloc to pick a random
-         * spot that is sufficiently far away from (mux, muy) */
-        xint8 tries = 3;
-        do {
-            rloc(mtmp, RLOC_MSG);
-        } while (--tries
-                 && dist2(mtmp->mx, mtmp->my, mtmp->mux, mtmp->muy) < 10);
+    case MCAST_TPORT_AWAY:
+        mcast_tport_away(mtmp);
         dmg = 0;
         break;
-    }
-    case MCAST_ENTOMB: {
-        /* entomb you in rocks (and maybe a couple diggable walls) to delay you
-         * and allow some time for the caster to get away */
-        coordxy x, y;
-        pline_The("ground shakes violently%s!",
-                  Blind ? "" : " and twists into walls");
-        if (!Blind)
-            pline("Boulders fall from above!");
-        for (x = u.ux - 1; x <= u.ux + 1; ++x) {
-            for (y = u.uy - 1; y <= u.uy + 1; ++y) {
-                if (!SPACE_POS(levl[x][y].typ))
-                    continue;
-                if (x == u.ux && y == u.uy)
-                    continue;
-                /* Only create actual walls where there is no monster or object
-                 * or trap in the way. */
-                if (!rn2(6) && levl[x][y].typ == ROOM && !m_at(x, y)
-                    && !svl.level.objects[x][y] && !t_at(x, y)) {
-                    levl[x][y].typ = rn2(2) ? HWALL : VWALL;
-                    levl[x][y].wall_info &= ~W_NONDIGGABLE;
-                    block_point(x, y);
-                    newsym(x, y);
-                }
-                else {
-                    if (rn2(5))
-                        drop_boulder_on_monster(x, y, FALSE, FALSE);
-                    if (rn2(3))
-                        drop_boulder_on_monster(x, y, FALSE, FALSE);
-                }
-            }
-        }
-        if (rn2(4))
-            drop_boulder_on_player(FALSE, FALSE, FALSE, FALSE);
+    case MCAST_ENTOMB:
+        mcast_entomb();
         dmg = 0;
         break;
-    }
     case MCAST_DARK_SPEECH:
-        if (Blind) {
-            if (Deaf)
-                ; /* nothing */
-            else
-                pline("Something intones a terrible chant!");
-        }
-        else {
-            pline("%s raises a %s towards you and %s", Monnam(mtmp),
-                  mbodypart(mtmp, HAND),
-                  Deaf ? "appears to chant something."
-                       : "intones a terrible chant!");
-        }
-        pline("Dark energy surrounds you...");
-        switch (rn2(5)) {
-        case 0:
-            attrcurse();
-            break;
-        case 1:
-            You("%s rapidly decomposing!", Withering ? "continue" : "begin");
-            incr_itimeout(&HWithering, rn1(40, 100));
-            break;
-        case 2:
-            Your("mind twists!");
-            losehp(d((Deaf ? 4 : 8), 6), "hearing the Dark Speech", KILLED_BY);
-            make_confused((HConfusion & TIMEOUT) + rnd(30), FALSE);
-            make_stunned((HStun & TIMEOUT) + rnd(30), TRUE);
-            break;
-        case 3:
-            You("are overwhelmed with a sense of doom...");
-            if (Doomed)
-                change_luck(-2);
-            else
-                set_itimeout(&Doomed, rn1(2000, 500));
-            break;
-        case 4:
-            {
-                boolean was_blind_before = Blind;
-                /* this handles all the vision recalc stuff */
-                make_blinded(1L, FALSE);
-                HBlinded |= FROMOUTSIDE;
-                if (!Blind)
-                    /* wearing Eyes of the Overworld - no effect, undo it */
-                    HBlinded &= ~FROMOUTSIDE;
-                else if (!was_blind_before)
-                    You("can no longer see.");
-                break;
-            }
-        }
+        mcast_dark_speech(mtmp);
         dmg = 0;
         break;
     case MCAST_SHEER_COLD:
-        sheer_cold(&dmg);
+        mcast_sheer_cold(&dmg);
         break;
     case MCAST_BLIGHT:
-        /* one of dark speech's effects */
-        You("%s rapidly decomposing!", Withering ? "continue" : "begin");
-        incr_itimeout(&HWithering, rn1(40, 100));
+        mcast_blight();
         dmg = 0;
         break;
-    case MCAST_DISENCHANT: {
-        /* 40% chance of zapping enchantment from current wielded weapon
-         * 45% chance from random piece of worn gear
-         * 15% chance of taking it from a random charged ring, charged tool,
-         * wand, or unequipped weapon or armor */
-        struct obj *targ = (struct obj *) 0;
-        short loss = rnd(3);
-        const schar MIN_SPE1 = -7; /* for worn gear */
-        const schar MIN_SPE2 = 0;  /* for tools & wands */
-        schar floor = MIN_SPE1;
-        if (uwep && uwep->spe > MIN_SPE1 && percent(40))
-            targ = uwep;
-        else if ((targ = some_armor(&gy.youmonst)) && targ->spe > MIN_SPE1
-                 && percent(75))
-            ; /* targ already selected */
-        else {
-            struct obj *otmp;
-            int choices = 0;
-            for (otmp = gi.invent; otmp; otmp = otmp->nobj) {
-                short oclass = objects[otmp->otyp].oc_class;
-                if ((oclass == RING_CLASS && objects[otmp->otyp].oc_charged)
-                    || (oclass == TOOL_CLASS && is_weptool(otmp))) {
-                    /* weptools and charged rings use the same rules for weapons
-                     * and armor */
-                    if (otmp->spe > MIN_SPE1 && !rn2(++choices)) {
-                        targ = otmp;
-                        floor = MIN_SPE1;
-                    }
-                }
-                else if (oclass == WAND_CLASS
-                         || (oclass == TOOL_CLASS
-                             && objects[otmp->otyp].oc_charged
-                             && objects[otmp->otyp].oc_magic)) {
-                    /* wands and charged tools do not use the same rules since
-                     * negative spe doesn't make sense for them (well, it does
-                     * for wands, but that would mix this up with cancellation
-                     */
-                    if (otmp->spe > MIN_SPE2 && !rn2(++choices)) {
-                        targ = otmp;
-                        floor = MIN_SPE2;
-                        /* account for tools and wands which have a higher
-                         * number of charges than normal, or have been recharged
-                         * beyond their normal amount */
-                        loss = max(loss, otmp->spe / 3);
-                    }
-                }
-            }
-        }
-        if (!targ)
-            /* couldn't find anything to disenchant... */
-            break;
-        if (targ->spe > 0) {
-            pline("%s absorbs magic energies from %s!", Monnam(mtmp),
-                  yname(targ));
-            mtmp->mspec_used = max(mtmp->mspec_used - loss, 0);
-            floor = 0;
-        }
-        else {
-            pline("%s glows black.", Yname2(targ));
-        }
-        targ->spe = max(floor, targ->spe - loss);
-        if (targ->spe < 0)
-            curse(targ);
+    case MCAST_DISENCHANT:
+        mcast_disenchant(mtmp);
         dmg = 0;
         break;
-    }
     default:
         impossible("mcastu: invalid magic spell (%d)", spellnum);
         dmg = 0;
@@ -1341,28 +1394,6 @@ is_entombed(coordxy x, coordxy y)
         }
     }
     return TRUE;
-}
-
-/* extracted from castmu; if the corresponding flame spell is ever used and
- * treated as one of several possible spells in a demon lord's repertoire, it
- * should also probably be extracted.
- * The function expects *dmg to be the already rolled amount of damage the spell
- * will deliver by default. It may adjust *dmg in the process; the caller should
- * anticipate this. */
-staticfn void
-sheer_cold(int *dmg)
-{
-    pline("You're covered in frigid frost.");
-    if (Cold_resistance) {
-        shieldeff(u.ux, u.uy);
-        pline("You partially resist the effects.");
-        monstseesu(M_SEEN_COLD);
-        *dmg /= 4;
-    }
-    else {
-        monstunseesu(M_SEEN_COLD);
-    }
-    destroy_items(&gy.youmonst, AD_COLD, *dmg);
 }
 
 /*mcastu.c*/
