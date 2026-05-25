@@ -995,26 +995,17 @@ mcast_dark_speech(struct monst * mtmp)
     pline("Dark energy surrounds you...");
     switch (rn2(5)) {
     case 0:
-        attrcurse();
-        break;
-    case 1:
-        mcast_blight();
-        break;
-    case 2:
-        Your("mind twists!");
-        losehp(d((Deaf ? 4 : 8), 6), "hearing the Dark Speech", KILLED_BY);
-        make_confused((HConfusion & TIMEOUT) + rnd(30), FALSE);
-        make_stunned((HStun & TIMEOUT) + rnd(30), TRUE);
-        break;
-    case 3:
         You("are overwhelmed with a sense of doom...");
         if (Doomed)
             change_luck(-2);
         else
             set_itimeout(&Doomed, rn1(2000, 500));
         break;
-    case 4:
-        {
+    case 1:
+        mcast_blight();
+        break;
+    case 2:
+        if (!(HBlinded & FROMOUTSIDE)) {
             boolean was_blind_before = Blind;
             /* this handles all the vision recalc stuff */
             make_blinded(1L, FALSE);
@@ -1026,6 +1017,21 @@ mcast_dark_speech(struct monst * mtmp)
                 You("can no longer see.");
             break;
         }
+        FALLTHROUGH;
+        /* FALLTHRU */
+    case 3:
+        if (attrcurse())
+            /* stole some intrinsic */
+            break;
+        /* if no intrinsic was stolen: */
+        FALLTHROUGH;
+        /* FALLTHRU */
+    case 4:
+        Your("mind twists!");
+        losehp(d((Deaf ? 4 : 8), 6), "hearing the Dark Speech", KILLED_BY);
+        make_confused((HConfusion & TIMEOUT) + rnd(30), FALSE);
+        make_stunned((HStun & TIMEOUT) + rnd(30), TRUE);
+        break;
     }
 }
 

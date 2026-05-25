@@ -158,6 +158,10 @@ changes:
   bees. There are several trees on both start levels that still can, though.
 - When you walk into a peaceful invisible creature you weren't aware of, it
   does not get angry.
+- Dark Speech can no longer have no effect; if it tries to blind you and you
+  are already blinded, it will fall through to trying to strip an intrinsic; if
+  no intrinsic gets removed, it will fall through to the general
+  damage-dealing, confusing, and stunning effect.
 
 ### Interface changes
 
