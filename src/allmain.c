@@ -686,37 +686,22 @@ moveloop(boolean resuming)
 staticfn void
 regen_pw(int wtcap)
 {
-    if ((u.uen < u.uenmax) && (wtcap < MOD_ENCUMBER)) {
-        int energyfrac = 0;
-        /* 1/turn for energy regen
-         * 3 XL/100 per turn
-         * 3 Wis/100 per turn
-         * 1/3 per turn if wizard role
-         * energyfrac represents units of 1/300 */
-        energyfrac = ((Energy_regeneration ? 300 : 0) +
-                        (9 * u.ulevel) +
-                        (9 * ACURR(A_WIS)) +
-                        (Role_if(PM_WIZARD) ? 100 : 0));
-        /* alive Asmodeus disrupts energy regen when you have the amulet */
-        if (fiend_adversity(PM_ASMODEUS))
-            energyfrac /= 3;
-        u.uen += energyfrac / 300;
-        if(rn2(300) < energyfrac % 300) {
-            u.uen++;
-        }
-    /*
     if (u.uen < u.uenmax
         && ((wtcap < MOD_ENCUMBER
              && (!(svm.moves % ((MAXULEV + 8 - u.ulevel)
                               * (Role_if(PM_WIZARD) ? 3 : 4)
                               / 6)))) || Energy_regeneration)) {
         int upper = (int) (ACURR(A_WIS) + ACURR(A_INT)) / 15 + 1;
+        int inc;
 
         if (EMagical_breathing)
             upper += 2;
 
-        u.uen += rn1(upper, 1);
-    */
+        inc = rn1(upper, 1);
+        if (fiend_adversity(PM_ASMODEUS)) {
+            inc = (inc / 3) + ((inc % 3) > rn2(3) ? 1 : 0);
+        }
+        u.uen += inc;
         if (u.uen > u.uenmax)
             u.uen = u.uenmax;
 

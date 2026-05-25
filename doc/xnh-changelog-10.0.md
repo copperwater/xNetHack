@@ -164,6 +164,8 @@ changes:
   damage-dealing, confusing, and stunning effect.
 - Iron objects generate as metal (which is not harmful to elves) 6% of the
   time.
+- The FIQHack-inspired energy regeneration formula is reset to NetHack 5.0's
+  formula.
 
 ### Interface changes
 
