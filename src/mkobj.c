@@ -4309,8 +4309,9 @@ init_thiefstone(struct obj *stone)
 /* Object material probabilities. */
 /* for objects which are normally iron or metal */
 static const struct icp metal_materials[] = {
-    {75, 0}, /* default to base type, iron or metal */
+    {69, 0}, /* default to base type, iron or metal */
     { 6, IRON},
+    { 6, METAL},
     { 6, WOOD},
     { 5, COPPER},
     { 2, SILVER},
@@ -4397,10 +4398,11 @@ static const struct icp shiny_materials[] = {
 /* for bells and other tools, especially instruments, which are normally copper
  * or metal.  Wood and glass in other lists precludes us from using those. */
 static const struct icp resonant_materials[] = {
-    {55, 0}, /* use base material */
+    {50, 0}, /* use base material */
     {25, COPPER},
     { 6, SILVER},
     { 5, IRON},
+    { 5, METAL},
     { 5, MITHRIL},
     { 3, GOLD},
     { 1, PLATINUM}

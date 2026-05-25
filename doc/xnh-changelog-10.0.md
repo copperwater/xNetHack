@@ -162,6 +162,8 @@ changes:
   are already blinded, it will fall through to trying to strip an intrinsic; if
   no intrinsic gets removed, it will fall through to the general
   damage-dealing, confusing, and stunning effect.
+- Iron objects generate as metal (which is not harmful to elves) 6% of the
+  time.
 
 ### Interface changes
 
