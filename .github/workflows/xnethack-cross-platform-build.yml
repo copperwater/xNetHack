@@ -13,7 +13,7 @@ jobs:
     runs-on: ubuntu-latest
     env:
       #LUA_VERSION: 5.4.2
-      HINTS_FILE: linux.370
+      HINTS_FILE: linux.500
     steps:
     - uses: actions/checkout@v3
     - name: setup
@@ -29,7 +29,7 @@ jobs:
   mac-build:
     runs-on: macos-latest
     env:
-      HINTS_FILE: macOS.370
+      HINTS_FILE: macOS.500
     steps:
     - uses: actions/checkout@v3
     - name: setup
