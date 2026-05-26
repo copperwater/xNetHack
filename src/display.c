@@ -2701,7 +2701,7 @@ map_glyphinfo(
            turn off override symbol if caller has specified NOOVERRIDE */
         glyphinfo->gm.sym.symidx = mons[glyph_to_mon(glyph)].mlet + SYM_OFF_M;
     }
-    /* NetHack 3.7 commit 1f6c1d0 instated a system in which variants of a
+    /* NetHack 5.0.0 commit 1f6c1d0 instated a system in which variants of a
      * single S_foo defsym that should render as different colors in text
      * windowports now need to be their own glyphs, optionally allowing each
      * glyph to be its own tile. (This is how altars are now treated, and in

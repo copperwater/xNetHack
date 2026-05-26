@@ -4773,10 +4773,10 @@ dump_container(struct obj* box, struct obj *targetbox, int msgflags)
             iflags.suppress_price++; /* doname formatting */
         }
 
-        /* Note from May 2023 NetHack-3.7 merge: This is mostly duplicated code
-         * from the main bag-of-holding-explosion, but with a few minor
+        /* Note from May 2023 upstream NetHack merge: This is mostly duplicated
+         * code from the main bag-of-holding-explosion, but with a few minor
          * differences such as not giving any experience because it's mostly a
-         * copy of what 3.7 has. This should probably be merged with that at
+         * copy of what 5.0.0 has. This should probably be merged with that at
          * some point */
         if (targetbox) {
             if (Is_mbag(targetbox) && mbag_explodes(otmp, 0)) {

@@ -874,7 +874,7 @@ dragon_armor_handling(
     boolean on_purpose) /* voluntary removal; not applicable for putting on */
 {
     /* xNetHack note: as of first merging in extra dragon extrinsics from
-     * NetHack 3.7, this only happens on dragon-scaled body armor - NOT scales
+     * NetHack 5.0.0, this only happens on dragon-scaled body armor - NOT scales
      * worn in the cloak slot. */
     if (!otmp) {
         impossible("dragon_armor_handling called with null armor");
