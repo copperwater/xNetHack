@@ -1934,7 +1934,6 @@ staticfn void check_mongen_order(void);
 staticfn void
 check_mongen_order(void)
 {
-#if (NH_DEVEL_STATUS != NH_STATUS_RELEASED)
     int i, diff = 0;
     char mlet = '\0';
     for (i = LOW_PM; i < SPECIAL_PM; i++) {
@@ -1952,7 +1951,6 @@ check_mongen_order(void)
             diff = 0;
         }
     }
-#endif // (NH_DEVEL_STATUS != NH_STATUS_RELEASED)
 }
 #endif
 
@@ -1972,9 +1970,13 @@ init_mongen_order(void)
         if ((xint8) (mons[i].geno & G_FREQ) > mclass_maxf[mlet])
             mclass_maxf[mlet] = (xint8) (mons[i].geno & G_FREQ);
     }
+#if (NH_DEVEL_STATUS != NH_STATUS_RELEASED)
     check_mongen_order();
+#endif
     qsort((genericptr_t) mongen_order, SPECIAL_PM, sizeof(int), cmp_init_mongen_order);
+#if (NH_DEVEL_STATUS != NH_STATUS_RELEASED)
     check_mongen_order();
+#endif
 }
 
 #define MONSi(i) (mongen_order[i])
