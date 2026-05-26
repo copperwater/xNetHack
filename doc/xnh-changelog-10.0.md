@@ -1,12 +1,11 @@
 ## xNetHack 10.0 Changelog
 
 This is a major version of xNetHack. It is based directly on xNetHack 9.1, and
-is a fork off the vanilla NetHack 3.7.0 development version release.
+is a fork off the vanilla NetHack 5.0.0 release.
 
-The most recent vanilla commit incorporated into xNetHack 10.0 is deec8317. Note
-that because 3.7.0 is still in development status, xNetHack contains major
-changes including new monsters, new objects, themed rooms, and other things
-*not* documented in this file or other xNetHack changelogs. See doc/fixes37.0
+The most recent upstream NetHack commit incorporated into xNetHack 10.0 is
+c22b21e. This changelog does not attempt to document upstream changes from the
+5.0.0 release and postrelease. See doc/fixes5-0-0.txt and doc/fixes5-0-1.txt
 for the DevTeam's changes.
 
 The xNetHack page at the NetHackWiki, https://nethackwiki.com/wiki/XNetHack,
@@ -16,7 +15,7 @@ conflicting information, this changelog and others in this directory are more
 up-to-date than the wiki page, and the commit messages are more up-to-date than
 this changelog.
 
-On top of any changes made by the NetHack devteam on 3.7, and any changes
+On top of any changes made by the NetHack DevTeam on 5.0, and any changes
 made in previous xNetHack versions, xNetHack 10.0 contains the following
 changes:
 

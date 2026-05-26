@@ -1,10 +1,9 @@
 ## xNetHack
 
 xNetHack is a fork of the dungeon exploration game NetHack. It is a distant
-descendant of Rogue and Hack, and a direct descendant of the development
-version of NetHack 3.7. For more information on NetHack, visit
-http://nethack.org, and for its public Git repository, see
-https://github.com/NetHack/NetHack.
+descendant of Rogue and Hack, and a direct descendant of NetHack 5.0.0. For
+more information on NetHack, visit http://nethack.org, and for its public Git
+repository, see https://github.com/NetHack/NetHack.
 
 The main goals of xNetHack are to take vanilla NetHack and:
 1. Fix gameplay balance issues.
