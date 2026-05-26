@@ -4074,11 +4074,12 @@ lspo_engraving(lua_State *L)
         random = TRUE;
     }
     if (random) {
+        char pristine_throwaway[BUFSZ];
         /* whether txt came from the luaL_checkstring or the get_table_str, it's
          * been dupstr'd at some point. */
         Free(txt);
         txt = (char*) alloc(BUFSZ);
-        random_engraving(txt, txt);
+        random_engraving(txt, pristine_throwaway);
     }
 
     if (x == -1 && y == -1)
