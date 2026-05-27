@@ -1,7 +1,8 @@
 ## xNetHack 10.0 Changelog
 
 This is a major version of xNetHack. It is based directly on xNetHack 9.1, and
-is a fork off the vanilla NetHack 5.0.0 release.
+is a fork off the vanilla NetHack 5.0.0 release and subsequent bugfix
+development.
 
 The most recent upstream NetHack commit incorporated into xNetHack 10.0 is
 c22b21e. This changelog does not attempt to document upstream changes from the
