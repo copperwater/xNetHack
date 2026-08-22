@@ -95,7 +95,7 @@ end})
 des.object({ id="spear", coord={39,04}, spe=d(3) })
 des.object(")", 39, 05)
 des.object(")", 39, 06)
-des.object({ id="small shield", coord={41,04}, spe=3 })
+des.object({ id="buckler", coord={41,04}, spe=3 })
 des.object("[", 41, 05)
 des.object("[", 41, 06)
 -- Valkyrie guards posted outside
