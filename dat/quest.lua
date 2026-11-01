@@ -2203,7 +2203,7 @@ greatest and most terrible among these was %n.
 "Orion must have known that %nS coming was the hour of his doom.
 He entrusted me with his great bow and commanded the rest of us to
 retreat to this grove, though I hid on a nearby hill and watched
-helplessly as %n overwhelmed Orion with %j deadly poison.
+helplessly as %n overwhelmed Orion with %nj deadly poison.
 
 "The centaurs continue to press the attack, and these surviving hunters
 are far too green to break through their siege, let alone face %n.
