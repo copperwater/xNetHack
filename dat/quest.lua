@@ -2251,7 +2251,7 @@ we maintain a pure devotion to things %a!
          "\"We cannot hold the grove much longer, %p.  Hurry!\"",
          "\"The Wumpus could slay you or me in one blow. Yet you must traverse its cave...\"",
          "\"Trust your senses, stay on alert, and naught can take you by surprise.\"",
-         "\"%nC may summon its brethren to help. Do not get surrounded!\"",
+         "\"%nC may summon %nj brethren to help. Do not get surrounded!\"",
       },
       firsttime = {
          synopsis = "[The ancient forest grove is surrounded by centaurs.]",
@@ -2422,7 +2422,7 @@ You are in room 9 of the cave.  There are tunnels to rooms
          synopsis = "[You are still a %r!  Can you really do this?]",
          output = "text",
          text = [[
-"You are so young!  Still %rA!  Can you fight the centaurs?  Can you
+"You are so young!  Still %ra!  Can you fight the centaurs?  Can you
 really find and survive %i and take on %n?]],
       },
       nemesis_first = {
